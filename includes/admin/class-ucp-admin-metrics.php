@@ -4,6 +4,11 @@ if (!defined('ABSPATH')) {
 }
 
 class UCP_Admin_Metrics {
+    public static function cwv_summary() {
+        $summary = get_option('ucp_cwv_summary', array());
+        return is_array($summary) ? $summary : array();
+    }
+
     public static function get_onboarding_steps() {
         return array(
             __('Soort site', 'ultracache-pro'),
