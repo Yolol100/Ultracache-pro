@@ -209,9 +209,9 @@ class UCP_Admin_Assets_Controller {
     }
 
     protected static function filter_items($items) {
-        $search = isset($_GET['asset_search']) ? sanitize_text_field(wp_unslash($_GET['asset_search'])) : '';
-        $kind = isset($_GET['asset_kind']) ? sanitize_key(wp_unslash($_GET['asset_kind'])) : '';
-        $decision = isset($_GET['asset_decision']) ? sanitize_text_field(wp_unslash($_GET['asset_decision'])) : '';
+        $search = sanitize_text_field(UCP_Helpers::query_arg_string('asset_search'));
+        $kind = UCP_Helpers::query_arg_key('asset_kind');
+        $decision = sanitize_text_field(UCP_Helpers::query_arg_string('asset_decision'));
         return array_values(array_filter($items, function ($item) use ($search, $kind, $decision) {
             if ($kind && $item['kind'] !== $kind) {
                 return false;

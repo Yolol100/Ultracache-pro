@@ -4,6 +4,11 @@ if (!defined('ABSPATH')) {
 }
 
 class UCP_Admin_Metrics {
+    public static function cwv_summary() {
+        $summary = get_option('ucp_cwv_summary', array());
+        return is_array($summary) ? $summary : array();
+    }
+
     public static function get_onboarding_steps() {
         return array(
             __('Soort site', 'ultracache-pro'),
@@ -14,7 +19,7 @@ class UCP_Admin_Metrics {
     }
 
     public static function current_onboarding_step() {
-        $step = isset($_GET['setup_step']) ? absint(wp_unslash($_GET['setup_step'])) : 0;
+        $step = UCP_Helpers::query_arg_int('setup_step');
         return min(3, max(0, $step));
     }
 

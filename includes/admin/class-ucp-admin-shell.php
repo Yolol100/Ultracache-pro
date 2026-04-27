@@ -94,7 +94,7 @@ class UCP_Admin_Shell {
 
     public static function render_context($admin, $mode, $tab, $settings, $integrations, $tab_meta) {
         $admin->render_notices();
-        if (empty($settings['onboarding_completed']) && 'overview' === $tab && isset($_GET['onboarding']) && '1' === sanitize_text_field(wp_unslash($_GET['onboarding']))) {
+        if (empty($settings['onboarding_completed']) && 'overview' === $tab && '1' === sanitize_text_field(UCP_Helpers::query_arg_string('onboarding'))) {
             UCP_Admin_Tabs::render_onboarding_banner($admin, $settings, $integrations);
         }
     }

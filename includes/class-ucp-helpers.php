@@ -47,6 +47,38 @@ if (!function_exists('ucp_noop')) {
 }
 
 class UCP_Helpers {
+    public static function post_arg_string($key, $default = '') {
+        if (!isset($_POST[$key])) {
+            return (string) $default;
+        }
+        $value = wp_unslash($_POST[$key]);
+        return is_scalar($value) ? (string) $value : (string) $default;
+    }
+
+    public static function post_arg_key($key, $default = '') {
+        return sanitize_key(self::post_arg_string($key, $default));
+    }
+
+    public static function post_arg_int($key, $default = 0) {
+        return absint(self::post_arg_string($key, (string) $default));
+    }
+
+    public static function query_arg_string($key, $default = '') {
+        if (!isset($_GET[$key])) {
+            return (string) $default;
+        }
+        $value = wp_unslash($_GET[$key]);
+        return is_scalar($value) ? (string) $value : (string) $default;
+    }
+
+    public static function query_arg_key($key, $default = '') {
+        return sanitize_key(self::query_arg_string($key, $default));
+    }
+
+    public static function query_arg_int($key, $default = 0) {
+        return absint(self::query_arg_string($key, (string) $default));
+    }
+
     public static function is_managed_write_path($path) {
         if (!is_string($path) || '' === $path) {
             return false;

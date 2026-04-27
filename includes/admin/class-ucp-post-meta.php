@@ -107,7 +107,11 @@ class UCP_Post_Meta {
         if ((defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) || wp_is_post_revision($post_id) || wp_is_post_autosave($post_id)) {
             return;
         }
-        if (empty($_POST['ucp_post_meta_nonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['ucp_post_meta_nonce'])), 'ucp_save_post_meta')) {
+        if (!($post instanceof WP_Post)) {
+            return;
+        }
+        $nonce = sanitize_text_field(UCP_Helpers::post_arg_string('ucp_post_meta_nonce'));
+        if ('' === $nonce || !wp_verify_nonce($nonce, 'ucp_save_post_meta')) {
             return;
         }
         if (!current_user_can('edit_post', $post_id) || !in_array($post->post_type, self::supported_post_types(), true)) {

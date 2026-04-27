@@ -284,6 +284,24 @@ class UCP_Cache_Tags {
         return self::urls_for_tags(self::tags_for_post($post_id, $post));
     }
 
+    public static function purge_post($post_id, $post = null) {
+        $post_id = absint($post_id);
+        if (!$post_id) {
+            return 0;
+        }
+
+        $urls = self::urls_for_post($post_id, $post);
+        if (empty($urls)) {
+            return 0;
+        }
+
+        foreach ($urls as $url) {
+            self::remove_url($url);
+        }
+
+        return count($urls);
+    }
+
     public static function clear_all() {
         UCP_Helpers::safe_glob_delete(self::meta_dir() . '*.json');
         UCP_Helpers::safe_glob_delete(self::index_dir() . '*.json');

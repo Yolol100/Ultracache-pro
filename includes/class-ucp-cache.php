@@ -627,7 +627,7 @@ class UCP_Cache {
             wp_die(esc_html__('Geen toegang.', 'ultracache-pro'));
         }
         check_admin_referer('ucp_purge_url');
-        $url = isset($_GET['url']) ? esc_url_raw(wp_unslash($_GET['url'])) : home_url('/');
+        $url = esc_url_raw(UCP_Helpers::query_arg_string('url', home_url('/')));
         $this->purge_url($url);
         $this->queue_preload_url($url);
         wp_safe_redirect($this->redirect_back_url(array('purged' => 1)));
