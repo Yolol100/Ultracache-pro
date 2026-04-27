@@ -107,6 +107,9 @@ class UCP_Post_Meta {
         if ((defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) || wp_is_post_revision($post_id) || wp_is_post_autosave($post_id)) {
             return;
         }
+        if (!($post instanceof WP_Post)) {
+            return;
+        }
         if (empty($_POST['ucp_post_meta_nonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['ucp_post_meta_nonce'])), 'ucp_save_post_meta')) {
             return;
         }
