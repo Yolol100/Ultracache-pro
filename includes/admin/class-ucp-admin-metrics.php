@@ -19,7 +19,7 @@ class UCP_Admin_Metrics {
     }
 
     public static function current_onboarding_step() {
-        $step = isset($_GET['setup_step']) ? absint(wp_unslash($_GET['setup_step'])) : 0;
+        $step = UCP_Helpers::query_arg_int('setup_step');
         return min(3, max(0, $step));
     }
 

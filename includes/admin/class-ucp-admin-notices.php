@@ -50,7 +50,7 @@ class UCP_Admin_Notices {
     }
 
     public function hide_third_party_notices() {
-        $page = isset($_GET['page']) ? sanitize_key(wp_unslash($_GET['page'])) : '';
+        $page = UCP_Helpers::query_arg_key('page');
         if ('ultracache-pro' !== $page) {
             return;
         }
@@ -58,7 +58,7 @@ class UCP_Admin_Notices {
     }
 
     public function render_admin_notices() {
-        $page = isset($_GET['page']) ? sanitize_key(wp_unslash($_GET['page'])) : '';
+        $page = UCP_Helpers::query_arg_key('page');
         if ('ultracache-pro' !== $page) {
             return;
         }
@@ -115,10 +115,10 @@ class UCP_Admin_Notices {
             echo '<div class="notice notice-error is-dismissible ucp-notice"><p>' . esc_html__('De page-cache drop-in kon niet automatisch worden geplaatst. Controleer schrijfrechten op wp-content/advanced-cache.php en probeer opnieuw.', 'ultracache-pro') . '</p></div>';
         }
 
-        $jobs_retry_done = isset($_GET['jobs_retry_done']) ? absint(wp_unslash($_GET['jobs_retry_done'])) : 0;
-        $jobs_retry_conflicts = isset($_GET['jobs_retry_conflicts']) ? absint(wp_unslash($_GET['jobs_retry_conflicts'])) : 0;
-        $jobs_retry_missing = isset($_GET['jobs_retry_missing']) ? absint(wp_unslash($_GET['jobs_retry_missing'])) : 0;
-        $jobs_retry_errors = isset($_GET['jobs_retry_errors']) ? absint(wp_unslash($_GET['jobs_retry_errors'])) : 0;
+        $jobs_retry_done = UCP_Helpers::query_arg_int('jobs_retry_done');
+        $jobs_retry_conflicts = UCP_Helpers::query_arg_int('jobs_retry_conflicts');
+        $jobs_retry_missing = UCP_Helpers::query_arg_int('jobs_retry_missing');
+        $jobs_retry_errors = UCP_Helpers::query_arg_int('jobs_retry_errors');
 
         if ($jobs_retry_done > 0) {
             $message = sprintf(
