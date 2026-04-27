@@ -5,6 +5,16 @@ if (!defined('ABSPATH')) {
 
 class UCP_Admin_Notices {
     protected $admin;
+    const FLASH_OPTION = 'ucp_admin_flash_notice';
+
+    public static function flash($message, $type = 'success') {
+        $allowed = array('success', 'warning', 'error', 'info');
+        $payload = array(
+            'message' => sanitize_text_field((string) $message),
+            'type'    => in_array($type, $allowed, true) ? $type : 'info',
+        );
+        update_option(self::FLASH_OPTION, $payload, false);
+    }
 
     protected function current_tab() {
         return method_exists($this->admin, 'get_current_tab') ? (string) $this->admin->get_current_tab() : 'overview';
@@ -40,7 +50,7 @@ class UCP_Admin_Notices {
     }
 
     public function hide_third_party_notices() {
-        $page = isset($_GET['page']) ? sanitize_key(wp_unslash($_GET['page'])) : '';
+        $page = UCP_Helpers::query_arg_key('page');
         if ('ultracache-pro' !== $page) {
             return;
         }
@@ -48,9 +58,16 @@ class UCP_Admin_Notices {
     }
 
     public function render_admin_notices() {
-        $page = isset($_GET['page']) ? sanitize_key(wp_unslash($_GET['page'])) : '';
+        $page = UCP_Helpers::query_arg_key('page');
         if ('ultracache-pro' !== $page) {
             return;
+        }
+
+        $flash = get_option(self::FLASH_OPTION, array());
+        if (!empty($flash['message'])) {
+            $type = !empty($flash['type']) ? sanitize_html_class($flash['type']) : 'info';
+            echo '<div class="notice notice-' . esc_attr($type) . ' is-dismissible ucp-notice"><p>' . esc_html((string) $flash['message']) . '</p></div>';
+            delete_option(self::FLASH_OPTION);
         }
 
         $map = array(
@@ -98,10 +115,10 @@ class UCP_Admin_Notices {
             echo '<div class="notice notice-error is-dismissible ucp-notice"><p>' . esc_html__('De page-cache drop-in kon niet automatisch worden geplaatst. Controleer schrijfrechten op wp-content/advanced-cache.php en probeer opnieuw.', 'ultracache-pro') . '</p></div>';
         }
 
-        $jobs_retry_done = isset($_GET['jobs_retry_done']) ? absint(wp_unslash($_GET['jobs_retry_done'])) : 0;
-        $jobs_retry_conflicts = isset($_GET['jobs_retry_conflicts']) ? absint(wp_unslash($_GET['jobs_retry_conflicts'])) : 0;
-        $jobs_retry_missing = isset($_GET['jobs_retry_missing']) ? absint(wp_unslash($_GET['jobs_retry_missing'])) : 0;
-        $jobs_retry_errors = isset($_GET['jobs_retry_errors']) ? absint(wp_unslash($_GET['jobs_retry_errors'])) : 0;
+        $jobs_retry_done = UCP_Helpers::query_arg_int('jobs_retry_done');
+        $jobs_retry_conflicts = UCP_Helpers::query_arg_int('jobs_retry_conflicts');
+        $jobs_retry_missing = UCP_Helpers::query_arg_int('jobs_retry_missing');
+        $jobs_retry_errors = UCP_Helpers::query_arg_int('jobs_retry_errors');
 
         if ($jobs_retry_done > 0) {
             $message = sprintf(

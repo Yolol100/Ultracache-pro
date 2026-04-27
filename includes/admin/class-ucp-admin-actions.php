@@ -98,7 +98,7 @@ class UCP_Admin_Actions {
             wp_die(esc_html__('Geen toegang.', 'ultracache-pro'));
         }
         check_admin_referer('ucp_apply_easy_mode');
-        $mode = isset($_GET['mode']) ? sanitize_key(wp_unslash($_GET['mode'])) : 'safe_on';
+        $mode = UCP_Helpers::query_arg_key('mode', 'safe_on');
         if ('safe_off' === $mode) {
             UCP_Presets::apply('safe_off');
             wp_safe_redirect($this->admin->tab_url_public('overview', array('easy_mode' => 'off')));
@@ -114,7 +114,7 @@ class UCP_Admin_Actions {
             wp_die(esc_html__('Geen toegang.', 'ultracache-pro'));
         }
         check_admin_referer('ucp_apply_preset');
-        $preset = isset($_GET['preset']) ? sanitize_key(wp_unslash($_GET['preset'])) : '';
+        $preset = UCP_Helpers::query_arg_key('preset');
         UCP_Presets::apply($preset);
         wp_safe_redirect(admin_url('admin.php?page=ultracache-pro&preset=1'));
         exit;
@@ -335,7 +335,7 @@ full-width");
             UCP_Compat::store_conflict_snapshot();
         }
 
-        $redirect_tab = isset($_GET['redirect_tab']) ? sanitize_key(wp_unslash($_GET['redirect_tab'])) : 'overview';
+        $redirect_tab = UCP_Helpers::query_arg_key('redirect_tab', 'overview');
         wp_safe_redirect($this->admin->tab_url_public($redirect_tab, $args));
         exit;
     }
@@ -460,7 +460,7 @@ full-width");
     public function start_crawler() {
         if (!current_user_can('manage_options')) { wp_die(esc_html__('Geen toegang.', 'ultracache-pro')); }
         check_admin_referer('ucp_start_crawler');
-        $mode = isset($_GET['mode']) ? sanitize_key(wp_unslash($_GET['mode'])) : UCP_Options::get('crawler_mode', 'sitemap');
+        $mode = UCP_Helpers::query_arg_key('mode', UCP_Options::get('crawler_mode', 'sitemap'));
         if (class_exists('UCP_Crawler')) { UCP_Crawler::start($mode); }
         wp_safe_redirect($this->admin->tab_url_public('preload', array('crawler_started' => 1)));
         exit;
@@ -477,7 +477,7 @@ full-width");
     public function set_serve_mode() {
         if (!current_user_can('manage_options')) { wp_die(esc_html__('Geen toegang.', 'ultracache-pro')); }
         check_admin_referer('ucp_set_serve_mode');
-        $mode = isset($_GET['mode']) ? sanitize_key(wp_unslash($_GET['mode'])) : 'safe';
+        $mode = UCP_Helpers::query_arg_key('mode', 'safe');
         if (class_exists('UCP_Serve_Mode')) { UCP_Serve_Mode::set_mode($mode); }
         wp_safe_redirect($this->admin->tab_url_public('expert', array('serve_mode_changed' => 1)));
         exit;

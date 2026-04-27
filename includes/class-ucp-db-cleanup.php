@@ -13,7 +13,7 @@ class UCP_DB_Cleanup {
             wp_die(esc_html__('Unauthorized.', 'ultracache-pro'));
         }
         check_admin_referer('ucp_run_db_cleanup');
-        $confirmed = isset($_GET['confirm']) ? sanitize_text_field(wp_unslash($_GET['confirm'])) : '';
+        $confirmed = sanitize_text_field(UCP_Helpers::query_arg_string('confirm'));
         if ('yes' !== $confirmed) {
             wp_safe_redirect(admin_url('admin.php?page=ultracache-pro&tab=tools&db_cleanup_confirm=1'));
             exit;
