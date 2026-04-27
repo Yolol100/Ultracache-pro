@@ -1,0 +1,95 @@
+/* Responsive admin behavior */
+@media (max-width: 1180px) {
+  .ucp-workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .ucp-sidebar {
+    position: static;
+  }
+
+  .ucp-tabs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .ucp-layout-grid--2,
+  .ucp-layout-grid--3,
+  .ucp-status-grid,
+  .ucp-tools-grid,
+  .ucp-runtime-grid,
+  .ucp-dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 782px) {
+  #wpbody-content > .wrap.ucp-wrap {
+    margin-right: 10px;
+  }
+
+  .ucp-header,
+  .ucp-page-title,
+  .ucp-card--hero,
+  .ucp-section-simple {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .ucp-header__status,
+  .ucp-page-actions,
+  .ucp-card__actions {
+    justify-content: flex-start;
+  }
+
+  .ucp-tabs,
+  .ucp-transaction-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ucp-compat-row,
+  .ucp-rule-row {
+    grid-template-columns: 1fr;
+  }
+
+  .ucp-submit-row {
+    bottom: 10px;
+    flex-direction: column;
+  }
+
+  .ucp-submit-row .ucp-button {
+    justify-content: center;
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ucp-admin *,
+  .ucp-admin *::before,
+  .ucp-admin *::after {
+    transition: none !important;
+  }
+}
+
+@media (max-width: 960px) {
+  .ucp-field-row,
+  .ucp-cache-basics-grid,
+  .ucp-field-row--2,
+  .ucp-layout-grid--2,
+  .ucp-transaction-grid { grid-template-columns: 1fr; }
+  .ucp-panel__header,
+  .ucp-page-title { align-items: flex-start; flex-direction: column; }
+  .ucp-page-title__actions,
+  .ucp-panel__actions { justify-content: flex-start; width: 100%; }
+}
+
+@media (max-width: 1280px) {
+  .ucp-speed-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ucp-speed-pills { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 860px) {
+  .ucp-speed-hero { grid-template-columns: 1fr; }
+  .ucp-speed-score { min-width: 0; width: 100%; }
+  .ucp-simple-toggle-grid { grid-template-columns: 1fr; }
+  .ucp-speed-grid, .ucp-speed-pills { grid-template-columns: 1fr; }
+}

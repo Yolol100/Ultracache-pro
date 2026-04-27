@@ -1,0 +1,63 @@
+/* UltraCache Pro post/page/product metabox */
+.ucp-metabox,
+.ucp-metabox * {
+  box-sizing: border-box;
+}
+
+.ucp-metabox {
+  color: #172033;
+  display: grid;
+  gap: 12px;
+}
+
+.ucp-metabox__intro {
+  color: #657084;
+  margin: 0;
+}
+
+.ucp-metabox__field {
+  display: grid;
+  gap: 6px;
+}
+
+.ucp-metabox__field span,
+.ucp-metabox__group summary {
+  color: #0f172a;
+  font-weight: 700;
+}
+
+.ucp-metabox select {
+  max-width: 100%;
+  width: 100%;
+}
+
+.ucp-metabox__group {
+  border: 1px solid #dfe5ef;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.ucp-metabox__group summary {
+  background: #f8fafc;
+  cursor: pointer;
+  padding: 9px 10px;
+}
+
+.ucp-metabox__toggle {
+  align-items: flex-start;
+  border-top: 1px solid #eef2f7;
+  display: flex;
+  gap: 8px;
+  padding: 9px 10px;
+}
+
+.ucp-metabox__toggle input {
+  margin-top: 2px;
+}
+
+.ucp-metabox input:focus-visible,
+.ucp-metabox select:focus {
+  border-color: #3157ff;
+  box-shadow: 0 0 0 3px rgba(49, 87, 255, 0.22);
+  outline: none;
+}

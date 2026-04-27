@@ -1,0 +1,124 @@
+/* Page-specific UI patterns */
+.ucp-transaction-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.ucp-compat-table {
+  border: 1px solid var(--ucp-border);
+  border-radius: var(--ucp-radius);
+  overflow: hidden;
+}
+
+.ucp-compat-row {
+  align-items: center;
+  background: #ffffff;
+  border-bottom: 1px solid var(--ucp-border);
+  display: grid;
+  gap: 14px;
+  grid-template-columns: 220px minmax(0, 1fr);
+  padding: 12px 14px;
+}
+
+.ucp-compat-row:last-child {
+  border-bottom: 0;
+}
+
+.ucp-empty-state {
+  color: var(--ucp-muted);
+  text-align: center;
+}
+
+.ucp-tools-grid,
+.ucp-runtime-grid,
+.ucp-dashboard-grid {
+  display: grid;
+  gap: 18px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.ucp-toolbar {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.ucp-js-advanced-grid,
+.ucp-js-advanced-grid--live {
+  display: grid;
+  gap: 16px;
+}
+
+.ucp-rule-row {
+  align-items: center;
+  border: 1px solid var(--ucp-border);
+  border-radius: 14px;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(5, minmax(0, 1fr)) auto;
+  padding: 12px;
+}
+
+/* Release hardening 4.26.1: page-specific spacing and dashboard polish */
+.ucp-simple-status-card,
+.ucp-dashboard-card,
+.ucp-cache-start-card,
+.ucp-cache-basics-panel { background: var(--ucp-card); border: 1px solid var(--ucp-border); border-radius: var(--ucp-radius-lg); box-shadow: var(--ucp-shadow-soft); padding: 18px; }
+.ucp-simple-status-card { display: grid; gap: 6px; }
+.ucp-simple-status-card span { color: var(--ucp-muted); font-size: 12px; font-weight: 800; text-transform: uppercase; }
+.ucp-simple-status-card strong { color: var(--ucp-heading); font-size: 15px; }
+.ucp-simple-status-card p { color: var(--ucp-muted); margin: 0; }
+.ucp-cache-screen,
+.ucp-tools-screen,
+.ucp-media-screen,
+.ucp-preload-screen { display: grid; gap: 18px; }
+.ucp-transaction-grid .ucp-mini-check { min-height: 76px; }
+.ucp-tools-section,
+.ucp-tools-actions { display: grid; gap: 12px; }
+.ucp-toolbar + .ucp-toolbar,
+.ucp-tools-actions + .ucp-tools-actions { margin-top: 8px; }
+
+/* 4.27.0 simplified premium dashboard */
+.ucp-speed-hero {
+  align-items: center;
+  background: radial-gradient(circle at top left, rgba(49, 87, 255, 0.12), transparent 34%), linear-gradient(135deg, #ffffff, #f7f9ff);
+  border: 1px solid var(--ucp-border);
+  border-radius: 24px;
+  box-shadow: var(--ucp-shadow);
+  display: grid;
+  gap: 24px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  margin-bottom: 20px;
+  padding: 28px;
+}
+.ucp-speed-hero--compact { padding: 24px; }
+.ucp-speed-hero h2 { font-size: 32px; line-height: 1.1; margin: 0 0 8px; }
+.ucp-speed-hero p { color: var(--ucp-muted); font-size: 15px; margin: 0; max-width: 720px; }
+.ucp-speed-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+.ucp-speed-score { align-items: center; background: var(--ucp-primary); border-radius: 24px; color: #fff; display: flex; flex-direction: column; justify-content: center; min-height: 138px; min-width: 160px; padding: 20px; text-align: center; }
+.ucp-speed-score strong { font-size: 44px; line-height: 1; }
+.ucp-speed-score span { font-weight: 800; margin-top: 8px; }
+.ucp-speed-grid { display: grid; gap: 16px; grid-template-columns: repeat(4, minmax(0, 1fr)); margin-bottom: 20px; }
+.ucp-speed-card { border-top: 4px solid var(--ucp-border); }
+.ucp-speed-card.is-good { border-top-color: var(--ucp-success); }
+.ucp-speed-card.is-warning { border-top-color: var(--ucp-warning); }
+.ucp-speed-card h3 { font-size: 22px; margin: 6px 0 8px; }
+.ucp-speed-card p { color: var(--ucp-muted); margin: 0 0 12px; }
+.ucp-speed-card__label { color: var(--ucp-primary); font-size: 12px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; }
+.ucp-inline-link { color: var(--ucp-primary); font-weight: 800; text-decoration: none; }
+.ucp-speed-pills { display: grid; gap: 10px; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.ucp-speed-pill { align-items: center; border: 1px solid var(--ucp-border); border-radius: 16px; display: flex; justify-content: space-between; padding: 12px 14px; }
+.ucp-speed-pill.is-on { background: var(--ucp-success-soft); border-color: rgba(22,163,74,.26); }
+.ucp-speed-pill.is-off { background: #f8fafc; }
+.ucp-speed-pill small { border-radius: 999px; font-weight: 900; padding: 4px 8px; }
+.ucp-speed-pill.is-on small { background: #dcfce7; color: #166534; }
+.ucp-speed-pill.is-off small { background: #eef2f7; color: var(--ucp-muted); }
+.ucp-simple-toggle-grid { display: grid; gap: 12px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.ucp-simple-toggle .ucp-field { height: 100%; }
+.ucp-safe-off-list { margin-top: 18px; }
+.ucp-notice--premium { background: #fff; border: 1px solid var(--ucp-border); border-left: 4px solid var(--ucp-warning); border-radius: 16px; box-shadow: var(--ucp-shadow-soft); margin: 0 0 18px; padding: 16px 18px; }
+.ucp-notice--premium.notice-success { border-left-color: var(--ucp-success); }
+.ucp-notice--premium.notice-info { border-left-color: var(--ucp-info); }
+.ucp-notice--premium.notice-error { border-left-color: var(--ucp-danger); }

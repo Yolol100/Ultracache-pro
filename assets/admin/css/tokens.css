@@ -1,0 +1,34 @@
+/* UltraCache Pro admin design tokens */
+:root {
+  --ucp-primary: #3157ff;
+  --ucp-primary-dark: #203bb8;
+  --ucp-primary-soft: #eef2ff;
+  --ucp-success: #16a34a;
+  --ucp-success-soft: #ecfdf3;
+  --ucp-warning: #f59e0b;
+  --ucp-warning-soft: #fffbeb;
+  --ucp-danger: #dc2626;
+  --ucp-danger-soft: #fef2f2;
+  --ucp-info: #0284c7;
+  --ucp-info-soft: #eff6ff;
+  --ucp-bg: #f6f8fb;
+  --ucp-card: #ffffff;
+  --ucp-border: #dfe5ef;
+  --ucp-border-strong: #cbd5e1;
+  --ucp-text: #172033;
+  --ucp-heading: #0f172a;
+  --ucp-muted: #657084;
+  --ucp-muted-soft: #94a3b8;
+  --ucp-radius: 14px;
+  --ucp-radius-lg: 20px;
+  --ucp-shadow: 0 12px 34px rgba(15, 23, 42, 0.07);
+  --ucp-shadow-soft: 0 1px 2px rgba(15, 23, 42, 0.06);
+  --ucp-focus: 0 0 0 3px rgba(49, 87, 255, 0.22);
+  --ucp-space-1: 4px;
+  --ucp-space-2: 8px;
+  --ucp-space-3: 12px;
+  --ucp-space-4: 16px;
+  --ucp-space-5: 20px;
+  --ucp-space-6: 24px;
+  --ucp-space-8: 32px;
+}

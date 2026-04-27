@@ -1,0 +1,73 @@
+/* Scoped base rules for UltraCache Pro admin pages */
+body.wp-admin.toplevel_page_ultracache-pro,
+body.wp-admin.ultracache_page_ultracache-pro {
+  background: var(--ucp-bg);
+}
+
+#wpbody-content > .wrap.ucp-wrap {
+  margin: 0 20px 0 0;
+  max-width: none;
+}
+
+.ucp-wrap,
+.ucp-wrap * {
+  box-sizing: border-box;
+}
+
+.ucp-admin {
+  color: var(--ucp-text);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.ucp-admin a {
+  color: var(--ucp-primary);
+  text-underline-offset: 3px;
+}
+
+.ucp-admin h1,
+.ucp-admin h2,
+.ucp-admin h3 {
+  color: var(--ucp-heading);
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  margin: 0;
+}
+
+.ucp-admin h1 { font-size: 26px; }
+.ucp-admin h2 { font-size: 20px; }
+.ucp-admin h3 { font-size: 16px; }
+
+.ucp-admin p {
+  color: var(--ucp-muted);
+  margin: 0;
+}
+
+.ucp-admin ul,
+.ucp-admin ol {
+  margin-bottom: 0;
+}
+
+.ucp-tab:focus-visible,
+.ucp-button:focus-visible,
+.ucp-admin input:focus,
+.ucp-admin select:focus,
+.ucp-admin textarea:focus {
+  border-color: var(--ucp-primary);
+  box-shadow: var(--ucp-focus);
+  outline: none;
+}
+
+.ucp-muted {
+  color: var(--ucp-muted);
+}
+
+.ucp-sr-only {
+  clip: rect(1px, 1px, 1px, 1px);
+  clip-path: inset(50%);
+  height: 1px;
+  overflow: hidden;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
+}

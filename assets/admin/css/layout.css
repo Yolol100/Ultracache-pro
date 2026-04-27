@@ -1,0 +1,181 @@
+/* Admin shell, header, navigation and page layout */
+.ucp-header {
+  align-items: center;
+  background: linear-gradient(135deg, #ffffff, #f8fbff);
+  border: 1px solid var(--ucp-border);
+  border-radius: var(--ucp-radius-lg);
+  box-shadow: var(--ucp-shadow-soft);
+  display: flex;
+  gap: 18px;
+  justify-content: space-between;
+  margin: 22px 0 20px;
+  padding: 18px 20px;
+}
+
+.ucp-brand {
+  align-items: center;
+  display: flex;
+  gap: 14px;
+}
+
+.ucp-brand__mark {
+  background: linear-gradient(135deg, var(--ucp-primary), #6d7dff);
+  border-radius: 14px;
+  box-shadow: 0 10px 20px rgba(49, 87, 255, 0.22);
+  color: #ffffff;
+  display: inline-grid;
+  font-size: 22px;
+  font-weight: 800;
+  height: 44px;
+  place-items: center;
+  width: 44px;
+}
+
+.ucp-brand h1 {
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.ucp-brand p,
+.ucp-header__status {
+  color: var(--ucp-muted);
+}
+
+.ucp-header__status {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.ucp-workspace {
+  align-items: start;
+  display: grid;
+  gap: 22px;
+  grid-template-columns: 250px minmax(0, 1fr);
+}
+
+.ucp-workspace__main {
+  display: grid;
+  gap: 20px;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  min-width: 0;
+}
+
+.ucp-workspace__main > *,
+.ucp-workspace__main > form,
+.ucp-grid,
+.ucp-workspace__main > section {
+  grid-column: 1 / -1;
+}
+
+.ucp-sidebar {
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid var(--ucp-border);
+  border-radius: var(--ucp-radius-lg);
+  box-shadow: var(--ucp-shadow);
+  padding: 10px;
+  position: sticky;
+  top: 44px;
+}
+
+.ucp-tabs {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ucp-tab {
+  align-items: center;
+  border: 1px solid transparent;
+  border-radius: 14px;
+  color: var(--ucp-text);
+  display: grid;
+  gap: 11px;
+  grid-template-columns: 24px minmax(0, 1fr);
+  min-height: 54px;
+  padding: 10px 12px;
+  text-decoration: none;
+  transition: background-color 0.16s ease, border-color 0.16s ease, color 0.16s ease;
+}
+
+.ucp-tab .dashicons {
+  color: #64748b;
+  font-size: 20px;
+  height: 22px;
+  width: 22px;
+}
+
+.ucp-tab:hover {
+  background: #f8fafc;
+  color: var(--ucp-primary-dark);
+}
+
+.ucp-tab[aria-current='page'] {
+  background: var(--ucp-primary-soft);
+  border-color: rgba(49, 87, 255, 0.18);
+  color: var(--ucp-primary-dark);
+  font-weight: 700;
+}
+
+.ucp-tab[aria-current='page'] .dashicons {
+  color: var(--ucp-primary);
+}
+
+.ucp-tab__label {
+  display: block;
+  font-weight: 700;
+}
+
+.ucp-tab__meta {
+  color: var(--ucp-muted);
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+  margin-top: 2px;
+}
+
+.ucp-page-title {
+  align-items: flex-end;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+}
+
+.ucp-page-title h2 {
+  font-size: 28px;
+  margin-bottom: 6px;
+}
+
+.ucp-page-actions,
+.ucp-card__actions,
+.ucp-actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.ucp-layout-grid,
+.ucp-status-grid,
+.ucp-grid {
+  display: grid;
+  gap: 18px;
+}
+
+.ucp-layout-grid--2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.ucp-layout-grid--3,
+.ucp-status-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.ucp-section-simple,
+.ucp-card--hero {
+  align-items: center;
+  display: flex;
+  gap: 24px;
+  justify-content: space-between;
+}

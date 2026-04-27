@@ -1,0 +1,112 @@
+/* Settings forms and controls */
+.ucp-setting-list {
+  display: grid;
+  gap: 12px;
+}
+
+.ucp-field,
+.ucp-setting-row,
+.ucp-checkbox {
+  background: #f8fafc;
+  border: 1px solid var(--ucp-border);
+  border-radius: 14px;
+  padding: 14px;
+}
+
+.ucp-field label,
+.ucp-setting-row label,
+.ucp-checkbox label {
+  color: var(--ucp-heading);
+  font-weight: 800;
+}
+
+.ucp-field__help,
+.ucp-description,
+.ucp-help,
+.ucp-admin .description {
+  color: var(--ucp-muted);
+  font-size: 13px;
+  margin-top: 6px;
+}
+
+.ucp-admin input[type='text'],
+.ucp-admin input[type='number'],
+.ucp-admin input[type='url'],
+.ucp-admin input[type='email'],
+.ucp-admin input[type='password'],
+.ucp-admin select,
+.ucp-admin textarea {
+  border-color: var(--ucp-border-strong);
+  border-radius: 10px;
+  max-width: 100%;
+}
+
+.ucp-admin textarea {
+  min-height: 96px;
+  width: 100%;
+}
+
+.ucp-checkbox {
+  align-items: flex-start;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: auto minmax(0, 1fr);
+}
+
+.ucp-checkbox input[type='checkbox'] {
+  margin-top: 3px;
+}
+
+.ucp-toggle {
+  align-items: center;
+  display: inline-flex;
+  gap: 10px;
+}
+
+.ucp-submit-row {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid var(--ucp-border);
+  border-radius: var(--ucp-radius-lg);
+  bottom: 20px;
+  box-shadow: var(--ucp-shadow);
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 20px;
+  padding: 14px;
+  position: sticky;
+  z-index: 20;
+}
+
+.ucp-field.is-disabled,
+.ucp-checkbox.is-disabled,
+.ucp-setting-row.is-disabled {
+  opacity: 0.55;
+}
+
+.ucp-field.is-hidden-by-logic,
+.ucp-checkbox.is-hidden-by-logic,
+.ucp-setting-row.is-hidden-by-logic {
+  display: none;
+}
+
+/* Release hardening 4.26.1: form rhythm on settings pages */
+.ucp-workspace__main > form { display: grid; gap: 18px; }
+.ucp-field-row,
+.ucp-cache-basics-grid,
+.ucp-field-row--2,
+.ucp-layout-grid--2 { display: grid; gap: 14px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.ucp-wpr-options-list,
+.ucp-setting-group,
+.ucp-cache-column { display: grid; gap: 10px; }
+.ucp-field-surface > span:first-child,
+.ucp-checkbox__label,
+.ucp-field > span:first-child { color: var(--ucp-heading); font-weight: 800; }
+.ucp-field-surface small,
+.ucp-checkbox__help { color: var(--ucp-muted); display: inline-block; font-size: 12px; line-height: 1.5; margin-top: 4px; }
+.ucp-admin textarea { min-height: 120px; resize: vertical; }
+.ucp-admin input[type='number'] { width: 92px; }
+.ucp-field__messages { display: grid; gap: 4px; margin-top: 8px; }
+.ucp-field__warning,
+.ucp-field__reason { background: var(--ucp-warning-soft); border-radius: 8px; color: #92400e; display: inline-block; font-size: 12px; padding: 6px 8px; }

@@ -1,0 +1,55 @@
+(function (app) {
+  'use strict';
+  if (!app) return;
+
+  app.onReady(function () {
+    const rulesContainer = document.getElementById('ucp-rules-container');
+    const addRuleButton = document.getElementById('ucp-add-rule');
+
+    function bindRuleRowActions(row) {
+      const deleteButton = row.querySelector('.ucp-delete-rule');
+      const upButton = row.querySelector('.ucp-move-up');
+      const downButton = row.querySelector('.ucp-move-down');
+
+      if (deleteButton) {
+        deleteButton.addEventListener('click', function () {
+          row.remove();
+          app.markDirty(row.closest('form'));
+        });
+      }
+      if (upButton) {
+        upButton.addEventListener('click', function () {
+          const prev = row.previousElementSibling;
+          if (prev) {
+            rulesContainer.insertBefore(row, prev);
+            app.markDirty(row.closest('form'));
+          }
+        });
+      }
+      if (downButton) {
+        downButton.addEventListener('click', function () {
+          const next = row.nextElementSibling;
+          if (next) {
+            rulesContainer.insertBefore(next, row);
+            app.markDirty(row.closest('form'));
+          }
+        });
+      }
+    }
+
+    if (rulesContainer) {
+      rulesContainer.querySelectorAll('[data-rule-row]').forEach(bindRuleRowActions);
+    }
+
+    if (addRuleButton && rulesContainer && window.ucpAdmin && ucpAdmin.ruleRow) {
+      addRuleButton.addEventListener('click', function () {
+        const index = Date.now();
+        const html = ucpAdmin.ruleRow.replace(/__INDEX__/g, String(index));
+        rulesContainer.insertAdjacentHTML('beforeend', html);
+        const row = rulesContainer.lastElementChild;
+        if (row) bindRuleRowActions(row);
+        app.markDirty(rulesContainer.closest('form'));
+      });
+    }
+  });
+}(window.UCPAdminApp));
