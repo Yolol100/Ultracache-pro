@@ -5,6 +5,16 @@ if (!defined('ABSPATH')) {
 
 class UCP_Admin_Notices {
     protected $admin;
+    const FLASH_OPTION = 'ucp_admin_flash_notice';
+
+    public static function flash($message, $type = 'success') {
+        $allowed = array('success', 'warning', 'error', 'info');
+        $payload = array(
+            'message' => sanitize_text_field((string) $message),
+            'type'    => in_array($type, $allowed, true) ? $type : 'info',
+        );
+        update_option(self::FLASH_OPTION, $payload, false);
+    }
 
     protected function current_tab() {
         return method_exists($this->admin, 'get_current_tab') ? (string) $this->admin->get_current_tab() : 'overview';
@@ -51,6 +61,13 @@ class UCP_Admin_Notices {
         $page = isset($_GET['page']) ? sanitize_key(wp_unslash($_GET['page'])) : '';
         if ('ultracache-pro' !== $page) {
             return;
+        }
+
+        $flash = get_option(self::FLASH_OPTION, array());
+        if (!empty($flash['message'])) {
+            $type = !empty($flash['type']) ? sanitize_html_class($flash['type']) : 'info';
+            echo '<div class="notice notice-' . esc_attr($type) . ' is-dismissible ucp-notice"><p>' . esc_html((string) $flash['message']) . '</p></div>';
+            delete_option(self::FLASH_OPTION);
         }
 
         $map = array(

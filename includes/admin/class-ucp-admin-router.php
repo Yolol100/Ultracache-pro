@@ -68,4 +68,8 @@ final class UCP_Admin_Router {
     public static function tab_url($tab, $args = array()) {
         return self::admin_page_url('ultracache-pro', wp_parse_args($args, array('tab' => self::normalize_tab($tab))));
     }
+
+    public static function url($tab = 'overview', $args = array()) {
+        return self::tab_url($tab, $args);
+    }
 }
