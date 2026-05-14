@@ -1,8 +1,10 @@
 <?php
 /**
- * Plugin Name: UltraCache Pro
+ * Plugin Name: Ultracache Pro
  * Description: Premium modular WordPress performance suite with cache, optimization, automation, edge integrations and visual asset control.
- * Version: 4.22.6.1
+ * Version: 1.0.0
+ * GitHub Plugin URI: Yolol100/Ultracache-pro
+ * Primary Branch: main
  * Author: UltraCache Pro
  * Text Domain: ultracache-pro
  * Domain Path: /languages
@@ -17,7 +19,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('UCP_VERSION', '4.22.6.1');
+define('UCP_VERSION', '1.0.0');
 define('UCP_FILE', __FILE__);
 define('UCP_PATH', plugin_dir_path(__FILE__));
 define('UCP_URL', plugin_dir_url(__FILE__));
