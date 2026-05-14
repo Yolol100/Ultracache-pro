@@ -1,0 +1,16 @@
+# Copyright (C) 2026 UltraCache Pro
+# This file is distributed under the GPLv2 or later.
+msgid ""
+msgstr ""
+"Project-Id-Version: UltraCache Pro 4.22.6.1\n"
+"Report-Msgid-Bugs-To: https://webactueel.nl\n"
+"POT-Creation-Date: 2026-04-24 00:00+0000\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: ChatGPT cleanup\n"
+"X-Domain: ultracache-pro\n"
+
+#: includes/optimization/traits/ucp-optimizer-media-trait.php:640
+msgid "Play YouTube video"
+msgstr ""
