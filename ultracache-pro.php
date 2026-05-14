@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Ultracache Pro
  * Description: Premium modular WordPress performance suite with cache, optimization, automation, edge integrations and visual asset control.
- * Version: 1.0.0
+ * Version: 4.22.6.1
  * GitHub Plugin URI: Yolol100/Ultracache-pro
  * Primary Branch: main
  * Author: UltraCache Pro
