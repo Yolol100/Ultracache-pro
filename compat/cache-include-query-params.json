@@ -1,4 +1,0 @@
-[
-  "lang", "currency", "orderby", "min_price", "max_price", "rating_filter",
-  "filter", "filter_*", "query_type_*", "product_cat", "product_tag", "s", "post_type", "paged", "page"
-]
