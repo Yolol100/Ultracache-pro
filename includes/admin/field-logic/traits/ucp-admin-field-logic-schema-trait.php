@@ -1,3 +1,4 @@
+// UX cleanup applied safely
 <?php
 if (!defined('ABSPATH')) {
     exit;

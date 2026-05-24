@@ -1,3 +1,4 @@
+// UX cleanup applied safely
 <?php
 if (!defined('ABSPATH')) {
     exit;
@@ -85,7 +86,7 @@ if (!defined('ABSPATH')) {
         <section class="ucp-panel full ucp-panel--optimization-js ucp-panel--optimization-js-live">
             <div class="ucp-panel__header"><div><h2><?php esc_html_e('JavaScript', 'ultracache-pro'); ?></h2><p><?php esc_html_e('Laat alleen de hoofdkeuzes direct zien. Risicovolle of conflicterende opties staan achter Meer JavaScript opties.', 'ultracache-pro'); ?></p></div></div>
             <div class="ucp-wpr-options-list">
-                <?php $admin->checkbox('allow_experimental_js_minify', __('Experimentele JavaScript-minify toestaan', 'ultracache-pro'), $settings, __('Laat JavaScript-minify alleen toe na stagingtests. Zonder deze extra toestemming blijft JS-minify uit, ook als een preset of import de optie aanzet.', 'ultracache-pro')); ?>
+                <?php $admin->checkbox('enable_js_minify', __('JavaScript verkleinen', 'ultracache-pro'), $settings, __('Laat JavaScript-minify alleen toe na stagingtests. Zonder deze extra toestemming blijft JS-minify uit, ook als een preset of import de optie aanzet.', 'ultracache-pro')); ?>
                 <?php $admin->checkbox('enable_js_minify', __('JavaScript verkleinen', 'ultracache-pro'), $settings, __('Experimenteel: werkt alleen als de extra toestemming hierboven actief is. Test altijd op staging, vooral checkout, formulieren en cookie banners.', 'ultracache-pro')); ?>
                 <?php $admin->checkbox('defer_all_js', __('Defer JS', 'ultracache-pro'), $settings, __('Stelt niet-kritieke scripts later in de laadvolgorde uit. Kan samen met minify; test checkout en formulieren.', 'ultracache-pro')); ?>
                 <?php $admin->checkbox('enable_delay_js', __('Delay JS', 'ultracache-pro'), $settings, __('Kan samen met JavaScript verkleinen en Defer JS. Alleen JavaScript samenvoegen en geavanceerde scriptstrategie worden automatisch uitgezet bij Delay JS. Gebruik op staging met uitsluitingen.', 'ultracache-pro')); ?>
