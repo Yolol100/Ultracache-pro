@@ -1,0 +1,40 @@
+(function () {
+    'use strict';
+
+    function dismiss(toast) {
+        if (!toast || toast.classList.contains('is-dismissing')) {
+            return;
+        }
+        toast.classList.add('is-dismissing');
+        window.setTimeout(function () {
+            if (toast.parentNode) {
+                toast.parentNode.removeChild(toast);
+            }
+        }, 220);
+    }
+
+    function init() {
+        var toast = document.querySelector('[data-ucp-cache-toast]');
+        if (!toast) {
+            return;
+        }
+
+        var close = toast.querySelector('[data-ucp-cache-toast-close]');
+        var timer = window.setTimeout(function () {
+            dismiss(toast);
+        }, 4600);
+
+        if (close) {
+            close.addEventListener('click', function () {
+                window.clearTimeout(timer);
+                dismiss(toast);
+            });
+        }
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+}());

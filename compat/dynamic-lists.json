@@ -1,0 +1,603 @@
+[
+  {
+    "id": "ucp-elementor",
+    "plugin": "elementor",
+    "name": "Elementor",
+    "conditions": {
+      "plugin_slug": "elementor"
+    },
+    "exclusions": [
+      "elementor-frontend",
+      "elementor-pro-frontend",
+      "frontend-modules",
+      "swiper"
+    ],
+    "summary": "Compatibility exclusion set for Elementor"
+  },
+  {
+    "id": "ucp-woocommerce",
+    "plugin": "woocommerce",
+    "name": "WooCommerce",
+    "conditions": {
+      "plugin_slug": "woocommerce"
+    },
+    "exclusions": [
+      "woocommerce",
+      "wc-cart-fragments",
+      "wc-checkout",
+      "js-cookie"
+    ],
+    "summary": "Compatibility exclusion set for WooCommerce"
+  },
+  {
+    "id": "ucp-divi",
+    "plugin": "divi",
+    "name": "Divi",
+    "conditions": {
+      "theme": "Divi"
+    },
+    "exclusions": [
+      "et-builder",
+      "Divi",
+      "et-core"
+    ],
+    "summary": "Compatibility exclusion set for Divi"
+  },
+  {
+    "id": "ucp-bricks",
+    "plugin": "bricks",
+    "name": "Bricks",
+    "conditions": {
+      "theme": "bricks"
+    },
+    "exclusions": [
+      "bricks-frontend",
+      "bricks"
+    ],
+    "summary": "Compatibility exclusion set for Bricks"
+  },
+  {
+    "id": "ucp-wpforms",
+    "plugin": "wpforms",
+    "name": "WPForms",
+    "conditions": {
+      "plugin_slug": "wpforms"
+    },
+    "exclusions": [
+      "wpforms",
+      "wpforms-lite"
+    ],
+    "summary": "Compatibility exclusion set for WPForms"
+  },
+  {
+    "id": "ucp-gravityforms",
+    "plugin": "gravityforms",
+    "name": "Gravity Forms",
+    "conditions": {
+      "plugin_slug": "gravityforms"
+    },
+    "exclusions": [
+      "gform",
+      "gravityforms"
+    ],
+    "summary": "Compatibility exclusion set for Gravity Forms"
+  },
+  {
+    "id": "ucp-contact-form-7",
+    "plugin": "contact-form-7",
+    "name": "Contact Form 7",
+    "conditions": {
+      "plugin_slug": "contact-form-7"
+    },
+    "exclusions": [
+      "wpcf7",
+      "contact-form-7"
+    ],
+    "summary": "Compatibility exclusion set for Contact Form 7"
+  },
+  {
+    "id": "ucp-complianz-gdpr",
+    "plugin": "complianz-gdpr",
+    "name": "Complianz",
+    "conditions": {
+      "plugin_slug": "complianz-gdpr"
+    },
+    "exclusions": [
+      "complianz",
+      "cmplz"
+    ],
+    "summary": "Compatibility exclusion set for Complianz"
+  },
+  {
+    "id": "ucp-cookiebot",
+    "plugin": "cookiebot",
+    "name": "Cookiebot",
+    "conditions": {
+      "plugin_slug": "cookiebot"
+    },
+    "exclusions": [
+      "cookiebot"
+    ],
+    "summary": "Compatibility exclusion set for Cookiebot"
+  },
+  {
+    "id": "ucp-rank-math",
+    "plugin": "rank-math",
+    "name": "Rank Math",
+    "conditions": {
+      "plugin_slug": "rank-math"
+    },
+    "exclusions": [
+      "rank-math"
+    ],
+    "summary": "Compatibility exclusion set for Rank Math"
+  },
+  {
+    "id": "ucp-wordpress-seo",
+    "plugin": "wordpress-seo",
+    "name": "Yoast SEO",
+    "conditions": {
+      "plugin_slug": "wordpress-seo"
+    },
+    "exclusions": [
+      "yoast",
+      "wp-seo"
+    ],
+    "summary": "Compatibility exclusion set for Yoast SEO"
+  },
+  {
+    "id": "ucp-sitepress-multilingual-cms",
+    "plugin": "sitepress-multilingual-cms",
+    "name": "WPML",
+    "conditions": {
+      "plugin_slug": "sitepress-multilingual-cms"
+    },
+    "exclusions": [
+      "wpml",
+      "sitepress"
+    ],
+    "summary": "Compatibility exclusion set for WPML"
+  },
+  {
+    "id": "ucp-polylang",
+    "plugin": "polylang",
+    "name": "Polylang",
+    "conditions": {
+      "plugin_slug": "polylang"
+    },
+    "exclusions": [
+      "polylang",
+      "pll_"
+    ],
+    "summary": "Compatibility exclusion set for Polylang"
+  },
+  {
+    "id": "ucp-google-site-kit",
+    "plugin": "google-site-kit",
+    "name": "Site Kit",
+    "conditions": {
+      "plugin_slug": "google-site-kit"
+    },
+    "exclusions": [
+      "googlesitekit",
+      "site-kit"
+    ],
+    "summary": "Compatibility exclusion set for Site Kit"
+  },
+  {
+    "id": "ucp-gtm4wp",
+    "plugin": "gtm4wp",
+    "name": "GTM4WP",
+    "conditions": {
+      "plugin_slug": "gtm4wp"
+    },
+    "exclusions": [
+      "gtm4wp",
+      "googletagmanager"
+    ],
+    "summary": "Compatibility exclusion set for GTM4WP"
+  },
+  {
+    "id": "ucp-stripe-for-woocommerce",
+    "plugin": "stripe-for-woocommerce",
+    "name": "Stripe",
+    "conditions": {
+      "plugin_slug": "stripe-for-woocommerce"
+    },
+    "exclusions": [
+      "stripe",
+      "wc-stripe"
+    ],
+    "summary": "Compatibility exclusion set for Stripe"
+  },
+  {
+    "id": "ucp-woocommerce-paypal-payments",
+    "plugin": "woocommerce-paypal-payments",
+    "name": "PayPal",
+    "conditions": {
+      "plugin_slug": "woocommerce-paypal-payments"
+    },
+    "exclusions": [
+      "paypal",
+      "ppcp"
+    ],
+    "summary": "Compatibility exclusion set for PayPal"
+  },
+  {
+    "id": "ucp-mollie-payments-for-woocommerce",
+    "plugin": "mollie-payments-for-woocommerce",
+    "name": "Mollie",
+    "conditions": {
+      "plugin_slug": "mollie-payments-for-woocommerce"
+    },
+    "exclusions": [
+      "mollie"
+    ],
+    "summary": "Compatibility exclusion set for Mollie"
+  },
+  {
+    "id": "ucp-klarna-payments-for-woocommerce",
+    "plugin": "klarna-payments-for-woocommerce",
+    "name": "Klarna",
+    "conditions": {
+      "plugin_slug": "klarna-payments-for-woocommerce"
+    },
+    "exclusions": [
+      "klarna"
+    ],
+    "summary": "Compatibility exclusion set for Klarna"
+  },
+  {
+    "id": "ucp-fluentform",
+    "plugin": "fluentform",
+    "name": "Fluent Forms",
+    "conditions": {
+      "plugin_slug": "fluentform"
+    },
+    "exclusions": [
+      "fluentform"
+    ],
+    "summary": "Compatibility exclusion set for Fluent Forms"
+  },
+  {
+    "id": "ucp-ninja-forms",
+    "plugin": "ninja-forms",
+    "name": "Ninja Forms",
+    "conditions": {
+      "plugin_slug": "ninja-forms"
+    },
+    "exclusions": [
+      "ninja-forms"
+    ],
+    "summary": "Compatibility exclusion set for Ninja Forms"
+  },
+  {
+    "id": "ucp-formidable",
+    "plugin": "formidable",
+    "name": "Formidable Forms",
+    "conditions": {
+      "plugin_slug": "formidable"
+    },
+    "exclusions": [
+      "formidable"
+    ],
+    "summary": "Compatibility exclusion set for Formidable Forms"
+  },
+  {
+    "id": "ucp-mailchimp-for-wp",
+    "plugin": "mailchimp-for-wp",
+    "name": "Mailchimp",
+    "conditions": {
+      "plugin_slug": "mailchimp-for-wp"
+    },
+    "exclusions": [
+      "mailchimp",
+      "mc4wp"
+    ],
+    "summary": "Compatibility exclusion set for Mailchimp"
+  },
+  {
+    "id": "ucp-trustpilot-reviews",
+    "plugin": "trustpilot-reviews",
+    "name": "Trustpilot",
+    "conditions": {
+      "plugin_slug": "trustpilot-reviews"
+    },
+    "exclusions": [
+      "trustpilot"
+    ],
+    "summary": "Compatibility exclusion set for Trustpilot"
+  },
+  {
+    "id": "ucp-yotpo-social-reviews-for-woocommerce",
+    "plugin": "yotpo-social-reviews-for-woocommerce",
+    "name": "Yotpo",
+    "conditions": {
+      "plugin_slug": "yotpo-social-reviews-for-woocommerce"
+    },
+    "exclusions": [
+      "yotpo"
+    ],
+    "summary": "Compatibility exclusion set for Yotpo"
+  },
+  {
+    "id": "ucp-loox",
+    "plugin": "loox",
+    "name": "Loox",
+    "conditions": {
+      "plugin_slug": "loox"
+    },
+    "exclusions": [
+      "loox"
+    ],
+    "summary": "Compatibility exclusion set for Loox"
+  },
+  {
+    "id": "ucp-intercom",
+    "plugin": "intercom",
+    "name": "Intercom",
+    "conditions": {
+      "plugin_slug": "intercom"
+    },
+    "exclusions": [
+      "intercom"
+    ],
+    "summary": "Compatibility exclusion set for Intercom"
+  },
+  {
+    "id": "ucp-tawkto-live-chat",
+    "plugin": "tawkto-live-chat",
+    "name": "Tawk.to",
+    "conditions": {
+      "plugin_slug": "tawkto-live-chat"
+    },
+    "exclusions": [
+      "tawk"
+    ],
+    "summary": "Compatibility exclusion set for Tawk.to"
+  },
+  {
+    "id": "ucp-crisp",
+    "plugin": "crisp",
+    "name": "Crisp",
+    "conditions": {
+      "plugin_slug": "crisp"
+    },
+    "exclusions": [
+      "crisp"
+    ],
+    "summary": "Compatibility exclusion set for Crisp"
+  },
+  {
+    "id": "ucp-hubspot",
+    "plugin": "hubspot",
+    "name": "HubSpot",
+    "conditions": {
+      "plugin_slug": "hubspot"
+    },
+    "exclusions": [
+      "hubspot"
+    ],
+    "summary": "Compatibility exclusion set for HubSpot"
+  },
+  {
+    "id": "ucp-avada",
+    "plugin": "avada",
+    "name": "Avada",
+    "conditions": {
+      "theme": "Avada"
+    },
+    "exclusions": [
+      "fusion-",
+      "avada"
+    ],
+    "summary": "Compatibility exclusion set for Avada"
+  },
+  {
+    "id": "ucp-flatsome",
+    "plugin": "flatsome",
+    "name": "Flatsome",
+    "conditions": {
+      "theme": "flatsome"
+    },
+    "exclusions": [
+      "flatsome"
+    ],
+    "summary": "Compatibility exclusion set for Flatsome"
+  },
+  {
+    "id": "ucp-oxygen",
+    "plugin": "oxygen",
+    "name": "Oxygen",
+    "conditions": {
+      "plugin_slug": "oxygen"
+    },
+    "exclusions": [
+      "oxygen"
+    ],
+    "summary": "Compatibility exclusion set for Oxygen"
+  },
+  {
+    "id": "ucp-breakdance",
+    "plugin": "breakdance",
+    "name": "Breakdance",
+    "conditions": {
+      "plugin_slug": "breakdance"
+    },
+    "exclusions": [
+      "breakdance"
+    ],
+    "summary": "Compatibility exclusion set for Breakdance"
+  },
+  {
+    "id": "ucp-beaver-builder-lite-version",
+    "plugin": "beaver-builder-lite-version",
+    "name": "Beaver Builder",
+    "conditions": {
+      "plugin_slug": "beaver-builder-lite-version"
+    },
+    "exclusions": [
+      "fl-builder",
+      "bb-plugin"
+    ],
+    "summary": "Compatibility exclusion set for Beaver Builder"
+  },
+  {
+    "id": "ucp-visual-composer",
+    "plugin": "visual-composer",
+    "name": "WPBakery",
+    "conditions": {
+      "plugin_slug": "visual-composer"
+    },
+    "exclusions": [
+      "js_composer",
+      "vc_"
+    ],
+    "summary": "Compatibility exclusion set for WPBakery"
+  },
+  {
+    "id": "ucp-jet-engine",
+    "plugin": "jet-engine",
+    "name": "JetEngine",
+    "conditions": {
+      "plugin_slug": "jet-engine"
+    },
+    "exclusions": [
+      "jet-"
+    ],
+    "summary": "Compatibility exclusion set for JetEngine"
+  },
+  {
+    "id": "ucp-essential-addons-for-elementor-lite",
+    "plugin": "essential-addons-for-elementor-lite",
+    "name": "Essential Addons",
+    "conditions": {
+      "plugin_slug": "essential-addons-for-elementor-lite"
+    },
+    "exclusions": [
+      "eael"
+    ],
+    "summary": "Compatibility exclusion set for Essential Addons"
+  },
+  {
+    "id": "ucp-premium-addons-for-elementor",
+    "plugin": "premium-addons-for-elementor",
+    "name": "Premium Addons",
+    "conditions": {
+      "plugin_slug": "premium-addons-for-elementor"
+    },
+    "exclusions": [
+      "premium-addons"
+    ],
+    "summary": "Compatibility exclusion set for Premium Addons"
+  },
+  {
+    "id": "ucp-ultimate-addons-for-elementor",
+    "plugin": "ultimate-addons-for-elementor",
+    "name": "Ultimate Addons",
+    "conditions": {
+      "plugin_slug": "ultimate-addons-for-elementor"
+    },
+    "exclusions": [
+      "uael"
+    ],
+    "summary": "Compatibility exclusion set for Ultimate Addons"
+  },
+  {
+    "id": "ucp-facetwp",
+    "plugin": "facetwp",
+    "name": "FacetWP",
+    "conditions": {
+      "plugin_slug": "facetwp"
+    },
+    "exclusions": [
+      "facetwp",
+      "fwp-",
+      "fwp_"
+    ],
+    "summary": "Compatibility exclusion set for FacetWP filter refreshes and front-end assets"
+  },
+  {
+    "id": "ucp-bbpress",
+    "plugin": "bbpress",
+    "name": "bbPress",
+    "conditions": {
+      "plugin_slug": "bbpress"
+    },
+    "exclusions": [
+      "bbpress",
+      "bbp-"
+    ],
+    "summary": "Compatibility exclusion set for bbPress interactive forum pages"
+  },
+  {
+    "id": "ucp-wpdiscuz",
+    "plugin": "wpdiscuz",
+    "name": "wpDiscuz",
+    "conditions": {
+      "plugin_slug": "wpdiscuz"
+    },
+    "exclusions": [
+      "wpdiscuz",
+      "wc_comm",
+      "comment_author_"
+    ],
+    "summary": "Compatibility exclusion set for wpDiscuz comments and commenter state"
+  },
+  {
+    "id": "ucp-user-switching",
+    "plugin": "user-switching",
+    "name": "User Switching",
+    "conditions": {
+      "plugin_slug": "user-switching"
+    },
+    "exclusions": [
+      "user-switching",
+      "switch_to_olduser_"
+    ],
+    "summary": "Compatibility exclusion set for user switching sessions and nonces"
+  },
+  {
+    "id": "ucp-aelia-currency-switcher",
+    "plugin": "woocommerce-aelia-currencyswitcher",
+    "name": "Aelia Currency Switcher",
+    "conditions": {
+      "plugin_slug": "woocommerce-aelia-currencyswitcher"
+    },
+    "exclusions": [
+      "aelia_cs_selected_currency",
+      "aelia_customer_country",
+      "aelia_customer_state",
+      "aelia_tax_exempt"
+    ],
+    "summary": "Compatibility exclusion set for Aelia currency/location cookies"
+  },
+  {
+    "id": "ucp-nextgen-gallery",
+    "plugin": "nextgen-gallery",
+    "name": "NextGEN Gallery",
+    "conditions": {
+      "plugin_slug": "nextgen-gallery"
+    },
+    "exclusions": [
+      "nextgen",
+      "ngg_",
+      "photocrati"
+    ],
+    "summary": "Compatibility exclusion set for NextGEN Gallery scripts and dynamic gallery output"
+  },
+  {
+    "id": "ucp-perfmatters",
+    "plugin": "perfmatters",
+    "name": "Perfmatters",
+    "conditions": {
+      "plugin_slug": "perfmatters"
+    },
+    "exclusions": [
+      "perfmatters",
+      "pmsm-",
+      "data-perfmatters"
+    ],
+    "summary": "Compatibility exclusion set for Perfmatters script manager output"
+  }
+]

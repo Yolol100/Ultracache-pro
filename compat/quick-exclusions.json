@@ -1,0 +1,62 @@
+{
+    "elementor": {
+        "plugin": "elementor/elementor.php",
+        "label": "Elementor veilige uitsluitingen",
+        "delay_js": [
+            "jquery.min.js",
+            "elementorFrontendConfig",
+            "ElementorProFrontendConfig",
+            "frontend-modules.min.js",
+            "webpack.runtime.min.js",
+            "webpack-pro.runtime.min.js"
+        ]
+    },
+    "woocommerce_product_gallery": {
+        "plugin": "woocommerce/woocommerce.php",
+        "label": "WooCommerce productgalerij uitsluiten",
+        "delay_js": [
+            "single-product.min.js",
+            "flexslider",
+            "photoswipe",
+            "jquery.zoom.min.js",
+            "wc-add-to-cart-variation",
+            "woocommerce"
+        ]
+    },
+    "forms": {
+        "label": "Formulieren veilige uitsluitingen",
+        "delay_js": [
+            "gravityforms",
+            "gform",
+            "wpforms",
+            "fluentform",
+            "ninja-forms",
+            "contact-form-7",
+            "wpcf7",
+            "recaptcha",
+            "hcaptcha",
+            "turnstile"
+        ]
+    },
+    "builders": {
+        "label": "Builders veilige uitsluitingen",
+        "delay_js": [
+            "bricks.min.js",
+            "Divi/js/scripts.min.js",
+            "et-builder",
+            "fl-builder",
+            "vc_frontend_js",
+            "breakdance"
+        ]
+    },
+    "sliders": {
+        "label": "Sliders veilige uitsluitingen",
+        "delay_js": [
+            "revslider",
+            "smart-slider",
+            "swiper",
+            "slick",
+            "splide"
+        ]
+    }
+}
