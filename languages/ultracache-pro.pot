@@ -1,0 +1,26 @@
+# Copyright (C) 2026 UltraCache Pro
+# This file is distributed under the GPLv2 or later.
+msgid ""
+msgstr ""
+"Project-Id-Version: UltraCache Pro 4.22.6.1\n"
+"Report-Msgid-Bugs-To: https://webactueel.nl\n"
+"POT-Creation-Date: 2026-05-24 00:00+0000\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: ChatGPT cleanup\n"
+"X-Domain: ultracache-pro\n"
+
+#: includes/optimization/traits/media/ucp-optimizer-media-iframe-trait.php:31
+msgid "YouTube-video afspelen"
+msgstr ""
+
+#: includes/cache/traits/purge/ucp-cache-purge-url-map-trait.php:85
+#: includes/cache/traits/purge/ucp-cache-purge-actions-trait.php:18
+#: includes/cache/traits/purge/ucp-cache-purge-actions-trait.php:52
+msgid "Cache is geleegd."
+msgstr ""
+
+#: includes/cache/traits/purge/ucp-cache-purge-actions-trait.php:65
+msgid "Cache voor deze pagina is geleegd."
+msgstr ""
