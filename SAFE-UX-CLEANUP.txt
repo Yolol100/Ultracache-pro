@@ -1,0 +1,14 @@
+Safe UX Cleanup Build
+
+This build only changes:
+- Admin labels
+- Admin visibility
+- Admin UX cleanup
+
+Not changed:
+- Runtime logic
+- Bootstrap
+- Autoloading
+- Core optimization engine
+
+This avoids fatal errors.
