@@ -21,8 +21,9 @@ class UCP_Edge {
             UCP_Diagnostics::record('edge', 'Edge cache headers sent', array('apo' => (int) UCP_Options::get('enable_cloudflare_apo_mode')));
         }
 
-        if (UCP_Options::get('enable_early_hints_links')) { // Sends normal preload Link headers; true HTTP 103 support is server-dependent and not assumed.
+        if (UCP_Options::get('enable_early_hints_links')) {
             $candidates = UCP_Helpers::collect_preload_candidates();
+            $this->send_early_hints_if_supported($candidates);
             $allowed_as = array('script', 'style', 'font', 'image', 'fetch', 'document');
             $sent = 0;
             foreach ($candidates as $candidate) {
@@ -53,6 +54,30 @@ class UCP_Edge {
         }
     }
 
+    private function send_early_hints_if_supported($candidates) {
+        if (headers_sent() || empty($candidates)) {
+            return;
+        }
+        $server = strtolower(isset($_SERVER['SERVER_SOFTWARE']) ? (string) $_SERVER['SERVER_SOFTWARE'] : '');
+        $cf = self::cloudflare_headers_present();
+        $supports = $cf || false !== strpos($server, 'litespeed') || false !== strpos($server, 'nginx');
+        if (!$supports) {
+            return;
+        }
+        $protocol = isset($_SERVER['SERVER_PROTOCOL']) ? preg_replace('/[^A-Z0-9\.\/]/', '', (string) $_SERVER['SERVER_PROTOCOL']) : 'HTTP/1.1';
+        header($protocol . ' 103 Early Hints', true, 103);
+        $sent = 0;
+        foreach ((array) $candidates as $candidate) {
+            if ($sent >= 3) { break; }
+            $href = !empty($candidate['href']) ? esc_url_raw($candidate['href'], array('http', 'https')) : '';
+            $as = !empty($candidate['as']) ? sanitize_key($candidate['as']) : 'script';
+            if (!$href || !UCP_Helpers::is_local_url($href)) { continue; }
+            header('Link: <' . $href . '>; rel=preload; as=' . $as, false);
+            $sent++;
+        }
+        if (function_exists('flush')) { @flush(); }
+    }
+
     public static function cloudflare_headers_present() {
         return !empty($_SERVER['HTTP_CF_CONNECTING_IP']) || !empty($_SERVER['HTTP_CF_RAY']);
     }
@@ -72,7 +97,7 @@ class UCP_Edge {
         if (!self::cloudflare_api_configured()) {
             return false;
         }
-        $url = class_exists('UCP_Helpers') ? UCP_Helpers::strict_local_url($url) : esc_url_raw($url);
+        $url = UCP_Helpers::strict_local_url($url);
         if (!$url || !wp_http_validate_url($url)) {
             return false;
         }
@@ -85,7 +110,7 @@ class UCP_Edge {
         }
         $clean_urls = array();
         foreach ((array) $urls as $url) {
-            $url = class_exists('UCP_Helpers') ? UCP_Helpers::strict_local_url($url) : esc_url_raw($url);
+            $url = UCP_Helpers::strict_local_url($url);
             if ($url && wp_http_validate_url($url)) {
                 $clean_urls[] = $url;
             }

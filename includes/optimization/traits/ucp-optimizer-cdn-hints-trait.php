@@ -100,7 +100,11 @@ trait UCP_Optimizer_CDN_Hints_Trait {
         if (!is_string($html) || '' === $html) {
             return $html;
         }
-        $domains = UCP_Helpers::normalize_multiline(UCP_Options::get('self_host_asset_domains', ''));
+        $domains = array_merge(
+            UCP_Helpers::normalize_multiline(UCP_Options::get('self_host_asset_domains', '')),
+            array('www.googletagmanager.com', 'www.google-analytics.com', 'connect.facebook.net')
+        );
+        $domains = array_values(array_unique(array_filter($domains)));
         if (empty($domains)) {
             return $html;
         }
@@ -124,7 +128,7 @@ trait UCP_Optimizer_CDN_Hints_Trait {
         }
         $host = strtolower((string) wp_parse_url($url, PHP_URL_HOST));
         $path = strtolower((string) wp_parse_url($url, PHP_URL_PATH));
-        if (!preg_match('/\.(css|js|woff2?|ttf|otf|eot)(?:$|\?)/i', $path)) {
+        if (!preg_match('/\.(css|js|woff2?|ttf|otf|eot)(?:$|\?)/i', $path) && false === strpos($path, '/gtag/js') && false === strpos($path, '/gtm.js')) {
             return false;
         }
         foreach ((array) $domains as $domain) {
@@ -142,7 +146,11 @@ trait UCP_Optimizer_CDN_Hints_Trait {
         if ($this->host_resolves_to_private_network($host)) {
             return '';
         }
-        $ext = strtolower((string) pathinfo((string) wp_parse_url($url, PHP_URL_PATH), PATHINFO_EXTENSION));
+        $path = (string) wp_parse_url($url, PHP_URL_PATH);
+        $ext = strtolower((string) pathinfo($path, PATHINFO_EXTENSION));
+        if ('' === $ext && (false !== strpos($path, '/gtag/js') || false !== strpos($path, '/gtm.js'))) {
+            $ext = 'js';
+        }
         if (!in_array($ext, array('css','js','woff','woff2','ttf','otf','eot'), true)) {
             return '';
         }
@@ -151,7 +159,7 @@ trait UCP_Optimizer_CDN_Hints_Trait {
             wp_mkdir_p($dir);
         }
         UCP_Helpers::write_file($dir . 'index.html', '');
-        $hash = substr(hash('sha256', $url), 0, 24);
+        $hash = substr(hash('sha256', remove_query_arg(array('id','l','cx'), $url)), 0, 24);
         $target = $dir . $hash . '.' . $ext;
         if (!file_exists($target)) {
             $response = wp_remote_get($url, array('timeout' => 8, 'redirection' => 0, 'reject_unsafe_urls' => true));

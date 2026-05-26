@@ -6,6 +6,22 @@ if (!defined('ABSPATH')) {
 trait UCP_Helpers_Minify_And_Log_Trait {
     public static function minify_css($content) {
         $content = (string) $content;
+        if ('' === trim($content)) {
+            return '';
+        }
+        if (class_exists('MatthiasMullie\Minify\CSS')) {
+            try {
+                $minifier = new MatthiasMullie\Minify\CSS($content);
+                $minified = $minifier->minify();
+                if (is_string($minified) && '' !== trim($minified)) {
+                    return trim($minified);
+                }
+            } catch (Throwable $e) {
+                if (class_exists('UCP_Diagnostics')) {
+                    UCP_Diagnostics::record('assets', 'CSS minifier library failed; using built-in fallback.', array('error' => $e->getMessage()));
+                }
+            }
+        }
         $content = preg_replace('!/\*[^*]*\*+(?:[^/*][^*]*\*+)*/!s', '', $content);
         $content = preg_replace('/\s+/', ' ', $content);
         $content = preg_replace('/\s*([{}:;,>+~])\s*/', '$1', $content);
@@ -17,6 +33,19 @@ trait UCP_Helpers_Minify_And_Log_Trait {
         $content = (string) $content;
         if ('' === trim($content)) {
             return '';
+        }
+        if (class_exists('MatthiasMullie\Minify\JS')) {
+            try {
+                $minifier = new MatthiasMullie\Minify\JS($content);
+                $minified = $minifier->minify();
+                if (is_string($minified) && '' !== trim($minified)) {
+                    return trim($minified);
+                }
+            } catch (Throwable $e) {
+                if (class_exists('UCP_Diagnostics')) {
+                    UCP_Diagnostics::record('assets', 'JS minifier library failed; using built-in fallback.', array('error' => $e->getMessage()));
+                }
+            }
         }
 
         $out = '';

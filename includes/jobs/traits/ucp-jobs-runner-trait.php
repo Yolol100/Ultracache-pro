@@ -199,7 +199,7 @@ trait UCP_Jobs_Runner_Trait {
                 if ($code < 400) {
                     return true;
                 }
-                // AI-PATCH: een preload mag de wachtrij niet blijven vervuilen wanneer de pagina zelf een HTTP-foutstatus teruggeeft.
+                // Note: een preload mag de wachtrij niet blijven vervuilen wanneer de pagina zelf een HTTP-foutstatus teruggeeft.
                 UCP_Logger::log('warning', 'preload', 'preload_url_skipped_http_status', 'Preload overgeslagen door HTTP-foutstatus van de pagina.', array('url' => esc_url_raw($url), 'http_status' => $code));
                 return true;
             case 'diagnostics_snapshot':

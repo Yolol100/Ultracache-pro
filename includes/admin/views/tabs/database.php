@@ -8,7 +8,27 @@ $counts = class_exists('UCP_DB_Cleanup') ? UCP_DB_Cleanup::get_counts() : array(
 $count = function($key) use ($counts) {
     return isset($counts[$key]) ? (int) $counts[$key] : 0;
 };
+$audit = class_exists('UCP_DB_Cleanup') ? UCP_DB_Cleanup::get_performance_audit() : array();
 ?>
+
+
+    <section class="ucp-panel full ucp-panel--database-performance">
+        <div class="ucp-panel__header"><div><h2><?php esc_html_e('Database performance audit', 'ultracache-pro'); ?></h2><p><?php esc_html_e('Toont de grootste autoload opties, tabel-engine en ontbrekende basisindexen zonder automatische destructieve acties.', 'ultracache-pro'); ?></p></div></div>
+        <div class="ucp-callout ucp-callout--info ucp-callout--compact">
+            <p><?php echo esc_html(sprintf(__('wp_options engine: %s', 'ultracache-pro'), isset($audit['options_engine']) ? $audit['options_engine'] : 'unknown')); ?></p>
+            <?php if (!empty($audit['missing_indexes'])) : ?><p><?php echo esc_html(sprintf(__('Mogelijke ontbrekende indexen: %s', 'ultracache-pro'), implode(', ', (array) $audit['missing_indexes']))); ?></p><?php endif; ?>
+        </div>
+        <?php $admin->checkbox('db_allow_myisam_innodb_convert', __('Sta expliciete MyISAM → InnoDB conversie van wp_options toe', 'ultracache-pro'), $settings, __('Staging-first: alleen gebruiken met recente database-back-up.', 'ultracache-pro')); ?>
+        <?php if (isset($audit['options_engine']) && 'myisam' === strtolower((string) $audit['options_engine'])) : ?>
+            <p><a class="button" href="<?php echo esc_url(wp_nonce_url(admin_url('admin-post.php?action=ucp_convert_options_innodb'), 'ucp_convert_options_innodb')); ?>" onclick="return confirm('<?php echo esc_js(__('Converteer wp_options naar InnoDB? Maak eerst een database-back-up.', 'ultracache-pro')); ?>');"><?php esc_html_e('wp_options naar InnoDB converteren', 'ultracache-pro'); ?></a></p>
+        <?php endif; ?>
+        <?php if (!empty($audit['autoload_top'])) : ?>
+            <table class="widefat striped"><thead><tr><th><?php esc_html_e('Autoload optie', 'ultracache-pro'); ?></th><th><?php esc_html_e('Bytes', 'ultracache-pro'); ?></th></tr></thead><tbody>
+                <?php foreach ((array) $audit['autoload_top'] as $row) : ?><tr><td><?php echo esc_html($row['option_name']); ?></td><td><?php echo esc_html(number_format_i18n((int) $row['bytes'])); ?></td></tr><?php endforeach; ?>
+            </tbody></table>
+        <?php endif; ?>
+    </section>
+
     <section class="ucp-panel full ucp-panel--database-main">
         <div class="ucp-panel__header"><div><h2><?php esc_html_e('Database opschonen', 'ultracache-pro'); ?></h2><p><?php esc_html_e('Ruim revisies, concepten, spam, prullenbak en tijdelijke gegevens veilig op. Maak altijd eerst een databaseback-up.', 'ultracache-pro'); ?></p></div><div class="ucp-panel__actions"><a class="button button-primary" href="<?php echo esc_url(wp_nonce_url(admin_url('admin-post.php?action=ucp_run_db_cleanup&confirm=yes'), 'ucp_run_db_cleanup')); ?>" onclick="return confirm('<?php echo esc_js(__('Database opschonen kan geselecteerde revisies, concepten, prullenbakitems, spamreacties, sessies en transients definitief verwijderen. Heb je een recente database-back-up?', 'ultracache-pro')); ?>');"><?php esc_html_e('Geselecteerde onderdelen opruimen', 'ultracache-pro'); ?></a><p class="description"><?php esc_html_e('Backup je database voordat je het opschonen begint. Database optimalisatie kan niet ongedaan worden gemaakt.', 'ultracache-pro'); ?></p></div></div>
         <div class="ucp-callout ucp-callout--warn"><strong><?php esc_html_e('Let op', 'ultracache-pro'); ?></strong><p><?php esc_html_e('Revisies, concepten en prullenbakitems worden definitief verwijderd wanneer je die opties aanvinkt.', 'ultracache-pro'); ?></p></div>
@@ -63,8 +83,8 @@ $count = function($key) use ($counts) {
 
     <section class="ucp-panel full ucp-panel--database-auto">
         <div class="ucp-panel__header"><div><h2><?php esc_html_e('Automatisch opruimen', 'ultracache-pro'); ?></h2><p><?php esc_html_e('Laat dit uit tenzij je zeker weet welke onderdelen periodiek verwijderd mogen worden.', 'ultracache-pro'); ?></p></div></div>
-        <div class="ucp-field-row ucp-field-row--2">
-            <?php $admin->checkbox('enable_db_cleanup', __('Automatisch opruimen inschakelen', 'ultracache-pro'), $settings, __('Voert de geselecteerde database-opruimopties periodiek uit.', 'ultracache-pro')); ?>
-            <?php $admin->select('db_cleanup_frequency', __('Frequentie', 'ultracache-pro'), $settings, array('off' => __('Uit', 'ultracache-pro'), 'daily' => __('Dagelijks', 'ultracache-pro'), 'weekly' => __('Wekelijks', 'ultracache-pro'), 'monthly' => __('Maandelijks', 'ultracache-pro'))); ?>
+        <div class="ucp-field-row ucp-field-row--1">
+            <input type="hidden" name="<?php echo esc_attr(UCP_Options::OPTION_KEY); ?>[enable_db_cleanup]" value="1">
+            <?php $admin->select('db_cleanup_frequency', __('Automatische database-opschoning', 'ultracache-pro'), $settings, array('off' => __('Uit', 'ultracache-pro'), 'daily' => __('Dagelijks', 'ultracache-pro'), 'weekly' => __('Wekelijks', 'ultracache-pro'), 'monthly' => __('Maandelijks', 'ultracache-pro')), __('Kies Uit of een schema. De losse inschakelknop is samengevoegd met deze frequentiekeuze.', 'ultracache-pro')); ?>
         </div>
     </section>

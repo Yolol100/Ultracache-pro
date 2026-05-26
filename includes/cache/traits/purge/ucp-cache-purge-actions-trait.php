@@ -54,7 +54,7 @@ trait UCP_Cache_Purge_Actions_Trait {
     }
 
     public function purge_url($url) {
-        $url = class_exists('UCP_Helpers') ? UCP_Helpers::strict_local_url($url) : esc_url_raw($url);
+        $url = UCP_Helpers::strict_local_url($url);
         if (!$url || !wp_http_validate_url($url)) {
             return;
         }

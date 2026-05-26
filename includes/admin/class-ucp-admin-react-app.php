@@ -11,24 +11,38 @@ class UCP_Admin_React_App {
         return (bool) apply_filters('ucp_use_react_admin', true);
     }
 
+    /**
+     * Prefer the `.min` variant of an asset when SCRIPT_DEBUG is off and the
+     * file exists on disk; otherwise fall back to the unminified source.
+     *
+     * Thin wrapper kept for backwards compatibility with the class's own
+     * call sites; the implementation lives in UCP_Helpers::asset_path().
+     */
+    protected static function asset_path($relative) {
+        return UCP_Helpers::asset_path($relative);
+    }
+
     public static function should_render() {
-        $script_path = UCP_PATH . 'assets/admin/react/js/app/ucp-react-admin.js';
-        $style_path  = UCP_PATH . 'assets/admin/react/css/ucp-react-admin.css';
+        $script_path = UCP_PATH . self::asset_path('assets/admin/react/js/app/ucp-react-admin.js');
+        $style_path  = UCP_PATH . self::asset_path('assets/admin/react/css/ucp-react-admin.css');
 
         return self::enabled() && file_exists($script_path) && file_exists($style_path);
     }
 
     public static function enqueue() {
-        $script_path = UCP_PATH . 'assets/admin/react/js/app/ucp-react-admin.js';
-        $style_path  = UCP_PATH . 'assets/admin/react/css/ucp-react-admin.css';
-        $tokens_path = UCP_PATH . 'assets/admin/css/ucp-admin-tokens.css';
+        $script_rel  = self::asset_path('assets/admin/react/js/app/ucp-react-admin.js');
+        $style_rel   = self::asset_path('assets/admin/react/css/ucp-react-admin.css');
+        $tokens_rel  = self::asset_path('assets/admin/css/ucp-admin-tokens.css');
+        $script_path = UCP_PATH . $script_rel;
+        $style_path  = UCP_PATH . $style_rel;
+        $tokens_path = UCP_PATH . $tokens_rel;
         $script_ver  = file_exists($script_path) ? (string) filemtime($script_path) : UCP_VERSION;
         $style_ver   = file_exists($style_path) ? (string) filemtime($style_path) : UCP_VERSION;
         $tokens_ver  = file_exists($tokens_path) ? (string) filemtime($tokens_path) : UCP_VERSION;
 
         wp_enqueue_script(
             self::SCRIPT_HANDLE,
-            UCP_URL . 'assets/admin/react/js/app/ucp-react-admin.js',
+            UCP_URL . $script_rel,
             array('wp-element', 'wp-components', 'wp-api-fetch', 'wp-i18n', 'wp-a11y'),
             $script_ver,
             true
@@ -38,7 +52,7 @@ class UCP_Admin_React_App {
         if (file_exists($tokens_path)) {
             wp_enqueue_style(
                 'ucp-admin-tokens',
-                UCP_URL . 'assets/admin/css/ucp-admin-tokens.css',
+                UCP_URL . $tokens_rel,
                 array(),
                 $tokens_ver
             );
@@ -46,7 +60,7 @@ class UCP_Admin_React_App {
 
         wp_enqueue_style(
             self::STYLE_HANDLE,
-            UCP_URL . 'assets/admin/react/css/ucp-react-admin.css',
+            UCP_URL . $style_rel,
             array('wp-components', 'ucp-admin-tokens'),
             $style_ver
         );

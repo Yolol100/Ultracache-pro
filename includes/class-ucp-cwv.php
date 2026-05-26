@@ -78,7 +78,7 @@ class UCP_CWV {
         $origin = $request instanceof WP_REST_Request ? (string) $request->get_header('origin') : '';
         $referer = $request instanceof WP_REST_Request ? (string) $request->get_header('referer') : '';
 
-        // AI-PATCH: CWV beacons are sent from cacheable frontend HTML; a WordPress nonce in that HTML expires while the page cache can still be warm.
+        // Note: CWV beacons are sent from cacheable frontend HTML; a WordPress nonce in that HTML expires while the page cache can still be warm.
         // Require at least one browser-supplied same-origin signal and keep the existing per-visitor and daily rate limits in record_metric().
         if ('' === trim($origin) && '' === trim($referer)) {
             return false;
@@ -212,7 +212,7 @@ class UCP_CWV {
             return '';
         }
 
-        $absolute = class_exists('UCP_Helpers') ? UCP_Helpers::strict_local_url($url) : esc_url_raw($url);
+        $absolute = UCP_Helpers::strict_local_url($url);
         if ('' === $absolute || !$this->is_local_header_url($absolute)) {
             return '';
         }

@@ -62,7 +62,7 @@ class UCP_Site_Health {
     }
 
     public static function test_cache_conflicts() {
-        $conflicts = class_exists('UCP_Compat') ? UCP_Compat::detected_conflicts() : array();
+        $conflicts = UCP_Compat::detected_conflicts();
         $ok = empty($conflicts);
         $labels = array();
         foreach ($conflicts as $conflict) {

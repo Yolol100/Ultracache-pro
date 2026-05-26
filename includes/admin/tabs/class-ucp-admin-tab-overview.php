@@ -23,7 +23,7 @@ class UCP_Admin_Tab_Overview {
         }
         $is_ultracache_dropin = $dropin_exists && false !== stripos((string) $dropin_owner, 'UltraCache');
         $wp_cache_on = defined('WP_CACHE') && WP_CACHE;
-        $conflicts = class_exists('UCP_Compat') ? UCP_Compat::detected_conflicts() : array();
+        $conflicts = UCP_Compat::detected_conflicts();
         $conflict_count = is_array($conflicts) ? count($conflicts) : 0;
         $quick_enable_url = wp_nonce_url(admin_url('admin-post.php?action=ucp_quick_enable_cache'), 'ucp_quick_enable_cache');
         $purge_url = wp_nonce_url(admin_url('admin-post.php?action=ucp_purge_all'), 'ucp_purge_all');

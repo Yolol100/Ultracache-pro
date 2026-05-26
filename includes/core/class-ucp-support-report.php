@@ -29,7 +29,7 @@ class UCP_Support_Report {
                 'object_cache_dropin' => file_exists(WP_CONTENT_DIR . '/object-cache.php'),
             ),
             'active_plugins' => function_exists('get_option') ? (array) get_option('active_plugins', array()) : array(),
-            'conflicts' => class_exists('UCP_Compat') ? UCP_Compat::conflict_report() : array(),
+            'conflicts' => UCP_Compat::conflict_report(),
             'settings_summary' => self::settings_summary($settings),
         );
 

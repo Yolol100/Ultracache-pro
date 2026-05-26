@@ -64,9 +64,7 @@ trait UCP_Admin_Actions_Cleanup_Trait {
 
     public function clear_local_fonts() {
         $this->assert_tool_action('ucp_clear_local_fonts');
-        if (class_exists('UCP_Helpers')) {
-            UCP_Helpers::safe_glob_delete(WP_CONTENT_DIR . '/uploads/ultracache-pro/fonts/*');
-        }
+        UCP_Helpers::safe_glob_delete(WP_CONTENT_DIR . '/uploads/ultracache-pro/fonts/*');
         UCP_Logger::log('info', 'admin', 'local_fonts_cleared', 'Local font cache cleared.');
         wp_safe_redirect($this->admin->tab_url_public('media', array('fonts_cleared' => 1)));
         exit;

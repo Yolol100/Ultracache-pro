@@ -94,4 +94,48 @@ trait UCP_Admin_Actions_Import_Export_Trait {
         exit;
     }
 
+
+    public function create_settings_snapshot() {
+        if (!current_user_can('manage_options')) {
+            wp_die(esc_html__('Geen toegang.', 'ultracache-pro'), '', array('response' => 403));
+        }
+        check_admin_referer('ucp_create_settings_snapshot');
+        UCP_Options::create_settings_snapshot(UCP_Options::get_all(), 'manual');
+        wp_safe_redirect($this->admin->tab_url_public('tools', array('snapshot' => 1)));
+        exit;
+    }
+
+    public function restore_settings_snapshot() {
+        if (!current_user_can('manage_options')) {
+            wp_die(esc_html__('Geen toegang.', 'ultracache-pro'), '', array('response' => 403));
+        }
+        check_admin_referer('ucp_restore_settings_snapshot');
+        $snapshot_id = isset($_GET['snapshot']) ? sanitize_text_field(wp_unslash($_GET['snapshot'])) : '';
+        $restored = UCP_Options::restore_settings_snapshot($snapshot_id);
+        wp_safe_redirect($this->admin->tab_url_public('tools', array('restore_snapshot' => $restored ? 1 : 0)));
+        exit;
+    }
+
+    public function save_custom_preset() {
+        if (!current_user_can('manage_options')) {
+            wp_die(esc_html__('Geen toegang.', 'ultracache-pro'), '', array('response' => 403));
+        }
+        check_admin_referer('ucp_save_custom_preset');
+        $name = isset($_POST['ucp_custom_preset_name']) ? sanitize_text_field(wp_unslash($_POST['ucp_custom_preset_name'])) : '';
+        $key = UCP_Presets::save_custom_preset($name, UCP_Options::get_all());
+        wp_safe_redirect($this->admin->tab_url_public('overview', array('custom_preset' => $key ? 1 : 0)));
+        exit;
+    }
+
+    public function delete_custom_preset() {
+        if (!current_user_can('manage_options')) {
+            wp_die(esc_html__('Geen toegang.', 'ultracache-pro'), '', array('response' => 403));
+        }
+        check_admin_referer('ucp_delete_custom_preset');
+        $preset = isset($_GET['preset']) ? sanitize_key(wp_unslash($_GET['preset'])) : '';
+        $deleted = UCP_Presets::delete_custom_preset($preset);
+        wp_safe_redirect($this->admin->tab_url_public('overview', array('delete_custom_preset' => $deleted ? 1 : 0)));
+        exit;
+    }
+
 }

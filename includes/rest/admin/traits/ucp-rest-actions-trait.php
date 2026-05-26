@@ -60,7 +60,7 @@ trait UCP_REST_Actions_Trait {
             if ('' === $url) {
                 $url = home_url('/');
             }
-            $url = class_exists('UCP_Helpers') ? UCP_Helpers::strict_local_url($url) : esc_url_raw($url);
+            $url = UCP_Helpers::strict_local_url($url);
             if ('' === $url) {
                 return self::action_error('ucp_invalid_purge_url', __('Ongeldige of niet-lokale URL.', 'ultracache-pro'), 400);
             }
@@ -220,7 +220,7 @@ trait UCP_REST_Actions_Trait {
         }
 
         UCP_Jobs::sync_schedule();
-        $runner = new UCP_Jobs();
+        $runner = new UCP_Jobs(true);
         $processed = (int) $runner->run_queue_until_idle(true, 5);
         $failed = (int) UCP_Jobs::count_by_status('failed');
 
@@ -270,12 +270,10 @@ trait UCP_REST_Actions_Trait {
         );
 
         $processed = 0;
-        if (class_exists('UCP_Jobs')) {
-            UCP_Jobs::sync_schedule();
-            // after a manual retry request, process multiple forced batches so CSS jobs are not hidden behind preload jobs.
-            $runner = new UCP_Jobs();
-            $processed = (int) $runner->run_queue_until_idle(true, 5);
-        }
+        UCP_Jobs::sync_schedule();
+        // after a manual retry request, process multiple forced batches so CSS jobs are not hidden behind preload jobs.
+        $runner = new UCP_Jobs(true);
+        $processed = (int) $runner->run_queue_until_idle(true, 5);
 
         UCP_Logger::log('info', 'rest', 'failed_jobs_retried', 'Failed jobs moved back to the queue from REST admin action.', array('updated' => (int) $updated, 'processed' => $processed));
 

@@ -49,6 +49,36 @@ if (!defined('ABSPATH')) {
             <p><a class="button" href="<?php echo esc_url(wp_nonce_url(admin_url('admin-post.php?action=ucp_cleanup_meta_options'), 'ucp_cleanup_meta_options')); ?>"><?php esc_html_e('Meta opties opschonen', 'ultracache-pro'); ?></a> <a class="button button-secondary" href="<?php echo esc_url(wp_nonce_url(admin_url('admin-post.php?action=ucp_reset_defaults'), 'ucp_reset_defaults')); ?>" onclick="return confirm('<?php echo esc_js(__('Standaardopties terugzetten?', 'ultracache-pro')); ?>');"><?php esc_html_e('Standaardopties terugzetten', 'ultracache-pro'); ?></a></p>
         </section>
 
+
+        <section class="ucp-panel full ucp-panel--settings-safety">
+            <div class="ucp-panel__header">
+                <div>
+                    <h2><?php esc_html_e('Instellingen-back-ups', 'ultracache-pro'); ?></h2>
+                    <p><?php esc_html_e('UltraCache bewaart automatisch de laatste 5 instellingen vóór wijzigingen. Maak ook handmatig een snapshot voordat je agressiever optimaliseert.', 'ultracache-pro'); ?></p>
+                </div>
+                <div class="ucp-panel__actions">
+                    <a class="button" href="<?php echo esc_url(wp_nonce_url(admin_url('admin-post.php?action=ucp_create_settings_snapshot'), 'ucp_create_settings_snapshot')); ?>"><?php esc_html_e('Snapshot maken', 'ultracache-pro'); ?></a>
+                </div>
+            </div>
+            <?php $ucp_snapshots = class_exists('UCP_Options') ? UCP_Options::settings_snapshots() : array(); ?>
+            <?php if (!empty($ucp_snapshots)) : ?>
+                <table class="widefat striped">
+                    <thead><tr><th><?php esc_html_e('Moment', 'ultracache-pro'); ?></th><th><?php esc_html_e('Type', 'ultracache-pro'); ?></th><th><?php esc_html_e('Actie', 'ultracache-pro'); ?></th></tr></thead>
+                    <tbody>
+                        <?php foreach ($ucp_snapshots as $ucp_snapshot) : ?>
+                            <tr>
+                                <td><?php echo esc_html(!empty($ucp_snapshot['created_at']) ? $ucp_snapshot['created_at'] : ''); ?></td>
+                                <td><?php echo esc_html(!empty($ucp_snapshot['context']) ? $ucp_snapshot['context'] : 'auto'); ?></td>
+                                <td><a class="button button-small" href="<?php echo esc_url(wp_nonce_url(admin_url('admin-post.php?action=ucp_restore_settings_snapshot&snapshot=' . rawurlencode(isset($ucp_snapshot['id']) ? $ucp_snapshot['id'] : '')), 'ucp_restore_settings_snapshot')); ?>" onclick="return confirm('<?php echo esc_js(__('Deze snapshot terugzetten? De huidige instellingen worden eerst automatisch bewaard.', 'ultracache-pro')); ?>');"><?php esc_html_e('Terugzetten', 'ultracache-pro'); ?></a></td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            <?php else : ?>
+                <p><?php esc_html_e('Nog geen snapshots aanwezig. Na de eerstvolgende wijziging wordt automatisch een snapshot gemaakt.', 'ultracache-pro'); ?></p>
+            <?php endif; ?>
+        </section>
+
         <details class="ucp-disclosure full">
             <summary><span class="ucp-summary-copy"><?php esc_html_e('Import, export en onderhoud', 'ultracache-pro'); ?></span><span class="ucp-summary-chevron" aria-hidden="true"></span></summary>
             <section class="ucp-panel ucp-panel--nested">

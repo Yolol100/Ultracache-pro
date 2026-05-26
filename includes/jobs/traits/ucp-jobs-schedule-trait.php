@@ -28,14 +28,18 @@ trait UCP_Jobs_Schedule_Trait {
     }
 
     public static function register_schedule($schedules) {
-        $schedules['ucp_one_minute'] = array(
-            'interval' => 60,
-            'display'  => __('Elke minuut', 'ultracache-pro'),
-        );
-        $schedules['ucp_five_minutes'] = array(
-            'interval' => 300,
-            'display'  => __('Elke 5 minuten', 'ultracache-pro'),
-        );
+        if (!isset($schedules['ucp_one_minute'])) {
+            $schedules['ucp_one_minute'] = array(
+                'interval' => 60,
+                'display'  => __('Elke minuut', 'ultracache-pro'),
+            );
+        }
+        if (!isset($schedules['ucp_five_minutes'])) {
+            $schedules['ucp_five_minutes'] = array(
+                'interval' => 300,
+                'display'  => __('Elke 5 minuten', 'ultracache-pro'),
+            );
+        }
         return $schedules;
     }
 

@@ -5,7 +5,19 @@ if (!defined('ABSPATH')) {
 
 trait UCP_Optimizer_HTML_Trait {
     private function should_skip_frontend_optimizations() {
-        return !is_admin() && is_user_logged_in() && UCP_Options::get('disable_logged_in_optimizations');
+        if (class_exists('UCP_Page_Overrides') && UCP_Page_Overrides::has_action('disable_all_optimizations')) {
+            return true;
+        }
+        if (!is_admin() && is_user_logged_in() && UCP_Options::get('disable_logged_in_optimizations')) {
+            return true;
+        }
+        if (class_exists('UCP_Quality_Suite')) {
+            $reason = UCP_Quality_Suite::bypass_reason(UCP_Helpers::current_full_url());
+            if (in_array($reason, array('builder_or_preview', 'transactional_or_woocommerce'), true)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private function should_skip_markup_optimizations($html = '') {
@@ -95,6 +107,10 @@ trait UCP_Optimizer_HTML_Trait {
         $allow_comment_cleanup = UCP_Options::get('remove_html_comments') && !$this->should_bypass_html_comments();
         $allow_html_minify = UCP_Options::get('enable_html_minify') && !$this->should_bypass_html_minify();
 
+        if (!$skip_markup_optimizations && UCP_Options::get('enable_worker_lazyload')) {
+            $html = $this->inject_worker_lazyload_runtime($html);
+        }
+
         if (!$allow_comment_cleanup && !$allow_html_minify) {
             return $html;
         }
@@ -108,8 +124,7 @@ trait UCP_Optimizer_HTML_Trait {
             $optimized = is_string($candidate) ? $candidate : $optimized;
         }
         if ($allow_html_minify) {
-            $candidate = preg_replace('/>\s+</', '><', $optimized);
-            $optimized = is_string($candidate) ? $candidate : $optimized;
+            $optimized = $this->minify_html_document($optimized);
         }
 
         $optimized = $this->restore_html_sensitive_blocks($optimized, $protected);
@@ -123,6 +138,16 @@ trait UCP_Optimizer_HTML_Trait {
         }
 
         return $optimized;
+    }
+
+
+    private function inject_worker_lazyload_runtime($html) {
+        if (!is_string($html) || false !== strpos($html, 'id="ucp-worker-lazyload"') || false === stripos($html, '</body>')) {
+            return $html;
+        }
+        $script = "<script id=\"ucp-worker-lazyload\">(function(){if('IntersectionObserver'in window){var io=new IntersectionObserver(function(es){es.forEach(function(e){if(!e.isIntersecting)return;var el=e.target;if(el.dataset&&el.dataset.src){el.src=el.dataset.src;el.removeAttribute('data-src')}if(el.dataset&&el.dataset.srcset){el.srcset=el.dataset.srcset;el.removeAttribute('data-srcset')}io.unobserve(el);});},{rootMargin:'50% 0px'});document.querySelectorAll('img[data-src],iframe[data-src]').forEach(function(el){io.observe(el);});}})();</script>";
+        $candidate = preg_replace('#</body>#i', $script . '</body>', $html, 1);
+        return is_string($candidate) ? $candidate : $html;
     }
 
     private function should_bypass_html_comments() {
@@ -259,6 +284,44 @@ trait UCP_Optimizer_HTML_Trait {
             return $html;
         }
         return strtr($html, $protected);
+    }
+
+
+    private function minify_html_document($html) {
+        $html = (string) $html;
+        if ('' === trim($html)) {
+            return $html;
+        }
+        $candidate = preg_replace('/\s+/u', ' ', $html);
+        $candidate = is_string($candidate) ? $candidate : $html;
+        $candidate = preg_replace('/>\s+</', '><', $candidate);
+        $candidate = is_string($candidate) ? $candidate : $html;
+        $candidate = preg_replace('/\s+>/', '>', $candidate);
+        $candidate = is_string($candidate) ? $candidate : $html;
+        $candidate = preg_replace_callback('/<([a-z][a-z0-9:-]*)(\s[^<>]*?)?>/i', array($this, 'minify_html_start_tag'), $candidate);
+        return is_string($candidate) ? trim($candidate) : $html;
+    }
+
+    private function minify_html_start_tag($matches) {
+        $tag = isset($matches[1]) ? strtolower((string) $matches[1]) : '';
+        $attrs = isset($matches[2]) ? (string) $matches[2] : '';
+        if ('' === trim($attrs)) {
+            return '<' . $tag . '>';
+        }
+        $attrs = preg_replace('/\s+/u', ' ', trim($attrs));
+        $attrs = preg_replace_callback("#\\s([a-zA-Z_:][-a-zA-Z0-9_:.]*)=(\"([^\"]*)\"|'([^']*)')#", function ($m) {
+            $name = strtolower((string) $m[1]);
+            $value = isset($m[3]) && '' !== $m[3] ? $m[3] : (isset($m[4]) ? $m[4] : '');
+            $boolean = array('allowfullscreen','async','autofocus','autoplay','checked','controls','defer','disabled','hidden','loop','multiple','muted','novalidate','open','readonly','required','selected');
+            if (in_array($name, $boolean, true) && strtolower($value) === $name) {
+                return ' ' . $name;
+            }
+            if (UCP_Options::get('enable_html_attribute_quote_removal') && preg_match('/^[A-Za-z0-9._:-]+$/', $value)) {
+                return ' ' . $name . '=' . $value;
+            }
+            return ' ' . $name . '="' . str_replace('"', '&quot;', $value) . '"';
+        }, $attrs);
+        return '<' . $tag . (is_string($attrs) && '' !== $attrs ? ' ' . trim($attrs) : '') . '>';
     }
 
     private function add_font_display_swap($html) {

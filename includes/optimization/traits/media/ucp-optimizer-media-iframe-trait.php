@@ -39,6 +39,29 @@ trait UCP_Optimizer_Media_Iframe_Trait {
         return '<iframe' . $attrs . '>' . $body . '</iframe>';
     }
 
+    private function reserve_embed_aspect_ratio($attrs) {
+        if (preg_match('#\bstyle=["\'][^"\']*aspect-ratio\s*:#i', $attrs)) {
+            return $attrs;
+        }
+        $width = 0;
+        $height = 0;
+        if (preg_match('#\bwidth=["\']?(\d+)#i', $attrs, $w)) {
+            $width = absint($w[1]);
+        }
+        if (preg_match('#\bheight=["\']?(\d+)#i', $attrs, $h)) {
+            $height = absint($h[1]);
+        }
+        if ($width <= 0 || $height <= 0) {
+            $width = 16;
+            $height = 9;
+        }
+        $ratio = $width . ' / ' . $height;
+        if (preg_match('#\bstyle=["\']([^"\']*)["\']#i', $attrs, $style)) {
+            return preg_replace('#\bstyle=["\'][^"\']*["\']#i', ' style="' . esc_attr(trim($style[1]) . ';aspect-ratio:' . $ratio . ';max-width:100%;height:auto') . '"', $attrs, 1);
+        }
+        return $attrs . ' style="aspect-ratio:' . esc_attr($ratio) . ';max-width:100%;height:auto"';
+    }
+
     private function extract_youtube_video_id($src) {
         $host = strtolower((string) wp_parse_url($src, PHP_URL_HOST));
         if (false === strpos($host, 'youtube.com') && false === strpos($host, 'youtu.be')) {

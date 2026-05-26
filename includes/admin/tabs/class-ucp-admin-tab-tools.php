@@ -38,7 +38,7 @@ class UCP_Admin_Tab_Tools {
         $compat_lists_url = wp_nonce_url(admin_url('admin-post.php?action=ucp_check_compat_lists'), 'ucp_check_compat_lists');
         $compat_files = glob(trailingslashit(UCP_PATH) . 'compat/*.json');
         $compat_list_count = is_array($compat_files) ? count($compat_files) : 0;
-        $jobs_summary = class_exists('UCP_Jobs') ? UCP_Jobs::get_summary() : array('pending' => 0, 'running' => 0, 'retrying' => 0, 'failed' => 0, 'success' => 0);
+        $jobs_summary = UCP_Jobs::get_summary();
         $recent_jobs = class_exists('UCP_Jobs') ? array_slice((array) UCP_Jobs::recent(5), 0, 5) : array();
         $runtime = class_exists('UCP_Runtime_Tests') ? UCP_Runtime_Tests::latest() : array();
         $cwv_summary = class_exists('UCP_CWV') ? UCP_CWV::summary() : array();

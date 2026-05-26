@@ -13,7 +13,7 @@ trait UCP_REST_Diagnostics_Trait {
 
     public static function diagnostic_jobs(WP_REST_Request $request) {
         $paging = self::request_paging($request);
-        $result = class_exists('UCP_Jobs') ? UCP_Jobs::query($paging) : array('rows' => array(), 'total' => 0, 'per_page' => $paging['per_page'], 'paged' => 1, 'max_pages' => 1);
+        $result = UCP_Jobs::query($paging);
         return rest_ensure_response(array_merge(array('success' => true), $result));
     }
 

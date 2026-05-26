@@ -74,6 +74,194 @@ class UCP_Admin_Sanitizer {
         $output   = $current;
         $input    = is_array($input) ? $input : array();
 
+        // UX-only combined controls. These are not stored as separate runtime flags; they map back
+        // to the existing stable options before the normal sanitizer runs.
+        if (array_key_exists('html_optimization_mode', $input)) {
+            $html_mode = sanitize_key((string) $input['html_optimization_mode']);
+            if ('minify' === $html_mode) {
+                $input['remove_html_comments'] = 1;
+                $input['enable_html_minify'] = 1;
+            } elseif ('comments' === $html_mode) {
+                $input['remove_html_comments'] = 1;
+                $input['enable_html_minify'] = 0;
+            } else {
+                $input['remove_html_comments'] = 0;
+                $input['enable_html_minify'] = 0;
+            }
+        }
+
+        if (array_key_exists('image_optimization_mode', $input)) {
+            $image_mode = sanitize_key((string) $input['image_optimization_mode']);
+            if ('webp_avif' === $image_mode) {
+                $input['enable_image_optimization'] = 1;
+                $input['enable_webp_generation'] = 1;
+                $input['enable_avif_generation'] = 1;
+            } elseif ('webp' === $image_mode) {
+                $input['enable_image_optimization'] = 1;
+                $input['enable_webp_generation'] = 1;
+                $input['enable_avif_generation'] = 0;
+            } elseif ('optimize' === $image_mode) {
+                $input['enable_image_optimization'] = 1;
+                $input['enable_webp_generation'] = 0;
+                $input['enable_avif_generation'] = 0;
+            } else {
+                $input['enable_image_optimization'] = 0;
+                $input['enable_webp_generation'] = 0;
+                $input['enable_avif_generation'] = 0;
+            }
+        }
+
+
+        if (array_key_exists('delay_js_control', $input)) {
+            $delay_mode_combined = sanitize_key((string) $input['delay_js_control']);
+            if ('off' === $delay_mode_combined) {
+                $input['enable_delay_js'] = 0;
+            } elseif ('specified' === $delay_mode_combined) {
+                $input['enable_delay_js'] = 1;
+                $input['delay_js_mode'] = 'specified';
+                $input['delay_js_safe_mode'] = 0;
+            } elseif ('all' === $delay_mode_combined) {
+                $input['enable_delay_js'] = 1;
+                $input['delay_js_mode'] = 'all';
+                $input['delay_js_safe_mode'] = 0;
+            } elseif ('safe' === $delay_mode_combined) {
+                $input['enable_delay_js'] = 1;
+                $input['delay_js_mode'] = 'all';
+                $input['delay_js_safe_mode'] = 1;
+                $input['delay_js_disable_click_delay'] = 1;
+            }
+        }
+
+        if (array_key_exists('media_lazyload_mode', $input)) {
+            $media_mode = sanitize_key((string) $input['media_lazyload_mode']);
+            $input['enable_lazy_images'] = in_array($media_mode, array('images','iframes','youtube'), true) ? 1 : 0;
+            $input['enable_lazy_iframes'] = in_array($media_mode, array('iframes','youtube'), true) ? 1 : 0;
+            $input['enable_lazy_youtube_preview'] = 'youtube' === $media_mode ? 1 : 0;
+        }
+
+        if (array_key_exists('lcp_image_mode', $input)) {
+            $lcp_mode = sanitize_key((string) $input['lcp_image_mode']);
+            if ('off' === $lcp_mode) {
+                $input['preload_critical_images'] = 0;
+                $input['lazyload_exclude_leading_images'] = 0;
+            } elseif ('protect_hero' === $lcp_mode) {
+                $input['preload_critical_images'] = 0;
+                $input['lazyload_exclude_leading_images'] = 1;
+            } elseif ('preload_hero' === $lcp_mode) {
+                $input['preload_critical_images'] = 1;
+                $input['lazyload_exclude_leading_images'] = 1;
+            } elseif ('recommended' === $lcp_mode) {
+                $input['preload_critical_images'] = 2;
+                $input['lazyload_exclude_leading_images'] = 4;
+            }
+        }
+
+        if (array_key_exists('google_fonts_mode', $input)) {
+            $fonts_mode = sanitize_key((string) $input['google_fonts_mode']);
+            $input['enable_disable_google_fonts'] = 'disable' === $fonts_mode ? 1 : 0;
+            $input['enable_local_google_fonts'] = 'local' === $fonts_mode ? 1 : 0;
+            $input['enable_font_display_swap'] = in_array($fonts_mode, array('swap','local'), true) ? 1 : 0;
+        }
+
+        if (array_key_exists('preload_mode', $input)) {
+            $preload_mode = sanitize_key((string) $input['preload_mode']);
+            if ('off' === $preload_mode) {
+                $input['enable_preload'] = 0;
+                $input['enable_preload_queue'] = 0;
+                $input['preload_sitemaps'] = 0;
+                $input['preload_homepage'] = 0;
+            } elseif ('recommended' === $preload_mode) {
+                $input['enable_preload'] = 1;
+                $input['enable_preload_queue'] = 1;
+                $input['preload_sitemaps'] = 1;
+                $input['preload_homepage'] = 1;
+            } elseif ('homepage' === $preload_mode) {
+                $input['enable_preload'] = 1;
+                $input['enable_preload_queue'] = 1;
+                $input['preload_sitemaps'] = 0;
+                $input['preload_homepage'] = 1;
+            } elseif ('manual' === $preload_mode) {
+                $input['enable_preload'] = 1;
+            }
+        }
+
+        if (array_key_exists('stale_cache_mode', $input)) {
+            $stale_mode = sanitize_key((string) $input['stale_cache_mode']);
+            if ('off' === $stale_mode) {
+                $input['enable_stale_cache'] = 0;
+            } elseif (in_array($stale_mode, array('6','12','24','48'), true)) {
+                $input['enable_stale_cache'] = 1;
+                $input['stale_cache_lifespan'] = absint($stale_mode);
+            }
+        }
+
+
+        if (array_key_exists('query_string_cache_mode', $input)) {
+            $query_mode = sanitize_key((string) $input['query_string_cache_mode']);
+            $input['cache_query_strings'] = 'allow_list' === $query_mode ? 1 : 0;
+        }
+
+        if (array_key_exists('speculative_loading_mode', $input)) {
+            $spec_mode = sanitize_key((string) $input['speculative_loading_mode']);
+            if ('off' === $spec_mode) {
+                $input['enable_speculative_loading'] = 0;
+            } elseif ('prefetch_conservative' === $spec_mode) {
+                $input['enable_speculative_loading'] = 1;
+                $input['speculation_mode'] = 'prefetch';
+                $input['speculation_eagerness'] = 'conservative';
+            } elseif ('prerender_conservative' === $spec_mode) {
+                $input['enable_speculative_loading'] = 1;
+                $input['speculation_mode'] = 'prerender';
+                $input['speculation_eagerness'] = 'conservative';
+            } else {
+                $input['enable_speculative_loading'] = 1;
+                $input['speculation_mode'] = 'prefetch';
+                $input['speculation_eagerness'] = 'moderate';
+            }
+        }
+
+        if (array_key_exists('cdn_rewrite_mode', $input)) {
+            $cdn_mode = sanitize_key((string) $input['cdn_rewrite_mode']);
+            if ('off' === $cdn_mode) {
+                $input['enable_cdn'] = 0;
+            } else {
+                $input['enable_cdn'] = 1;
+                $input['cdn_file_types'] = in_array($cdn_mode, array('css_js','images','all'), true) ? $cdn_mode : 'all';
+            }
+        }
+
+        if (array_key_exists('browser_cache_mode', $input)) {
+            $browser_mode = sanitize_key((string) $input['browser_cache_mode']);
+            if ('off' === $browser_mode) {
+                $input['browser_cache_headers'] = 0;
+            } else {
+                $input['browser_cache_headers'] = 1;
+                if ('30d' === $browser_mode) {
+                    $input['cache_control_max_age'] = 2592000;
+                } elseif ('180d' === $browser_mode) {
+                    $input['cache_control_max_age'] = 15552000;
+                } elseif ('365d' === $browser_mode) {
+                    $input['cache_control_max_age'] = 31536000;
+                }
+            }
+        }
+
+        if (array_key_exists('heartbeat_interval_mode', $input)) {
+            $heartbeat_interval_mode = sanitize_key((string) $input['heartbeat_interval_mode']);
+            if ('custom' === $heartbeat_interval_mode) {
+                $input['heartbeat_frontend_frequency'] = 60;
+                $input['heartbeat_editor_frequency'] = 30;
+                $input['heartbeat_backend_frequency'] = 60;
+                $input['heartbeat_frequency'] = 60;
+            } elseif (in_array($heartbeat_interval_mode, array('30','60','120'), true)) {
+                $heartbeat_interval = absint($heartbeat_interval_mode);
+                $input['heartbeat_frontend_frequency'] = $heartbeat_interval;
+                $input['heartbeat_editor_frequency'] = $heartbeat_interval;
+                $input['heartbeat_backend_frequency'] = $heartbeat_interval;
+                $input['heartbeat_frequency'] = $heartbeat_interval;
+            }
+        }
+
         $checkbox_fields = array(
             'enable_cache', 'cache_logged_in', 'cache_mobile_separately', 'cache_query_strings', 'enable_stale_cache', 'enable_woocommerce_rules', 'compatibility_mode', 'woocommerce_safety_mode',
             'enable_preload', 'preload_homepage', 'preload_sitemaps', 'enable_html_minify', 'enable_html_test_mode', 'remove_html_comments', 'wp_rocket_style_defaults',
@@ -86,7 +274,7 @@ class UCP_Admin_Sanitizer {
             'db_cleanup_wc_sessions', 'enable_cloud', 'cloud_pull_used_css', 'cloud_pull_critical_css', 'enable_edge_cache_headers',
             'enable_cloudflare_apo_mode', 'enable_early_hints_links', 'enable_admin_bar', 'enable_asset_test_mode', 'enable_asset_manager_snapshot', 'purge_on_post_update', 'purge_on_comment',
             'purge_on_theme_switch', 'purge_on_extension_change', 'purge_on_core_update', 'purge_on_global_change', 'enable_cache_tags', 'enable_object_cache_support', 'object_cache_fail_safe', 'enable_logged_in_private_cache', 'enable_diagnostics', 'enable_logs', 'enable_dynamic_compatibility_rules', 'enable_runtime_debug_headers', 'enable_health_checks', 'enable_admin_queue_runner', 'autopilot_enabled', 'onboarding_completed',
-            'allow_wp_config_write', 'allow_dropin_writes', 'allow_browser_cache_rule_writes', 'enable_preload_queue', 'enable_targeted_purge', 'enable_light_preload_requests', 'enable_lazy_render', 'enable_self_host_third_party_assets', 'enable_disable_dashicons', 'enable_disable_jquery_migrate', 'enable_move_module_scripts_footer', 'safe_settings_export', 'enable_disable_xmlrpc', 'enable_hide_wp_version', 'enable_remove_rsd_link', 'enable_remove_shortlink', 'enable_disable_rss_feeds', 'enable_remove_rss_feed_links', 'enable_disable_self_pingbacks', 'enable_disable_rest_api', 'enable_remove_rest_api_links', 'enable_disable_google_maps', 'enable_disable_password_strength_meter', 'allow_dropin_takeover', 'enable_disable_comments', 'enable_remove_comment_links', 'enable_blank_favicon', 'enable_remove_global_styles', 'enable_separate_block_styles', 'enable_disable_google_fonts', 'enable_hide_toolbar_menu', 'enable_lazyload_fade_in', 'enable_lazyload_background_images'
+            'enable_local_critical_css', 'enable_brotli_precompression', 'enable_gzip_precompression', 'enable_cls_iframe_reservation', 'enable_expand_missing_srcset', 'enable_worker_lazyload', 'enable_adaptive_speculation', 'enable_apcu_object_cache', 'db_allow_myisam_innodb_convert', 'allow_wp_config_write', 'allow_dropin_writes', 'allow_browser_cache_rule_writes', 'enable_preload_queue', 'enable_targeted_purge', 'enable_light_preload_requests', 'enable_lazy_render', 'enable_self_host_third_party_assets', 'enable_disable_dashicons', 'enable_disable_jquery_migrate', 'enable_move_module_scripts_footer', 'safe_settings_export', 'enable_disable_xmlrpc', 'enable_hide_wp_version', 'enable_remove_rsd_link', 'enable_remove_shortlink', 'enable_disable_rss_feeds', 'enable_remove_rss_feed_links', 'enable_disable_self_pingbacks', 'enable_disable_rest_api', 'enable_remove_rest_api_links', 'enable_disable_google_maps', 'enable_disable_password_strength_meter', 'allow_dropin_takeover', 'enable_disable_comments', 'enable_remove_comment_links', 'enable_blank_favicon', 'enable_remove_global_styles', 'enable_separate_block_styles', 'enable_disable_google_fonts', 'enable_hide_toolbar_menu', 'enable_lazyload_fade_in', 'enable_lazyload_background_images'
         );
 
         $number_fields = array(
@@ -120,6 +308,8 @@ class UCP_Admin_Sanitizer {
             'lazyload_exclusions' => 'fragment',
             'lazyload_parent_exclusions' => 'selector',
             'lazy_render_selectors' => 'selector',
+            'cls_reserve_selectors' => 'selector',
+            'js_combine_exclusions' => 'path',
             'self_host_asset_domains' => 'domain',
             'fetchpriority_rules' => 'selector',
             'used_css_safelist' => 'selector',
@@ -209,6 +399,13 @@ class UCP_Admin_Sanitizer {
         foreach (array('heartbeat_frontend_behavior','heartbeat_editor_behavior','heartbeat_backend_behavior') as $heartbeat_behavior_key) {
             $output[$heartbeat_behavior_key] = isset($input[$heartbeat_behavior_key]) && in_array($input[$heartbeat_behavior_key], array('keep','reduce','disable'), true) ? $input[$heartbeat_behavior_key] : (isset($current[$heartbeat_behavior_key]) ? $current[$heartbeat_behavior_key] : 'reduce');
         }
+        // The separate Heartbeat master toggle is now a legacy mirror. If all contexts are kept,
+        // Heartbeat control is off; any reduced/disabled context activates it.
+        $output['enable_heartbeat_control'] = (
+            'keep' === $output['heartbeat_frontend_behavior']
+            && 'keep' === $output['heartbeat_editor_behavior']
+            && 'keep' === $output['heartbeat_backend_behavior']
+        ) ? 0 : 1;
         $output['used_css_max_rules'] = min(5000, max(250, absint($output['used_css_max_rules'])));
         $output['critical_css_max_bytes'] = min(50000, max(2000, absint($output['critical_css_max_bytes'])));
         $output['css_artifact_min_bytes'] = min(5000, max(50, absint(isset($output['css_artifact_min_bytes']) ? $output['css_artifact_min_bytes'] : 200)));

@@ -36,6 +36,9 @@ trait UCP_Assets_Combine_Trait {
                 if ($wp_styles->get_data($handle, 'conditional') || $wp_styles->get_data($handle, 'after') || $wp_styles->get_data($handle, 'alt')) {
                     continue;
                 }
+                if ($this->has_dependents($handle, 'style')) {
+                    continue;
+                }
                 $path = UCP_Helpers::local_path_from_url($this->normalize_asset_url($src));
                 if (!$path || !file_exists($path)) {
                     continue;
@@ -47,8 +50,17 @@ trait UCP_Assets_Combine_Trait {
                 if (count($items) < 2) {
                     continue;
                 }
-                $hash = md5(implode('|', array_keys($items)) . '|' . UCP_VERSION . '|' . (int) UCP_Options::get('enable_css_minify'));
-                $target = UCP_CACHE_DIR . 'assets/combined-' . $hash . '.css';
+                $mtime_parts = array();
+                foreach ($items as $mtime_handle => $mtime_path) {
+                    $mtime_parts[] = $mtime_handle . ':' . (string) @filemtime($mtime_path) . ':' . (string) @filesize($mtime_path);
+                }
+                $hash = md5(implode('|', $mtime_parts) . '|' . UCP_VERSION . '|' . (int) UCP_Options::get('enable_css_minify'));
+                $target_dir = trailingslashit(UCP_CACHE_DIR) . 'assets/';
+                if (!is_dir($target_dir)) {
+                    wp_mkdir_p($target_dir);
+                }
+                UCP_Helpers::write_file($target_dir . 'index.html', '');
+                $target = $target_dir . 'combined-' . $hash . '.css';
                 if (UCP_Options::get('enable_asset_test_mode')) {
                     UCP_Diagnostics::record('assets', 'Dry-run CSS combine report', array('media' => $media, 'handles' => array_keys($items)));
                     continue;
@@ -68,7 +80,7 @@ trait UCP_Assets_Combine_Trait {
                             }
                             return $matches[0];
                         }, $css);
-                        $contents .= "\n/* {$handle} */\n" . $css;
+                        $contents .= "\n" . $css;
                     }
                     if (UCP_Options::get('enable_css_minify')) {
                         $contents = UCP_Helpers::minify_css($contents);
@@ -110,7 +122,10 @@ trait UCP_Assets_Combine_Trait {
             }
 
             $groups = array();
-            $exclusions = apply_filters('ucp_asset_exclusions', apply_filters('ucp_js_exclusions', UCP_Helpers::normalize_multiline(UCP_Options::get('js_exclusions', ''))));
+            $exclusions = array_merge(
+                apply_filters('ucp_asset_exclusions', apply_filters('ucp_js_exclusions', UCP_Helpers::normalize_multiline(UCP_Options::get('js_exclusions', '')))),
+                UCP_Helpers::normalize_multiline(UCP_Options::get('js_combine_exclusions', ''))
+            );
 
             foreach ($wp_scripts->queue as $handle) {
                 if (empty($wp_scripts->registered[$handle])) {
@@ -122,7 +137,10 @@ trait UCP_Assets_Combine_Trait {
                 if (!$src || !UCP_Helpers::is_local_url($src) || !$this->is_combinable($handle, $src, $exclusions)) {
                     continue;
                 }
-                if ($wp_scripts->get_data($handle, 'data') || $wp_scripts->get_data($handle, 'after') || $wp_scripts->get_data($handle, 'before') || $wp_scripts->get_data($handle, 'strategy')) {
+                if ($wp_scripts->get_data($handle, 'data') || $wp_scripts->get_data($handle, 'after') || $wp_scripts->get_data($handle, 'before') || $wp_scripts->get_data($handle, 'strategy') || $wp_scripts->get_data($handle, 'nonce')) {
+                    continue;
+                }
+                if ($wp_scripts->get_data($handle, 'type') === 'module') {
                     continue;
                 }
                 if ($this->has_dependents($handle, 'script')) {
@@ -139,8 +157,17 @@ trait UCP_Assets_Combine_Trait {
                 if (count($items) < 2) {
                     continue;
                 }
-                $hash = md5(implode('|', array_keys($items)) . '|' . UCP_VERSION . '|' . (int) UCP_Options::get('enable_js_minify'));
-                $target = UCP_CACHE_DIR . 'assets/combined-' . $hash . '.js';
+                $mtime_parts = array();
+                foreach ($items as $mtime_handle => $mtime_path) {
+                    $mtime_parts[] = $mtime_handle . ':' . (string) @filemtime($mtime_path) . ':' . (string) @filesize($mtime_path);
+                }
+                $hash = md5(implode('|', $mtime_parts) . '|' . UCP_VERSION . '|' . (int) UCP_Options::get('enable_js_minify'));
+                $target_dir = trailingslashit(UCP_CACHE_DIR) . 'js/';
+                if (!is_dir($target_dir)) {
+                    wp_mkdir_p($target_dir);
+                }
+                UCP_Helpers::write_file($target_dir . 'index.html', '');
+                $target = $target_dir . 'combined-' . $hash . '.js';
                 if (UCP_Options::get('enable_asset_test_mode')) {
                     UCP_Diagnostics::record('assets', 'Dry-run JS combine report', array('group' => $group, 'handles' => array_keys($items)));
                     continue;
@@ -152,10 +179,14 @@ trait UCP_Assets_Combine_Trait {
                         if (!is_string($js) || '' === $js) {
                             continue;
                         }
-                        $contents .= "\n/* {$handle} */\n;" . $js;
+                        $contents .= "\n;" . $js . "\n;";
                     }
                     if (UCP_Options::get('enable_js_minify')) {
-                        $contents = UCP_Helpers::minify_js($contents);
+                        if ($this->js_minify_candidate_is_risky($contents)) {
+                            UCP_Diagnostics::record('assets', 'Skipped JS minify for combined file because the source needs a full JavaScript parser.', array('group' => $group, 'handles' => array_keys($items)));
+                        } else {
+                            $contents = UCP_Helpers::minify_js($contents);
+                        }
                     }
                     if ('' === trim((string) $contents) || !UCP_Helpers::write_file($target, $contents)) {
                         UCP_Diagnostics::record('assets', 'Skipped JS combine because the combined file could not be written.', array('group' => $group, 'handles' => array_keys($items)));

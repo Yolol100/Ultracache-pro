@@ -1,6 +1,17 @@
-// UX cleanup applied safely
 <?php
 if (!defined('ABSPATH')) { exit; }
+$preload_mode = 'off';
+if (!empty($settings['enable_preload'])) {
+    if (!empty($settings['enable_preload_queue']) && !empty($settings['preload_sitemaps']) && !empty($settings['preload_homepage'])) {
+        $preload_mode = 'recommended';
+    } elseif (!empty($settings['enable_preload_queue']) && empty($settings['preload_sitemaps']) && !empty($settings['preload_homepage'])) {
+        $preload_mode = 'homepage';
+    } else {
+        $preload_mode = 'manual';
+    }
+}
+$preload_mode_settings = $settings;
+$preload_mode_settings['preload_mode'] = $preload_mode;
 ?>
         <section class="ucp-panel full ucp-panel--preload-main">
             <div class="ucp-panel__header">
@@ -8,9 +19,7 @@ if (!defined('ABSPATH')) { exit; }
                 <div class="ucp-panel__actions"><a class="button" href="<?php echo esc_url($safe_preload_url); ?>"><?php esc_html_e('Veilige preload standaard', 'ultracache-pro'); ?></a><a class="button button-primary" href="<?php echo esc_url($preload_url); ?>"><?php esc_html_e('Cache legen en preloaden', 'ultracache-pro'); ?></a></div>
             </div>
             <div class="ucp-field-row ucp-field-row--2">
-                <?php $admin->checkbox('enable_preload', __('Activeer preloaden', 'ultracache-pro'), $settings, __('Genereert cachebestanden voor belangrijke URL’s.', 'ultracache-pro')); ?>
-                <?php $admin->checkbox('enable_preload_queue', __('Preload op de achtergrond', 'ultracache-pro'), $settings, __('Voorkomt pieken door URL’s in batches te verwerken.', 'ultracache-pro')); ?>
-                <?php $admin->checkbox('preload_sitemaps', __('Sitemap gebruiken voor preload', 'ultracache-pro'), $settings, __('Zo vindt UltraCache automatisch belangrijke pagina’s.', 'ultracache-pro')); ?>
+                <?php $admin->select('preload_mode', __('Cache preload', 'ultracache-pro'), $preload_mode_settings, array('off' => __('Uit', 'ultracache-pro'), 'recommended' => __('Veilig aanbevolen: queue + sitemap + homepage', 'ultracache-pro'), 'homepage' => __('Alleen homepage', 'ultracache-pro'), 'manual' => __('Handmatig / geavanceerd', 'ultracache-pro')), __('Eén keuze vervangt preload aan/uit, queue, sitemap en homepage meenemen.', 'ultracache-pro')); ?>
                 <?php $admin->checkbox('enable_light_preload_requests', __('Lichte preload requests gebruiken', 'ultracache-pro'), $settings, __('Gebruikt lichte requests wanneer mogelijk, met normale preload als fallback.', 'ultracache-pro')); ?>
             </div>
             <div class="ucp-callout ucp-callout--info ucp-callout--compact"><strong><?php esc_html_e('Taken', 'ultracache-pro'); ?></strong><p><?php /* translators: 1: pending jobs, 2: running jobs, 3: retrying jobs, 4: failed jobs. */ echo esc_html(sprintf(__('Wacht: %1$d · Bezig: %2$d · Opnieuw: %3$d · Mislukt: %4$d', 'ultracache-pro'), (int) ($jobs_summary['pending'] ?? 0), (int) ($jobs_summary['running'] ?? 0), (int) ($jobs_summary['retrying'] ?? 0), (int) ($jobs_summary['failed'] ?? 0))); ?></p></div>

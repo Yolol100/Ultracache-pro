@@ -132,7 +132,7 @@ trait UCP_Integrations_Autopilot_Trait {
         }
 
         if (!empty($settings['delay_js_exclusions'])) {
-            $delay_exclusions = class_exists('UCP_Helpers') ? UCP_Helpers::normalize_multiline($settings['delay_js_exclusions']) : preg_split('/\r\n|\r|\n/', (string) $settings['delay_js_exclusions']);
+            $delay_exclusions = UCP_Helpers::normalize_multiline($settings['delay_js_exclusions']);
             $defer_to_delay = array('gtag', 'google-analytics', 'gtm4wp', 'monsterinsights', 'site-kit', 'cookiebot', 'consent.cookiebot.com', 'fbevents.js', 'fbq(', 'adsbygoogle.js', 'joinchat');
             $delay_exclusions = array_values(array_filter((array) $delay_exclusions, static function ($item) use ($defer_to_delay) {
                 $item = trim((string) $item);

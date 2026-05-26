@@ -163,7 +163,7 @@ trait UCP_Integrations_Detection_Trait {
             'fast_velocity_minify' => self::has_active_plugin_slug(array('fast-velocity-minify/fvm.php')),
             'jetpack_boost'    => self::has_active_plugin_slug(array('jetpack-boost/jetpack-boost.php')),
             'async_javascript' => self::has_active_plugin_slug(array('async-javascript/async-javascript.php')),
-            'cache_conflicts'  => class_exists('UCP_Compat') ? UCP_Compat::detected_conflicts() : array(),
+            'cache_conflicts'  => UCP_Compat::detected_conflicts(),
         );
 
         $detected['consent'] = !empty($detected['complianz']) || !empty($detected['cookieyes']) || !empty($detected['borlabs_cookie']) || !empty($detected['cookiebot']) || !empty($detected['real_cookie_banner']) || !empty($detected['moove_gdpr']) || !empty($detected['cookie_notice']) || !empty($detected['iubenda']);

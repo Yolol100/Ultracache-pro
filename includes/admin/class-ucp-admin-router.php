@@ -29,6 +29,7 @@ final class UCP_Admin_Router {
             'database' => 'database',
             'cdn' => 'cdn',
             'heartbeat' => 'heartbeat',
+            'developer' => 'developer',
             'tools' => 'tools',
         );
     }
@@ -60,6 +61,7 @@ final class UCP_Admin_Router {
             'ultracache-pro-database' => 'database',
             'ultracache-pro-cdn' => 'cdn',
             'ultracache-pro-heartbeat' => 'heartbeat',
+            'ultracache-pro-developer' => 'developer',
             'ultracache-pro-addons' => 'tools',
             'ultracache-pro-tools' => 'tools',
             'ultracache-pro-toolbox' => 'tools',

@@ -8,7 +8,7 @@ trait UCP_Cache_Tags_Registry_Trait {
         if (!self::enabled()) {
             return;
         }
-        $url = class_exists('UCP_Helpers') ? UCP_Helpers::strict_local_url($url) : esc_url_raw($url);
+        $url = UCP_Helpers::strict_local_url($url);
         $tags = self::normalize_tags($tags);
         if (!$url || empty($tags)) {
             return;
@@ -41,7 +41,7 @@ trait UCP_Cache_Tags_Registry_Trait {
     }
 
     public static function remove_url($url) {
-        $url = class_exists('UCP_Helpers') ? UCP_Helpers::strict_local_url($url) : esc_url_raw($url);
+        $url = UCP_Helpers::strict_local_url($url);
         if (!$url) {
             return;
         }
@@ -64,7 +64,7 @@ trait UCP_Cache_Tags_Registry_Trait {
         }
         $clean = array();
         foreach ((array) $urls as $url) {
-            $url = class_exists('UCP_Helpers') ? UCP_Helpers::strict_local_url($url) : esc_url_raw($url);
+            $url = UCP_Helpers::strict_local_url($url);
             if ($url && wp_http_validate_url($url)) {
                 $clean[] = $url;
             }

@@ -60,9 +60,21 @@ final class UCP_Plugin {
         restore_current_blog();
     }
 
+    /**
+     * Return true when any of the given UCP option keys evaluates as truthy.
+     * Used by bootstrap() to keep module-load conditions readable.
+     */
+    private static function any_option_enabled(array $keys) {
+        foreach ($keys as $key) {
+            if (UCP_Options::get($key)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public function bootstrap() {
         $backend_context = is_admin() || (function_exists('wp_doing_cron') && wp_doing_cron()) || (defined('WP_CLI') && WP_CLI);
-
         UCP_Options::maybe_init_defaults();
         UCP_Options::maybe_apply_runtime_write_and_log_migration();
         UCP_Options::maybe_apply_preload_safety_migration();
@@ -96,9 +108,7 @@ final class UCP_Plugin {
         if ($backend_context || UCP_Options::get('enable_health_checks')) {
             UCP_Health::bootstrap();
         }
-        if (class_exists('UCP_Optimization_Intelligence')) {
-            UCP_Optimization_Intelligence::bootstrap();
-        }
+        UCP_Optimization_Intelligence::bootstrap();
         UCP_REST_Admin_Controller::init();
 
         if ($backend_context) {
@@ -119,13 +129,31 @@ final class UCP_Plugin {
         if ($backend_context || UCP_Options::get('enable_preload')) {
             new UCP_Preload();
         }
-        if ($backend_context || UCP_Options::get('enable_css_minify') || UCP_Options::get('enable_js_minify') || UCP_Options::get('enable_css_combine') || UCP_Options::get('enable_js_combine') || UCP_Options::get('disabled_style_handles') || UCP_Options::get('disabled_script_handles') || UCP_Options::get('conditional_style_unloads') || UCP_Options::get('conditional_script_unloads') || UCP_Options::get('advanced_asset_rules') || UCP_Options::get('enable_asset_manager_snapshot')) {
+        if ($backend_context || self::any_option_enabled(array(
+            'enable_css_minify', 'enable_js_minify', 'enable_css_combine', 'enable_js_combine',
+            'disabled_style_handles', 'disabled_script_handles',
+            'conditional_style_unloads', 'conditional_script_unloads',
+            'advanced_asset_rules', 'enable_asset_manager_snapshot',
+        ))) {
             new UCP_Assets();
         }
         if ($backend_context || UCP_Options::get('enable_used_css') || UCP_Options::get('enable_critical_css')) {
             new UCP_CSS();
         }
-        if ($backend_context || UCP_Options::get('enable_remove_emojis') || UCP_Options::get('enable_disable_embeds') || UCP_Options::get('enable_delay_js') || UCP_Options::get('remove_html_comments') || UCP_Options::get('enable_html_minify') || UCP_Options::get('enable_lazy_images') || UCP_Options::get('enable_lazy_iframes') || UCP_Options::get('enable_lazy_youtube_preview') || UCP_Options::get('defer_all_js') || UCP_Options::get('enable_defer_js_fallback') || UCP_Options::get('enable_native_script_strategy') || UCP_Options::get('enable_heartbeat_control') || UCP_Options::get('enable_cdn') || UCP_Options::get('enable_prefetch_links') || UCP_Options::get('enable_speculative_loading') || UCP_Options::get('preload_fonts') || UCP_Options::get('dns_prefetch_domains') || UCP_Options::get('enable_font_display_swap') || UCP_Options::get('enable_remove_query_strings') || UCP_Options::get('enable_add_image_dimensions') || UCP_Options::get('preload_critical_images') || UCP_Options::get('enable_disable_google_fonts') || UCP_Options::get('preconnect_domains') || UCP_Options::get('enable_lazy_render') || UCP_Options::get('enable_disable_dashicons') || UCP_Options::get('enable_disable_jquery_migrate') || UCP_Options::get('enable_move_module_scripts_footer') || UCP_Options::get('enable_self_host_third_party_assets')) {
+        if ($backend_context || self::any_option_enabled(array(
+            'enable_remove_emojis', 'enable_disable_embeds', 'enable_delay_js',
+            'remove_html_comments', 'enable_html_minify',
+            'enable_lazy_images', 'enable_lazy_iframes', 'enable_lazy_youtube_preview',
+            'defer_all_js', 'enable_defer_js_fallback', 'enable_native_script_strategy',
+            'enable_heartbeat_control', 'enable_cdn', 'enable_prefetch_links',
+            'enable_speculative_loading', 'preload_fonts', 'dns_prefetch_domains',
+            'enable_font_display_swap', 'enable_remove_query_strings',
+            'enable_add_image_dimensions', 'preload_critical_images',
+            'enable_disable_google_fonts', 'preconnect_domains', 'enable_lazy_render',
+            'enable_disable_dashicons', 'enable_disable_jquery_migrate',
+            'enable_move_module_scripts_footer', 'enable_self_host_third_party_assets',
+            'enable_cls_iframe_reservation', 'enable_worker_lazyload', 'enable_expand_missing_srcset',
+        ))) {
             new UCP_Optimizer();
         }
         if ($backend_context || UCP_Options::get('enable_db_cleanup')) {
@@ -134,17 +162,26 @@ final class UCP_Plugin {
         if ($backend_context || UCP_Options::get('enable_cloud')) {
             new UCP_Cloud();
         }
-        if ($backend_context || UCP_Options::get('enable_edge_cache_headers') || UCP_Options::get('enable_cloudflare_apo_mode') || UCP_Options::get('enable_early_hints_links')) {
+        if ($backend_context || self::any_option_enabled(array(
+            'enable_edge_cache_headers', 'enable_cloudflare_apo_mode', 'enable_early_hints_links',
+        ))) {
             new UCP_Edge();
         }
-        if ($backend_context || UCP_Options::get('enable_delay_js') || UCP_Options::get('enable_used_css') || UCP_Options::get('enable_critical_css')) {
+        if ($backend_context || self::any_option_enabled(array(
+            'enable_delay_js', 'enable_used_css', 'enable_critical_css',
+        ))) {
             new UCP_Modules();
         }
-        if ($backend_context || UCP_Options::get('enable_cloud') || UCP_Options::get('enable_cloudflare_apo_mode') || UCP_Options::get('enable_css_queue') || UCP_Options::get('enable_preload_queue') || UCP_Options::get('enable_health_checks')) {
+        if ($backend_context || self::any_option_enabled(array(
+            'enable_cloud', 'enable_cloudflare_apo_mode',
+            'enable_css_queue', 'enable_preload_queue', 'enable_health_checks',
+        ))) {
             new UCP_Jobs();
         }
 
-        if ($backend_context || UCP_Options::get('enable_image_optimization') || UCP_Options::get('enable_webp_generation') || UCP_Options::get('enable_avif_generation')) {
+        if ($backend_context || self::any_option_enabled(array(
+            'enable_image_optimization', 'enable_webp_generation', 'enable_avif_generation',
+        ))) {
             new UCP_Image_Optimizer();
         }
         if ($backend_context || UCP_Options::get('enable_object_cache_support')) {

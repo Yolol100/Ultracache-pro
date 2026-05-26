@@ -1,0 +1,11 @@
+{
+  "name": "ultracache-pro/ultracache-pro",
+  "description": "Self-hosted WordPress performance suite dependencies for UltraCache Pro.",
+  "type": "wordpress-plugin",
+  "require": {
+    "php": ">=8.0",
+    "sabberworm/php-css-parser": "^8.7",
+    "matthiasmullie/minify": "^1.3"
+  },
+  "license": "GPL-2.0-or-later"
+}

@@ -79,6 +79,38 @@ $preset_cards     = array('pagespeed_auto', 'safe', 'balanced', 'fast', 'woocomm
             </div>
         </section>
 
+        <section class="ucp-panel full ucp-custom-preset-panel">
+            <div class="ucp-panel__header">
+                <div>
+                    <h2><?php esc_html_e('Maatwerkprofiel opslaan', 'ultracache-pro'); ?></h2>
+                    <p><?php esc_html_e('Bewaar de huidige configuratie als eigen profiel voor klanttypes, staging of multisite-hergebruik.', 'ultracache-pro'); ?></p>
+                </div>
+            </div>
+            <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" class="ucp-inline-form">
+                <input type="hidden" name="action" value="ucp_save_custom_preset">
+                <?php wp_nonce_field('ucp_save_custom_preset'); ?>
+                <label>
+                    <span class="screen-reader-text"><?php esc_html_e('Naam maatwerkprofiel', 'ultracache-pro'); ?></span>
+                    <input type="text" name="ucp_custom_preset_name" placeholder="<?php echo esc_attr__('Bijv. Elementor webshop veilig', 'ultracache-pro'); ?>" required>
+                </label>
+                <button type="submit" class="button"><?php esc_html_e('Huidige instellingen opslaan', 'ultracache-pro'); ?></button>
+            </form>
+            <?php $ucp_custom_presets = class_exists('UCP_Presets') ? UCP_Presets::custom_presets() : array(); ?>
+            <?php if (!empty($ucp_custom_presets)) : ?>
+                <div class="ucp-preset-grid ucp-preset-grid--custom">
+                    <?php foreach ($ucp_custom_presets as $preset_key => $preset) : ?>
+                        <article class="ucp-preset-card <?php echo $active_preset === $preset_key ? 'is-active' : ''; ?>">
+                            <span class="ucp-preset-card__badge"><?php echo $active_preset === $preset_key ? esc_html__('Actief', 'ultracache-pro') : esc_html__('Maatwerk', 'ultracache-pro'); ?></span>
+                            <h3><?php echo esc_html($preset['label']); ?></h3>
+                            <p><?php echo esc_html($preset['description']); ?></p>
+                            <a class="button button-primary" href="<?php echo esc_url(wp_nonce_url(admin_url('admin-post.php?action=ucp_apply_preset&preset=' . rawurlencode($preset_key)), 'ucp_apply_preset')); ?>"><?php esc_html_e('Toepassen', 'ultracache-pro'); ?></a>
+                            <a class="button" href="<?php echo esc_url(wp_nonce_url(admin_url('admin-post.php?action=ucp_delete_custom_preset&preset=' . rawurlencode($preset_key)), 'ucp_delete_custom_preset')); ?>" onclick="return confirm('<?php echo esc_js(__('Maatwerkprofiel verwijderen?', 'ultracache-pro')); ?>');"><?php esc_html_e('Verwijderen', 'ultracache-pro'); ?></a>
+                        </article>
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
+        </section>
+
         <section class="ucp-simple-section-grid <?php echo $is_advanced_mode ? 'is-advanced' : 'is-simple'; ?>">
             <a class="ucp-simple-section-card" href="<?php echo esc_url($admin->tab_url('preload')); ?>">
                 <strong><?php esc_html_e('Preloaden', 'ultracache-pro'); ?></strong>

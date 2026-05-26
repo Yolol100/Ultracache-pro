@@ -188,7 +188,7 @@ trait UCP_CSS_Delivery_Trait {
         return false;
     }
     /**
-     * Basic local used CSS parser. This is intentionally conservative and is not an AST/Sabberworm parser.
+     * Extract used CSS while preserving the existing safelist and fallback flow.
      */
     private function extract_used_css($css, $html) {
         $css = (string) $css;
@@ -202,9 +202,77 @@ trait UCP_CSS_Delivery_Trait {
     }
 
     /**
-     * Basic local used CSS parser. This is intentionally conservative and is not an AST/Sabberworm parser.
+     * Used-CSS extraction with an AST/parser-first path and a conservative scanner fallback.
+     * When Sabberworm/PHP-CSS-Parser is bundled by Composer it is used; otherwise the
+     * existing recursive parser is kept as the no-regression fallback.
      */
     private function extract_used_css_rules($css, $html, $safelist, $max, $context = '') {
+        try {
+            $rules = $this->extract_used_css_rules_with_sabberworm($css, $html, $safelist, $max);
+            if (!empty($rules)) {
+                return $rules;
+            }
+        } catch (Throwable $e) {
+            if (class_exists('UCP_Diagnostics')) {
+                UCP_Diagnostics::record('css', 'Sabberworm used-CSS parser failed; using fallback parser.', array('error' => $e->getMessage()));
+            }
+        }
+        return $this->extract_used_css_rules_fallback($css, $html, $safelist, $max, $context);
+    }
+
+    private function extract_used_css_rules_with_sabberworm($css, $html, $safelist, $max) {
+        if (!class_exists('Sabberworm\CSS\Parser')) {
+            return array();
+        }
+        $parser = new Sabberworm\CSS\Parser((string) $css);
+        $document = $parser->parse();
+        if (!is_object($document) || !method_exists($document, 'getContents')) {
+            return array();
+        }
+        return $this->extract_used_css_ast_nodes($document->getContents(), $html, $safelist, $max);
+    }
+
+    private function extract_used_css_ast_nodes($nodes, $html, $safelist, $max) {
+        $rules = array();
+        foreach ((array) $nodes as $node) {
+            if (count($rules) >= $max) {
+                break;
+            }
+            if (!is_object($node)) {
+                continue;
+            }
+            $class = get_class($node);
+            if (false !== stripos($class, 'CSSList') && method_exists($node, 'getContents')) {
+                $inner = $this->extract_used_css_ast_nodes($node->getContents(), $html, $safelist, $max - count($rules));
+                if (!empty($inner)) {
+                    $rules[] = (string) $node;
+                }
+                continue;
+            }
+            if (false !== stripos($class, 'AtRuleBlockList') || false !== stripos($class, 'KeyFrame') || false !== stripos($class, 'FontFace')) {
+                $rules[] = (string) $node;
+                continue;
+            }
+            if (method_exists($node, 'getSelectors')) {
+                $kept = array();
+                foreach ((array) $node->getSelectors() as $selector) {
+                    $selector_text = trim((string) $selector);
+                    if ($this->selector_is_safelisted($selector_text, $safelist) || $this->selector_matches_html($selector_text, $html)) {
+                        $kept[] = $selector_text;
+                    }
+                }
+                if (!empty($kept)) {
+                    $rules[] = (string) $node;
+                }
+            }
+        }
+        return $rules;
+    }
+
+    /**
+     * Fallback local used CSS parser. This is intentionally conservative.
+     */
+    private function extract_used_css_rules_fallback($css, $html, $safelist, $max, $context = '') {
         $css = preg_replace('!/\*[^*]*\*+(?:[^/*][^*]*\*+)*/!s', '', (string) $css);
         $rules = array();
         $len = strlen($css);
@@ -230,7 +298,7 @@ trait UCP_CSS_Delivery_Trait {
                     continue;
                 }
                 if (preg_match('/^@(media|supports|container|layer)\b/i', $prelude)) {
-                    $inner = $this->extract_used_css_rules($body, $html, $safelist, $max - count($rules), $prelude);
+                    $inner = $this->extract_used_css_rules_fallback($body, $html, $safelist, $max - count($rules), $prelude);
                     if (!empty($inner)) {
                         $rules[] = $prelude . '{' . implode('', $inner) . '}';
                     }

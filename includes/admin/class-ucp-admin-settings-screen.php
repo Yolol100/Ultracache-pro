@@ -13,6 +13,7 @@ class UCP_Admin_Settings_Screen {
             case 'database': UCP_Admin_Tabs::render_database($admin, $settings, $context['jobs_summary']); return;
             case 'cdn': UCP_Admin_Tabs::render_cdn($admin, $settings); return;
             case 'heartbeat': UCP_Admin_Tabs::render_heartbeat($admin, $settings); return;
+            case 'developer': UCP_Admin_Tabs::render_developer($admin, $settings); return;
             case 'tools': UCP_Admin_Tabs::render_tools($admin, $settings); return;
             case 'overview': default: UCP_Admin_Tabs::render_overview($admin, $settings, $context['presets'], $context['integrations'], $context['health'], $context['jobs_summary']); return;
         }

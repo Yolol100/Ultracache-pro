@@ -68,7 +68,7 @@ trait UCP_Cache_Tags_Storage_Trait {
         $urls = array();
         if (!empty($data['urls']) && is_array($data['urls'])) {
             foreach ((array) $data['urls'] as $url) {
-                $url = class_exists('UCP_Helpers') ? UCP_Helpers::strict_local_url($url) : esc_url_raw($url);
+                $url = UCP_Helpers::strict_local_url($url);
                 if ($url && wp_http_validate_url($url)) {
                     $urls[] = $url;
                 }
@@ -88,7 +88,7 @@ trait UCP_Cache_Tags_Storage_Trait {
         }
         $clean_urls = array();
         foreach ((array) $urls as $url) {
-            $url = class_exists('UCP_Helpers') ? UCP_Helpers::strict_local_url($url) : esc_url_raw($url);
+            $url = UCP_Helpers::strict_local_url($url);
             if ($url && wp_http_validate_url($url)) {
                 $clean_urls[] = $url;
             }
@@ -112,7 +112,7 @@ trait UCP_Cache_Tags_Storage_Trait {
     }
 
     protected static function get_url_tags($url) {
-        $url = class_exists('UCP_Helpers') ? UCP_Helpers::strict_local_url($url) : esc_url_raw($url);
+        $url = UCP_Helpers::strict_local_url($url);
         if (!$url) {
             return array();
         }

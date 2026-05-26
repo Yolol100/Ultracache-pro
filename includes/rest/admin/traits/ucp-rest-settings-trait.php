@@ -102,4 +102,57 @@ trait UCP_REST_Settings_Trait {
         }
     }
 
+
+    public static function settings_snapshots() {
+        return rest_ensure_response(array(
+            'success' => true,
+            'snapshots' => UCP_Options::settings_snapshots(),
+            'timestamp' => time(),
+        ));
+    }
+
+    public static function create_settings_snapshot(WP_REST_Request $request) {
+        $id = UCP_Options::create_settings_snapshot(UCP_Options::get_all(), 'manual_rest');
+        return rest_ensure_response(array(
+            'success' => (bool) $id,
+            'snapshot_id' => $id,
+            'snapshots' => UCP_Options::settings_snapshots(),
+            'timestamp' => time(),
+        ));
+    }
+
+    public static function restore_settings_snapshot(WP_REST_Request $request) {
+        $params = $request->get_json_params();
+        $params = is_array($params) ? $params : $request->get_params();
+        $id = isset($params['id']) ? sanitize_text_field($params['id']) : '';
+        $restored = UCP_Options::restore_settings_snapshot($id);
+        if (!$restored) {
+            return new WP_Error('ucp_snapshot_not_found', __('Snapshot niet gevonden.', 'ultracache-pro'), array('status' => 404));
+        }
+        return rest_ensure_response(array(
+            'success' => true,
+            'message' => __('Snapshot teruggezet.', 'ultracache-pro'),
+            'settings' => UCP_Options::redact_sensitive_settings(UCP_Options::get_all()),
+            'status' => self::build_status(),
+            'snapshots' => UCP_Options::settings_snapshots(),
+            'timestamp' => time(),
+        ));
+    }
+
+    public static function save_custom_preset(WP_REST_Request $request) {
+        $params = $request->get_json_params();
+        $params = is_array($params) ? $params : $request->get_params();
+        $name = isset($params['name']) ? sanitize_text_field($params['name']) : '';
+        $key = UCP_Presets::save_custom_preset($name, UCP_Options::get_all());
+        if (!$key) {
+            return new WP_Error('ucp_custom_preset_invalid', __('Geef een geldige naam op voor het maatwerkprofiel.', 'ultracache-pro'), array('status' => 400));
+        }
+        return rest_ensure_response(array(
+            'success' => true,
+            'preset' => $key,
+            'presets' => UCP_Presets::custom_presets(),
+            'timestamp' => time(),
+        ));
+    }
+
 }

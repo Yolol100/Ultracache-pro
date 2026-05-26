@@ -20,7 +20,7 @@ trait UCP_CSS_Generation_Trait {
 
         $used_path = UCP_Helpers::get_used_css_path($url);
         $critical_path = UCP_Helpers::get_critical_css_path($url);
-        $critical_required = UCP_Options::get('enable_critical_css') || 'async' === UCP_Options::get('css_delivery_mode', 'none');
+        $critical_required = UCP_Options::get('enable_critical_css') || UCP_Options::get('enable_local_critical_css') || 'async' === UCP_Options::get('css_delivery_mode', 'none');
         if (!$force && file_exists($used_path) && (!$critical_required || file_exists($critical_path)) && self::artifact_status_is_healthy($url)) {
             return true;
         }
@@ -52,7 +52,7 @@ trait UCP_CSS_Generation_Trait {
             return false;
         }
         if ($response_code >= 400 && class_exists('UCP_Logger')) {
-            // AI-PATCH: sommige hosts leveren bruikbare HTML met HTTP 500; gebruik de HTML voor CSS-artifacts maar log de serverstatus.
+            // Note: sommige hosts leveren bruikbare HTML met HTTP 500; gebruik de HTML voor CSS-artifacts maar log de serverstatus.
             UCP_Logger::log('warning', 'css_generator', 'css_artifact_http_status_ignored', 'CSS-opbouw gebruikt HTML ondanks foutstatus.', array('url' => esc_url_raw($url), 'http_status' => $response_code));
         }
 
@@ -95,8 +95,7 @@ trait UCP_CSS_Generation_Trait {
         }
 
         $critical = '';
-        if (UCP_Options::get('enable_critical_css')) {
-            /* UCP: byte-cap fallback for critical CSS artifact size; the primary Used CSS extraction lives in the basic local used CSS parser. */
+        if (UCP_Options::get('enable_critical_css') || UCP_Options::get('enable_local_critical_css')) {
             $critical = self::slice_css_by_complete_rules($used_css, absint(UCP_Options::get('critical_css_max_bytes', 12000)));
             $critical_validation = self::validate_artifact($critical, true);
             if (!$critical_validation['ok']) {

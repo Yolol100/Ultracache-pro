@@ -118,6 +118,9 @@ class UCP_Rule_Engine {
     }
 
     public static function has_action($action, $url = '', $request_type = '') {
+        if (class_exists('UCP_Page_Overrides') && UCP_Page_Overrides::has_action($action)) {
+            return true;
+        }
         foreach (self::evaluate_request($url, $request_type) as $rule) {
             if ($rule['action'] === $action) {
                 return true;

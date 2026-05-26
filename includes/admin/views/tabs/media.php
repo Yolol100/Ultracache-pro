@@ -2,6 +2,71 @@
 if (!defined('ABSPATH')) {
     exit;
 }
+
+
+
+$speculative_loading_mode = 'off';
+if (!empty($settings['enable_speculative_loading'])) {
+    $speculation_mode = isset($settings['speculation_mode']) ? (string) $settings['speculation_mode'] : 'prefetch';
+    $speculation_eagerness = isset($settings['speculation_eagerness']) ? (string) $settings['speculation_eagerness'] : 'moderate';
+    if ('prerender' === $speculation_mode) {
+        $speculative_loading_mode = 'prerender_conservative';
+    } elseif ('conservative' === $speculation_eagerness) {
+        $speculative_loading_mode = 'prefetch_conservative';
+    } else {
+        $speculative_loading_mode = 'prefetch_moderate';
+    }
+}
+$speculative_mode_settings = $settings;
+$speculative_mode_settings['speculative_loading_mode'] = $speculative_loading_mode;
+
+$media_lazyload_mode = 'off';
+if (!empty($settings['enable_lazy_youtube_preview'])) {
+    $media_lazyload_mode = 'youtube';
+} elseif (!empty($settings['enable_lazy_iframes'])) {
+    $media_lazyload_mode = 'iframes';
+} elseif (!empty($settings['enable_lazy_images'])) {
+    $media_lazyload_mode = 'images';
+}
+$media_mode_settings = $settings;
+$media_mode_settings['media_lazyload_mode'] = $media_lazyload_mode;
+
+$google_fonts_mode = 'standard';
+if (!empty($settings['enable_disable_google_fonts'])) {
+    $google_fonts_mode = 'disable';
+} elseif (!empty($settings['enable_local_google_fonts'])) {
+    $google_fonts_mode = 'local';
+} elseif (!empty($settings['enable_font_display_swap'])) {
+    $google_fonts_mode = 'swap';
+}
+$fonts_mode_settings = $settings;
+$fonts_mode_settings['google_fonts_mode'] = $google_fonts_mode;
+
+$image_optimization_mode = 'off';
+if (!empty($settings['enable_avif_generation'])) {
+    $image_optimization_mode = 'webp_avif';
+} elseif (!empty($settings['enable_webp_generation'])) {
+    $image_optimization_mode = 'webp';
+} elseif (!empty($settings['enable_image_optimization'])) {
+    $image_optimization_mode = 'optimize';
+}
+$image_mode_settings = $settings;
+$image_mode_settings['image_optimization_mode'] = $image_optimization_mode;
+
+$lcp_image_mode = 'custom';
+$lcp_preload_count = absint(isset($settings['preload_critical_images']) ? $settings['preload_critical_images'] : 0);
+$lcp_protect_count = absint(isset($settings['lazyload_exclude_leading_images']) ? $settings['lazyload_exclude_leading_images'] : 0);
+if (0 === $lcp_preload_count && 0 === $lcp_protect_count) {
+    $lcp_image_mode = 'off';
+} elseif (0 === $lcp_preload_count && 1 === $lcp_protect_count) {
+    $lcp_image_mode = 'protect_hero';
+} elseif (1 === $lcp_preload_count && 1 === $lcp_protect_count) {
+    $lcp_image_mode = 'preload_hero';
+} elseif (2 === $lcp_preload_count && 4 === $lcp_protect_count) {
+    $lcp_image_mode = 'recommended';
+}
+$lcp_image_settings = $settings;
+$lcp_image_settings['lcp_image_mode'] = $lcp_image_mode;
 ?>
         <section class="ucp-panel full ucp-panel--media-main ucp-media-combined-card">
             <div class="ucp-panel__header">
@@ -21,10 +86,7 @@ if (!defined('ABSPATH')) {
                         <p><?php esc_html_e('Beelden en embeds later laden, met veilige standaardinstellingen.', 'ultracache-pro'); ?></p>
                     </div>
                     <div class="ucp-wpr-options-list">
-                        <?php $admin->checkbox('enable_lazy_images', __('Afbeeldingen later laden', 'ultracache-pro'), $settings, __('Goed voor de meeste sites.', 'ultracache-pro')); ?>
-                        <?php $admin->checkbox('enable_lazy_iframes', __("Iframes en video's later laden", 'ultracache-pro'), $settings, __('Laadt iframes pas wanneer ze bijna zichtbaar zijn.', 'ultracache-pro')); ?>
-                        <?php $admin->checkbox('enable_lazy_youtube_preview', __('YouTube iframe vervangen door preview', 'ultracache-pro'), $settings, __('Vermindert externe YouTube-verzoeken tot de bezoeker afspeelt. Werkt alleen voor YouTube embeds.', 'ultracache-pro')); ?>
-                        <?php $admin->number('lazyload_exclude_leading_images', __('Bovenste afbeeldingen niet lazyloaden', 'ultracache-pro'), $settings, 0, 5, __('Perfmatters-stijl: bescherm de eerste hero/LCP-afbeeldingen.', 'ultracache-pro')); ?>
+                        <?php $admin->select('media_lazyload_mode', __('Media lazyload', 'ultracache-pro'), $media_mode_settings, array('off' => __('Uit', 'ultracache-pro'), 'images' => __('Alleen afbeeldingen', 'ultracache-pro'), 'iframes' => __('Afbeeldingen + iframes/video', 'ultracache-pro'), 'youtube' => __('Afbeeldingen + iframes/video + YouTube preview', 'ultracache-pro')), __('Eén keuze vervangt lazyload voor afbeeldingen, iframes/video en YouTube preview.', 'ultracache-pro')); ?>
                         <?php $admin->textarea('lazyload_exclusions', __('Uitgesloten afbeeldingen of iframes', 'ultracache-pro'), $settings, __('Geef trefwoorden op, zoals bestandsnaam, CSS-klasse, domein of iframe-bron. Eén per regel.', 'ultracache-pro')); ?>
                         <?php $admin->textarea('lazyload_parent_exclusions', __('Lazyload uitsluiten binnen selectors', 'ultracache-pro'), $settings, __('Eén selector per regel, zoals .hero of .product-gallery.', 'ultracache-pro')); ?>
                     </div>
@@ -39,11 +101,13 @@ if (!defined('ABSPATH')) {
                         <p><?php esc_html_e('Maakt WebP- en AVIF-versies wanneer je server dit ondersteunt.', 'ultracache-pro'); ?></p>
                     </div>
                     <div class="ucp-wpr-options-list">
-                        <?php $admin->checkbox('enable_image_optimization', __('Nieuwe uploads automatisch optimaliseren', 'ultracache-pro'), $settings, __('Staging-first. Laat uit wanneer je al ShortPixel, Imagify, LiteSpeed, CDN-transforms of een andere image optimizer gebruikt.', 'ultracache-pro')); ?>
-                        <?php $admin->checkbox('enable_webp_generation', __('WebP-varianten maken', 'ultracache-pro'), $settings, __('Alleen inschakelen na test op staging of wanneer er geen andere image optimizer actief is.', 'ultracache-pro')); ?>
-                        <?php $admin->checkbox('enable_avif_generation', __('AVIF-varianten maken', 'ultracache-pro'), $settings, __('Alleen gebruiken als je hosting AVIF stabiel ondersteunt en je geen CDN-image-transform gebruikt.', 'ultracache-pro')); ?>
+                        <?php $admin->select('image_optimization_mode', __('Afbeeldingsoptimalisatie', 'ultracache-pro'), $image_mode_settings, array('off' => __('Uit', 'ultracache-pro'), 'optimize' => __('Nieuwe uploads optimaliseren', 'ultracache-pro'), 'webp' => __('Optimaliseren + WebP maken', 'ultracache-pro'), 'webp_avif' => __('Optimaliseren + WebP + AVIF maken', 'ultracache-pro')), __('Eén keuze vervangt de losse optimalisatie-, WebP- en AVIF-knoppen. Laat uit als ShortPixel, Imagify, LiteSpeed, CDN-transforms of een andere image optimizer dit al doet.', 'ultracache-pro')); ?>
+                        <?php $admin->select('lcp_image_mode', __('LCP-afbeeldingen', 'ultracache-pro'), $lcp_image_settings, array('off' => __('Uit', 'ultracache-pro'), 'protect_hero' => __('Hero beschermen: niet lazyloaden', 'ultracache-pro'), 'preload_hero' => __('Hero preloaden', 'ultracache-pro'), 'recommended' => __('Aanbevolen: 2 preloaden + 4 beschermen', 'ultracache-pro'), 'custom' => __('Aangepast', 'ultracache-pro')), __('Eén keuze vervangt kritieke afbeeldingen preloaden en bovenste afbeeldingen niet lazyloaden.', 'ultracache-pro')); ?>
+                        <?php if ('custom' === $lcp_image_mode) : ?>
+                            <?php $admin->number('preload_critical_images', __('Kritieke afbeeldingen preloaden', 'ultracache-pro'), $settings, 0, 3, __('Aantal zichtbare boven-de-vouw afbeeldingen. Maximaal 3.', 'ultracache-pro')); ?>
+                            <?php $admin->number('lazyload_exclude_leading_images', __('Bovenste afbeeldingen niet lazyloaden', 'ultracache-pro'), $settings, 0, 5, __('Aantal eerste afbeeldingen dat niet lazyloadt. Maximaal 5.', 'ultracache-pro')); ?>
+                        <?php endif; ?>
                         <?php $admin->checkbox('enable_add_image_dimensions', __('Ontbrekende afbeeldingsafmetingen toevoegen', 'ultracache-pro'), $settings, __('Kan CLS verbeteren bij uploads zonder width/height. Staging eerst testen.', 'ultracache-pro')); ?>
-                        <?php $admin->number('preload_critical_images', __('Kritieke afbeeldingen preloaden', 'ultracache-pro'), $settings, 0, 3, __('Meestal is 0 of 1 genoeg. Te veel preloads kunnen juist vertragen.', 'ultracache-pro')); ?>
                     </div>
                     <?php $admin->number('image_quality', __('Afbeeldingskwaliteit', 'ultracache-pro'), $settings, 50, 95, __('Aanbevolen: 82. Dit houdt afbeeldingen scherp met een kleinere bestandsgrootte.', 'ultracache-pro')); ?>
                 </div>
@@ -65,9 +129,7 @@ if (!defined('ABSPATH')) {
                         <p><?php esc_html_e('Sla Google Fonts lokaal op wanneer je thema of plugins ze vanaf Google laden.', 'ultracache-pro'); ?></p>
                     </div>
                     <div class="ucp-wpr-options-list">
-                        <?php $admin->checkbox('enable_font_display_swap', __('Font-display swap toevoegen', 'ultracache-pro'), $settings, __('Voegt font-display: swap toe aan font-face CSS waar mogelijk om tekst sneller zichtbaar te maken.', 'ultracache-pro')); ?>
-                        <?php $admin->checkbox('enable_local_google_fonts', __('Google Fonts lokaal opslaan', 'ultracache-pro'), $settings, __('Vermindert externe font-aanvragen. Controleer daarna of lettertypes er nog goed uitzien.', 'ultracache-pro')); ?>
-                        <?php $admin->checkbox('enable_disable_google_fonts', __('Google Fonts uitschakelen', 'ultracache-pro'), $settings, __('Verwijdert Google Fonts links uit de output. Gebruik alleen als je fonts lokaal of via theme laadt.', 'ultracache-pro')); ?>
+                        <?php $admin->select('google_fonts_mode', __('Google Fonts gedrag', 'ultracache-pro'), $fonts_mode_settings, array('standard' => __('Standaard', 'ultracache-pro'), 'swap' => __('Alleen font-display swap', 'ultracache-pro'), 'local' => __('Lokaal hosten + swap', 'ultracache-pro'), 'disable' => __('Google Fonts uitschakelen', 'ultracache-pro')), __('Eén keuze vervangt lokaal hosten, font-display swap en Google Fonts uitschakelen.', 'ultracache-pro')); ?>
                     </div>
                     <?php $admin->textarea('preload_fonts', __('Fonts vooraf laden', 'ultracache-pro'), $settings, __('Eén .woff2 URL per regel.', 'ultracache-pro')); ?>
                     <?php $admin->textarea('preconnect_domains', __('Preconnect URLs', 'ultracache-pro'), $settings, __('Eén vroege externe origin per regel, bijvoorbeeld https://fonts.gstatic.com.', 'ultracache-pro')); ?>
@@ -80,18 +142,12 @@ if (!defined('ABSPATH')) {
                         <h3><?php esc_html_e('Vooruit laden - optioneel', 'ultracache-pro'); ?></h3>
                         <p><?php esc_html_e('Gebruik dit pas nadat lazy load en de basisinstellingen goed werken.', 'ultracache-pro'); ?></p>
                     </div>
-                    <div class="ucp-wpr-options-list">
-                        <?php $admin->checkbox('enable_speculative_loading', __('Volgende pagina voorbereiden - Voorzichtig gebruiken', 'ultracache-pro'), $settings, __("Maakt waarschijnlijke volgende pagina's sneller. Test menu's, formulieren en winkelpagina's.", 'ultracache-pro')); ?>
+                    <div class="ucp-field-row ucp-field-row--1">
+                        <?php $admin->select('speculative_loading_mode', __('Volgende pagina voorbereiden', 'ultracache-pro'), $speculative_mode_settings, array('off' => __('Uit', 'ultracache-pro'), 'prefetch_conservative' => __('Prefetch rustig', 'ultracache-pro'), 'prefetch_moderate' => __('Prefetch normaal', 'ultracache-pro'), 'prerender_conservative' => __('Prerender voorzichtig', 'ultracache-pro')), __("Eén keuze vervangt speculative loading, modus en snelheid. Test menu's, formulieren en winkelpagina's.", 'ultracache-pro')); ?>
                     </div>
-                    <?php if ($speculative_enabled) : ?>
                     <div class="ucp-media-speculation-box">
-                        <div class="ucp-field-row ucp-field-row--2 ucp-media-speculation-grid">
-                            <?php $admin->select('speculation_mode', __('Hoe voorbereiden', 'ultracache-pro'), $settings, array('prefetch' => __('Vooraf ophalen', 'ultracache-pro'), 'prerender' => __('Bijna klaarzetten', 'ultracache-pro'))); ?>
-                            <?php $admin->select('speculation_eagerness', __('Hoe snel starten', 'ultracache-pro'), $settings, array('conservative' => __('Rustig', 'ultracache-pro'), 'moderate' => __('Normaal', 'ultracache-pro'), 'eager' => __('Snel', 'ultracache-pro'))); ?>
-                        </div>
-                        <?php $admin->textarea('speculation_exclusions', __('Deze paden overslaan', 'ultracache-pro'), $settings, __('Eén pad per regel. Gebruik dit alleen voor pagina’s die je bewust wilt overslaan.', 'ultracache-pro')); ?>
+                        <?php $admin->textarea('speculation_exclusions', __('Deze paden overslaan', 'ultracache-pro'), $settings, __('Eén pad per regel. Gebruik dit voor checkout, account, login, formulieren en dynamische pagina’s.', 'ultracache-pro')); ?>
                     </div>
-                    <?php endif; ?>
                 </div>
             </div>
         </section>

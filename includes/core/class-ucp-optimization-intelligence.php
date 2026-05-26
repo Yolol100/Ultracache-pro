@@ -131,7 +131,7 @@ class UCP_Optimization_Intelligence {
         }
         $clean = array();
         foreach ((array) $urls as $url) {
-            $url = class_exists('UCP_Helpers') ? UCP_Helpers::strict_local_url($url) : esc_url_raw($url);
+            $url = UCP_Helpers::strict_local_url($url);
             if ($url && wp_http_validate_url($url)) {
                 $clean[] = $url;
             }
@@ -229,7 +229,7 @@ class UCP_Optimization_Intelligence {
                     'type'              => 'string',
                     'required'          => false,
                     'sanitize_callback' => 'esc_url_raw',
-                    'validate_callback' => array(__CLASS__, 'validate_local_url_arg'),
+                    'validate_callback' => array('UCP_Helpers', 'validate_local_url_arg'),
                 ),
             ),
         ));
@@ -245,13 +245,6 @@ class UCP_Optimization_Intelligence {
         ));
     }
 
-
-    public static function validate_local_url_arg($value) {
-        if (class_exists('UCP_Helpers')) {
-            return UCP_Helpers::validate_local_url_arg($value);
-        }
-        return '' === (string) $value || (bool) wp_http_validate_url((string) $value);
-    }
 
     public static function permissions_check($request = null) {
         if (!current_user_can('manage_options')) {
@@ -300,13 +293,11 @@ class UCP_Optimization_Intelligence {
 
     public static function rest_rollback_css_artifacts() {
         $deleted = 0;
-        if (class_exists('UCP_Helpers')) {
-            $restored = class_exists('UCP_CSS') && method_exists('UCP_CSS', 'restore_latest_artifact_backup') ? UCP_CSS::restore_latest_artifact_backup() : 0;
-            foreach (array(UCP_CACHE_DIR . 'used-css/*.css', UCP_CACHE_DIR . 'critical-css/*.css') as $pattern) {
-                foreach ((array) glob($pattern) as $file) {
-                    if (UCP_Helpers::safe_delete_file($file)) {
-                        $deleted++;
-                    }
+        $restored = class_exists('UCP_CSS') && method_exists('UCP_CSS', 'restore_latest_artifact_backup') ? UCP_CSS::restore_latest_artifact_backup() : 0;
+        foreach (array(UCP_CACHE_DIR . 'used-css/*.css', UCP_CACHE_DIR . 'critical-css/*.css') as $pattern) {
+            foreach ((array) glob($pattern) as $file) {
+                if (UCP_Helpers::safe_delete_file($file)) {
+                    $deleted++;
                 }
             }
         }
@@ -321,7 +312,7 @@ class UCP_Optimization_Intelligence {
             'css_status' => self::css_status_summary(),
             'delay_js_extra_guards' => array('nowprocket', 'data-ucp-no-delay', 'noucpdelay', 'payment/forms/builders/consent/reviews/chat'),
             'compatibility_rules_version' => class_exists('UCP_Compat') && method_exists('UCP_Compat', 'compatibility_rules_version') ? UCP_Compat::compatibility_rules_version() : '',
-            'dead_letter_queue' => class_exists('UCP_Jobs') ? UCP_Jobs::dead_letter_summary(5) : array(),
+            'dead_letter_queue' => UCP_Jobs::dead_letter_summary(5),
         );
         return $report;
     }

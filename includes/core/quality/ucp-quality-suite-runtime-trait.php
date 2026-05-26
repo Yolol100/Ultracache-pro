@@ -24,7 +24,7 @@ trait UCP_Quality_Suite_Runtime_Trait {
         $home = home_url('/');
         $report = array(
             'generated_at' => gmdate('c'),
-            'wp_cache' => class_exists('UCP_Helpers') ? UCP_Helpers::has_valid_wp_cache_constant() : (defined('WP_CACHE') && WP_CACHE),
+            'wp_cache' => UCP_Helpers::has_valid_wp_cache_constant(),
             'advanced_cache' => file_exists(WP_CONTENT_DIR . '/advanced-cache.php'),
             'dropin_config' => class_exists('UCP_Helpers') ? file_exists(UCP_Helpers::dropin_config_path()) : false,
             'home' => array(),

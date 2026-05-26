@@ -17,6 +17,23 @@ $cdn_file_type_label = isset($cdn_file_type_labels[$cdn_file_type]) ? $cdn_file_
 $cloudflare_ready = !empty($settings['cloudflare_zone_id']) && !empty($settings['cloudflare_api_token']);
 $cache_control_max_age = isset($settings['cache_control_max_age']) ? absint($settings['cache_control_max_age']) : 2592000;
 $cache_control_days = max(1, (int) round($cache_control_max_age / DAY_IN_SECONDS));
+$cdn_rewrite_mode = !empty($settings['enable_cdn']) ? $cdn_file_type : 'off';
+$cdn_rewrite_settings = $settings;
+$cdn_rewrite_settings['cdn_rewrite_mode'] = $cdn_rewrite_mode;
+$browser_cache_mode = 'off';
+if (!empty($settings['browser_cache_headers'])) {
+    if (2592000 === $cache_control_max_age) {
+        $browser_cache_mode = '30d';
+    } elseif (15552000 === $cache_control_max_age) {
+        $browser_cache_mode = '180d';
+    } elseif (31536000 === $cache_control_max_age) {
+        $browser_cache_mode = '365d';
+    } else {
+        $browser_cache_mode = 'custom';
+    }
+}
+$browser_cache_settings = $settings;
+$browser_cache_settings['browser_cache_mode'] = $browser_cache_mode;
 ?>
 <section class="ucp-panel full ucp-panel--expert-cdn-main ucp-cdn-hero">
     <div class="ucp-panel__header">
@@ -80,8 +97,8 @@ $cache_control_days = max(1, (int) round($cache_control_max_age / DAY_IN_SECONDS
         </div>
     </div>
 
-    <div class="ucp-wpr-options-list">
-        <?php $admin->checkbox('enable_cdn', __('CDN herschrijven inschakelen', 'ultracache-pro'), $settings, __('Herschrijf lokale statische bestanden naar je CDN-CNAME. Laat uit bij een volledige proxy-CDN op je hoofddomein.', 'ultracache-pro')); ?>
+    <div class="ucp-field-row ucp-field-row--1">
+        <?php $admin->select('cdn_rewrite_mode', __('CDN herschrijven', 'ultracache-pro'), $cdn_rewrite_settings, array('off' => __('Uit', 'ultracache-pro'), 'css_js' => __('Alleen CSS en JavaScript', 'ultracache-pro'), 'images' => __('Alleen afbeeldingen', 'ultracache-pro'), 'all' => __('Alle statische bestanden', 'ultracache-pro')), __('Eén keuze vervangt CDN inschakelen en bestandstypen herschrijven.', 'ultracache-pro')); ?>
     </div>
 </section>
 
@@ -95,7 +112,6 @@ $cache_control_days = max(1, (int) round($cache_control_max_age / DAY_IN_SECONDS
     </div>
     <div class="ucp-field-row ucp-field-row--2 ucp-expert-two-up">
         <?php $admin->textarea('cdn_cnames', __('CDN CNAME(s)', 'ultracache-pro'), $settings, __('Eén host per regel. Voorbeeld: cdn.example.com. Gebruik geen volledige asset-URL met /wp-content/.', 'ultracache-pro')); ?>
-        <?php $admin->select('cdn_file_types', __('Bestandstypen herschrijven', 'ultracache-pro'), $settings, array('all' => __('Alle statische bestanden', 'ultracache-pro'), 'css_js' => __('Alleen CSS en JavaScript', 'ultracache-pro'), 'images' => __('Alleen afbeeldingen', 'ultracache-pro')), __('Begin veilig met CSS/JS wanneer je CDN-afbeeldingen nog niet volledig gesynchroniseerd zijn.', 'ultracache-pro')); ?>
     </div>
     <div class="ucp-callout ucp-callout--info ucp-callout--compact ucp-cdn-small-note">
         <strong><?php esc_html_e('Tip', 'ultracache-pro'); ?></strong>
@@ -135,8 +151,9 @@ $cache_control_days = max(1, (int) round($cache_control_max_age / DAY_IN_SECONDS
                 ?></p>
         </div>
     </div>
-    <div class="ucp-field-row ucp-field-row--1">
-        <?php $admin->number('cache_control_max_age', __('Browser-cache bewaartijd', 'ultracache-pro'), $settings, 300, 31536000, __('In seconden. Laat staan als je twijfelt; te agressieve caching kan asset-updates vertragen.', 'ultracache-pro')); ?>
+    <div class="ucp-field-row ucp-field-row--2">
+        <?php $admin->select('browser_cache_mode', __('Browser-cache statische bestanden', 'ultracache-pro'), $browser_cache_settings, array('off' => __('Uit', 'ultracache-pro'), '30d' => __('30 dagen', 'ultracache-pro'), '180d' => __('6 maanden', 'ultracache-pro'), '365d' => __('1 jaar', 'ultracache-pro'), 'custom' => __('Aangepast', 'ultracache-pro')), __('Eén keuze vervangt browser-cache headers en bewaartijd.', 'ultracache-pro')); ?>
+        <?php $admin->number('cache_control_max_age', __('Aangepaste bewaartijd', 'ultracache-pro'), $settings, 300, 31536000, __('In seconden. Alleen nodig wanneer je Aangepast gebruikt.', 'ultracache-pro')); ?>
     </div>
     <div class="ucp-wpr-options-list">
         <?php $admin->checkbox('enable_edge_cache_headers', __('Extra host-headers inschakelen', 'ultracache-pro'), $settings, __('Alleen gebruiken wanneer je host of edge-laag deze headers ondersteunt.', 'ultracache-pro')); ?>

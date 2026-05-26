@@ -333,7 +333,7 @@ trait UCP_Cache_Request_Policy_Trait {
                     return $this->bypass_cache('cookie');
                 }
             }
-            // AI-PATCH: unknown request cookies often indicate personalization/session state. Do not serve or write shared page cache for them by default.
+            // Note: unknown request cookies often indicate personalization/session state. Do not serve or write shared page cache for them by default.
             if (!$this->request_cookie_is_cache_safe($cookie_name) && (bool) apply_filters('ucp_block_unknown_request_cookies', true, $cookie_name)) {
                 UCP_Diagnostics::record('cache', 'Bypassed cache for unknown request cookie', array('cookie' => $cookie_name));
                 return $this->bypass_cache('unknown_cookie');

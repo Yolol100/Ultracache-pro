@@ -98,7 +98,7 @@ class UCP_Admin_Tab_Optimization {
             'sliders' => !empty($integrations['slider']) || !empty($integrations['sliders']),
         ));
         $conflict_labels = self::conflict_labels();
-        $jobs_summary = class_exists('UCP_Jobs') ? UCP_Jobs::get_summary() : array('failed' => 0, 'pending' => 0, 'running' => 0, 'retrying' => 0, 'success' => 0);
+        $jobs_summary = UCP_Jobs::get_summary();
         UCP_Admin_View::template('tabs/optimization.php', get_defined_vars());
     }
 }

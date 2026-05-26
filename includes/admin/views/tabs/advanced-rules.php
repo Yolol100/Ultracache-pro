@@ -1,6 +1,10 @@
 <?php
 if (!defined('ABSPATH')) { exit; }
 // phpcs:ignoreFile WordPress.WP.I18n.MissingTranslatorsComment -- compact admin view.
+$query_mode_settings = $settings;
+$query_mode_settings['query_string_cache_mode'] = !empty($settings['cache_query_strings']) ? 'allow_list' : 'off';
+$stale_mode_settings = $settings;
+$stale_mode_settings['stale_cache_mode'] = !empty($settings['enable_stale_cache']) ? (string) intval($settings['stale_cache_ttl'] / HOUR_IN_SECONDS) : 'off';
 ?>
         <section class="ucp-panel full ucp-panel--advanced-cache-life">
             <div class="ucp-panel__header"><div><h2><?php esc_html_e('Cache levensduur', 'ultracache-pro'); ?></h2><p><?php esc_html_e('Bepaal wanneer de volledige cache automatisch wordt geleegd.', 'ultracache-pro'); ?></p></div><div class="ucp-panel__actions"><a class="button" href="<?php echo esc_url($check_dropin_url); ?>"><?php esc_html_e('Bestandsrechten controleren', 'ultracache-pro'); ?></a><a class="button button-primary" href="<?php echo esc_url($server_fix_url); ?>"><?php esc_html_e('Cachebestand herstellen', 'ultracache-pro'); ?></a></div></div>
@@ -8,9 +12,9 @@ if (!defined('ABSPATH')) { exit; }
                 <?php $admin->checkbox('enable_cache', __('Pagina-cache inschakelen', 'ultracache-pro'), $settings, __('Maakt pagina’s sneller voor bezoekers.', 'ultracache-pro')); ?>
                 <?php $admin->number('cache_lifespan', __('Cache legen na - uren', 'ultracache-pro'), $settings, 0, 720, __('0 = onbeperkt. 10 uur is een veilige standaard bij wisselende content.', 'ultracache-pro')); ?>
                 <?php $admin->checkbox('purge_on_post_update', __('Cache legen na wijzigingen', 'ultracache-pro'), $settings, __('Nieuwe content wordt dan sneller zichtbaar.', 'ultracache-pro')); ?>
+                <?php $admin->select('stale_cache_mode', __('Stale cache', 'ultracache-pro'), $stale_mode_settings, array('off' => __('Uit', 'ultracache-pro'), '6' => __('6 uur', 'ultracache-pro'), '12' => __('12 uur', 'ultracache-pro'), '24' => __('24 uur', 'ultracache-pro'), '48' => __('48 uur', 'ultracache-pro')), __('Serveer tijdelijk oude cache als vernieuwen mislukt.', 'ultracache-pro')); ?>
                 <?php $admin->checkbox('enable_targeted_purge', __('Alleen gewijzigde pagina’s legen', 'ultracache-pro'), $settings, __('Veilige en snelle standaard voor de meeste sites.', 'ultracache-pro')); ?>
                 <?php $admin->checkbox('enable_cache_tags', __('Ook gerelateerde pagina’s legen', 'ultracache-pro'), $settings, __('Handig voor blogs, categorieën en archieven.', 'ultracache-pro')); ?>
-                <?php $admin->checkbox('browser_cache_headers', __('Browser-cache voor statische bestanden', 'ultracache-pro'), $settings, __('Maakt herhaalbezoeken sneller.', 'ultracache-pro')); ?>
             </div>
         </section>
 
@@ -40,28 +44,13 @@ if (!defined('ABSPATH')) { exit; }
         <section class="ucp-panel full ucp-panel--advanced-query">
             <div class="ucp-panel__header"><div><h2><?php esc_html_e('Query string(s) cachen', 'ultracache-pro'); ?></h2><p><?php esc_html_e('Sta specifieke GET-parameters toe als eigen cachevariant.', 'ultracache-pro'); ?></p></div></div>
             <div class="ucp-field-row ucp-field-row--2">
-                <?php $admin->checkbox('cache_query_strings', __('Querystring-URL’s apart cachen', 'ultracache-pro'), $settings, __('Laat uit, tenzij filters, zoekresultaten of campagnes unieke content tonen.', 'ultracache-pro')); ?>
+                <?php $admin->select('query_string_cache_mode', __('Query strings cachen', 'ultracache-pro'), $query_mode_settings, array('off' => __('Uit', 'ultracache-pro'), 'allow_list' => __('Alleen onderstaande parameters toestaan', 'ultracache-pro')), __('Laat uit, tenzij filters, zoekresultaten of campagnes unieke content tonen.', 'ultracache-pro')); ?>
                 <?php $admin->checkbox('cache_mobile_separately', __('Aparte cache voor mobiel', 'ultracache-pro'), $settings, __('Alleen nodig als mobiel andere inhoud toont.', 'ultracache-pro')); ?>
             </div>
             <?php $admin->textarea('cache_query_string_inclusions', __('Specificeer query strings voor caching', 'ultracache-pro'), $settings, __('Eén parameter per regel. Bijvoorbeeld lang, currency, orderby, filter_*.', 'ultracache-pro')); ?>
         </section>
 
-        <details class="ucp-disclosure full">
-            <summary><span class="ucp-summary-copy"><?php esc_html_e('Developer cache-opties', 'ultracache-pro'); ?></span><span class="ucp-summary-chevron" aria-hidden="true"></span></summary>
-            <section class="ucp-panel ucp-panel--nested">
-                <div class="ucp-field-row ucp-field-row--3">
-                    <?php $admin->checkbox('cache_logged_in', __('Cache voor ingelogde gebruikers', 'ultracache-pro'), $settings, __('Meestal uit laten.', 'ultracache-pro')); ?>
-                    <?php $admin->checkbox('enable_object_cache_support', __('Object cache respecteren', 'ultracache-pro'), $settings, __('Laat Redis, Memcached of APCu met rust als die actief zijn.', 'ultracache-pro')); ?>
-                    <?php $admin->checkbox('enable_fragment_cache', __('Fragment Cache API inschakelen', 'ultracache-pro'), $settings, __('Voor dynamische blokken en ontwikkelaars. Standaard uit.', 'ultracache-pro')); ?>
-                    <?php $admin->checkbox('enable_rest_cache', __('REST API-cache inschakelen', 'ultracache-pro'), $settings, __('Cachet publieke GET API-antwoorden. Test headless functies.', 'ultracache-pro')); ?>
-                    <?php $admin->checkbox('enable_stale_cache', __('Oude cache tonen tijdens opnieuw opbouwen', 'ultracache-pro'), $settings, __('Gebruik dit pas na testen.', 'ultracache-pro')); ?>
-                    <?php $admin->checkbox('enable_woocommerce_rules', __('WooCommerce regels automatisch toepassen', 'ultracache-pro'), $settings, __('Beschermt winkelwagen, afrekenen en account.', 'ultracache-pro')); ?>
-                </div>
-                <div class="ucp-field-row ucp-field-row--3">
-                    <?php $admin->number('fragment_cache_ttl', __('Fragment cache TTL in seconden', 'ultracache-pro'), $settings, 60, 86400, __('3600 is een veilige standaard.', 'ultracache-pro')); ?>
-                    <?php $admin->number('rest_cache_ttl', __('REST cache TTL in seconden', 'ultracache-pro'), $settings, 30, 3600, __('300 is een veilige standaard.', 'ultracache-pro')); ?>
-                    <?php $admin->number('stale_cache_lifespan', __('Maximale stale-cache duur in uren', 'ultracache-pro'), $settings, 1, 168, __('24 uur is een veilige standaard voor drukke sites.', 'ultracache-pro')); ?>
-                </div>
-                <?php $admin->textarea('rest_cache_inclusions', __('REST API paden wel cachen', 'ultracache-pro'), $settings, __('Eén routeprefix per regel. Standaard alleen publieke WordPress contentroutes.', 'ultracache-pro')); ?>
-            </section>
-        </details>
+        <section class="ucp-panel full ucp-panel--advanced-developer-link">
+            <div class="ucp-panel__header"><div><h2><?php esc_html_e('Developer opties verplaatst', 'ultracache-pro'); ?></h2><p><?php esc_html_e('REST-cache en fragment cache staan nu apart onder Developer, zodat gewone cache-regels schoon blijven.', 'ultracache-pro'); ?></p></div></div>
+        </section>
+

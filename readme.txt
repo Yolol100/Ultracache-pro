@@ -4,7 +4,7 @@ Tags: cache, performance, core web vitals, critical css, used css
 Requires at least: 6.3
 Tested up to: 6.9
 Requires PHP: 8.0
-Stable tag: 4.22.7.1
+Stable tag: 11.0.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -66,6 +66,41 @@ UltraCache Pro may store cache metadata, diagnostic records, Core Web Vitals sam
 
 == Changelog ==
 
+= 11.0.0 =
+* Performance suite 11.0: parser-first CSS, improved HTML minify, precompressed cache variants, database audit, APCu drop-in template and safer JS combine.
+
+= 10.12.2 =
+* Regression audit cleanup: removed unused legacy UX cleanup CSS asset.
+* Scoped React admin navigation CSS to the React admin wrapper only.
+* Removed React-only selectors from the classic admin design-system stylesheet.
+* Kept page override editor styling in its dedicated scoped stylesheet.
+* Regenerated the translation template (`languages/ultracache-pro.pot`) to cover all PHP and JavaScript admin strings.
+* Added minified asset variants for the React admin bundle, design-system CSS and core/tab admin scripts; the plugin now serves `.min` files automatically when `SCRIPT_DEBUG` is off.
+* Added weak/list ETag handling and 304 responses for cached HTML in the advanced-cache drop-in.
+* No runtime cache, CSS optimization, JS optimization, lazyload, preload, WooCommerce, REST, fragment or settings logic was removed.
+
+= 10.12.1 =
+* Restored visibility of important compatibility settings that disappeared from the classic and React UI after the Developer reorganization.
+* Kept `cache_logged_in`, `enable_object_cache_support` and `enable_woocommerce_rules` available under Developer > Compatibility.
+* Added a separate, scoped CSS asset for the page exclusions meta box so no inline styling is needed and the post editor layout stays intact.
+* Preserved the central design tokens and avoided global CSS hacks, `!important` overrides and broad admin selectors.
+
+= 10.12 =
+* Moved Developer cache settings out of the regular advanced rules and into a dedicated Developer section.
+* Tightened the builder-safe layer for Elementor, Bricks, Oxygen, Breakdance, Divi, Beaver Builder, WPBakery, Flatsome UX Builder and SiteOrigin editor/preview flows.
+* Frontend optimizations now skip builder previews and transactional WooCommerce flows through the same central safety layer.
+* React admin and classic admin share the same design tokens; global CSS hiding and hard override rules have been cleaned up.
+* Added settings intro cards for consistent per-section explanations.
+
+= 10.11 =
+* Added automatic settings snapshots before settings changes, keeping the latest 5 snapshots.
+* Added manual settings snapshot creation and a restore action in Tools.
+* Added custom presets saved from the current configuration.
+* Added per-page UltraCache overrides via a post/page meta box.
+* Added a lightweight WordPress dashboard widget with the active optimization status.
+* Added REST endpoints for settings snapshots and custom preset saving for the React admin.
+* Kept import/export and existing legacy settings compatible.
+
 = 4.22.6.9 =
 * Added automatic replacement cleanup for older duplicate UltraCache Pro plugin copies during activation when WordPress file permissions allow deletion.
 * Added repository governance files, GitHub Actions quality gates, Plugin Check readiness documentation and privacy/support disclosure notes.
@@ -121,7 +156,7 @@ UltraCache Pro may store cache metadata, diagnostic records, Core Web Vitals sam
 * Added cache BYPASS/MISS debug headers with reasons for easier PageSpeed troubleshooting.
 * Fixed Used CSS/Critical CSS cleanup paths.
 * Added upgrade cleanup for previous UltraCache-generated cache artifacts and own drop-in refresh.
-* Added duplicate duplicate UltraCache Pro plugin cleanup during activation when permissions allow.
+* Added duplicate UltraCache Pro plugin cleanup during activation when permissions allow.
 
 = 4.21.50 =
 * Ultra-minimal Tools UI met rustigere kaart-hiërarchie.
@@ -147,7 +182,6 @@ UltraCache Pro may store cache metadata, diagnostic records, Core Web Vitals sam
 * Added compatibility JSON lists for cache, asset, and delay JavaScript exclusions.
 * Improved lazyload behavior so the first likely LCP image is not lazy-loaded and receives fetch priority.
 * Added extra purge hooks for taxonomy, menu, customizer, permalink, WooCommerce, and builder cache changes.
-* Cleaned release metadata and internal patch comments.
 
 = 4.19.0 =
 * Auto delay JS exclusions now scan active plugins and the current theme when Delay JS is enabled.

@@ -113,7 +113,7 @@ trait UCP_Admin_Actions_Presets_Trait {
 
         $settings = UCP_Options::get_all();
         $detected = class_exists('UCP_Integrations') ? UCP_Integrations::detected() : array();
-        $conflicts = class_exists('UCP_Compat') ? UCP_Compat::detected_conflicts() : array();
+        $conflicts = UCP_Compat::detected_conflicts();
         $manual_js_flags = array(
             'defer_all_js' => isset($settings['defer_all_js']) ? (int) !empty($settings['defer_all_js']) : 0,
             'enable_delay_js' => isset($settings['enable_delay_js']) ? (int) !empty($settings['enable_delay_js']) : 0,

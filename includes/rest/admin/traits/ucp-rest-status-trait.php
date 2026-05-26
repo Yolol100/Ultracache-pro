@@ -360,19 +360,15 @@ trait UCP_REST_Status_Trait {
             }
 
             $health = class_exists('UCP_Health') ? UCP_Health::latest() : array();
-            $queue  = class_exists('UCP_Jobs') ? UCP_Jobs::get_summary() : array('pending' => 0, 'running' => 0, 'retrying' => 0, 'failed' => 0);
-            if (class_exists('UCP_Jobs')) {
-                $queue['runner'] = UCP_Jobs::get_runner_status();
-            } else {
-                $queue['runner'] = array('due' => 0, 'nextCron' => '', 'cronDisabled' => defined('DISABLE_WP_CRON') && DISABLE_WP_CRON, 'hook' => '', 'schedule' => '');
-            }
+            $queue  = UCP_Jobs::get_summary();
+            $queue['runner'] = UCP_Jobs::get_runner_status();
 
             return array(
                 'system' => array(
                     'server'        => isset($_SERVER['SERVER_SOFTWARE']) ? sanitize_text_field(wp_unslash($_SERVER['SERVER_SOFTWARE'])) : '',
                     'phpVersion'    => PHP_VERSION,
                     'wpVersion'     => get_bloginfo('version'),
-                    'wpCache'       => class_exists('UCP_Helpers') ? UCP_Helpers::has_valid_wp_cache_constant() : (defined('WP_CACHE') && WP_CACHE),
+                    'wpCache'       => UCP_Helpers::has_valid_wp_cache_constant(),
                     'advancedCache' => file_exists($advanced_cache),
                     'dropinOwner'   => $dropin_owner,
                     'dropinConfig'  => class_exists('UCP_Helpers') ? file_exists(UCP_Helpers::dropin_config_path()) : false,

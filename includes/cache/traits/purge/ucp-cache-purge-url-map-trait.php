@@ -63,7 +63,7 @@ trait UCP_Cache_Purge_Url_Map_Trait {
     protected function normalize_local_url_list($urls) {
         $clean = array();
         foreach ((array) $urls as $url) {
-            $url = class_exists('UCP_Helpers') ? UCP_Helpers::strict_local_url($url) : esc_url_raw($url);
+            $url = UCP_Helpers::strict_local_url($url);
             if ($url && wp_http_validate_url($url)) {
                 $clean[] = $url;
             }
@@ -86,7 +86,7 @@ trait UCP_Cache_Purge_Url_Map_Trait {
     }
 
     protected function delete_local_url_cache($url) {
-        $url = class_exists('UCP_Helpers') ? UCP_Helpers::strict_local_url($url) : esc_url_raw($url);
+        $url = UCP_Helpers::strict_local_url($url);
         if (!$url || !wp_http_validate_url($url)) {
             return;
         }

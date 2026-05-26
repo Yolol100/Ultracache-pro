@@ -33,7 +33,7 @@ class UCP_Image_Optimizer {
         if ((empty(UCP_Options::get('enable_image_optimization')) && empty(UCP_Options::get('enable_webp_generation')) && empty(UCP_Options::get('enable_avif_generation'))) || !is_array($image) || empty($image[0])) {
             return $image;
         }
-        // AI-PATCH: negotiated image URLs are unsafe in cached HTML unless the page cache also varies by Accept.
+        // Note: negotiated image URLs are unsafe in cached HTML unless the page cache also varies by Accept.
         // Keep generated variants available, but avoid rewriting attachment URLs when UltraCache page cache is active.
         if (!empty(UCP_Options::get('enable_cache'))) {
             return $image;

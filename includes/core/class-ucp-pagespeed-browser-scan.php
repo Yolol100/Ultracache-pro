@@ -110,9 +110,8 @@ class UCP_PageSpeed_Browser_Scan {
             $updates['preload_critical_images'] = max(3, absint(isset($settings['preload_critical_images']) ? $settings['preload_critical_images'] : 0));
             $updates['lazyload_exclude_leading_images'] = max(1, absint(isset($settings['lazyload_exclude_leading_images']) ? $settings['lazyload_exclude_leading_images'] : 1));
 
-            // AI-PATCH: LCP priority is now driven by measured per-URL/browser hints at render time.
-            // Do not keep appending image-specific fetchpriority rules; admins should not maintain LCP per image.
-            $existing_rules = class_exists('UCP_Helpers') ? UCP_Helpers::normalize_multiline(isset($settings['fetchpriority_rules']) ? $settings['fetchpriority_rules'] : '') : array();
+            // Note: LCP priority is now driven by measured per-URL/browser hints at render time.
+            $existing_rules = UCP_Helpers::normalize_multiline(isset($settings['fetchpriority_rules']) ? $settings['fetchpriority_rules'] : '');
             $clean_rules = self::remove_generated_lcp_fetchpriority_rules($existing_rules);
             if ($clean_rules !== $existing_rules) {
                 $updates['fetchpriority_rules'] = implode("\n", array_slice($clean_rules, 0, 80));
@@ -126,7 +125,7 @@ class UCP_PageSpeed_Browser_Scan {
         $delay_fragments = self::delay_fragments_from_scan_resources(array_merge($delay_candidates, $third_party));
 
         if (!empty($delay_fragments)) {
-            $existing = class_exists('UCP_Helpers') ? UCP_Helpers::normalize_multiline(isset($settings['delay_js_specified_scripts']) ? $settings['delay_js_specified_scripts'] : '') : array();
+            $existing = UCP_Helpers::normalize_multiline(isset($settings['delay_js_specified_scripts']) ? $settings['delay_js_specified_scripts'] : '');
             $merged = array_values(array_unique(array_filter(array_merge($existing, $delay_fragments), 'strlen')));
             $updates['enable_delay_js'] = 1;
             $updates['delay_js_mode'] = 'specified';
@@ -149,8 +148,8 @@ class UCP_PageSpeed_Browser_Scan {
     }
 
     /**
-     * Remove auto-generated per-image LCP rules from older repairs.
-     * Measured LCP hints are applied dynamically, so admins do not have to maintain one rule per image.
+     * Remove per-image LCP rules from older repairs.
+     * Measured LCP hints are applied dynamically.
      *
      * @param string[] $rules Existing multiline rules.
      * @return string[]

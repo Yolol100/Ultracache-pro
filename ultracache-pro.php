@@ -2,7 +2,7 @@
 /**
  * Plugin Name: UltraCache Pro
  * Description: Premium modular WordPress performance suite with cache, optimization, automation, edge integrations and visual asset control.
- * Version: 4.22.7.1
+ * Version: 11.0.0
  * Author: UltraCache Pro
  * Text Domain: ultracache-pro
  * Domain Path: /languages
@@ -17,17 +17,23 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('UCP_VERSION', '4.22.7.1');
+define('UCP_VERSION', '11.0.0');
 define('UCP_FILE', __FILE__);
 define('UCP_PATH', plugin_dir_path(__FILE__));
 define('UCP_URL', plugin_dir_url(__FILE__));
 define('UCP_BASENAME', plugin_basename(__FILE__));
 define('UCP_CACHE_DIR', WP_CONTENT_DIR . '/cache/ultracache-pro/');
 define('UCP_CACHE_URL', content_url('/cache/ultracache-pro/'));
+
+$ucp_vendor_autoload = UCP_PATH . 'vendor/autoload.php';
+if (is_readable($ucp_vendor_autoload)) {
+    require_once $ucp_vendor_autoload;
+}
+unset($ucp_vendor_autoload);
 if (!function_exists('ucp_table_name')) {
     /**
      * Return the plugin-owned table for the current blog prefix.
-     * AI-PATCH: avoid stale table constants after switch_to_blog() on multisite.
+     * Note: avoid stale table constants after switch_to_blog() on multisite.
      */
     function ucp_table_name($name) {
         global $wpdb;

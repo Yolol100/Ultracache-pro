@@ -6,6 +6,7 @@ if (!defined('ABSPATH')) {
 class UCP_Object_Cache {
     public function __construct() {
         add_action('admin_post_ucp_check_object_cache', array($this, 'check_object_cache'));
+        add_action('admin_post_ucp_install_apcu_object_cache', array($this, 'install_apcu_dropin'));
     }
 
     public static function status() {
@@ -29,10 +30,33 @@ class UCP_Object_Cache {
             UCP_Admin_Notices::flash(__('Object cache is actief. UltraCache laat de bestaande drop-in bewust met rust.', 'ultracache-pro'), 'success');
         } elseif (!empty($status['redis']) || !empty($status['memcached'])) {
             UCP_Admin_Notices::flash(__('Redis of Memcached lijkt beschikbaar, maar er is nog geen actieve WordPress object-cache drop-in.', 'ultracache-pro'), 'info');
+        } elseif (!empty($status['apcu'])) {
+            UCP_Admin_Notices::flash(__('APCu is beschikbaar. Je kunt de UltraCache APCu object-cache drop-in optioneel activeren.', 'ultracache-pro'), 'info');
         } else {
-            UCP_Admin_Notices::flash(__('Geen Redis/Memcached object-cache laag gevonden. Gebruik je hostingpaneel of een gespecialiseerde object-cache drop-in.', 'ultracache-pro'), 'warning');
+            UCP_Admin_Notices::flash(__('Geen Redis/Memcached/APCu object-cache laag gevonden. Gebruik je hostingpaneel of een gespecialiseerde object-cache drop-in.', 'ultracache-pro'), 'warning');
         }
         wp_safe_redirect(UCP_Admin_Router::url('expert', array('object_cache_checked' => 1)));
+        exit;
+    }
+
+    public function install_apcu_dropin() {
+        if (!current_user_can('manage_options')) {
+            wp_die(esc_html__('Je hebt geen rechten om de object-cache drop-in te installeren.', 'ultracache-pro'), '', array('response' => 403));
+        }
+        check_admin_referer('ucp_install_apcu_object_cache');
+        if (!UCP_Options::get('enable_apcu_object_cache') || !function_exists('apcu_fetch')) {
+            wp_die(esc_html__('APCu object cache vereist APCu en een expliciet ingeschakelde optie.', 'ultracache-pro'));
+        }
+        $target = WP_CONTENT_DIR . '/object-cache.php';
+        if (file_exists($target) && false === strpos((string) file_get_contents($target), 'UltraCache Pro APCu Object Cache')) {
+            wp_die(esc_html__('Er bestaat al een object-cache.php drop-in. UltraCache overschrijft die niet automatisch.', 'ultracache-pro'));
+        }
+        $source = UCP_PATH . 'dropins/object-cache-apcu.php';
+        if (!is_readable($source) || !copy($source, $target)) {
+            wp_die(esc_html__('Kon de APCu object-cache drop-in niet installeren.', 'ultracache-pro'));
+        }
+        UCP_Admin_Notices::flash(__('APCu object-cache drop-in geïnstalleerd.', 'ultracache-pro'), 'success');
+        wp_safe_redirect(UCP_Admin_Router::url('expert', array('apcu_object_cache' => 1)));
         exit;
     }
 }

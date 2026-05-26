@@ -23,7 +23,7 @@ trait UCP_Assets_Minify_Trait {
 
 
         public function maybe_minify_script_tag($tag, $handle, $src) {
-            if (is_admin() || !UCP_Options::get('enable_js_minify') || !UCP_Options::get('allow_experimental_js_minify') || UCP_Options::get('enable_js_combine') || UCP_Options::get('enable_delay_js') || UCP_Rule_Engine::has_action('disable_js_optimization')) {
+            if (is_admin() || !UCP_Options::get('enable_js_minify') || UCP_Options::get('enable_js_combine') || UCP_Options::get('enable_delay_js') || UCP_Rule_Engine::has_action('disable_js_optimization')) {
                 return $tag;
             }
             $exclusions = apply_filters('ucp_asset_exclusions', apply_filters('ucp_js_exclusions', UCP_Helpers::normalize_multiline(UCP_Options::get('js_exclusions', ''))));
@@ -84,8 +84,7 @@ trait UCP_Assets_Minify_Trait {
             if ('' === $minified || $min_bytes < 20) {
                 return '';
             }
-            // FlyingPress-style safety: only serve the generated file when it saves at least 2KB and 10%.
-            if (($original_bytes - $min_bytes) < 2048 || $min_bytes > (int) floor($original_bytes * 0.90)) {
+                        if (($original_bytes - $min_bytes) < 2048 || $min_bytes > (int) floor($original_bytes * 0.90)) {
                 return '';
             }
 

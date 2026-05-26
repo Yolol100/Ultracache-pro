@@ -18,7 +18,7 @@ trait UCP_Quality_Suite_Actions_Trait {
     }
 
     public static function rest_repair_cache_files() {
-        $result = class_exists('UCP_Helpers') ? UCP_Helpers::maybe_install_own_advanced_cache_automatically() : array('installed' => false);
+        $result = UCP_Helpers::maybe_install_own_advanced_cache_automatically();
         return self::action_success(__('WP_CACHE en drop-in herstelactie uitgevoerd.', 'ultracache-pro'), array('result' => $result));
     }
 

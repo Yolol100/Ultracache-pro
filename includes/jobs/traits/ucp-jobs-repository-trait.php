@@ -85,7 +85,7 @@ trait UCP_Jobs_Repository_Trait {
 
         if (in_array($type, array('preload_url', 'generate_css', 'remote_css'), true)) {
             $url = isset($payload['url']) ? $payload['url'] : home_url('/');
-            $url = class_exists('UCP_Helpers') ? UCP_Helpers::strict_local_url($url, home_url('/')) : esc_url_raw($url);
+            $url = UCP_Helpers::strict_local_url($url, home_url('/'));
             if (!$url || !wp_http_validate_url($url)) {
                 return false;
             }
@@ -146,7 +146,7 @@ trait UCP_Jobs_Repository_Trait {
             $payload = json_decode((string) $row['payload'], true);
             $payload = is_array($payload) ? $payload : array();
             $raw_url = isset($payload['url']) ? $payload['url'] : '';
-            $url = class_exists('UCP_Helpers') ? UCP_Helpers::strict_local_url($raw_url) : esc_url_raw($raw_url);
+            $url = UCP_Helpers::strict_local_url($raw_url);
 
             $type = isset($row['type']) ? sanitize_key($row['type']) : 'preload_url';
             $is_unsafe_preload = 'preload_url' === $type && class_exists('UCP_Preload') && UCP_Preload::is_safety_excluded_url($url);
@@ -221,7 +221,7 @@ trait UCP_Jobs_Repository_Trait {
             }
 
             if (in_array($type, array('generate_css', 'remote_css'), true) && 'failed' === $row_status && preg_match('/HTTP\s*\d{3}/i', $last_error)) {
-                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- plugin-owned maintenance update for URL job retry after patch.
+                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- plugin-owned maintenance update for URL job retry.
                 $wpdb->update(
                     ucp_table_name('jobs'),
                     array(

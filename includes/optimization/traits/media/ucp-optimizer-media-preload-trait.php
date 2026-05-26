@@ -336,8 +336,6 @@ trait UCP_Optimizer_Media_Preload_Trait {
             return '';
         }
 
-        // WP Rocket/FlyingPress-style critical image handling should not blindly preload the largest desktop srcset
-        // candidate for a mobile PageSpeed run. Pick the smallest candidate that covers the likely viewport instead.
         $target = $this->lcp_srcset_target_width();
         $best = null;
         foreach ($candidates as $candidate) {

@@ -16,6 +16,7 @@ class UCP_Admin_Config {
             'database'       => array('label' => __('Database', 'ultracache-pro'), 'icon' => 'dashicons-database', 'meta' => __('Optimaliseer, verminder bloat', 'ultracache-pro')),
             'cdn'            => array('label' => __('CDN', 'ultracache-pro'), 'icon' => 'dashicons-cloud', 'meta' => __('Integreer je CDN', 'ultracache-pro')),
             'heartbeat'      => array('label' => __('Heartbeat', 'ultracache-pro'), 'icon' => 'dashicons-heart', 'meta' => __('Beheer WordPress Heartbeat API', 'ultracache-pro')),
+            'developer'      => array('label' => __('Developer', 'ultracache-pro'), 'icon' => 'dashicons-editor-code', 'meta' => __('REST-cache, fragment cache en veiligheidsopties', 'ultracache-pro')),
             'tools'          => array('label' => __('Tools', 'ultracache-pro'), 'icon' => 'dashicons-admin-tools', 'meta' => __('Importeren, exporteren, terugzetten', 'ultracache-pro')),
         );
     }
@@ -40,7 +41,8 @@ class UCP_Admin_Config {
             'database' => array('title' => __('Database', 'ultracache-pro'), 'description' => __('Revisies, spam, transients en tabellen opschonen.', 'ultracache-pro'), 'focus' => __('Maak eerst een backup', 'ultracache-pro')),
             'cdn' => array('title' => __('CDN', 'ultracache-pro'), 'description' => __('Statische bestanden via je CDN-CNAME laden.', 'ultracache-pro'), 'focus' => __('Integreer je CDN', 'ultracache-pro')),
             'heartbeat' => array('title' => __('Heartbeat', 'ultracache-pro'), 'description' => __('Beheer de WordPress Heartbeat API per omgeving.', 'ultracache-pro'), 'focus' => __('Rustiger backend-verkeer', 'ultracache-pro')),
-            'tools' => array('title' => __('Tools', 'ultracache-pro'), 'description' => __('Import, export, rollback en onderhoud.', 'ultracache-pro'), 'focus' => __('Beheer en support', 'ultracache-pro')),
+            'developer' => array('title' => __('Developer', 'ultracache-pro'), 'description' => __('REST-cache, fragment cache en technische veiligheidsopties. Standaard uit en staging-first.', 'ultracache-pro'), 'focus' => __('Alleen voor ontwikkelaars', 'ultracache-pro')),
+            'tools' => array('title' => __('Tools', 'ultracache-pro'), 'description' => __('Import, export, rollback en onderhoud.', 'ultracache-pro'), 'focus' => __('Beheer en support', 'ultracache-pro')), 
         );
         return isset($map[$tab]) ? wp_parse_args($map[$tab], $defaults) : $defaults;
     }

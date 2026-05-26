@@ -157,7 +157,7 @@ trait UCP_Admin_Notices_Render_Trait {
                 $info_items[] = sprintf(
                     /* translators: %s: comma separated features. */
                     __('Aanbevolen veilige modus door overlap: %s.', 'ultracache-pro'),
-                    esc_html(implode(', ', class_exists('UCP_Compat') ? UCP_Compat::feature_labels($disabled) : $disabled))
+                    esc_html(implode(', ', UCP_Compat::feature_labels($disabled)))
                 );
             }
         }

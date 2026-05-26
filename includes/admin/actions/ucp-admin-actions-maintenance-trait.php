@@ -10,9 +10,7 @@ trait UCP_Admin_Actions_Maintenance_Trait {
             wp_die(esc_html__('Geen toegang.', 'ultracache-pro'), '', array('response' => 403));
         }
         check_admin_referer('ucp_check_dropin_owner');
-        if (class_exists('UCP_Compat')) {
-            UCP_Compat::store_conflict_snapshot();
-        }
+        UCP_Compat::store_conflict_snapshot();
         $target = WP_CONTENT_DIR . '/advanced-cache.php';
         $owner = '';
         if (file_exists($target) && is_readable($target)) {
@@ -53,7 +51,7 @@ trait UCP_Admin_Actions_Maintenance_Trait {
         UCP_Options::update($settings);
         $result = UCP_Helpers::install_own_advanced_cache_with_backup();
         if ($force_takeover) {
-            // AI-PATCH: treat a foreign drop-in takeover as a one-time admin action instead of leaving future automatic takeovers enabled.
+            // Note: treat a foreign drop-in takeover as a one-time admin action instead of leaving future automatic takeovers enabled.
             $settings['allow_dropin_takeover'] = 0;
             UCP_Options::update($settings);
         }
@@ -68,9 +66,7 @@ trait UCP_Admin_Actions_Maintenance_Trait {
         } else {
             $args['server_cache_fixed'] = 0;
         }
-        if (class_exists('UCP_Compat')) {
-            UCP_Compat::store_conflict_snapshot();
-        }
+        UCP_Compat::store_conflict_snapshot();
         wp_safe_redirect($this->admin->tab_url_public('cache', $args));
         exit;
     }
@@ -104,9 +100,7 @@ trait UCP_Admin_Actions_Maintenance_Trait {
                 UCP_Helpers::install_own_advanced_cache_with_backup();
             }
         }
-        if (class_exists('UCP_Compat')) {
-            UCP_Compat::store_conflict_snapshot();
-        }
+        UCP_Compat::store_conflict_snapshot();
         wp_safe_redirect($this->admin->tab_url_public('overview', array('cache_enabled' => 1)));
         exit;
     }

@@ -1,4 +1,3 @@
-// UX cleanup applied safely
 <?php
 if (!defined('ABSPATH')) {
     exit;
@@ -73,7 +72,7 @@ trait UCP_Admin_Field_Logic_Schema_Trait {
             'enable_remote_css_render' => array(
                 'disabled_if' => array(
                     array('field' => 'css_delivery_mode', 'operator' => '=', 'value' => 'none', 'reason' => __('Cloud CSS is alleen relevant wanneer CSS-levering optimaliseren actief is.', 'ultracache-pro')),
-                    array('field' => 'enable_css_queue', 'operator' => '!=', 'value' => '1', 'reason' => __('Beschikbaar zodra CSS op de achtergrond maken actief is.', 'ultracache-pro')),
+                    array('field' => 'enable_css_queue', 'operator' => '!=', 'value' => '1', 'reason' => __('Beschikbaar zodra CSS-levering optimaliseren actief is.', 'ultracache-pro')),
                     array('field' => 'enable_cloud', 'operator' => '!=', 'value' => '1', 'reason' => __('Beschikbaar zodra Cloud-rendering is ingericht.', 'ultracache-pro')),
                 ),
                 'hide_when_disabled' => true,

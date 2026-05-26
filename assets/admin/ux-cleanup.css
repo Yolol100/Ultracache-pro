@@ -1,7 +1,0 @@
-
-/* Safe UX cleanup */
-.ucp-advanced-setting,
-.ucp-dev-setting,
-[data-setting="allow_experimental_js_minify"]{
-    display:none !important;
-}

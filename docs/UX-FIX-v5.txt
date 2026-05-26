@@ -1,0 +1,61 @@
+UltraCache Pro 11.0.0 — React Admin UX Fix (v5)
+================================================
+
+This build is identical to 11.0.0-fixed-v4 in PHP behaviour. Only the React
+admin CSS has changed, to bring the UI in line with the WordPress Gutenberg
+(`@wordpress/components`) design language used in WordPress 7.0.
+
+Fixed
+-----
+1. Two invalid empty @keyframes rules (`ucpReactToastIn` and `ucpLoadingSpin`)
+   that prevented the toast slide-in animation and the loading spinner from
+   working. Both now have a proper animation body.
+
+2. Card border-radius is now tokenised. Previously cards used hard-coded
+   `border-radius: 2px` / `4px` which conflicted with the design-system rule
+   `border-radius: var(--ucp-radius-lg)` later in the file. The earlier
+   declarations won by cascade order, defeating the token system.
+
+3. Notice toast no longer uses `border-radius: 999px` (pill shape). The
+   `@wordpress/components` Notice is a rectangular component; pill toasts
+   diverge visually from the rest of WP-admin.
+
+4. Main tab navigation no longer uses a `linear-gradient(135deg, primary →
+   purple)` active state with a 12-24px drop shadow and a `translateY(-1px)`
+   hover lift. These are not Gutenberg patterns. The active state is now a
+   flat primary fill with a 1px token shadow. Tab pills now use
+   `--ucp-radius-sm` and the host strip uses `--ucp-radius-md` (was 18px).
+
+5. `font-weight: 760` (non-standard custom weight) replaced with `600` on tab
+   labels.
+
+6. The `.is-primary/.is-secondary/.is-tertiary` button border-radius override
+   (`3px`) was removed so `@wordpress/components` button shapes are honoured.
+
+7. Hardcoded hex values for neutral chrome (borders, surfaces, muted text)
+   were converted to design tokens (`var(--ucp-color-border)`,
+   `var(--ucp-color-surface)`, `var(--ucp-color-surface-subtle)`,
+   `var(--ucp-color-text)`, `var(--ucp-color-muted)`). WP-admin status hues
+   used as accent stripes (`#2271b1`, `#00a32a`, `#dba617`, `#d63638`,
+   `#008a20`) are now mapped to `var(--ucp-color-primary/success/warning/
+   danger)` where they were used as `border-left-color` accents.
+
+8. Border-radius values of `8px`, `12px`, `16px`, `18px`, `20px` are now
+   sourced from `--ucp-radius-sm/md/lg/xl` so the radius scale is consistent.
+
+9. `box-shadow: 0 1px 1px rgba(0,0,0,.04)` and `0 1px 2px rgba(0,0,0,.06)`
+   patterns are now `var(--ucp-shadow-sm)`.
+
+Not changed
+-----------
+- All PHP files.
+- The React app logic (`ucp-react-admin.js`).
+- Tab order, IA, copy, labels, behaviour.
+- Settings, REST API, jobs, cache engine.
+- The legacy server-rendered admin (`ucp-admin-design-system.css`) was
+  already token-compliant.
+- Status/accent colours `#2271b1`, `#00a32a`, `#dba617`, `#d63638` are kept
+  for soft-callout pastel backgrounds (`#f0f6fc`, `#fcf9e8`, `#fcf0f1`,
+  `#fff8e5`) where token coverage isn't strong enough.
+
+Both `ucp-react-admin.css` and `ucp-react-admin.min.css` were regenerated.

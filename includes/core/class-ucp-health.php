@@ -27,10 +27,12 @@ class UCP_Health {
     }
 
     public static function register_schedule($schedules) {
-        $schedules['ucp_five_minutes'] = array(
-            'interval' => 300,
-            'display'  => __('Elke 5 minuten', 'ultracache-pro'),
-        );
+        if (!isset($schedules['ucp_five_minutes'])) {
+            $schedules['ucp_five_minutes'] = array(
+                'interval' => 300,
+                'display'  => __('Elke 5 minuten', 'ultracache-pro'),
+            );
+        }
         return $schedules;
     }
 
@@ -39,9 +41,9 @@ class UCP_Health {
             'generated_at'      => current_time('mysql', true),
             'cache_dir_writable'=> wp_is_writable(UCP_CACHE_DIR),
             'advanced_cache'    => file_exists(WP_CONTENT_DIR . '/advanced-cache.php'),
-            'wp_cache'          => class_exists('UCP_Helpers') ? UCP_Helpers::has_valid_wp_cache_constant() : (defined('WP_CACHE') && WP_CACHE),
+            'wp_cache'          => UCP_Helpers::has_valid_wp_cache_constant(),
             'dropin_config'     => class_exists('UCP_Helpers') ? file_exists(UCP_Helpers::dropin_config_path()) : false,
-            'cache_conflicts'   => class_exists('UCP_Compat') ? UCP_Compat::detected_conflicts() : array(),
+            'cache_conflicts'   => UCP_Compat::detected_conflicts(),
             'jobs_pending'      => UCP_Jobs::count_by_status('pending'),
             'jobs_failed'       => UCP_Jobs::count_by_status('failed'),
             'logs_recent'       => count(UCP_Logger::recent(10)),

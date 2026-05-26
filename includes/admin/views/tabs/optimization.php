@@ -1,8 +1,30 @@
-// UX cleanup applied safely
 <?php
 if (!defined('ABSPATH')) {
     exit;
 }
+
+
+$delay_js_control = 'off';
+if (!empty($settings['enable_delay_js'])) {
+    if (!empty($settings['delay_js_safe_mode'])) {
+        $delay_js_control = 'safe';
+    } elseif (isset($settings['delay_js_mode']) && 'all' === $settings['delay_js_mode']) {
+        $delay_js_control = 'all';
+    } else {
+        $delay_js_control = 'specified';
+    }
+}
+$delay_control_settings = $settings;
+$delay_control_settings['delay_js_control'] = $delay_js_control;
+
+$html_optimization_mode = 'off';
+if (!empty($settings['enable_html_minify'])) {
+    $html_optimization_mode = 'minify';
+} elseif (!empty($settings['remove_html_comments'])) {
+    $html_optimization_mode = 'comments';
+}
+$html_mode_settings = $settings;
+$html_mode_settings['html_optimization_mode'] = $html_optimization_mode;
 
 // phpcs:ignoreFile WordPress.WP.I18n.MissingTranslatorsComment -- translator comments are inline in compact view templates.
 ?>
@@ -23,8 +45,7 @@ if (!defined('ABSPATH')) {
             <div class="ucp-optimization-basics-grid">        <section class="ucp-optimization-column ucp-panel--optimization ucp-panel--optimization-html ucp-panel--optimization-top ucp-panel--optimization-balance">
             <div class="ucp-panel__header"><div><h2><?php esc_html_e('HTML', 'ultracache-pro'); ?></h2><p><?php esc_html_e('Laat alleen de veilige hoofdkeuzes direct zien. Uitzonderingen staan in het uitklapblok.', 'ultracache-pro'); ?></p></div></div>
             <div class="ucp-wpr-options-list">
-                <?php $admin->checkbox('remove_html_comments', __('HTML-comments verwijderen', 'ultracache-pro'), $settings, __('Veilige eerste stap voor de meeste sites. Wordt automatisch aangezet als HTML verkleinen actief is.', 'ultracache-pro')); ?>
-                <?php $admin->checkbox('enable_html_minify', __('HTML verkleinen', 'ultracache-pro'), $settings, __('Verkleint HTML en zet comments verwijderen automatisch aan. UltraCache slaat checkout, builders, previews en uitgesloten URLs automatisch over.', 'ultracache-pro')); ?>
+                <?php $admin->select('html_optimization_mode', __('HTML optimalisatie', 'ultracache-pro'), $html_mode_settings, array('off' => __('Uit', 'ultracache-pro'), 'comments' => __('Alleen comments verwijderen', 'ultracache-pro'), 'minify' => __('HTML verkleinen + comments verwijderen', 'ultracache-pro')), __('Eén duidelijke keuze. HTML verkleinen zet comments verwijderen automatisch aan en slaat gevoelige WooCommerce-, builder- en previewpagina’s over.', 'ultracache-pro')); ?>
             </div>
             <?php if (!empty($settings['enable_html_minify'])) : ?>
                 <div class="ucp-callout ucp-callout--info ucp-callout--compact"><strong><?php esc_html_e('Automatische HTML-compatibiliteit', 'ultracache-pro'); ?></strong><p><?php esc_html_e('HTML verkleinen gebruikt comments verwijderen als onderdeel van dezelfde veilige methode. Gevoelige templates, WooCommerce-flows, previews en uitgesloten URLs worden automatisch overgeslagen.', 'ultracache-pro'); ?></p></div>
@@ -44,16 +65,15 @@ if (!defined('ABSPATH')) {
             <div class="ucp-panel__header"><div><h2><?php esc_html_e('CSS', 'ultracache-pro'); ?></h2><p><?php esc_html_e('Laat alleen de hoofdkeuzes direct zien. Alles met meer risico staat in het uitklapblok.', 'ultracache-pro'); ?></p></div></div>
             <div class="ucp-wpr-options-list">
                 <?php $admin->checkbox('enable_css_minify', __('CSS verkleinen', 'ultracache-pro'), $settings, __('Experimenteel: staat standaard uit en vereist expliciet inschakelen. Test altijd op staging, vooral checkout, formulieren en cookie banners.', 'ultracache-pro')); ?>
-                <div class="ucp-callout ucp-callout--info ucp-callout--compact"><strong><?php esc_html_e('CSS-levering optimaliseren', 'ultracache-pro'); ?></strong><p><?php esc_html_e('Elimineert render-blocking CSS. Er kan maar één methode actief zijn. Ongebruikte CSS verwijderen is staging-first en gebruikt een basic lokale parser; CSS asynchroon laden is de veiligere fallback als layout breekt.', 'ultracache-pro'); ?></p></div>
-                <?php $admin->select('css_delivery_mode', __('CSS-levering optimaliseren', 'ultracache-pro'), $settings, array('none' => __('Uit', 'ultracache-pro'), 'remove_unused' => __('Ongebruikte CSS verwijderen - staging', 'ultracache-pro'), 'async' => __('CSS asynchroon laden', 'ultracache-pro')), __('Kies één methode. Ongebruikte CSS gebruikt een basic lokale parser, geen AST/Sabberworm. Test grondig op staging, vooral met Elementor, sticky headers, sliders en WooCommerce.', 'ultracache-pro')); ?>
+                <div class="ucp-callout ucp-callout--info ucp-callout--compact"><strong><?php esc_html_e('CSS-levering optimaliseren', 'ultracache-pro'); ?></strong><p><?php esc_html_e('Elimineert render-blocking CSS. Er kan maar één methode actief zijn. Ongebruikte CSS verwijderen is staging-first en gebruikt de AST-parser wanneer vendor libraries aanwezig zijn; CSS asynchroon laden is de veiligere fallback als layout breekt.', 'ultracache-pro'); ?></p></div>
+                <?php $admin->select('css_delivery_mode', __('CSS-levering optimaliseren', 'ultracache-pro'), $settings, array('none' => __('Uit', 'ultracache-pro'), 'remove_unused' => __('Ongebruikte CSS verwijderen - staging', 'ultracache-pro'), 'async' => __('CSS asynchroon laden', 'ultracache-pro')), __('Kies één methode. Ongebruikte CSS gebruikt de parser-first flow wanneer de Composer-library beschikbaar is en valt veilig terug op de lokale scanner. Test grondig op staging, vooral met Elementor, sticky headers, sliders en WooCommerce.', 'ultracache-pro')); ?>
             </div>
             <details class="ucp-disclosure ucp-disclosure--css-more">
                 <summary><span class="ucp-summary-copy"><?php esc_html_e('Meer CSS-opties', 'ultracache-pro'); ?></span><span class="ucp-summary-chevron" aria-hidden="true"></span></summary>
                 <section class="ucp-panel ucp-panel--nested ucp-panel--nested-compact">
                     <div class="ucp-field-row ucp-field-row--1 ucp-field-row--stacked ucp-css-more-stack">
-                        <div class="ucp-callout ucp-callout--info ucp-callout--compact"><strong><?php esc_html_e('Automatische compatibiliteit', 'ultracache-pro'); ?></strong><p><?php esc_html_e('UltraCache zet CSS samenvoegen automatisch uit zodra Ongebruikte CSS verwijderen of CSS asynchroon laden actief is. CSS op de achtergrond maken wordt automatisch gekoppeld aan CSS-levering; Cloud CSS blijft uit totdat Cloud-rendering is ingericht.', 'ultracache-pro'); ?></p></div>
+                        <div class="ucp-callout ucp-callout--info ucp-callout--compact"><strong><?php esc_html_e('Automatische compatibiliteit', 'ultracache-pro'); ?></strong><p><?php esc_html_e('UltraCache zet CSS samenvoegen automatisch uit zodra Ongebruikte CSS verwijderen of CSS asynchroon laden actief is. De CSS-achtergrondwachtrij wordt automatisch gekoppeld aan CSS-levering; Cloud CSS blijft uit totdat Cloud-rendering is ingericht.', 'ultracache-pro'); ?></p></div>
                         <?php $admin->checkbox('enable_css_combine', __('CSS samenvoegen', 'ultracache-pro'), $settings, __('CSS verkleinen mag samen met CSS-levering. Alleen CSS samenvoegen wordt automatisch uitgezet wanneer CSS-levering optimaliseren actief is, omdat combine vaker builder-/formulierproblemen geeft.', 'ultracache-pro')); ?>
-                        <?php $admin->checkbox('enable_css_queue', __('CSS op de achtergrond maken', 'ultracache-pro'), $settings, __('Wordt automatisch gebruikt wanneer CSS-levering optimaliseren actief is.', 'ultracache-pro')); ?>
                         <?php $admin->checkbox('enable_remote_css_render', __('Cloud CSS gebruiken', 'ultracache-pro'), $settings, __('Alleen beschikbaar als Cloud-rendering is ingericht.', 'ultracache-pro')); ?>
                     </div>
                     <?php if (!empty($jobs_summary['pending']) || !empty($jobs_summary['running']) || !empty($jobs_summary['failed'])) : ?>
@@ -86,10 +106,9 @@ if (!defined('ABSPATH')) {
         <section class="ucp-panel full ucp-panel--optimization-js ucp-panel--optimization-js-live">
             <div class="ucp-panel__header"><div><h2><?php esc_html_e('JavaScript', 'ultracache-pro'); ?></h2><p><?php esc_html_e('Laat alleen de hoofdkeuzes direct zien. Risicovolle of conflicterende opties staan achter Meer JavaScript opties.', 'ultracache-pro'); ?></p></div></div>
             <div class="ucp-wpr-options-list">
-                <?php $admin->checkbox('enable_js_minify', __('JavaScript verkleinen', 'ultracache-pro'), $settings, __('Laat JavaScript-minify alleen toe na stagingtests. Zonder deze extra toestemming blijft JS-minify uit, ook als een preset of import de optie aanzet.', 'ultracache-pro')); ?>
-                <?php $admin->checkbox('enable_js_minify', __('JavaScript verkleinen', 'ultracache-pro'), $settings, __('Experimenteel: werkt alleen als de extra toestemming hierboven actief is. Test altijd op staging, vooral checkout, formulieren en cookie banners.', 'ultracache-pro')); ?>
+                <?php $admin->checkbox('enable_js_minify', __('JavaScript verkleinen', 'ultracache-pro'), $settings, __('Experimenteel. Zet dit alleen aan na stagingtests, vooral checkout, formulieren en cookie banners.', 'ultracache-pro')); ?>
                 <?php $admin->checkbox('defer_all_js', __('Defer JS', 'ultracache-pro'), $settings, __('Stelt niet-kritieke scripts later in de laadvolgorde uit. Kan samen met minify; test checkout en formulieren.', 'ultracache-pro')); ?>
-                <?php $admin->checkbox('enable_delay_js', __('Delay JS', 'ultracache-pro'), $settings, __('Kan samen met JavaScript verkleinen en Defer JS. Alleen JavaScript samenvoegen en geavanceerde scriptstrategie worden automatisch uitgezet bij Delay JS. Gebruik op staging met uitsluitingen.', 'ultracache-pro')); ?>
+                <?php $admin->select('delay_js_control', __('JavaScript uitstellen', 'ultracache-pro'), $delay_control_settings, array('off' => __('Uit', 'ultracache-pro'), 'specified' => __('Alleen opgegeven scripts', 'ultracache-pro'), 'all' => __('Alle scripts behalve uitsluitingen', 'ultracache-pro'), 'safe' => __('Veilige modus', 'ultracache-pro')), __('Eén keuze vervangt Delay JS, modus en veilige modus. Test altijd formulieren, sliders, cookie banners en checkout op staging.', 'ultracache-pro')); ?>
             </div>
             <?php if (!empty($settings['enable_delay_js']) || !empty($settings['enable_js_combine']) || !empty($settings['enable_native_script_strategy'])) : ?>
                 <div class="ucp-callout ucp-callout--warning ucp-callout--compact ucp-js-sync-warning">
@@ -131,10 +150,7 @@ if (!defined('ABSPATH')) {
                         <?php endforeach; ?>
                     </div>
                     <div class="ucp-field-row ucp-field-row--2 ucp-delay-config-grid ucp-delay-config-grid--polished">
-                        <?php $admin->select('delay_js_mode', __('Delay JS-modus', 'ultracache-pro'), $settings, array('specified' => __('Alleen opgegeven scripts', 'ultracache-pro'), 'all' => __('Alle scripts behalve uitsluitingen', 'ultracache-pro')), __('Gebruik Alles alleen op staging.', 'ultracache-pro')); ?>
-                        <?php $admin->textarea('delay_js_specified_scripts', __('Alleen deze scripts delayen', 'ultracache-pro'), $settings, __('Eén handle, URL-fragment of scriptnaam per regel. Alleen actief in de veilige modus.', 'ultracache-pro')); ?>
-                        <?php $admin->checkbox('delay_js_disable_click_delay', __('Eerste klik niet blokkeren bij Delay JS', 'ultracache-pro'), $settings, __('Laadt scripts via hover, scroll, touch of timeout zodat de eerste klik niet blijft hangen.', 'ultracache-pro')); ?>
-                        <?php $admin->checkbox('delay_js_safe_mode', __('Veilige Delay JS-modus', 'ultracache-pro'), $settings, __('Laat interne en inline scripts met rust; delay dan vooral externe scripts. Dit is veiliger voor WordPress, builders en WooCommerce.', 'ultracache-pro')); ?>
+                        <?php $admin->textarea('delay_js_specified_scripts', __('Alleen deze scripts delayen', 'ultracache-pro'), $settings, __('Eén handle, URL-fragment of scriptnaam per regel. Alleen actief bij Alleen opgegeven scripts.', 'ultracache-pro')); ?>
                         <?php $admin->number('delay_js_timeout', __('Wachttijd voor Delay JS (seconden)', 'ultracache-pro'), $settings, 1, 15, __('Fallback als er geen interactie komt.', 'ultracache-pro')); ?>
                     </div>
                 </section>

@@ -210,8 +210,6 @@ trait UCP_Optimizer_Scripts_Trait {
             return $excluded;
         }
 
-        // Mirror WP Rocket/FlyingPress-style delay behavior: keep payment/checkout scripts immediate only on
-        // transactional pages. On normal public pages, third-party/payment widgets can be delayed to reduce TBT/INP.
         $transactional_markup = is_string($html) && preg_match('/(woocommerce-checkout|woocommerce-cart|payment_method|wc_payment|paypal-button|stripe|mollie|klarna|adyen|order-pay)/i', $html);
         if ($transactional_markup) {
             return $excluded;

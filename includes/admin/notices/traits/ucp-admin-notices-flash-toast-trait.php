@@ -47,13 +47,22 @@ trait UCP_Admin_Notices_Flash_Toast_Trait {
             return;
         }
 
-        $style_path = UCP_PATH . 'assets/admin/css/ucp-cache-toast.css';
-        $script_path = UCP_PATH . 'assets/admin/js/core/cache-toast.js';
+        $use_debug = defined('SCRIPT_DEBUG') && SCRIPT_DEBUG;
+        $style_rel  = 'assets/admin/css/ucp-cache-toast.css';
+        $script_rel = 'assets/admin/js/core/cache-toast.js';
+        if (!$use_debug) {
+            $style_min  = 'assets/admin/css/ucp-cache-toast.min.css';
+            $script_min = 'assets/admin/js/core/cache-toast.min.js';
+            if (file_exists(UCP_PATH . $style_min))  { $style_rel  = $style_min; }
+            if (file_exists(UCP_PATH . $script_min)) { $script_rel = $script_min; }
+        }
+        $style_path = UCP_PATH . $style_rel;
+        $script_path = UCP_PATH . $script_rel;
 
         if (file_exists($style_path)) {
             wp_enqueue_style(
                 'ucp-cache-toast',
-                UCP_URL . 'assets/admin/css/ucp-cache-toast.css',
+                UCP_URL . $style_rel,
                 array(),
                 (string) filemtime($style_path)
             );
@@ -62,7 +71,7 @@ trait UCP_Admin_Notices_Flash_Toast_Trait {
         if (file_exists($script_path)) {
             wp_enqueue_script(
                 'ucp-cache-toast',
-                UCP_URL . 'assets/admin/js/core/cache-toast.js',
+                UCP_URL . $script_rel,
                 array(),
                 (string) filemtime($script_path),
                 true

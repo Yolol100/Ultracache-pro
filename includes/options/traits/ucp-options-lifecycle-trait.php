@@ -4,7 +4,49 @@ if (!defined('ABSPATH')) {
 }
 
 trait UCP_Options_Lifecycle_Trait {
+    public static function snapshot_option_key() {
+        return 'ucp_settings_snapshots';
+    }
+
+    public static function settings_snapshots() {
+        $snapshots = get_option(self::snapshot_option_key(), array());
+        return is_array($snapshots) ? $snapshots : array();
+    }
+
+    public static function create_settings_snapshot($settings = null, $context = 'manual') {
+        $settings = is_array($settings) ? $settings : self::get_all();
+        if (empty($settings)) {
+            return '';
+        }
+        $snapshots = self::settings_snapshots();
+        $id = gmdate('YmdHis') . '-' . wp_generate_password(6, false, false);
+        array_unshift($snapshots, array(
+            'id' => $id,
+            'created_at' => gmdate('c'),
+            'context' => sanitize_key((string) $context),
+            'settings' => self::settings_for_export($settings),
+        ));
+        $snapshots = array_slice($snapshots, 0, 5);
+        update_option(self::snapshot_option_key(), $snapshots, false);
+        return $id;
+    }
+
+    public static function restore_settings_snapshot($snapshot_id) {
+        $snapshot_id = sanitize_text_field((string) $snapshot_id);
+        foreach (self::settings_snapshots() as $snapshot) {
+            if (!empty($snapshot['id']) && hash_equals((string) $snapshot['id'], $snapshot_id) && !empty($snapshot['settings']) && is_array($snapshot['settings'])) {
+                self::create_settings_snapshot(self::get_all(), 'before_restore');
+                self::update($snapshot['settings']);
+                return true;
+            }
+        }
+        return false;
+    }
+
     public static function handle_option_updated($previous_settings, $new_settings) {
+        if (is_array($previous_settings) && !empty($previous_settings) && $previous_settings !== $new_settings) {
+            self::create_settings_snapshot($previous_settings, 'auto_save');
+        }
         self::after_settings_save($new_settings, $previous_settings);
     }
 
@@ -23,9 +65,7 @@ trait UCP_Options_Lifecycle_Trait {
         if (class_exists('UCP_Preload')) {
             UCP_Preload::sync_schedule($new_settings);
         }
-        if (class_exists('UCP_Jobs')) {
-            UCP_Jobs::sync_schedule($new_settings);
-        }
+        UCP_Jobs::sync_schedule($new_settings);
         if (class_exists('UCP_Health')) {
             UCP_Health::sync_schedule($new_settings);
         }
@@ -64,7 +104,7 @@ trait UCP_Options_Lifecycle_Trait {
 
         $settings = get_option(self::OPTION_KEY, array());
         if (is_array($settings) && array_key_exists('lazyload_threshprevious', $settings) && !array_key_exists('lazyload_threshold', $settings)) {
-            // AI-PATCH: migrate typo introduced by an old->previous replacement without losing existing settings.
+            // Note: migrate typo introduced by an old->previous replacement without losing existing settings.
             $settings['lazyload_threshold'] = absint($settings['lazyload_threshprevious']);
             unset($settings['lazyload_threshprevious']);
             update_option(self::OPTION_KEY, self::normalize($settings, self::defaults()), false);
@@ -97,7 +137,7 @@ trait UCP_Options_Lifecycle_Trait {
         if (!empty($settings['defer_all_js'])) {
             $settings['enable_defer_js_fallback'] = 1;
         }
-        $settings = class_exists('UCP_Integrations') ? UCP_Integrations::apply_autopilot_v2_settings($settings, $detected, class_exists('UCP_Compat') ? UCP_Compat::detected_conflicts() : array()) : $settings;
+        $settings = class_exists('UCP_Integrations') ? UCP_Integrations::apply_autopilot_v2_settings($settings, $detected, UCP_Compat::detected_conflicts()) : $settings;
         if (class_exists('UCP_Presets')) {
             $settings = array_merge($settings, UCP_Presets::pagespeed_auto_overrides());
         }
@@ -128,7 +168,7 @@ trait UCP_Options_Lifecycle_Trait {
         $settings['enable_diagnostics'] = 1;
         $settings['enable_admin_queue_runner'] = 1;
 
-        $preload_exclusions = class_exists('UCP_Helpers') ? UCP_Helpers::normalize_multiline(isset($settings['preload_exclude_urls']) ? $settings['preload_exclude_urls'] : '') : array();
+        $preload_exclusions = UCP_Helpers::normalize_multiline(isset($settings['preload_exclude_urls']) ? $settings['preload_exclude_urls'] : '');
         $preload_exclusions = array_merge($preload_exclusions, array(
             'cart', 'checkout', 'winkelwagen', 'afrekenen', 'my-account', 'mijn-account', 'account',
             'order-pay', 'order-received', 'add-payment-method', 'customer-logout', 'wc-ajax', 'wc-api', 'add-to-cart'
@@ -163,7 +203,7 @@ trait UCP_Options_Lifecycle_Trait {
         }
 
         $settings = wp_parse_args($settings, self::defaults());
-        $preload_exclusions = class_exists('UCP_Helpers') ? UCP_Helpers::normalize_multiline(isset($settings['preload_exclude_urls']) ? $settings['preload_exclude_urls'] : '') : array();
+        $preload_exclusions = UCP_Helpers::normalize_multiline(isset($settings['preload_exclude_urls']) ? $settings['preload_exclude_urls'] : '');
         $preload_exclusions = array_merge($preload_exclusions, array(
             '/author/(.*)',
             '/wp-content/(.*)',
@@ -203,7 +243,7 @@ trait UCP_Options_Lifecycle_Trait {
             $settings = UCP_Integrations::apply_autopilot_v2_settings(
                 $settings,
                 UCP_Integrations::detected(),
-                class_exists('UCP_Compat') ? UCP_Compat::detected_conflicts() : array()
+                UCP_Compat::detected_conflicts()
             );
         }
         $settings['enable_diagnostics'] = 1;
@@ -297,9 +337,6 @@ trait UCP_Options_Lifecycle_Trait {
         update_option('ucp_performance_profile_version_v4', '2026-pagespeed-auto-v4', false);
     }
 
-    /**
-     * Repair8: make measured LCP priority fully automatic and remove old generated per-image rules.
-     */
     public static function maybe_upgrade_pagespeed_auto_v5() {
         if ('2026-pagespeed-auto-v5' === get_option('ucp_performance_profile_version_v5', '')) {
             return;

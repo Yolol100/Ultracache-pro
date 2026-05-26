@@ -18,7 +18,7 @@ trait UCP_Cloud_Routes_Trait {
         return rest_ensure_response(array(
             'enabled'   => (bool) UCP_Options::get('enable_cloud'),
             'connected' => self::has_valid_endpoint() && !empty(UCP_Options::get('cloud_api_key')),
-            'queue'     => class_exists('UCP_Jobs') ? UCP_Jobs::get_summary() : array(),
+            'queue'     => UCP_Jobs::get_summary(),
         ));
     }
 
@@ -49,7 +49,7 @@ trait UCP_Cloud_CSS_Trait {
             'plugin_version' => UCP_VERSION,
             'used_css_enabled' => (bool) UCP_Options::get('cloud_pull_used_css'),
             'critical_css_enabled' => (bool) UCP_Options::get('cloud_pull_critical_css'),
-            'queue_summary' => class_exists('UCP_Jobs') ? UCP_Jobs::get_summary() : array(),
+            'queue_summary' => UCP_Jobs::get_summary(),
         );
         $response = self::post($endpoint, $payload);
         if (!$response) {

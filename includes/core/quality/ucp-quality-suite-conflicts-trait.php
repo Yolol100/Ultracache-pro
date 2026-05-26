@@ -16,7 +16,7 @@ trait UCP_Quality_Suite_Conflicts_Trait {
     }
 
     public static function detect_conflicts() {
-        $items = class_exists('UCP_Compat') ? UCP_Compat::detected_conflicts() : array();
+        $items = UCP_Compat::detected_conflicts();
         if (!function_exists('get_plugins')) {
             require_once ABSPATH . 'wp-admin/includes/plugin.php';
         }

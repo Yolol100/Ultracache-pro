@@ -1,0 +1,10 @@
+/* UltraCache Pro page override meta box.
+ * Scoped to the post editor so the main admin design system is not loaded globally.
+ */
+#ucp_page_overrides .ucp-page-override-option {
+  display: block;
+  margin: 8px 0;
+}
+#ucp_page_overrides .ucp-page-override-option input {
+  margin-right: 4px;
+}

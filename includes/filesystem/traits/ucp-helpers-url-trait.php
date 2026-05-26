@@ -325,7 +325,6 @@ trait UCP_Helpers_URL_Trait {
             return '';
         }
 
-        // Repair malformed scheme separators such as https:/example.com that can be produced by over-eager slash normalization.
         $url = preg_replace('#^(https?):/{1,}(?!/)#i', '$1://', $url);
         $url = preg_replace('#^(https?):/{3,}#i', '$1://', $url);
 
@@ -349,7 +348,7 @@ trait UCP_Helpers_URL_Trait {
             return '';
         }
 
-        // AI-PATCH: strict URL validation must reject foreign/unsafe schemes instead of silently converting them to local paths.
+        // Note: strict URL validation must reject foreign/unsafe schemes instead of silently converting them to local paths.
         if (preg_match('#^[a-z][a-z0-9+.-]*:#i', $raw) && !preg_match('#^https?://#i', $raw)) {
             return '';
         }

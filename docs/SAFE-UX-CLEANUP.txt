@@ -1,0 +1,42 @@
+Safe UX Cleanup Build
+
+This build only changes:
+- Admin labels
+- Admin visibility
+- Admin UX cleanup
+
+Not changed:
+- Runtime logic
+- Bootstrap
+- Autoloading
+- Core optimization engine
+
+This avoids fatal errors.
+Additional merge cleanup:
+- Link prefetch is only shown under Preload.
+- CSS background queue is internal and follows CSS delivery mode.
+- Database cleanup enable/frequency is one schedule select, with legacy option sync.
+
+10/10 polish:
+- Removed accidental plaintext output before PHP tags.
+- HTML comment cleanup and HTML minify are one selector in the UI.
+- Image optimization, WebP and AVIF are one selector in the UI.
+- Heartbeat master toggle is hidden; the internal legacy flag follows per-location behaviour.
+
+10.10 follow-up: extra instellingen samengevoegd
+- Delay JS samengevoegd naar "JavaScript uitstellen" met Uit / Alleen opgegeven scripts / Alles behalve uitsluitingen / Veilige modus.
+- Media lazyload samengevoegd naar één selectie voor afbeeldingen, iframes/video en YouTube preview.
+- Google Fonts gedrag samengevoegd naar Standaard / swap / lokaal + swap / uitschakelen.
+- Cache preload samengevoegd naar één selectie voor uit, aanbevolen, homepage of handmatig.
+- Stale cache samengevoegd naar één selectie met bewaartijd.
+
+Extra merge round:
+- Query strings cachen is now one select: Uit / Alleen onderstaande parameters toestaan.
+- Speculative loading is now one select: Uit / Prefetch rustig / Prefetch normaal / Prerender voorzichtig.
+- CDN herschrijven is now one select: Uit / CSS+JS / Afbeeldingen / Alle statische bestanden.
+- Browser-cache statische bestanden is now one select: Uit / 30 dagen / 6 maanden / 1 jaar / Aangepast.
+- Legacy runtime keys remain intact for backwards compatibility.
+
+Next important cleanup:
+- Heartbeat intervals are merged into one selector: 30 sec / 60 sec / 120 sec / custom per location.
+- The old frontend/editor/backend interval keys remain intact and are only shown when custom values are in use.

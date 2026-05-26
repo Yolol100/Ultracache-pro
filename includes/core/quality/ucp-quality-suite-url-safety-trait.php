@@ -9,7 +9,7 @@ trait UCP_Quality_Suite_Url_Safety_Trait {
     }
 
     public static function builder_patterns() {
-        return array('elementor-preview','elementor_library','bricks=','bricks-run','ct_builder','oxygen_iframe','breakdance=','et_fb=','fl_builder','vc_editable','customize_changeset_uuid','preview_id','preview_nonce');
+        return array('elementor-preview','elementor_library','elementor_ajax','elementor_iframe','bricks=','bricks-run','bricks_preview','ct_builder','oxygen_iframe','oxygen_preview','breakdance=','breakdance_iframe','et_fb=','et_bfb','fl_builder','fl_builder_ui','vc_editable','vcv-action','wpb_vc_js_status','customize_changeset_uuid','preview_id','preview_nonce','preview=true','preview_nonce','uxb_iframe','siteorigin_panels_live_editor');
     }
 
     public static function is_transactional_url($url) {

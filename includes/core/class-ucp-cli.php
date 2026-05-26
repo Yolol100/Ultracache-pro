@@ -23,7 +23,7 @@ class UCP_CLI {
         \WP_CLI::log('Pending jobs: ' . (int) $health['jobs_pending']);
         \WP_CLI::log('Failed jobs: ' . (int) $health['jobs_failed']);
         \WP_CLI::log('Drop-in config present: ' . (file_exists(UCP_Helpers::dropin_config_path()) ? 'yes' : 'no'));
-        $conflicts = class_exists('UCP_Compat') ? UCP_Compat::recommended_disabled_features() : array();
+        $conflicts = UCP_Compat::recommended_disabled_features();
         \WP_CLI::log('Conflict-derived safe mode: ' . (!empty($conflicts) ? implode(', ', $conflicts) : 'none'));
     }
 
@@ -69,7 +69,7 @@ class UCP_CLI {
     }
 
     public static function conflicts() {
-        $conflicts = class_exists('UCP_Compat') ? UCP_Compat::detected_conflicts() : array();
+        $conflicts = UCP_Compat::detected_conflicts();
         if (empty($conflicts)) {
             \WP_CLI::success('No known UltraCache conflicts detected.');
             return;

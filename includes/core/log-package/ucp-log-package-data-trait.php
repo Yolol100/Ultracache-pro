@@ -30,7 +30,7 @@ trait UCP_Log_Package_Data_Trait {
             'is_multisite'   => is_multisite(),
             'wp_debug'       => defined('WP_DEBUG') && WP_DEBUG,
             'wp_cron_disabled' => defined('DISABLE_WP_CRON') && DISABLE_WP_CRON,
-            'wp_cache'       => class_exists('UCP_Helpers') ? UCP_Helpers::has_valid_wp_cache_constant() : (defined('WP_CACHE') && WP_CACHE),
+            'wp_cache'       => UCP_Helpers::has_valid_wp_cache_constant(),
             'dropin_config'  => class_exists('UCP_Helpers') ? file_exists(UCP_Helpers::dropin_config_path()) : false,
             'object_cache'   => wp_using_ext_object_cache(),
             'theme'          => array('name' => $theme->get('Name'), 'template' => $theme->get_template(), 'stylesheet' => $theme->get_stylesheet()),
@@ -43,7 +43,7 @@ trait UCP_Log_Package_Data_Trait {
     }
 
     protected static function recent_jobs($limit) {
-        return class_exists('UCP_Jobs') ? UCP_Jobs::query(array('per_page' => $limit, 'paged' => 1))['rows'] : array();
+        return UCP_Jobs::query(array('per_page' => $limit, 'paged' => 1))['rows'];
     }
 
     protected static function recent_logs($limit) {

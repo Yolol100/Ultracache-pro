@@ -48,6 +48,30 @@ class UCP_REST_Admin_Controller {
             'callback'            => array(__CLASS__, 'import_settings'),
             'permission_callback' => array(__CLASS__, 'permissions_check'),
         ));
+
+        register_rest_route(self::REST_NAMESPACE, '/settings/snapshots', array(
+            array(
+                'methods'             => WP_REST_Server::READABLE,
+                'callback'            => array(__CLASS__, 'settings_snapshots'),
+                'permission_callback' => array(__CLASS__, 'permissions_check'),
+            ),
+            array(
+                'methods'             => WP_REST_Server::CREATABLE,
+                'callback'            => array(__CLASS__, 'create_settings_snapshot'),
+                'permission_callback' => array(__CLASS__, 'permissions_check'),
+            ),
+        ));
+        register_rest_route(self::REST_NAMESPACE, '/settings/snapshots/restore', array(
+            'methods'             => WP_REST_Server::CREATABLE,
+            'callback'            => array(__CLASS__, 'restore_settings_snapshot'),
+            'permission_callback' => array(__CLASS__, 'permissions_check'),
+        ));
+        register_rest_route(self::REST_NAMESPACE, '/settings/custom-preset', array(
+            'methods'             => WP_REST_Server::CREATABLE,
+            'callback'            => array(__CLASS__, 'save_custom_preset'),
+            'permission_callback' => array(__CLASS__, 'permissions_check'),
+        ));
+
         register_rest_route(self::REST_NAMESPACE, '/scan-preset', array(
             'methods'             => WP_REST_Server::READABLE,
             'callback'            => array(__CLASS__, 'scan_preset'),
@@ -105,7 +129,7 @@ class UCP_REST_Admin_Controller {
                     'type'              => 'string',
                     'required'          => false,
                     'sanitize_callback' => 'esc_url_raw',
-                    'validate_callback' => array(__CLASS__, 'validate_local_url_arg'),
+                    'validate_callback' => array('UCP_Helpers', 'validate_local_url_arg'),
                 );
             }
             register_rest_route(self::REST_NAMESPACE, '/actions/' . $route, array(
@@ -117,13 +141,6 @@ class UCP_REST_Admin_Controller {
         }
     }
 
-
-    public static function validate_local_url_arg($value) {
-        if (class_exists('UCP_Helpers')) {
-            return UCP_Helpers::validate_local_url_arg($value);
-        }
-        return '' === (string) $value || (bool) wp_http_validate_url((string) $value);
-    }
 
     public static function permissions_check($request = null) {
         if (!current_user_can('manage_options')) {
