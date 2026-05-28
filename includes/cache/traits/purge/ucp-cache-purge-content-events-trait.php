@@ -1,4 +1,5 @@
 <?php
+// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals -- Existing public UCP API/drop-in symbols are intentionally preserved for backward compatibility.
 if (!defined('ABSPATH')) {
     exit;
 }
@@ -146,7 +147,9 @@ trait UCP_Cache_Purge_Content_Events_Trait {
         if (UCP_Options::get('enable_targeted_purge')) {
             $urls = array_merge(array(home_url('/')), $this->configured_always_purge_urls());
             $this->purge_urls($urls);
-            foreach ($urls as $url) { $this->queue_preload_url($url); }
+            foreach ($urls as $url) {
+                $this->queue_preload_url($url);
+            }
             return;
         }
         $this->purge_all();
@@ -236,7 +239,9 @@ trait UCP_Cache_Purge_Content_Events_Trait {
                 $term = get_term($term_id, $taxonomy);
                 if ($term && !is_wp_error($term)) {
                     $link = get_term_link($term);
-                    if (!is_wp_error($link)) { $urls[] = $link; }
+                    if (!is_wp_error($link)) {
+                        $urls[] = $link;
+                    }
                 }
             }
             $urls = apply_filters('ucp_auto_purge_term_urls', $urls, $term_id, $taxonomy);

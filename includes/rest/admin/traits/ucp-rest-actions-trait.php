@@ -1,4 +1,6 @@
 <?php
+// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals -- Existing public UCP API/drop-in symbols are intentionally preserved for backward compatibility.
+// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Dynamic table identifiers are validated with UCP_Helpers::is_safe_table_name() and quoted before use; values remain prepared.
 if (!defined('ABSPATH')) {
     exit;
 }
@@ -29,8 +31,7 @@ trait UCP_REST_Actions_Trait {
             return self::action_error('ucp_cache_unavailable', __('Cachemodule is niet beschikbaar.', 'ultracache-pro'));
         }
         try {
-            $reflector = new ReflectionClass('UCP_Cache');
-            $cache = $reflector->newInstanceWithoutConstructor();
+            $cache = UCP_Helpers::new_without_constructor('UCP_Cache');
             $cache->purge_all();
             update_option('ucp_last_purge_at', current_time('mysql'));
             UCP_Logger::log('info', 'rest', 'cache_purged_all', 'All cache purged from REST admin action.');
@@ -68,8 +69,7 @@ trait UCP_REST_Actions_Trait {
                 return self::action_error('ucp_cache_unavailable', __('Cachemodule is niet beschikbaar.', 'ultracache-pro'));
             }
 
-            $reflector = new ReflectionClass('UCP_Cache');
-            $cache = $reflector->newInstanceWithoutConstructor();
+            $cache = UCP_Helpers::new_without_constructor('UCP_Cache');
             $cache->purge_url($url);
             update_option('ucp_last_purge_at', current_time('mysql'));
             UCP_Logger::log('info', 'rest', 'cache_purged_url', 'Single URL purged from REST admin action.', array('url' => esc_url_raw($url)));
@@ -83,8 +83,7 @@ trait UCP_REST_Actions_Trait {
     public static function run_preload() {
         try {
             if (class_exists('UCP_Preload')) {
-                $reflector = new ReflectionClass('UCP_Preload');
-                $preload = $reflector->newInstanceWithoutConstructor();
+                $preload = UCP_Helpers::new_without_constructor('UCP_Preload');
                 $queued = method_exists($preload, 'seed_preload_queue') ? $preload->seed_preload_queue() : 0;
                 if (!$queued && method_exists('UCP_Preload', 'run_now')) {
                     UCP_Preload::run_now();
@@ -255,11 +254,13 @@ trait UCP_REST_Actions_Trait {
             $cleanup = UCP_Jobs::cleanup_unsafe_preload_jobs();
         }
 
-        if (!is_string(ucp_table_name('jobs')) || '' === ucp_table_name('jobs') || !preg_match('/^[A-Za-z0-9_]+$/', ucp_table_name('jobs'))) {
+        $raw_jobs_table = ucp_table_name('jobs');
+        if (!UCP_Helpers::is_safe_table_name($raw_jobs_table)) {
             return self::action_error('ucp_jobs_invalid_table', __('Jobtabel is ongeldig.', 'ultracache-pro'));
         }
-        $jobs_table = '`' . str_replace('`', '``', ucp_table_name('jobs')) . '`';
+        $jobs_table = UCP_Helpers::quote_table_name($raw_jobs_table);
         // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter -- admin-triggered maintenance for validated plugin-owned job table; values are prepared.
+        // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- plugin-owned jobs table identifier is validated before quoting.
         $updated = $wpdb->query(
             $wpdb->prepare(
                 "UPDATE {$jobs_table} SET status = %s, attempts = 0, available_at = %s, locked_until = NULL, claim_token = NULL, last_error = NULL, updated_at = %s WHERE status IN ('failed','retrying')",

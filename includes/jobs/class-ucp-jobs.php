@@ -1,4 +1,5 @@
 <?php
+// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals -- Existing public UCP API/drop-in symbols are intentionally preserved for backward compatibility.
 if (!defined('ABSPATH')) {
     exit;
 }
@@ -35,8 +36,6 @@ class UCP_Jobs {
         add_action('admin_post_ucp_run_jobs', array($this, 'handle_manual_run'));
         add_action('admin_post_ucp_seed_jobs', array($this, 'handle_seed_jobs'));
         add_action('shutdown', array($this, 'maybe_run_queue_on_admin_shutdown'), 1000);
-        // sync_schedule() invokes ensure_cron_schedule_registered() which adds the
-        // cron_schedules filter, so we do not register it twice here.
         self::sync_schedule();
     }
 }

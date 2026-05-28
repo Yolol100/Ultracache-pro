@@ -1,4 +1,5 @@
 <?php
+// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals -- Existing public UCP API/drop-in symbols are intentionally preserved for backward compatibility.
 if (!defined('ABSPATH')) {
     exit;
 }
@@ -84,8 +85,7 @@ trait UCP_CSS_Generation_Trait {
             return true;
         }
 
-        $reflector = new ReflectionClass(__CLASS__);
-        $instance = $reflector->newInstanceWithoutConstructor();
+        $instance = UCP_Helpers::new_without_constructor(__CLASS__);
         $used_css = $instance->extract_used_css($css_blob, $html);
         $validation = self::validate_artifact($used_css, false);
         if (!$validation['ok']) {

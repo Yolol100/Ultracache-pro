@@ -1,4 +1,5 @@
 <?php
+// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals -- Existing public UCP API/drop-in symbols are intentionally preserved for backward compatibility.
 if (!defined('ABSPATH')) {
     exit;
 }
@@ -8,6 +9,12 @@ if (!defined('ABSPATH')) {
 trait UCP_Jobs_Runner_Trait {
     public function run_queue($force = false) {
         global $wpdb;
+        $table = self::jobs_table_name();
+        $table_sql = self::jobs_table_sql();
+        if ('' === $table || '' === $table_sql) {
+            return 0;
+        }
+
         $limit = max(1, absint(UCP_Options::get('job_batch_size', 5)));
         if (UCP_Options::get('enable_preload_queue')) {
             $limit = max($limit, absint(UCP_Options::get('preload_batch_size', 15)));
@@ -27,7 +34,7 @@ trait UCP_Jobs_Runner_Trait {
         if ($force) {
             // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- plugin-owned custom table query with controlled SQL fragments.
             $sql = $wpdb->prepare(
-                "SELECT id FROM " . ucp_table_name('jobs') . " WHERE status IN (%s,%s) AND (locked_until IS NULL OR locked_until < %s) ORDER BY priority ASC, CASE WHEN type IN ('generate_css','remote_css') THEN 0 WHEN type = 'diagnostics_snapshot' THEN 1 WHEN type = 'preload_url' THEN 2 ELSE 1 END ASC, id ASC LIMIT %d",
+                "SELECT id FROM " . $table_sql . " WHERE status IN (%s,%s) AND (locked_until IS NULL OR locked_until < %s) ORDER BY priority ASC, CASE WHEN type IN ('generate_css','remote_css') THEN 0 WHEN type = 'diagnostics_snapshot' THEN 1 WHEN type = 'preload_url' THEN 2 ELSE 1 END ASC, id ASC LIMIT %d",
                 'pending',
                 'retrying',
                 current_time('mysql', true),
@@ -36,7 +43,7 @@ trait UCP_Jobs_Runner_Trait {
         } else {
             // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- plugin-owned custom table query with controlled SQL fragments.
             $sql = $wpdb->prepare(
-                "SELECT id FROM " . ucp_table_name('jobs') . " WHERE status IN (%s,%s) AND available_at <= %s AND (locked_until IS NULL OR locked_until < %s) ORDER BY priority ASC, CASE WHEN type IN ('generate_css','remote_css') THEN 0 WHEN type = 'diagnostics_snapshot' THEN 1 WHEN type = 'preload_url' THEN 2 ELSE 1 END ASC, id ASC LIMIT %d",
+                "SELECT id FROM " . $table_sql . " WHERE status IN (%s,%s) AND available_at <= %s AND (locked_until IS NULL OR locked_until < %s) ORDER BY priority ASC, CASE WHEN type IN ('generate_css','remote_css') THEN 0 WHEN type = 'diagnostics_snapshot' THEN 1 WHEN type = 'preload_url' THEN 2 ELSE 1 END ASC, id ASC LIMIT %d",
                 'pending',
                 'retrying',
                 current_time('mysql', true),
@@ -57,7 +64,7 @@ trait UCP_Jobs_Runner_Trait {
             foreach ($job_ids as $job_id) {
                 // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- plugin-owned custom table query with controlled SQL fragments.
                 $wpdb->update(
-                    ucp_table_name('jobs'),
+                    $table,
                     array(
                         'status' => 'running',
                         'claim_token' => $token,
@@ -69,7 +76,7 @@ trait UCP_Jobs_Runner_Trait {
                     array('%s', '%s', '%s', '%s', '%s'),
                     array('%d')
                 );
-                $job = $wpdb->get_row($wpdb->prepare('SELECT * FROM ' . ucp_table_name('jobs') . ' WHERE id = %d', $job_id), ARRAY_A);
+                $job = $wpdb->get_row($wpdb->prepare('SELECT * FROM ' . $table_sql . ' WHERE id = %d', $job_id), ARRAY_A);
                 if (!$job) {
                     continue;
                 }
@@ -88,6 +95,11 @@ trait UCP_Jobs_Runner_Trait {
 
     protected function process_job($job) {
         global $wpdb;
+        $table = self::jobs_table_name();
+        if ('' === $table) {
+            return;
+        }
+
         $payload = json_decode((string) $job['payload'], true);
         $payload = is_array($payload) ? $payload : array();
         $last_error = '';
@@ -106,7 +118,7 @@ trait UCP_Jobs_Runner_Trait {
 
         if ($success) {
             $wpdb->update(
-                ucp_table_name('jobs'),
+                $table,
                 array(
                     'status' => 'success',
                     'attempts' => $attempts,
@@ -142,7 +154,7 @@ trait UCP_Jobs_Runner_Trait {
         }
         // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- plugin-owned custom table query with controlled SQL fragments.
         $wpdb->update(
-            ucp_table_name('jobs'),
+            $table,
             $update_data,
             array('id' => $job['id']),
             $update_format,
@@ -155,7 +167,9 @@ trait UCP_Jobs_Runner_Trait {
         switch ($type) {
             case 'generate_css':
                 $url = UCP_Helpers::strict_local_url(isset($payload['url']) ? $payload['url'] : home_url('/'), home_url('/'));
-                if (!$url) { return false; }
+                if (!$url) {
+                    return false;
+                }
                 $ok = UCP_CSS::generate_for_url($url, !empty($payload['force']) || $this->force_current_run);
                 if (!$ok) {
                     $status = UCP_CSS::artifact_status($url);

@@ -1,4 +1,5 @@
 <?php
+// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals -- Existing public UCP API/drop-in symbols are intentionally preserved for backward compatibility.
 if (!defined('ABSPATH')) {
     exit;
 }
@@ -150,8 +151,7 @@ class UCP_Optimization_Intelligence {
         if (!$product_id || !class_exists('UCP_Cache')) {
             return;
         }
-        $reflector = new ReflectionClass('UCP_Cache');
-        $cache = $reflector->newInstanceWithoutConstructor();
+        $cache = UCP_Helpers::new_without_constructor('UCP_Cache');
         $urls = array(home_url('/'));
         $permalink = get_permalink($product_id);
         if ($permalink) {
@@ -159,7 +159,9 @@ class UCP_Optimization_Intelligence {
         }
         if (function_exists('wc_get_page_permalink')) {
             $shop = wc_get_page_permalink('shop');
-            if ($shop) { $urls[] = $shop; }
+            if ($shop) {
+                    $urls[] = $shop;
+                }
         }
         if (class_exists('UCP_Cache_Tags') && UCP_Cache_Tags::enabled()) {
             $urls = array_merge($urls, UCP_Cache_Tags::urls_for_post($product_id));
@@ -247,16 +249,7 @@ class UCP_Optimization_Intelligence {
 
 
     public static function permissions_check($request = null) {
-        if (!current_user_can('manage_options')) {
-            return new WP_Error('ucp_forbidden', __('Je hebt geen rechten om UltraCache Pro te beheren.', 'ultracache-pro'), array('status' => 403));
-        }
-        if ($request instanceof WP_REST_Request && !in_array(strtoupper($request->get_method()), array('GET', 'HEAD', 'OPTIONS'), true)) {
-            $nonce = (string) $request->get_header('x_wp_nonce');
-            if ('' === $nonce || !wp_verify_nonce($nonce, 'wp_rest')) {
-                return new WP_Error('ucp_rest_nonce_missing', __('Ongeldige of ontbrekende REST-beveiligingstoken.', 'ultracache-pro'), array('status' => 403));
-            }
-        }
-        return true;
+        return UCP_Helpers::rest_admin_permission_check($request);
     }
 
     public static function rest_css_status() {

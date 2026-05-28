@@ -1,4 +1,5 @@
 <?php
+// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals -- Existing public UCP API/drop-in symbols are intentionally preserved for backward compatibility.
 if (!defined('ABSPATH')) {
     exit;
 }
@@ -6,12 +7,29 @@ if (!defined('ABSPATH')) {
 // phpcs:disable WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Custom plugin-owned queue table queries use controlled table constants and prepared/sanitized values.
 
 trait UCP_Jobs_Repository_Trait {
+    protected static function jobs_table_name() {
+        $table = function_exists('ucp_table_name') ? ucp_table_name('jobs') : '';
+
+        return class_exists('UCP_Helpers') && UCP_Helpers::is_safe_table_name($table) ? $table : '';
+    }
+
+    protected static function jobs_table_sql() {
+        $table = self::jobs_table_name();
+
+        return '' !== $table ? UCP_Helpers::quote_table_name($table) : '';
+    }
+
     public static function enqueue_unique($type, $payload = array(), $priority = 10, $queue = 'default') {
         return self::enqueue($type, $payload, $priority, $queue, self::build_job_signature($type, $payload, $queue));
     }
 
     public static function enqueue($type, $payload = array(), $priority = 10, $queue = 'default', $job_signature = null) {
         global $wpdb;
+
+        $table = self::jobs_table_name();
+        if ('' === $table) {
+            return false;
+        }
 
         $job_uuid      = wp_generate_uuid4();
         $now           = current_time('mysql', true);
@@ -31,7 +49,7 @@ trait UCP_Jobs_Repository_Trait {
             // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- plugin-owned table name is controlled by a constant and values are prepared.
             $existing_job_id = $wpdb->get_var(
                 $wpdb->prepare(
-                    'SELECT id FROM ' . ucp_table_name('jobs') . ' WHERE job_signature = %s LIMIT 1',
+                    'SELECT id FROM ' . self::jobs_table_sql() . ' WHERE job_signature = %s LIMIT 1',
                     $job_signature
                 )
             );
@@ -45,7 +63,7 @@ trait UCP_Jobs_Repository_Trait {
 
         // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- plugin-owned custom table insert with sanitized values.
         $inserted = $wpdb->insert(
-            ucp_table_name('jobs'),
+            $table,
             array(
                 'job_uuid'      => $job_uuid,
                 'job_signature' => $job_signature,
@@ -125,8 +143,10 @@ trait UCP_Jobs_Repository_Trait {
 
     public static function cleanup_unsafe_preload_jobs($limit = 500) {
         global $wpdb;
+        $table = self::jobs_table_name();
+        $table_sql = self::jobs_table_sql();
 
-        if (!function_exists('ucp_table_name')) {
+        if ('' === $table || '' === $table_sql) {
             return array('skipped' => 0, 'repaired' => 0);
         }
 
@@ -134,7 +154,7 @@ trait UCP_Jobs_Repository_Trait {
         // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- plugin-owned custom table query with controlled constants and prepared values.
         $rows = $wpdb->get_results(
             $wpdb->prepare(
-                "SELECT id, payload, status, queue, type, last_error FROM " . ucp_table_name('jobs') . " WHERE type IN ('preload_url','generate_css','remote_css') AND status IN ('pending','retrying','failed') ORDER BY id DESC LIMIT %d",
+                "SELECT id, payload, status, queue, type, last_error FROM " . $table_sql . " WHERE type IN ('preload_url','generate_css','remote_css') AND status IN ('pending','retrying','failed') ORDER BY id DESC LIMIT %d",
                 $limit
             ),
             ARRAY_A
@@ -153,7 +173,7 @@ trait UCP_Jobs_Repository_Trait {
             if (!$url || !wp_http_validate_url($url) || $is_unsafe_preload) {
                 // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- plugin-owned maintenance update for skipped preload jobs.
                 $wpdb->update(
-                    ucp_table_name('jobs'),
+                    $table,
                     array(
                         'status'        => 'success',
                         'result'        => wp_json_encode(array('ok' => true, 'skipped' => true, 'reason' => $is_unsafe_preload ? 'preload_safety_cleanup' : 'invalid_url_cleanup')),
@@ -177,7 +197,7 @@ trait UCP_Jobs_Repository_Trait {
                 $signature = self::build_job_signature($type, $payload, isset($row['queue']) ? $row['queue'] : 'default');
                 // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- plugin-owned maintenance update for repaired preload jobs.
                 $wpdb->update(
-                    ucp_table_name('jobs'),
+                    $table,
                     array(
                         'payload'       => $payload_json,
                         'job_signature' => $signature,
@@ -202,7 +222,7 @@ trait UCP_Jobs_Repository_Trait {
             if ('preload_url' === $type && in_array($row_status, array('failed', 'retrying'), true) && preg_match('/HTTP\s*\d{3}|geen goed resultaat/i', $last_error)) {
                 // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- plugin-owned maintenance update for non-actionable preload responses.
                 $wpdb->update(
-                    ucp_table_name('jobs'),
+                    $table,
                     array(
                         'status'        => 'success',
                         'result'        => wp_json_encode(array('ok' => true, 'skipped' => true, 'reason' => 'preload_http_cleanup')),
@@ -223,7 +243,7 @@ trait UCP_Jobs_Repository_Trait {
             if (in_array($type, array('generate_css', 'remote_css'), true) && 'failed' === $row_status && preg_match('/HTTP\s*\d{3}/i', $last_error)) {
                 // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- plugin-owned maintenance update for URL job retry.
                 $wpdb->update(
-                    ucp_table_name('jobs'),
+                    $table,
                     array(
                         'status'       => 'pending',
                         'attempts'     => 0,
@@ -248,19 +268,20 @@ trait UCP_Jobs_Repository_Trait {
         return array('skipped' => $skipped, 'repaired' => $repaired);
     }
 
-
-
     public static function rescue_stale_running_jobs($limit = 100) {
         global $wpdb;
-        if (!function_exists('ucp_table_name')) {
+        $table = self::jobs_table_name();
+        $table_sql = self::jobs_table_sql();
+        if ('' === $table || '' === $table_sql) {
             return 0;
         }
+
         $limit = max(1, min(500, absint($limit)));
         $now = current_time('mysql', true);
         // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- plugin-owned queue recovery with controlled table name and prepared limit.
         $rows = $wpdb->get_results(
             $wpdb->prepare(
-                "SELECT id, attempts, max_attempts FROM " . ucp_table_name('jobs') . " WHERE status = 'running' AND locked_until IS NOT NULL AND locked_until < %s ORDER BY id ASC LIMIT %d",
+                "SELECT id, attempts, max_attempts FROM " . $table_sql . " WHERE status = 'running' AND locked_until IS NOT NULL AND locked_until < %s ORDER BY id ASC LIMIT %d",
                 $now,
                 $limit
             ),
@@ -285,7 +306,7 @@ trait UCP_Jobs_Repository_Trait {
                 $format[] = '%s';
             }
             // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- plugin-owned queue recovery update.
-            if (false !== $wpdb->update(ucp_table_name('jobs'), $update, array('id' => absint($row['id'])), $format, array('%d'))) {
+            if (false !== $wpdb->update($table, $update, array('id' => absint($row['id'])), $format, array('%d'))) {
                 $rescued++;
             }
         }
@@ -299,25 +320,31 @@ trait UCP_Jobs_Repository_Trait {
         global $wpdb;
         $limit = max(1, min(100, absint($limit)));
         $summary = array('total' => 0, 'by_type' => array(), 'recent' => array());
-        if (!function_exists('ucp_table_name')) {
+        $table_sql = self::jobs_table_sql();
+        if ('' === $table_sql) {
             return $summary;
         }
         // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- plugin-owned queue diagnostics.
-        $summary['total'] = (int) $wpdb->get_var("SELECT COUNT(*) FROM " . ucp_table_name('jobs') . " WHERE status = 'failed'");
+        $summary['total'] = (int) $wpdb->get_var("SELECT COUNT(*) FROM " . $table_sql . " WHERE status = 'failed'");
         // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- plugin-owned queue diagnostics.
-        $rows = $wpdb->get_results("SELECT type, COUNT(*) AS total FROM " . ucp_table_name('jobs') . " WHERE status = 'failed' GROUP BY type ORDER BY total DESC", ARRAY_A);
+        $rows = $wpdb->get_results("SELECT type, COUNT(*) AS total FROM " . $table_sql . " WHERE status = 'failed' GROUP BY type ORDER BY total DESC", ARRAY_A);
         foreach ((array) $rows as $row) {
             $summary['by_type'][sanitize_key((string) $row['type'])] = absint($row['total']);
         }
         // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- plugin-owned queue diagnostics.
-        $recent_sql = $wpdb->prepare("SELECT id, type, queue, attempts, max_attempts, last_error, updated_at FROM " . ucp_table_name('jobs') . " WHERE status = 'failed' ORDER BY updated_at DESC LIMIT %d", $limit);
+        $recent_sql = $wpdb->prepare("SELECT id, type, queue, attempts, max_attempts, last_error, updated_at FROM " . $table_sql . " WHERE status = 'failed' ORDER BY updated_at DESC LIMIT %d", $limit);
         $summary['recent'] = $wpdb->get_results($recent_sql, ARRAY_A);
         return $summary;
     }
 
     protected static function count_jobs_where($where, $args = array()) {
         global $wpdb;
-        $sql = 'SELECT COUNT(*) FROM ' . ucp_table_name('jobs') . ' WHERE ' . (string) $where;
+        $table_sql = self::jobs_table_sql();
+        if ('' === $table_sql) {
+            return 0;
+        }
+
+        $sql = 'SELECT COUNT(*) FROM ' . $table_sql . ' WHERE ' . (string) $where;
         if (!empty($args)) {
             // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- SQL fragment is internal; values are prepared.
             $sql = $wpdb->prepare($sql, $args);
@@ -375,8 +402,13 @@ trait UCP_Jobs_Repository_Trait {
         if ($due_only) {
             return self::count_due_jobs() > 0;
         }
+        $table_sql = self::jobs_table_sql();
+        if ('' === $table_sql) {
+            return false;
+        }
+
         // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- plugin-owned custom table query with controlled SQL fragments.
-        $sql = "SELECT COUNT(*) FROM " . ucp_table_name('jobs') . " WHERE status IN ('pending','retrying')";
+        $sql = "SELECT COUNT(*) FROM " . $table_sql . " WHERE status IN ('pending','retrying')";
         return (int) $wpdb->get_var($sql) > 0;
     }
 
@@ -390,13 +422,14 @@ trait UCP_Jobs_Repository_Trait {
             'schedule'     => $next ? 'ucp_one_minute' : '',
         );
     }
+
     public static function get_summary() {
         return array(
-            'pending'   => self::count_by_status('pending'),
-            'running'   => self::count_by_status('running'),
-            'retrying'  => self::count_by_status('retrying'),
-            'failed'    => self::count_by_status('failed'),
-            'success'   => self::count_by_status('success'),
+            'pending'     => self::count_by_status('pending'),
+            'running'     => self::count_by_status('running'),
+            'retrying'    => self::count_by_status('retrying'),
+            'failed'      => self::count_by_status('failed'),
+            'success'     => self::count_by_status('success'),
             'dead_letter' => self::dead_letter_summary(5),
         );
     }
@@ -441,8 +474,19 @@ trait UCP_Jobs_Repository_Trait {
             $params[] = $like;
         }
 
+        $table_sql = self::jobs_table_sql();
+        if ('' === $table_sql) {
+            return array(
+                'rows'      => array(),
+                'total'     => 0,
+                'per_page'  => max(1, absint($args['per_page'])),
+                'paged'     => max(1, absint($args['paged'])),
+                'max_pages' => 1,
+            );
+        }
+
         $where_sql = implode(' AND ', $where);
-        $count_sql = 'SELECT COUNT(*) FROM ' . ucp_table_name('jobs') . ' WHERE ' . $where_sql;
+        $count_sql = 'SELECT COUNT(*) FROM ' . $table_sql . ' WHERE ' . $where_sql;
         // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- plugin-owned custom table query with controlled SQL fragments.
         $prepared_count = !empty($params) ? $wpdb->prepare($count_sql, $params) : $count_sql;
         // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter -- SQL is assembled from fixed fragments and prepared values above.
@@ -452,7 +496,7 @@ trait UCP_Jobs_Repository_Trait {
         $paged = max(1, absint($args['paged']));
         $offset = ($paged - 1) * $per_page;
 
-        $rows_sql = 'SELECT * FROM ' . ucp_table_name('jobs') . ' WHERE ' . $where_sql . ' ORDER BY id DESC LIMIT %d OFFSET %d';
+        $rows_sql = 'SELECT * FROM ' . $table_sql . ' WHERE ' . $where_sql . ' ORDER BY id DESC LIMIT %d OFFSET %d';
         $rows_params = $params;
         $rows_params[] = $per_page;
         $rows_params[] = $offset;

@@ -1,4 +1,5 @@
 <?php
+// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals -- Existing public UCP API/drop-in symbols are intentionally preserved for backward compatibility.
 if (!defined('ABSPATH')) {
     exit;
 }
@@ -18,5 +19,4 @@ class UCP_Admin {
 
     protected $actions;
     protected $notices;
-    protected $ui;
 }

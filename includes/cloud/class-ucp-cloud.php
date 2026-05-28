@@ -1,4 +1,5 @@
 <?php
+// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals -- Existing public UCP API/drop-in symbols are intentionally preserved for backward compatibility.
 if (!defined('ABSPATH')) {
     exit;
 }
@@ -211,13 +212,20 @@ trait UCP_Cloud_HTTP_Trait {
             return false;
         }
 
+        $api_key = trim(str_replace(array("\r", "\n"), '', (string) UCP_Options::get('cloud_api_key', '')));
+        if ('' === $api_key) {
+            UCP_Helpers::log('Cloud-aanvraag overgeslagen: ontbrekende API-sleutel.');
+            return false;
+        }
+
         $response = wp_remote_post($endpoint, array(
             'timeout' => 25,
             'redirection' => 0,
             'reject_unsafe_urls' => true,
             'user-agent' => 'UltraCache Cloud/' . UCP_VERSION,
+            'limit_response_size' => 1048576,
             'headers' => array(
-                'Authorization' => 'Bearer ' . (string) UCP_Options::get('cloud_api_key', ''),
+                'Authorization' => 'Bearer ' . $api_key,
                 'Content-Type' => 'application/json',
             ),
             'body' => wp_json_encode($payload),

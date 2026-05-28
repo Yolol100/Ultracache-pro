@@ -1,4 +1,5 @@
 <?php
+// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals -- Existing public UCP API/drop-in symbols are intentionally preserved for backward compatibility.
 if (!defined('ABSPATH')) {
     exit;
 }
@@ -9,9 +10,10 @@ trait UCP_Helpers_Minify_And_Log_Trait {
         if ('' === trim($content)) {
             return '';
         }
-        if (class_exists('MatthiasMullie\Minify\CSS')) {
+        $minifier_class = function_exists('ucp_dependency_class') ? ucp_dependency_class('MatthiasMullie\\Minify\\CSS') : '';
+        if ('' !== $minifier_class) {
             try {
-                $minifier = new MatthiasMullie\Minify\CSS($content);
+                $minifier = new $minifier_class($content);
                 $minified = $minifier->minify();
                 if (is_string($minified) && '' !== trim($minified)) {
                     return trim($minified);
@@ -34,9 +36,10 @@ trait UCP_Helpers_Minify_And_Log_Trait {
         if ('' === trim($content)) {
             return '';
         }
-        if (class_exists('MatthiasMullie\Minify\JS')) {
+        $minifier_class = function_exists('ucp_dependency_class') ? ucp_dependency_class('MatthiasMullie\\Minify\\JS') : '';
+        if ('' !== $minifier_class) {
             try {
-                $minifier = new MatthiasMullie\Minify\JS($content);
+                $minifier = new $minifier_class($content);
                 $minified = $minifier->minify();
                 if (is_string($minified) && '' !== trim($minified)) {
                     return trim($minified);

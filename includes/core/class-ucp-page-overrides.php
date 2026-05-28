@@ -1,4 +1,5 @@
 <?php
+// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals -- Existing public UCP API/drop-in symbols are intentionally preserved for backward compatibility.
 if (!defined('ABSPATH')) {
     exit;
 }
@@ -114,8 +115,8 @@ class UCP_Page_Overrides {
             return;
         }
         $allowed = array_keys(self::allowed_actions());
-        $actions = isset($_POST['ucp_override_actions']) ? (array) wp_unslash($_POST['ucp_override_actions']) : array();
-        $actions = array_values(array_intersect(array_map('sanitize_key', $actions), $allowed));
+        $actions = isset($_POST['ucp_override_actions']) ? array_map('sanitize_key', (array) wp_unslash($_POST['ucp_override_actions'])) : array();
+        $actions = array_values(array_intersect($actions, $allowed));
         if (empty($actions)) {
             delete_post_meta($post_id, self::META_KEY);
             return;

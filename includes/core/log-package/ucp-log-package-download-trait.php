@@ -1,4 +1,5 @@
 <?php
+// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals -- Existing public UCP API/drop-in symbols are intentionally preserved for backward compatibility.
 if (!defined('ABSPATH')) {
     exit;
 }
@@ -56,6 +57,7 @@ trait UCP_Log_Package_Download_Trait {
         header('Content-Type: application/zip');
         header('Content-Disposition: attachment; filename="ultracache-pro-logpakket-' . gmdate('Ymd-His') . '.zip"');
         header('Content-Length: ' . filesize($zip_path));
+        // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- streaming a generated zip file; escaping would corrupt the binary response.
         echo UCP_Helpers::read_file($zip_path);
         wp_delete_file($zip_path);
         exit;

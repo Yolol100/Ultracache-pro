@@ -1,4 +1,5 @@
 <?php
+// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals -- Drop-in runs in global namespace before the plugin bootstrap is available.
 // phpcs:disable WordPress.Security.NonceVerification.Recommended -- The advanced-cache drop-in inspects request keys only to decide whether cached HTML may be served; it does not process form data.
 /**
  * UltraCache Pro advanced-cache drop-in.
@@ -49,7 +50,10 @@ if (!function_exists('ucp_dropin_server_value')) {
         if (!isset($_SERVER[$key])) {
             return '';
         }
-        return ucp_dropin_sanitize_text(ucp_dropin_unslash($_SERVER[$key]));
+        // phpcs:disable WordPress.Security.ValidatedSanitizedInput.MissingUnslash, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- ucp_dropin_sanitize_text() unslashes and strips unsafe characters before use; this drop-in runs before WP helpers are guaranteed.
+        $value = $_SERVER[$key];
+        // phpcs:enable WordPress.Security.ValidatedSanitizedInput.MissingUnslash, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+        return ucp_dropin_sanitize_text($value);
     }
 }
 
@@ -136,8 +140,8 @@ $cache_ignore_query_params = !empty($config['cache_ignore_query_params']) && is_
     'epik', 'igshid', 'scid', 'li_fat_id',
 );
 $cache_mobile_separately = !array_key_exists('cache_mobile_separately', $config) || !empty($config['cache_mobile_separately']);
-$safe_cookies = !empty($config['safe_cookies']) && is_array($config['safe_cookies']) ? $config['safe_cookies'] : array('ct_', 'apbct_', 'ct_sfw', 'cleantalk', 'cookiebot', 'cookie_notice_', 'cmplz_', 'complianz_', 'joinchat_', '_ga', '_gid', '_gat', '_fbp', '_fbc');
-$block_unknown_cookies = !array_key_exists('block_unknown_cookies', $config) || !empty($config['block_unknown_cookies']);
+$safe_cookies = !empty($config['safe_cookies']) && is_array($config['safe_cookies']) ? $config['safe_cookies'] : array('ct_', 'apbct_', 'ct_sfw', 'cleantalk', 'cookiebot', 'cookie_notice_', 'cmplz_', 'complianz_', 'cookieyes', 'cky-', 'borlabs', 'joinchat_', 'wp-settings-', '_ga', '_gid', '_gat', '_gcl_', '_fbp', '_fbc', '_hj', '_clck', '_clsk', '_pk_id', '_pk_ses', '_uetsid', '_uetvid', '_pin_unauth', '_scid', 'li_gc', 'lidc', 'bcookie', 'bscookie', 'tk_ai', '__stripe_mid', '__stripe_sid', '__cf_bm', 'cf_clearance');
+$block_unknown_cookies = !empty($config['block_unknown_cookies']);
 
 if (!function_exists('ucp_dropin_sanitize_query_pattern')) {
     function ucp_dropin_sanitize_query_pattern($pattern) {
@@ -233,7 +237,9 @@ foreach ($exclude_paths as $excluded_fragment) {
 }
 
 $path = rtrim($path_only, '/');
+$raw_path = '' === $path ? '/' : $path;
 $path = '' === $path ? 'home' : trim(str_replace('/', '-', $path), '-');
+$path_hash = substr(md5($raw_path), 0, 8);
 $query = ucp_dropin_parse_url($uri, PHP_URL_QUERY);
 $normalized_query = '';
 if ($query) {
@@ -300,9 +306,13 @@ if (!empty($allowed_hosts) && '' !== $host_header) {
 $host = !empty($config['home_host']) ? ucp_dropin_normalize_host((string) $config['home_host']) : $host_header;
 $host_key = $host ? md5(strtolower($host)) : 'nohost';
 $user_agent = ucp_dropin_server_value('HTTP_USER_AGENT');
-$is_mobile = $cache_mobile_separately && 1 === preg_match('/Mobile|Android|Silk\/|Kindle|BlackBerry|Opera Mini|Opera Mobi|iPhone|iPad|iPod/i', $user_agent);
+// Mobile regex comes from dropin-config.php (written by UCP_Helpers::mobile_user_agent_regex())
+// so the drop-in and the PHP fallback can never disagree. The literal is only a safety net for
+// configs written by an older version.
+$mobile_regex = !empty($config['mobile_user_agent_regex']) ? (string) $config['mobile_user_agent_regex'] : '/Mobile|Android|Silk\/|Kindle|BlackBerry|Opera Mini|Opera Mobi|iPhone|iPad|iPod/i';
+$is_mobile = $cache_mobile_separately && 1 === @preg_match($mobile_regex, $user_agent);
 $suffix = 'guest' . ($is_mobile ? '-mobile' : '');
-$cache_key = preg_replace('/[^A-Za-z0-9_.-]/', '-', $host_key . '-' . $path . '-' . $suffix . '-' . $query_key);
+$cache_key = preg_replace('/[^A-Za-z0-9_.-]/', '-', $host_key . '-' . $path . '-' . $path_hash . '-' . $suffix . '-' . $query_key);
 $cache_file = WP_CONTENT_DIR . '/cache/ultracache-pro/pages/' . $cache_key . '.html';
 $ttl = !empty($config['ttl']) ? max(60, (int) $config['ttl']) : 10 * 3600;
 
@@ -315,8 +325,8 @@ if (is_file($cache_file) && is_readable($cache_file) && (filemtime($cache_file) 
         $last_modified = gmdate('D, d M Y H:i:s', $file_mtime) . ' GMT';
 
         // 304 Not Modified support (RFC 7232 — accept comma-separated lists and weak validators).
-        $if_none_match    = isset($_SERVER['HTTP_IF_NONE_MATCH'])    ? trim((string) $_SERVER['HTTP_IF_NONE_MATCH'])    : '';
-        $if_modified_since = isset($_SERVER['HTTP_IF_MODIFIED_SINCE']) ? trim((string) $_SERVER['HTTP_IF_MODIFIED_SINCE']) : '';
+        $if_none_match    = ucp_dropin_server_value('HTTP_IF_NONE_MATCH');
+        $if_modified_since = ucp_dropin_server_value('HTTP_IF_MODIFIED_SINCE');
         $etag_match = false;
         if ('' !== $if_none_match) {
             if ('*' === $if_none_match) {
@@ -356,7 +366,7 @@ if (is_file($cache_file) && is_readable($cache_file) && (filemtime($cache_file) 
         header('Content-Type: text/html; charset=UTF-8');
 
         // Serve pre-compressed variants first; fall back to on-the-fly compression only when needed.
-        $accept_encoding = isset($_SERVER['HTTP_ACCEPT_ENCODING']) ? (string) $_SERVER['HTTP_ACCEPT_ENCODING'] : '';
+        $accept_encoding = ucp_dropin_server_value('HTTP_ACCEPT_ENCODING');
         if (false !== strpos($accept_encoding, 'br') && is_file($cache_file . '.br') && is_readable($cache_file . '.br')) {
             $encoded = file_get_contents($cache_file . '.br');
             if (is_string($encoded) && '' !== $encoded) {

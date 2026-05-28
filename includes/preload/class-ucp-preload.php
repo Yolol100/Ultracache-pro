@@ -1,4 +1,5 @@
 <?php
+// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals -- Existing public UCP API/drop-in symbols are intentionally preserved for backward compatibility.
 if (!defined('ABSPATH')) {
     exit;
 }
@@ -11,8 +12,7 @@ class UCP_Preload {
     use UCP_Preload_Admin_Trait;
 
     public static function run_now() {
-        $reflector = new ReflectionClass(__CLASS__);
-        $instance = $reflector->newInstanceWithoutConstructor();
+        $instance = UCP_Helpers::new_without_constructor(__CLASS__);
         $instance->run_preload();
     }
 

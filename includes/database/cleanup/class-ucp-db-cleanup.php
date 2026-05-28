@@ -1,4 +1,6 @@
 <?php
+// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals -- Existing public UCP API/drop-in symbols are intentionally preserved for backward compatibility.
+// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Dynamic table identifiers are validated with UCP_Helpers::is_safe_table_name() and quoted before use; values remain prepared.
 if (!defined('ABSPATH')) {
     exit;
 }
@@ -23,13 +25,18 @@ class UCP_DB_Cleanup {
         global $wpdb;
         $audit = array('autoload_top' => array(), 'missing_indexes' => array(), 'options_engine' => 'unknown');
         $options = $wpdb->options;
-        $audit['autoload_top'] = $wpdb->get_results("SELECT option_name, LENGTH(option_value) AS bytes FROM {$options} WHERE autoload IN ('yes','on','auto-on','auto') ORDER BY bytes DESC LIMIT 20", ARRAY_A);
+        $options_sql = UCP_Helpers::quote_table_name($options);
+        // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- plugin diagnostics query against validated WordPress options table identifier.
+        $audit['autoload_top'] = $wpdb->get_results("SELECT option_name, LENGTH(option_value) AS bytes FROM {$options_sql} WHERE autoload IN ('yes','on','auto-on','auto') ORDER BY bytes DESC LIMIT 20", ARRAY_A);
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- diagnostics query for the WordPress options table engine.
         $table = $wpdb->get_row($wpdb->prepare('SHOW TABLE STATUS LIKE %s', $options), ARRAY_A);
         if (is_array($table) && !empty($table['Engine'])) {
             $audit['options_engine'] = (string) $table['Engine'];
         }
         $postmeta = $wpdb->postmeta;
-        $indexes = $wpdb->get_results("SHOW INDEX FROM {$postmeta}", ARRAY_A);
+        $postmeta_sql = UCP_Helpers::quote_table_name($postmeta);
+        // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- diagnostics query against validated WordPress postmeta table identifier.
+        $indexes = $wpdb->get_results("SHOW INDEX FROM {$postmeta_sql}", ARRAY_A);
         $has_post_id = false;
         $has_meta_key = false;
         foreach ((array) $indexes as $index) {
@@ -58,8 +65,14 @@ class UCP_DB_Cleanup {
             wp_die(esc_html__('InnoDB-conversie vereist expliciete bevestiging in de instellingen.', 'ultracache-pro'));
         }
         global $wpdb;
-        $wpdb->query("ALTER TABLE {$wpdb->options} ENGINE=InnoDB");
-        wp_safe_redirect(admin_url('options-general.php?page=ultracache-pro&tab=database&ucp_notice=options_innodb'));
+        $options_table = (string) $wpdb->options;
+        if (!UCP_Helpers::is_safe_table_name($options_table)) {
+            wp_die(esc_html__('Ongeldige options-tabelnaam.', 'ultracache-pro'));
+        }
+
+        // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, PluginCheck.Security.DirectDB.UnescapedDBParameter -- admin-confirmed schema change; table identifier is validated before quoting.
+        $wpdb->query('ALTER TABLE ' . UCP_Helpers::quote_table_name($options_table) . ' ENGINE=InnoDB');
+        wp_safe_redirect(admin_url('admin.php?page=ultracache-pro&tab=database&ucp_notice=options_innodb'));
         exit;
     }
 }

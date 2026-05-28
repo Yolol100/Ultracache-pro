@@ -1,13 +1,14 @@
 <?php
+// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals -- Existing public UCP API/drop-in symbols are intentionally preserved for backward compatibility.
 /**
  * Plugin Name: UltraCache Pro
  * Description: Premium modular WordPress performance suite with cache, optimization, automation, edge integrations and visual asset control.
- * Version: 11.0.0
+ * Version: 11.0.14
  * Author: UltraCache Pro
  * Text Domain: ultracache-pro
  * Domain Path: /languages
  * Requires at least: 6.3
- * Tested up to: 6.9
+ * Tested up to: 7.0
  * Requires PHP: 8.0
  * License: GPLv2 or later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -17,7 +18,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('UCP_VERSION', '11.0.0');
+define('UCP_VERSION', '11.0.14');
 define('UCP_FILE', __FILE__);
 define('UCP_PATH', plugin_dir_path(__FILE__));
 define('UCP_URL', plugin_dir_url(__FILE__));
@@ -25,11 +26,34 @@ define('UCP_BASENAME', plugin_basename(__FILE__));
 define('UCP_CACHE_DIR', WP_CONTENT_DIR . '/cache/ultracache-pro/');
 define('UCP_CACHE_URL', content_url('/cache/ultracache-pro/'));
 
-$ucp_vendor_autoload = UCP_PATH . 'vendor/autoload.php';
-if (is_readable($ucp_vendor_autoload)) {
-    require_once $ucp_vendor_autoload;
+$ucp_vendor_autoloads = array(
+    UCP_PATH . 'vendor-scoped/autoload.php',
+    UCP_PATH . 'vendor/autoload.php',
+);
+foreach ($ucp_vendor_autoloads as $ucp_vendor_autoload) {
+    if (is_readable($ucp_vendor_autoload)) {
+        require_once $ucp_vendor_autoload;
+        break;
+    }
 }
-unset($ucp_vendor_autoload);
+unset($ucp_vendor_autoloads, $ucp_vendor_autoload);
+if (!function_exists('ucp_dependency_class')) {
+    /**
+     * Resolve bundled Composer classes.
+     *
+     * Prefer the scoped UltraCache namespace when the release is built with
+     * PHP-Scoper, but keep the unscoped Composer classes as a compatibility
+     * fallback for private/local installs.
+     */
+    function ucp_dependency_class($class) {
+        $class = ltrim((string) $class, '\\');
+        $scoped = 'UCPVendor\\' . $class;
+        if (class_exists($scoped)) {
+            return $scoped;
+        }
+        return class_exists($class) ? $class : '';
+    }
+}
 if (!function_exists('ucp_table_name')) {
     /**
      * Return the plugin-owned table for the current blog prefix.

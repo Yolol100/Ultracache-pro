@@ -1,4 +1,5 @@
 <?php
+// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals -- Existing public UCP API/drop-in symbols are intentionally preserved for backward compatibility.
 if (!defined('ABSPATH')) {
     exit;
 }
@@ -90,8 +91,7 @@ trait UCP_Cache_Purge_Lifecycle_Trait {
 
         $context = sanitize_key((string) $context);
         $extra = is_array($extra) ? $extra : array();
-        $reflector = new ReflectionClass('UCP_Preload');
-        $preload = $reflector->newInstanceWithoutConstructor();
+        $preload = UCP_Helpers::new_without_constructor('UCP_Preload');
         $queued = $preload->seed_preload_queue();
         UCP_Diagnostics::record('cache', 'Queued cache warmup in background after WordPress lifecycle change', array_merge($extra, array(
             'context' => $context,

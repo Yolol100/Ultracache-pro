@@ -2,9 +2,9 @@
 Contributors: ultracache-pro
 Tags: cache, performance, core web vitals, critical css, used css
 Requires at least: 6.3
-Tested up to: 6.9
+Tested up to: 7.0
 Requires PHP: 8.0
-Stable tag: 11.0.0
+Stable tag: 11.0.14
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -32,6 +32,10 @@ Used CSS, Critical CSS, Delay JS and JavaScript minify are advanced features. En
 Stale cache is disabled by default and should only be enabled when showing temporarily older cached content is acceptable.
 UltraCache preserves existing advanced-cache.php drop-ins and warns about known cache or optimization overlap.
 
+== Filesystem and configuration changes ==
+
+To serve full-page cache before WordPress fully loads, UltraCache Pro installs its own `wp-content/advanced-cache.php` drop-in and, when page caching is enabled and `wp-config.php` is writable, sets the `WP_CACHE` constant to `true`. Optional object caching installs a `wp-content/object-cache.php` drop-in (APCu or Redis). UltraCache only overwrites these files when they are its own (verified by signature) and removes them again on deactivation/uninstall. If `wp-config.php` is not writable, add `define( 'WP_CACHE', true );` manually. These are standard mechanisms for full-page cache plugins; review them on staging first.
+
 == Installation ==
 1. Upload the plugin folder to `/wp-content/plugins/`.
 2. Activate the plugin.
@@ -55,7 +59,7 @@ Test cache purge, preload, forms, checkout, logged-in pages, builder previews, c
 
 == Privacy ==
 
-UltraCache Pro may store cache metadata, diagnostic records, Core Web Vitals samples, logs and support-report data inside the WordPress installation. Administrators should review retention settings and disclose configured third-party cloud/CDN integrations in their privacy policy where applicable.
+UltraCache Pro may store cache metadata, diagnostic records, Core Web Vitals samples, logs and support-report data inside the WordPress installation. It adds privacy policy text and includes exporter and eraser integrations for matching email addresses found in stored logs or diagnostics. If Core Web Vitals monitoring is enabled, the plugin stores aggregated local performance metrics such as LCP, INP, CLS, FCP and TTFB; these are sampled, rate-limited, and stored without retaining visitor IP addresses. Administrators should review retention settings and disclose configured third-party cloud/CDN integrations in their privacy policy where applicable.
 
 == Screenshots ==
 
@@ -65,6 +69,45 @@ UltraCache Pro may store cache metadata, diagnostic records, Core Web Vitals sam
 4. Diagnostics and Core Web Vitals overview.
 
 == Changelog ==
+
+= 11.0.14 =
+* Removed the unused pre-React admin field-rendering layer (admin UI field helpers, field-logic schema/state and admin metrics helper) that the React admin no longer calls.
+* Consolidated the three identical admin REST permission callbacks into a single shared check (capability + nonce for mutations).
+* Documented advanced-cache.php / object-cache.php drop-in installation and the optional WP_CACHE constant write.
+* Removed a duplicate Privacy section from this readme.
+* No runtime cache, optimization, WooCommerce, REST, preload or settings behavior was changed.
+
+= 11.0.10 =
+* Hardened APCu object-cache increment/decrement paths with atomic APCu operations.
+* Added validated job-table helpers for queue SQL and guarded empty table states.
+* Reformatted remaining compact callbacks and lazy-render selector assembly for stricter WPCS readability.
+
+= 11.0.8 =
+* Hardened CWV/RUM burst limits so per-IP and site-wide caps are global per minute instead of per metric.
+* Added locked counter updates for all CWV/RUM minute, visitor and daily rate-limit counters to reduce concurrent bypass risk.
+* Added strict scheme, host and port checks for same-origin CWV/RUM headers and LCP hint URLs.
+* Added length bounds before decoding LCP element JSON metadata.
+* Switched APCu object-cache drop-in installation to WordPress filesystem writes.
+* Removed UltraCache-owned object-cache.php during clean uninstall.
+* Removed duplicate REST action route registrations from the quality suite layer.
+* Added HTTP response-size limits for remote CSS/font/cloud/Cloudflare requests.
+* Reformatted compact admin/font/router code paths for stricter WPCS readability.
+
+= 11.0.3 =
+* Fixed cache toast CSS keyframes in both readable and production assets so admin cache notifications animate and dismiss consistently.
+* Re-ran static package validation after the UI/release fixes.
+
+= 11.0.2 =
+* Fixed production minified React asset to preserve translated string spacing.
+* Corrected malformed legacy admin CSS selectors in the fallback navigation layer.
+* Synced release assets after UI polish validation.
+
+= 11.0.1 =
+* Native WordPress/Gutenberg admin polish: flatter cards, WordPress-style buttons, calmer status badges and a permanent dashboard header.
+* Improved dashboard hierarchy with visible cache, WooCommerce, queue and JavaScript test status.
+* Replaced ARIA-tab semantics with simpler WordPress-style navigation to reduce accessibility risk.
+* Added resettable card layout controls and screen-reader announcements for layout changes.
+* Synced release assets and prepared a cleaner production package without tests/dev notes.
 
 = 11.0.0 =
 * Performance suite 11.0: parser-first CSS, improved HTML minify, precompressed cache variants, database audit, APCu drop-in template and safer JS combine.
@@ -218,9 +261,6 @@ UltraCache Pro may store cache metadata, diagnostic records, Core Web Vitals sam
 * Automatische veilige hulp toegevoegd voor compatibiliteit.
 * Veilige knoppen toegevoegd voor Heartbeat, preload en server cache setup.
 
-
-== Privacy ==
-UltraCache Pro can store local logs and diagnostics for administrators. The plugin adds privacy policy text and includes exporter and eraser integrations for matching email addresses found in stored logs or diagnostics. If Core Web Vitals monitoring is enabled, the plugin stores aggregated local performance metrics such as LCP, INP, CLS, FCP and TTFB. These metrics are sampled, rate-limited, and stored without retaining visitor IP addresses.
 
 == Accessibility ==
 The admin interface uses real form controls, visible focus states and accessible labels for search and rule controls.

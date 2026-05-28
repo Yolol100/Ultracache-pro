@@ -1,4 +1,5 @@
 <?php
+// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals -- Existing public UCP API/drop-in symbols are intentionally preserved for backward compatibility.
 if (!defined('ABSPATH')) {
     exit;
 }
@@ -63,6 +64,8 @@ trait UCP_Optimizer_HTML_Trait {
             UCP_Options::get('preload_critical_images') ||
             UCP_Options::get('enable_cdn') ||
             UCP_Options::get('enable_self_host_third_party_assets') ||
+            UCP_Options::get('enable_webp_generation') ||
+            UCP_Options::get('enable_avif_generation') ||
             UCP_Options::get('enable_lazy_render')
         );
     }
@@ -292,10 +295,13 @@ trait UCP_Optimizer_HTML_Trait {
         if ('' === trim($html)) {
             return $html;
         }
+        // Collapse runs of whitespace to a single space. We deliberately do NOT remove the
+        // space between adjacent tags, because '</a> <a>' or '</span> <span>' would otherwise
+        // glue inline content together and visibly corrupt the page. Note: sensitive blocks
+        // (script/style/pre/textarea/...) are already masked out by the caller.
         $candidate = preg_replace('/\s+/u', ' ', $html);
         $candidate = is_string($candidate) ? $candidate : $html;
-        $candidate = preg_replace('/>\s+</', '><', $candidate);
-        $candidate = is_string($candidate) ? $candidate : $html;
+        // Trim leading/trailing whitespace inside tags only (e.g. '<div >' -> '<div>').
         $candidate = preg_replace('/\s+>/', '>', $candidate);
         $candidate = is_string($candidate) ? $candidate : $html;
         $candidate = preg_replace_callback('/<([a-z][a-z0-9:-]*)(\s[^<>]*?)?>/i', array($this, 'minify_html_start_tag'), $candidate);

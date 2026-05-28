@@ -1,4 +1,5 @@
 <?php
+// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals -- Existing public UCP API/drop-in symbols are intentionally preserved for backward compatibility.
 // phpcs:disable WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.NonceVerification.Recommended -- Admin actions verify capabilities/nonces before writes; read-only notice parameters are sanitized before display.
 if (!defined('ABSPATH')) {
     exit;
@@ -14,11 +15,39 @@ trait UCP_Admin_Actions_Cleanup_Trait {
 
     protected function delete_glob($pattern) {
         $deleted = 0;
-        foreach ((array) glob($pattern) as $file) {
+        $files = glob($pattern);
+        if (!$files) {
+            return 0;
+        }
+        foreach ($files as $file) {
             if (is_file($file) && wp_delete_file($file)) {
                 $deleted++;
             }
         }
+        return $deleted;
+    }
+
+    protected function delete_local_font_cache() {
+        $uploads = wp_upload_dir();
+        if (empty($uploads['basedir'])) {
+            return 0;
+        }
+
+        $dir = trailingslashit($uploads['basedir']) . 'ultracache-pro/fonts/';
+        $base = trailingslashit(wp_normalize_path($dir));
+        $files = glob($dir . '*');
+        if (!$files) {
+            return 0;
+        }
+
+        $deleted = 0;
+        foreach ($files as $file) {
+            $normalized = wp_normalize_path((string) $file);
+            if (is_file($file) && 0 === strpos($normalized, $base) && wp_delete_file($file)) {
+                $deleted++;
+            }
+        }
+
         return $deleted;
     }
 
@@ -64,8 +93,8 @@ trait UCP_Admin_Actions_Cleanup_Trait {
 
     public function clear_local_fonts() {
         $this->assert_tool_action('ucp_clear_local_fonts');
-        UCP_Helpers::safe_glob_delete(WP_CONTENT_DIR . '/uploads/ultracache-pro/fonts/*');
-        UCP_Logger::log('info', 'admin', 'local_fonts_cleared', 'Local font cache cleared.');
+        $deleted = $this->delete_local_font_cache();
+        UCP_Logger::log('info', 'admin', 'local_fonts_cleared', 'Local font cache cleared.', array('deleted' => $deleted));
         wp_safe_redirect($this->admin->tab_url_public('media', array('fonts_cleared' => 1)));
         exit;
     }

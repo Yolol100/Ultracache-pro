@@ -1,4 +1,5 @@
 <?php
+// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals -- Existing public UCP API/drop-in symbols are intentionally preserved for backward compatibility.
 if (!defined('ABSPATH')) {
     exit;
 }
@@ -162,7 +163,15 @@ trait UCP_Optimizer_CDN_Hints_Trait {
         $hash = substr(hash('sha256', remove_query_arg(array('id','l','cx'), $url)), 0, 24);
         $target = $dir . $hash . '.' . $ext;
         if (!file_exists($target)) {
-            $response = wp_remote_get($url, array('timeout' => 8, 'redirection' => 0, 'reject_unsafe_urls' => true));
+            $response = wp_remote_get(
+                $url,
+                array(
+                    'timeout'             => 8,
+                    'redirection'         => 0,
+                    'reject_unsafe_urls'  => true,
+                    'limit_response_size' => 1048576,
+                )
+            );
             $code = (int) wp_remote_retrieve_response_code($response);
             if (is_wp_error($response) || 200 !== $code) {
                 return '';
@@ -182,12 +191,8 @@ trait UCP_Optimizer_CDN_Hints_Trait {
             // can break consent, analytics or integrity-sensitive code even when self-hosting is enabled.
 
             $tmp = $target . '.tmp.' . wp_generate_password(8, false, false);
-            if (false === file_put_contents($tmp, $body, LOCK_EX)) { // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents -- cache-dir atomic write.
-                @unlink($tmp);
-                return '';
-            }
-            if (!@rename($tmp, $target)) {
-                @unlink($tmp);
+            if (!UCP_Helpers::write_file($tmp, $body) || !UCP_Helpers::move_file($tmp, $target)) {
+                UCP_Helpers::safe_delete_file($tmp);
                 return '';
             }
         }
@@ -282,7 +287,13 @@ trait UCP_Optimizer_CDN_Hints_Trait {
         if (empty($clean)) {
             return;
         }
-        $css = '@supports (content-visibility:auto){' . implode(',', $clean) . '{content-visibility:auto;contain-intrinsic-size:auto 600px;}' . implode(',', array_map(function ($selector) { return $selector . '[data-ucp-lazy-render-done]'; }, $clean)) . '{content-visibility:visible;contain-intrinsic-size:auto;}}';
+        $done_selectors = array_map(
+            function ($selector) {
+                return $selector . '[data-ucp-lazy-render-done]';
+            },
+            $clean
+        );
+        $css = '@supports (content-visibility:auto){' . implode(',', $clean) . '{content-visibility:auto;contain-intrinsic-size:auto 600px;}' . implode(',', $done_selectors) . '{content-visibility:visible;contain-intrinsic-size:auto;}}';
         echo '<style id="ucp-lazy-render">' . esc_html(str_replace('</', '<\/', $css)) . '</style>' . "\n";
     }
 
@@ -388,7 +399,7 @@ trait UCP_Optimizer_CDN_Hints_Trait {
                 $attr_html .= ' ' . esc_attr($name) . '="' . esc_attr((string) $value) . '"';
             }
         }
-        return '<script' . $attr_html . '>' . str_replace('</', '<\/', (string) $javascript) . '</script>'; 
+        return '<script' . $attr_html . '>' . str_replace('</', '<\/', (string) $javascript) . '</script>';
     }
 
     private function prefetch_links_script() {

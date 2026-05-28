@@ -1,0 +1,5305 @@
+# Copyright (C) 2026 UltraCache Pro
+# This file is distributed under the GPLv2 or later.
+msgid ""
+msgstr ""
+"Project-Id-Version: UltraCache Pro 10.12.2\n"
+"Report-Msgid-Bugs-To: https://webactueel.nl\n"
+"POT-Creation-Date: 2026-05-26 00:00+0000\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Domain: ultracache-pro\n"
+"Language: \n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: assets/admin/react/js/app/ucp-react-admin.js:1006
+msgid "Opschonen"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:1008
+msgid "Maak eerst een database-backup. Database-acties kunnen niet ongedaan worden gemaakt."
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:1009
+msgid "Geen extra risicovolle onderdelen geselecteerd."
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:1009
+msgid "risicovolle onderdelen geselecteerd."
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:1010
+msgid "Geselecteerde onderdelen opschonen"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:1026
+msgid "Voor de meeste sites hoef je alleen cachelevensduur en WooCommerce-uitsluitingen te controleren. Laat user-agents en query strings leeg tenzij er een duidelijke reden is."
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:1029
+#: assets/admin/react/js/app/ucp-react-admin.js:1049
+msgid "Aan"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:1029
+#: includes/admin/views/tabs/advanced-rules.php:15
+msgid "Stale cache"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:1036
+msgid "Gebruik uitsluitingen voor dynamische of persoonlijke pagina’s, zoals cart, checkout, account, zoek- en filterpagina’s."
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:1038
+msgid "URL-regels"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:1039
+msgid "Cookies"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:1040
+msgid "User-agents"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:1047
+msgid "Standaard worden URL’s met query strings voorzichtig behandeld. Cache alleen bekende parameters die geen persoonlijke content veranderen."
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:1049
+#: includes/admin/views/controllers/assets/rules.php:16
+#: includes/admin/views/tabs/tools.php:48
+msgid "Status"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:1050
+msgid "Parameters"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:1069
+msgid "Voor de meeste sites is dit de veiligste preload-opzet: queue aan, sitemaps aan, homepage aan en een rustige batchgrootte."
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:1071
+msgid "Preload aan"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:1071
+msgid "Preload uit"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:1072
+msgid "Queue aan"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:1072
+msgid "Queue uit"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:1073
+msgid "Sitemap aan"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:1073
+msgid "Sitemap uit"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:1074
+msgid "Homepage aan"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:1074
+msgid "Homepage uit"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:1079
+msgid "Wachtrij"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:1082
+msgid "Open"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:1083
+msgid "Nu klaar"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:1084
+msgid "Opnieuw"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:1087
+msgid "Preload starten"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:1088
+msgid "Verwerk nu"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:1093
+msgid "Snelheid en belasting"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:1095
+msgid "Gebruik lagere batches op shared hosting. Verhoog de pauze als taken opnieuw ingepland worden of hosting traag reageert."
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:1097
+msgid "Batch"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:1098
+msgid "Pauze"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:1099
+msgid "Max"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:1138
+msgid "Zet groepen in 1, 2, 3 of 4 kolommen en sleep kaarten om de volgorde aan te passen. In 1x1 blijven compacte velden op een nette rij; brede velden, lange hulptekst en risicovolle opties stapelen automatisch."
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:143
+#: assets/admin/react/js/app/ucp-react-admin.js:146
+msgid "Indeling"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:1486
+#: assets/admin/react/js/app/ucp-react-admin.js:1488
+#: assets/admin/react/js/app/ucp-react-admin.js:1554
+#: includes/admin/views/submit/submit-row.php:14
+msgid "Opslaan"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:1514
+#: includes/admin/views/tabs/media.php:107
+msgid "Aantal zichtbare boven-de-vouw afbeeldingen. Maximaal 3."
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:1514
+#: includes/admin/views/tabs/media.php:107
+msgid "Kritieke afbeeldingen preloaden"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:1515
+#: includes/admin/views/tabs/media.php:108
+msgid "Aantal eerste afbeeldingen dat niet lazyloadt. Maximaal 5."
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:1515
+#: includes/admin/views/tabs/media.php:108
+msgid "Bovenste afbeeldingen niet lazyloaden"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:1516
+msgid "Aangepaste LCP-instellingen opslaan"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:1518
+msgid "Aanbevolen voorkomt dat hero/LCP-afbeeldingen per ongeluk lazyloaden en zet alleen beperkte preloads klaar."
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:1545
+#: includes/admin/views/tabs/heartbeat.php:32
+msgid "Frontend interval"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:1545
+#: assets/admin/react/js/app/ucp-react-admin.js:1546
+#: assets/admin/react/js/app/ucp-react-admin.js:1547
+msgid "Seconden bij Verminderen."
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:1546
+#: includes/admin/views/tabs/heartbeat.php:33
+msgid "Editor interval"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:1547
+#: includes/admin/views/tabs/heartbeat.php:34
+msgid "Backend interval"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:1548
+msgid "Aangepaste intervallen opslaan"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:1557
+msgid "Opslaan…"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:1564
+msgid "Laat CSS normaal laden. Gebruik dit voor maximale compatibiliteit of als de layout gevoelig is."
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:1564
+msgid "Veiligste keuze"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:1565
+msgid "Gebruikt de AST-parser wanneer vendor libraries aanwezig zijn en valt anders terug op de lokale parser. Test builders, formulieren en checkout visueel."
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:1565
+msgid "Staging-first optimalisatie"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:1566
+msgid "Fallback als Used CSS problemen geeft"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:1566
+msgid "Genereert Critical CSS en laadt de overige CSS asynchroon. Minder agressief dan Used CSS, maar nog steeds visueel testen."
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:1574
+msgid "UltraCache zet de onderliggende Used CSS/Critical CSS flags automatisch goed. Je hoeft hiervoor geen losse toggles meer te beheren."
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:1613
+msgid "Niets gevonden."
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:1779
+msgid "Websitecontrole kon niet geladen worden."
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:1788
+msgid "Snelheidsscan opgeslagen en optimalisaties toegepast."
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:1788
+msgid "Snelheidsscan opgeslagen."
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:1792
+msgid "Snelheidsscan mislukt."
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:1807
+msgid "Controle nodig"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:1808
+msgid "Er zijn achtergrondtaken vastgelopen. Gebruik hieronder de herstelopties of neem contact op met je beheerder."
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:1813
+msgid "Status opnieuw laden"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:1814
+msgid "Laadt de actuele websitestatus opnieuw in."
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:1817
+msgid "Opnieuw laden"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:1820
+msgid "Open taken verwerken"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:1820
+msgid "Verwerkt de eerstvolgende achtergrondtaken direct."
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:1821
+msgid "Zet vastgelopen taken terug in de wachtrij en probeert ze opnieuw."
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:1822
+msgid "Controleert of de website en cache goed werken."
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:1823
+msgid "Cachetest uitvoeren"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:1823
+msgid "Controleert of de cache actief is en pagina’s correct worden overgeslagen waar dat nodig is."
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:1826
+#: assets/admin/react/js/app/ucp-react-admin.js:1830
+msgid "Snelheidsscan uitvoeren"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:1827
+msgid "Controleert de homepage en helpt verbeterpunten voor snelheid te vinden."
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:1834
+msgid "Laatste snelheidsscan"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:1836
+msgid "CSS/JS hints:"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:1837
+msgid "render-blocking CSS"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:1838
+msgid "delay-kandidaten"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:1839
+msgid "third-party"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:1842
+msgid "Cachebestanden herstellen"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:1842
+msgid "Herstelt belangrijke cachebestanden veilig met een back-up."
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:1843
+msgid "Conflicten scannen"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:1843
+msgid "Controleert actieve cache-, optimalisatie-, WooCommerce- en builderplugins op mogelijke overlap."
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:1844
+msgid "Testmodus 30 min"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:1844
+msgid "Zet tijdelijke testinformatie aan zodat problemen makkelijker te controleren zijn."
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:1845
+msgid "Controlelijst ophalen"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:1845
+msgid "Toont de belangrijkste controles voor cache, runtime en WooCommerce-transacties."
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:1848
+#: assets/admin/react/js/app/ucp-react-admin.js:1852
+msgid "Logpakket downloaden"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:1849
+msgid "Download een technisch pakket voor support of beheer. Controleer het pakket voordat je het extern deelt."
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:1852
+msgid "Logdownload is niet beschikbaar."
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:1868
+msgid "UltraCache Pro wordt voorbereid"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:1869
+msgid "We laden je cache-instellingen en websitecontrole. Dit duurt meestal maar even."
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:193
+#: includes/admin/notices/traits/ucp-admin-notices-flash-toast-trait.php:99
+msgid "Melding sluiten"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:203
+#: includes/admin/class-ucp-admin-metrics.php:42
+msgid "Check"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:203
+#: includes/admin/views/class-ucp-admin-view.php:20
+msgid "Goed"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:219
+msgid "UltraCache Pro hoofdtabbladen"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:248
+msgid "Cache is actief"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:248
+msgid "Cache vraagt aandacht"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:249
+msgid "De basis staat goed. Controleer alleen de frontend na CSS- of JavaScript-wijzigingen."
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:249
+msgid "Kies bovenaan een preset of pas de aanbevolen slimme scan toe om veilig te starten."
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:25
+#: includes/admin/class-ucp-admin-config.php:11
+#: includes/admin/class-ucp-admin-config.php:29
+#: includes/admin/class-ucp-admin-config.php:36
+msgid "Dashboard"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:251
+msgid "Er staan achtergrondtaken gepland voor een volgende poging. Dit is normaal na CSS/preload-acties; gebruik Diagnostiek als dit blijft oplopen."
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:257
+#: assets/admin/react/js/app/ucp-react-admin.js:961
+#: includes/admin/traits/ucp-admin-routing-trait.php:54
+msgid "Overzicht"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:26
+#: includes/admin/class-ucp-admin-config.php:12
+#: includes/admin/class-ucp-admin-config.php:37
+#: includes/admin/views/tabs/overview.php:120
+msgid "Bestandsoptimalisatie"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:262
+#: assets/admin/react/js/app/ucp-react-admin.js:317
+#: assets/admin/react/js/app/ucp-react-admin.js:688
+msgid "Verwerk taken nu"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:266
+#: assets/admin/react/js/app/ucp-react-admin.js:311
+#: includes/admin/views/controllers/assets/rule-row.php:19
+#: includes/admin/views/tabs/overview.php:27
+#: includes/admin/views/tabs/overview.php:73
+#: includes/admin/views/tabs/overview.php:103
+#: includes/integrations/traits/ucp-integrations-status-trait.php:19
+msgid "Actief"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:266
+#: assets/admin/react/js/app/ucp-react-admin.js:1028
+#: includes/integrations/traits/ucp-integrations-status-trait.php:17
+msgid "Cache"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:266
+#: includes/admin/views/tabs/overview.php:27
+msgid "Niet actief"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:267
+msgid "Basis"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:267
+msgid "Ingesteld"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:267
+msgid "Optimalisatie"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:268
+msgid "Queue"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:268
+msgid "Rustig"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:268
+msgid "wachtend"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:269
+#: includes/admin/views/tabs/media.php:132
+#: includes/integrations/traits/ucp-integrations-status-trait.php:24
+msgid "Standaard"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:269
+#: includes/core/class-ucp-presets.php:244
+msgid "Veilig"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:269
+#: includes/integrations/traits/ucp-integrations-delay-js-profiles-trait.php:297
+msgid "WooCommerce"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:27
+#: includes/admin/class-ucp-admin-config.php:13
+#: includes/admin/class-ucp-admin-config.php:38
+#: includes/admin/views/tabs/overview.php:129
+#: includes/integrations/traits/ucp-integrations-status-trait.php:27
+msgid "Media"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:28
+#: includes/admin/class-ucp-admin-config.php:14
+#: includes/admin/class-ucp-admin-config.php:39
+#: includes/admin/views/tabs/overview.php:116
+msgid "Preloaden"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:29
+#: includes/admin/class-ucp-admin-config.php:15
+#: includes/admin/class-ucp-admin-config.php:40
+#: includes/admin/views/tabs/overview.php:124
+msgid "Geavanceerde regels"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:296
+msgid "Wachtrij rustig"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:297
+msgid "WP-Cron uitgeschakeld"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:298
+msgid "mislukt"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:299
+msgid "klaar om te verwerken"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:30
+#: includes/admin/class-ucp-admin-config.php:16
+#: includes/admin/class-ucp-admin-config.php:41
+#: includes/admin/views/tabs/overview.php:133
+msgid "Database"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:300
+msgid "gepland"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:301
+msgid "actief"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:305
+msgid "Taakstatus"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:310
+#: includes/admin/tabs/class-ucp-admin-tab-tools.php:23
+msgid "In wachtrij"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:312
+#: includes/admin/tabs/class-ucp-admin-tab-tools.php:26
+msgid "Mislukt"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:313
+#: includes/admin/class-ucp-admin-metrics.php:42
+msgid "OK"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:313
+#: assets/admin/react/js/app/ucp-react-admin.js:1029
+#: assets/admin/react/js/app/ucp-react-admin.js:1049
+#: includes/admin/views/tabs/preload.php:22
+#: includes/admin/views/tabs/preload.php:40
+#: includes/admin/views/tabs/database.php:68
+#: includes/admin/views/tabs/cdn.php:101
+#: includes/admin/views/tabs/cdn.php:155
+#: includes/admin/views/tabs/advanced-rules.php:15
+#: includes/admin/views/tabs/advanced-rules.php:47
+#: includes/admin/views/tabs/optimization.php:48
+#: includes/admin/views/tabs/optimization.php:69
+#: includes/admin/views/tabs/optimization.php:111
+#: includes/admin/views/tabs/media.php:89
+#: includes/admin/views/tabs/media.php:104
+#: includes/admin/views/tabs/media.php:105
+#: includes/admin/views/tabs/media.php:146
+#: includes/integrations/traits/ucp-integrations-status-trait.php:34
+msgid "Uit"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:313
+msgid "WP-Cron"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:315
+msgid "WP-Cron lijkt uitgeschakeld. UltraCache verwerkt taken ook via de admin-fallback. Stel voor productie een echte server-cron in."
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:317
+msgid "Verwerkt direct de eerstvolgende wachtrijtaken zonder te wachten op WP-Cron."
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:318
+msgid "Mislukte taken opnieuw"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:318
+msgid "Zet mislukte taken terug in de wachtrij."
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:322
+msgid "Volgende geplande run: "
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:323
+msgid "Geen geplande runner — wordt automatisch aangemaakt zodra er taken zijn."
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:33
+#: assets/admin/react/js/app/ucp-react-admin.js:1797
+msgid "Websitecontrole"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:331
+msgid "Alles ziet er goed uit. Controleer de site frontend na CSS- of JavaScript-wijzigingen."
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:333
+msgid "Zet pagina caching aan om de basisversnelling te activeren."
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:334
+msgid "WooCommerce safety mode staat uit. Zet dit aan voor shops."
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:335
+msgid "Er zijn mislukte achtergrondtaken. Open Diagnostiek of start de taken opnieuw."
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:336
+msgid "Delay JS is actief. Test formulieren, sliders en checkout handmatig."
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:337
+msgid "Aanbevolen volgende stap"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:34
+#: includes/admin/class-ucp-admin-config.php:19
+#: includes/admin/class-ucp-admin-config.php:44
+msgid "Developer"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:35
+#: assets/admin/react/js/app/ucp-react-admin.js:669
+#: assets/admin/react/js/app/ucp-react-admin.js:1905
+#: includes/admin/class-ucp-admin-config.php:20
+#: includes/admin/class-ucp-admin-config.php:45
+#: includes/admin/actions/ucp-admin-actions-cleanup-trait.php:97
+#: includes/admin/views/tabs/overview.php:137
+msgid "Tools"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:472
+msgid "Sluiten"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:482
+msgid "Kies een startconfiguratie"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:482
+msgid "UltraCache setup"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:484
+msgid "Kies direct een veilige basis. Je kunt later alle instellingen handmatig aanpassen."
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:493
+#: assets/admin/react/js/app/ucp-react-admin.js:583
+#: includes/admin/views/tabs/overview.php:106
+msgid "Toepassen"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:496
+msgid "Tip: gebruik Webshop veilig als WooCommerce actief is. Delay JS en combineren blijven dan bewust uit."
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:504
+msgid "Nog geen scan uitgevoerd"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:505
+msgid "Scan je WordPress-installatie"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:512
+msgid "Slimme scan"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:514
+msgid "UltraCache kijkt naar actieve plugins, thema, WooCommerce/LMS, builders, cache-plugins, WordPress-omgeving en veiligheidsrisico’s en adviseert daarna de beste preset of een veilige maatwerkpreset."
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:517
+msgid "Plugins gecontroleerd"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:517
+msgid "actieve plugins"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:523
+msgid "Scannen…"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:523
+msgid "Site scannen"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:524
+msgid "Aanbevolen preset toepassen"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:524
+msgid "Maatwerk toepassen"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:539
+msgid "Scan klaar: "
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:542
+msgid "Scan kon niet worden uitgevoerd."
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:554
+msgid "Geen scanadvies gevonden om toe te passen."
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:563
+msgid "Scanadvies kon niet worden toegepast."
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:570
+msgid "Kies je startinstelling"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:571
+msgid "Online best practices toegepast: kies direct een veilige preset. Minify staat standaard aan; combineren, Delay JS en Used CSS blijven uit tot je bewust test."
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:598
+msgid "Actie uitgevoerd."
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:602
+msgid "Actie mislukt."
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:605
+#: assets/admin/react/js/app/ucp-react-admin.js:665
+#: assets/admin/react/js/app/ucp-react-admin.js:882
+msgid "Bezig…"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:608
+msgid "Actie uitvoeren"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:608
+msgid "Bevestigen"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:611
+msgid "Annuleren"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:641
+msgid "Deze gecombineerde actie voert meerdere stappen uit. Doorgaan?"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:653
+msgid "Klaar: %d acties uitgevoerd."
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:656
+msgid "Gecombineerde actie mislukt. Controleer logs en probeer de losse stap opnieuw."
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:673
+msgid "Dagelijkse cache-acties"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:674
+msgid "Gebruik deze acties na content-, thema- of pluginwijzigingen."
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:675
+msgid "Cache geleegd, preload gestart en wachtrij verwerkt."
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:675
+msgid "Cache legen + opwarmen"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:677
+msgid "Leeg alle cache"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:677
+msgid "Verwijdert alle cachebestanden en laat nieuwe cache opnieuw opbouwen."
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:678
+msgid "Leeg pagina-cache"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:678
+msgid "Verwijdert alleen de HTML-pagina-cache. CSS, JS en instellingen blijven ongemoeid."
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:683
+msgid "Preload en wachtrij"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:684
+msgid "Start preload of verwerk taken wanneer WP-Cron niet meteen draait."
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:685
+msgid "Preload gestart en open taken verwerkt."
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:685
+msgid "Preload volledig uitvoeren"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:687
+#: includes/admin/views/tabs/overview.php:54
+#: includes/admin/views/tabs/overview.php:56
+msgid "Cache opwarmen"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:689
+#: assets/admin/react/js/app/ucp-react-admin.js:1821
+msgid "Mislukte taken opnieuw proberen"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:694
+#: includes/admin/views/tabs/optimization.php:65
+msgid "CSS"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:695
+msgid "Herbouw of wis CSS-bestanden."
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:696
+msgid "CSS volledig vernieuwen"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:696
+msgid "CSS-bestanden gewist en Critical/Used CSS opnieuw gestart."
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:698
+msgid "Genereer kritieke CSS"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:699
+msgid "Used CSS opnieuw genereren"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:700
+msgid "Verkleinde CSS wissen"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:705
+#: includes/admin/views/tabs/optimization.php:107
+msgid "JavaScript"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:706
+msgid "Wis opgebouwde JavaScript-bestanden."
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:708
+#: includes/admin/views/tabs/optimization.php:171
+msgid "Verkleinde JS wissen"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:713
+msgid "Support"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:714
+msgid "Controle en supportacties."
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:715
+msgid "Controlepakket uitvoeren"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:715
+msgid "Health check, runtime test, conflictcheck en release checklist uitgevoerd."
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:717
+msgid "Controleert cachemap, drop-in, conflicten en runtimevoorwaarden."
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:717
+#: assets/admin/react/js/app/ucp-react-admin.js:1822
+msgid "Websitecontrole uitvoeren"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:722
+msgid "Risico"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:723
+msgid "Gebruik alleen bewust en na backup."
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:726
+#: includes/admin/views/tabs/database.php:13
+#: includes/admin/views/tabs/database.php:57
+msgid "Database opschonen"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:754
+#: assets/admin/react/js/app/ucp-react-admin.js:1137
+msgid "Kaartenindeling"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:755
+msgid "Kies 1x1 t/m 4x4. In 1x1 zet UltraCache compacte velden netjes op een rij; langere of risicovolle inhoud blijft automatisch onder elkaar."
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:778
+#: assets/admin/react/js/app/ucp-react-admin.js:1157
+msgid "Verplaats kaart met pijltjestoetsen of sleep met de muis"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:778
+#: assets/admin/react/js/app/ucp-react-admin.js:1157
+msgid "Verplaats kaart. Gebruik pijltoetsen, Home of End."
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:810
+msgid "Instellingen geëxporteerd."
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:812
+msgid "Export mislukt."
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:817
+msgid "Ongeldig JSON-bestand. Gebruik een UltraCache exportbestand."
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:820
+msgid "Import overschrijft bestaande UltraCache-instellingen. Maak eerst een export of database-back-up. Doorgaan?"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:825
+msgid "JSON-instellingen geïmporteerd."
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:827
+msgid "Import mislukt."
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:834
+msgid "Kies een .json of .txt bestand."
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:839
+msgid "Het JSON-bestand is te groot. Maximale grootte is 256 KB."
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:848
+msgid "Ongeldige JSON in het gekozen bestand."
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:856
+msgid "Het JSON-bestand kon niet worden gelezen."
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:862
+msgid "Import / export"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:867
+msgid "Export"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:868
+#: includes/admin/views/tabs/tools.php:25
+msgid "Instellingen exporteren"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:869
+msgid "Download je huidige UltraCache-instellingen als JSON-back-up voordat je nieuwe instellingen importeert."
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:872
+msgid "Exporteren"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:877
+msgid "Import"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:878
+#: includes/admin/views/submit/tools-import-form.php:9
+#: includes/admin/views/submit/tools-import-form.php:26
+msgid "Instellingen importeren"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:879
+msgid "Upload een UltraCache .json exportbestand. Na bevestiging worden je instellingen direct bijgewerkt."
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:882
+msgid "JSON importeren"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:945
+msgid "1. Kies eerst een preset"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:945
+msgid "2. Controleer HTML en CSS"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:945
+msgid "3. Test JavaScript apart"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:945
+msgid "Begin met veilige optimalisaties. Zet risicovolle CSS- en JavaScript-opties pas aan nadat je de frontend, formulieren en checkout hebt getest."
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:945
+msgid "Bestandsoptimalisatie overzicht"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:946
+#: assets/admin/react/js/app/ucp-react-admin.js:1067
+msgid "Aanbevolen basis"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:946
+msgid "Afbeeldingen"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:946
+msgid "Fonts"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:946
+msgid "Gebruik veilige media-optimalisaties eerst: lazy load voor offscreen media, vaste afbeeldingsafmetingen en font-display swap. Gebruik preload alleen voor kritieke fonts of hero-afbeeldingen."
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:946
+msgid "Media optimalisatie overzicht"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:946
+msgid "Uitsluitingen en connecties"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:947
+msgid "Cache vooraf opbouwen"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:947
+msgid "Link preload"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:947
+msgid "Preload maakt cachebestanden klaar voordat bezoekers pagina’s openen. Gebruik de queue en sitemap als veilige basis; stuur snelheid met batchgrootte en pauze."
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:947
+msgid "Preload overzicht"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:947
+msgid "Serverbelasting"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:947
+#: assets/admin/react/js/app/ucp-react-admin.js:948
+#: assets/admin/react/js/app/ucp-react-admin.js:951
+#: assets/admin/react/js/app/ucp-react-admin.js:1034
+#: includes/admin/views/tabs/cdn.php:125
+msgid "Uitsluitingen"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:948
+#: includes/admin/views/tabs/advanced-rules.php:10
+msgid "Cache levensduur"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:948
+msgid "Geavanceerde regels overzicht"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:948
+msgid "Gebruik deze pagina alleen voor uitzonderingen: pagina’s die nooit gecachet mogen worden, cookies die gepersonaliseerde content tonen en query parameters. Laat velden leeg wanneer je geen specifieke uitzondering nodig hebt."
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:948
+#: assets/admin/react/js/app/ucp-react-admin.js:1045
+msgid "Query strings"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:949
+#: includes/admin/views/tabs/developer.php:22
+#: includes/integrations/traits/ucp-integrations-status-trait.php:47
+#: includes/core/class-ucp-site-health.php:74
+#: includes/core/class-ucp-site-health.php:97
+msgid "Compatibiliteit"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:949
+#: includes/admin/views/tabs/developer.php:6
+msgid "Developer instellingen"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:949
+msgid "Fragment cache"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:949
+msgid "Gebruik deze pagina alleen voor REST-cache, fragment cache en technische veiligheidsopties. Deze instellingen blijven standaard uit en horen eerst op staging getest te worden."
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:949
+msgid "REST-cache"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:949
+#: includes/admin/views/tabs/developer.php:31
+msgid "Veiligheidsmodus"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:950
+#: assets/admin/react/js/app/ucp-react-admin.js:999
+msgid "Berichten"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:950
+msgid "Database onderhoud"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:950
+#: assets/admin/react/js/app/ucp-react-admin.js:1000
+msgid "Reacties"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:950
+msgid "Ruim alleen gegevens op die je bewust hebt geselecteerd. Verlopen transients zijn meestal veilig; revisies, prullenbak, alle transients en tabeloptimalisatie vragen meer voorzichtigheid."
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:950
+msgid "Tabellen"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:950
+#: assets/admin/react/js/app/ucp-react-admin.js:1001
+msgid "Transients"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:950
+msgid "Veilig eerst"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:951
+msgid "CDN CNAMEs"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:951
+msgid "CDN overzicht"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:951
+msgid "Cloudflare"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:951
+msgid "Configureer CDN- en edge-opties alleen wanneer je CNAMEs en Cloudflare-instellingen bekend zijn."
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:952
+msgid "Backend"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:952
+msgid "Editor"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:952
+msgid "Frontend"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:952
+msgid "Heartbeat overzicht"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:952
+msgid "Verminder WordPress Heartbeat voorzichtig. Uitschakelen kan invloed hebben op editors, autosave of plugins."
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:985
+#: assets/admin/react/js/app/ucp-react-admin.js:1024
+msgid "Veilige basis"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:987
+msgid "Start met verlopen transients. Zet revisies, prullenbak en alle transients alleen aan wanneer je zeker weet dat je die gegevens niet meer nodig hebt."
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:989
+msgid "Verlopen transients aan"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:989
+msgid "Verlopen transients uit"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:990
+msgid "Geen schema"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:990
+msgid "Schema actief"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:995
+msgid "Selectie"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js:997
+msgid "UltraCache ruimt alleen de onderdelen op die hieronder zijn ingeschakeld. Controleer de selectie voordat je opschoont."
+msgstr ""
+
+#: includes/admin/actions/ucp-admin-actions-cleanup-trait.php:104
+#: includes/admin/notices/traits/ucp-admin-notices-render-trait.php:26
+msgid "Instellingen aangezet."
+msgstr ""
+
+#: includes/admin/actions/ucp-admin-actions-cleanup-trait.php:105
+msgid "Testtaken toegevoegd."
+msgstr ""
+
+#: includes/admin/actions/ucp-admin-actions-cleanup-trait.php:106
+#: includes/admin/notices/traits/ucp-admin-notices-render-trait.php:28
+msgid "Taken gestart."
+msgstr ""
+
+#: includes/admin/actions/ucp-admin-actions-cleanup-trait.php:107
+#: includes/admin/notices/traits/ucp-admin-notices-render-trait.php:29
+msgid "Bestand verwerkt."
+msgstr ""
+
+#: includes/admin/actions/ucp-admin-actions-cleanup-trait.php:108
+#: includes/admin/notices/traits/ucp-admin-notices-render-trait.php:30
+msgid "Controle bijgewerkt."
+msgstr ""
+
+#: includes/admin/actions/ucp-admin-actions-cleanup-trait.php:109
+msgid "Eerste hulp is klaar."
+msgstr ""
+
+#: includes/admin/actions/ucp-admin-actions-cleanup-trait.php:110
+#: includes/admin/notices/traits/ucp-admin-notices-render-trait.php:32
+msgid "Onderhoud is klaar."
+msgstr ""
+
+#: includes/admin/actions/ucp-admin-actions-cleanup-trait.php:111
+#: includes/admin/notices/traits/ucp-admin-notices-render-trait.php:33
+#: includes/cache/traits/purge/ucp-cache-purge-actions-trait.php:18
+#: includes/cache/traits/purge/ucp-cache-purge-actions-trait.php:52
+#: includes/cache/traits/purge/ucp-cache-purge-url-map-trait.php:85
+msgid "Cache is geleegd."
+msgstr ""
+
+#: includes/admin/actions/ucp-admin-actions-cleanup-trait.php:112
+#: includes/admin/notices/traits/ucp-admin-notices-render-trait.php:34
+msgid "Cache is opgewarmd."
+msgstr ""
+
+#: includes/admin/actions/ucp-admin-actions-cleanup-trait.php:113
+#: includes/admin/notices/traits/ucp-admin-notices-render-trait.php:35
+msgid "Pagina's zijn toegevoegd om op te warmen."
+msgstr ""
+
+#: includes/admin/actions/ucp-admin-actions-cleanup-trait.php:114
+msgid "Cache is ingeschakeld."
+msgstr ""
+
+#: includes/admin/actions/ucp-admin-actions-cleanup-trait.php:115
+msgid "Snelle uitsluitingen zijn toegepast."
+msgstr ""
+
+#: includes/admin/actions/ucp-admin-actions-cleanup-trait.php:116
+msgid "Compatibiliteitslijsten zijn gecontroleerd."
+msgstr ""
+
+#: includes/admin/actions/ucp-admin-actions-cleanup-trait.php:117
+msgid "Gebruikte CSS is geleegd."
+msgstr ""
+
+#: includes/admin/actions/ucp-admin-actions-cleanup-trait.php:118
+msgid "Verkleinde CSS is geleegd."
+msgstr ""
+
+#: includes/admin/actions/ucp-admin-actions-cleanup-trait.php:119
+msgid "Verkleinde JavaScript is geleegd."
+msgstr ""
+
+#: includes/admin/actions/ucp-admin-actions-cleanup-trait.php:120
+msgid "Priority elements zijn geleegd."
+msgstr ""
+
+#: includes/admin/actions/ucp-admin-actions-cleanup-trait.php:121
+msgid "Lokale lettertypes zijn geleegd."
+msgstr ""
+
+#: includes/admin/actions/ucp-admin-actions-cleanup-trait.php:122
+msgid "Standaardopties zijn teruggezet."
+msgstr ""
+
+#: includes/admin/actions/ucp-admin-actions-cleanup-trait.php:123
+msgid "Meta opties zijn opgeschoond."
+msgstr ""
+
+#: includes/admin/actions/ucp-admin-actions-cleanup-trait.php:95
+msgid "Instellingen"
+msgstr ""
+
+#: includes/admin/class-ucp-admin-config.php:11
+msgid "Krijg hulp, accountinformatie"
+msgstr ""
+
+#: includes/admin/class-ucp-admin-config.php:12
+msgid "CSS & JS optimaliseren"
+msgstr ""
+
+#: includes/admin/class-ucp-admin-config.php:13
+msgid "LazyLoad, image dimensions, font optimization"
+msgstr ""
+
+#: includes/admin/class-ucp-admin-config.php:14
+#: includes/admin/class-ucp-admin-config.php:39
+msgid "Generate cache files"
+msgstr ""
+
+#: includes/admin/class-ucp-admin-config.php:15
+#: includes/admin/class-ucp-admin-config.php:40
+msgid "Cache-regels verfijnen"
+msgstr ""
+
+#: includes/admin/class-ucp-admin-config.php:16
+msgid "Optimaliseer, verminder bloat"
+msgstr ""
+
+#: includes/admin/class-ucp-admin-config.php:17
+#: includes/admin/class-ucp-admin-config.php:42
+#: includes/admin/views/tabs/cdn.php:41
+msgid "CDN"
+msgstr ""
+
+#: includes/admin/class-ucp-admin-config.php:17
+#: includes/admin/class-ucp-admin-config.php:42
+msgid "Integreer je CDN"
+msgstr ""
+
+#: includes/admin/class-ucp-admin-config.php:18
+msgid "Beheer WordPress Heartbeat API"
+msgstr ""
+
+#: includes/admin/class-ucp-admin-config.php:18
+#: includes/admin/class-ucp-admin-config.php:43
+#: includes/admin/views/tabs/heartbeat.php:7
+msgid "Heartbeat"
+msgstr ""
+
+#: includes/admin/class-ucp-admin-config.php:19
+msgid "REST-cache, fragment cache en veiligheidsopties"
+msgstr ""
+
+#: includes/admin/class-ucp-admin-config.php:20
+msgid "Importeren, exporteren, terugzetten"
+msgstr ""
+
+#: includes/admin/class-ucp-admin-config.php:31
+msgid "Alles op één plek."
+msgstr ""
+
+#: includes/admin/class-ucp-admin-config.php:32
+#: includes/admin/views/controllers/assets/rules.php:16
+msgid "Volgorde"
+msgstr ""
+
+#: includes/admin/class-ucp-admin-config.php:36
+msgid "Krijg hulp, accountinformatie en snelle cache-acties."
+msgstr ""
+
+#: includes/admin/class-ucp-admin-config.php:36
+msgid "Startpunt"
+msgstr ""
+
+#: includes/admin/class-ucp-admin-config.php:37
+msgid "CSS en JS"
+msgstr ""
+
+#: includes/admin/class-ucp-admin-config.php:37
+msgid "CSS en JavaScript optimaliseren zonder media- of preload-instellingen door elkaar te zetten."
+msgstr ""
+
+#: includes/admin/class-ucp-admin-config.php:38
+msgid "Afbeeldingen, iframes en fonts"
+msgstr ""
+
+#: includes/admin/class-ucp-admin-config.php:38
+msgid "LazyLoad, afmetingen, fonts en media-gerelateerde optimalisaties."
+msgstr ""
+
+#: includes/admin/class-ucp-admin-config.php:39
+#: includes/admin/views/tabs/overview.php:117
+msgid "Cachebestanden vooraf genereren en links voorbereiden."
+msgstr ""
+
+#: includes/admin/class-ucp-admin-config.php:40
+msgid "Cache-levensduur, nooit cachen, query strings en purge-regels."
+msgstr ""
+
+#: includes/admin/class-ucp-admin-config.php:41
+msgid "Maak eerst een backup"
+msgstr ""
+
+#: includes/admin/class-ucp-admin-config.php:41
+msgid "Revisies, spam, transients en tabellen opschonen."
+msgstr ""
+
+#: includes/admin/class-ucp-admin-config.php:42
+msgid "Statische bestanden via je CDN-CNAME laden."
+msgstr ""
+
+#: includes/admin/class-ucp-admin-config.php:43
+msgid "Beheer de WordPress Heartbeat API per omgeving."
+msgstr ""
+
+#: includes/admin/class-ucp-admin-config.php:43
+msgid "Rustiger backend-verkeer"
+msgstr ""
+
+#: includes/admin/class-ucp-admin-config.php:44
+msgid "Alleen voor ontwikkelaars"
+msgstr ""
+
+#: includes/admin/class-ucp-admin-config.php:44
+msgid "REST-cache, fragment cache en technische veiligheidsopties. Standaard uit en staging-first."
+msgstr ""
+
+#: includes/admin/class-ucp-admin-config.php:45
+msgid "Beheer en support"
+msgstr ""
+
+#: includes/admin/class-ucp-admin-config.php:45
+msgid "Import, export, rollback en onderhoud."
+msgstr ""
+
+#: includes/admin/class-ucp-admin-metrics.php:10
+#: includes/admin/views/tabs/onboarding.php:54
+msgid "Doel"
+msgstr ""
+
+#: includes/admin/class-ucp-admin-metrics.php:11
+msgid "Extra hulp"
+msgstr ""
+
+#: includes/admin/class-ucp-admin-metrics.php:12
+#: includes/admin/views/tabs/onboarding.php:70
+#: includes/admin/tabs/class-ucp-admin-tab-tools.php:27
+#: includes/cache/traits/ucp-cache-admin-bar-trait.php:14
+msgid "Klaar"
+msgstr ""
+
+#: includes/admin/class-ucp-admin-metrics.php:9
+#: includes/admin/views/tabs/onboarding.php:45
+msgid "Soort site"
+msgstr ""
+
+#: includes/admin/class-ucp-admin-react-app.php:65
+#: includes/admin/class-ucp-admin-config.php:30
+#: includes/admin/traits/ucp-admin-routing-trait.php:53
+#: includes/admin/traits/ucp-admin-routing-trait.php:54
+#: includes/admin/views/shell/start.php:7
+#: includes/admin/views/shell/start.php:10
+#: includes/filesystem/traits/ucp-helpers-dropin-trait.php:94
+#: includes/core/maintenance/ucp-maintenance-privacy-trait.php:14
+msgid "UltraCache Pro"
+msgstr ""
+
+#: includes/admin/class-ucp-admin-shell.php:12
+#: includes/admin/class-ucp-admin-shell.php:38
+#: includes/admin/class-ucp-admin-shell.php:67
+#: includes/admin/class-ucp-admin-shell.php:81
+#: includes/admin/actions/ucp-admin-actions-cleanup-trait.php:96
+#: includes/admin/views/tabs/tools.php:14
+#: includes/admin/views/tabs/overview.php:49
+#: includes/admin/views/tabs/overview.php:51
+#: includes/admin/tabs/class-ucp-admin-tab-tools.php:13
+msgid "Cache legen"
+msgstr ""
+
+#: includes/admin/class-ucp-admin-shell.php:17
+msgid "Opwarmen"
+msgstr ""
+
+#: includes/admin/class-ucp-admin-shell.php:25
+#: includes/admin/views/tabs/optimization.php:43
+msgid "Veilige start aanbevolen kiezen"
+msgstr ""
+
+#: includes/admin/class-ucp-admin-shell.php:30
+#: includes/admin/class-ucp-admin-shell.php:43
+#: includes/admin/class-ucp-admin-shell.php:51
+#: includes/admin/views/tabs/tools.php:16
+msgid "Systeemtest uitvoeren"
+msgstr ""
+
+#: includes/admin/class-ucp-admin-shell.php:59
+#: includes/admin/views/tabs/database.php:13
+msgid "Geselecteerde onderdelen opruimen"
+msgstr ""
+
+#: includes/admin/class-ucp-admin-shell.php:76
+#: includes/admin/views/tabs/overview.php:44
+#: includes/admin/views/tabs/overview.php:46
+msgid "Cache inschakelen"
+msgstr ""
+
+#: includes/admin/class-ucp-admin-shell.php:86
+msgid "Optimalisatie starten"
+msgstr ""
+
+#: includes/admin/controllers/class-ucp-admin-assets-controller.php:72
+msgid "Overgeslagen"
+msgstr ""
+
+#: includes/admin/controllers/class-ucp-admin-assets-controller.php:74
+msgid "Mogelijk later laden"
+msgstr ""
+
+#: includes/admin/controllers/class-ucp-admin-assets-controller.php:76
+msgid "Overal uitgezet"
+msgstr ""
+
+#: includes/admin/controllers/class-ucp-admin-assets-controller.php:78
+msgid "Asset Manager regel"
+msgstr ""
+
+#: includes/admin/controllers/class-ucp-admin-assets-controller.php:80
+msgid "Asset Manager uitzondering"
+msgstr ""
+
+#: includes/admin/controllers/class-ucp-admin-assets-controller.php:82
+msgid "Gezien op frontend"
+msgstr ""
+
+#: includes/admin/controllers/class-ucp-admin-assets-controller.php:84
+msgid "Normaal"
+msgstr ""
+
+#: includes/admin/field-logic/traits/ucp-admin-field-logic-schema-trait.php:107
+msgid "Safe mode hoort bij Delay JS."
+msgstr ""
+
+#: includes/admin/field-logic/traits/ucp-admin-field-logic-schema-trait.php:114
+msgid "Deze instelling wordt pas gebruikt als Delay JS aan staat."
+msgstr ""
+
+#: includes/admin/field-logic/traits/ucp-admin-field-logic-schema-trait.php:121
+msgid "Extra uitzonderingen horen bij Delay JS."
+msgstr ""
+
+#: includes/admin/field-logic/traits/ucp-admin-field-logic-schema-trait.php:13
+msgid "Beschikbaar zodra pagina-cache actief is."
+msgstr ""
+
+#: includes/admin/field-logic/traits/ucp-admin-field-logic-schema-trait.php:130
+msgid "Beschikbaar zodra Defer JS actief is."
+msgstr ""
+
+#: includes/admin/field-logic/traits/ucp-admin-field-logic-schema-trait.php:131
+msgid "Deze expertoptie gaat uit zodra Delay JS aan staat."
+msgstr ""
+
+#: includes/admin/field-logic/traits/ucp-admin-field-logic-schema-trait.php:138
+msgid "Deze lijst hoort bij de veilige script-laadstrategie."
+msgstr ""
+
+#: includes/admin/field-logic/traits/ucp-admin-field-logic-schema-trait.php:14
+msgid "Deze optie hoort bij Opwarmen."
+msgstr ""
+
+#: includes/admin/field-logic/traits/ucp-admin-field-logic-schema-trait.php:144
+#: includes/admin/field-logic/traits/ucp-admin-field-logic-schema-trait.php:145
+#: includes/admin/field-logic/traits/ucp-admin-field-logic-schema-trait.php:146
+#: includes/admin/field-logic/traits/ucp-admin-field-logic-schema-trait.php:147
+msgid "Deze lijst is pas relevant zodra JavaScript-optimalisatie actief is."
+msgstr ""
+
+#: includes/admin/field-logic/traits/ucp-admin-field-logic-schema-trait.php:158
+#: includes/admin/field-logic/traits/ucp-admin-field-logic-schema-trait.php:165
+msgid "Kies eerst Volgende pagina voorbereiden - Voorzichtig gebruiken."
+msgstr ""
+
+#: includes/admin/field-logic/traits/ucp-admin-field-logic-schema-trait.php:172
+msgid "Uitzonderingen zijn alleen nodig als voorbereid laden actief is."
+msgstr ""
+
+#: includes/admin/field-logic/traits/ucp-admin-field-logic-schema-trait.php:21
+msgid "Beschikbaar zodra opwarmen actief is."
+msgstr ""
+
+#: includes/admin/field-logic/traits/ucp-admin-field-logic-schema-trait.php:28
+#: includes/admin/field-logic/traits/ucp-admin-field-logic-schema-trait.php:35
+#: includes/admin/field-logic/traits/ucp-admin-field-logic-schema-trait.php:42
+msgid "Deze instelling wordt pas gebruikt als Opwarmen aan staat."
+msgstr ""
+
+#: includes/admin/field-logic/traits/ucp-admin-field-logic-schema-trait.php:48
+#: includes/admin/field-logic/traits/ucp-admin-field-logic-schema-trait.php:56
+msgid "Uitzonderingen zijn vooral nodig als HTML verkleinen actief is."
+msgstr ""
+
+#: includes/admin/field-logic/traits/ucp-admin-field-logic-schema-trait.php:49
+#: includes/admin/field-logic/traits/ucp-admin-field-logic-schema-trait.php:57
+msgid "Deze uitzonderingen zijn pas relevant als HTML-opties aan staan."
+msgstr ""
+
+#: includes/admin/field-logic/traits/ucp-admin-field-logic-schema-trait.php:64
+msgid "CSS samenvoegen wordt automatisch uitgezet wanneer CSS-levering optimaliseren actief is."
+msgstr ""
+
+#: includes/admin/field-logic/traits/ucp-admin-field-logic-schema-trait.php:69
+msgid "Deze wachtrij is alleen nuttig wanneer CSS-levering optimaliseren actief is."
+msgstr ""
+
+#: includes/admin/field-logic/traits/ucp-admin-field-logic-schema-trait.php:74
+msgid "Cloud CSS is alleen relevant wanneer CSS-levering optimaliseren actief is."
+msgstr ""
+
+#: includes/admin/field-logic/traits/ucp-admin-field-logic-schema-trait.php:75
+msgid "Beschikbaar zodra CSS-levering optimaliseren actief is."
+msgstr ""
+
+#: includes/admin/field-logic/traits/ucp-admin-field-logic-schema-trait.php:76
+msgid "Beschikbaar zodra Cloud-rendering is ingericht."
+msgstr ""
+
+#: includes/admin/field-logic/traits/ucp-admin-field-logic-schema-trait.php:83
+#: includes/admin/field-logic/traits/ucp-admin-field-logic-schema-trait.php:84
+#: includes/admin/field-logic/traits/ucp-admin-field-logic-schema-trait.php:85
+#: includes/admin/field-logic/traits/ucp-admin-field-logic-schema-trait.php:86
+msgid "Deze lijst is pas relevant zodra CSS-optimalisatie actief is."
+msgstr ""
+
+#: includes/admin/field-logic/traits/ucp-admin-field-logic-schema-trait.php:94
+msgid "De CSS veilige lijst is alleen nodig als CSS-levering optimaliseren actief is."
+msgstr ""
+
+#: includes/admin/field-logic/traits/ucp-admin-field-logic-state-trait.php:30
+msgid "Er lijkt al een andere page-cache of drop-in actief. Test eerst cachegedrag en gebruik zo nodig alleen UltraCache voor purge en observatie."
+msgstr ""
+
+#: includes/admin/field-logic/traits/ucp-admin-field-logic-state-trait.php:34
+msgid "Er draait al een andere optimalisatieplugin. Laat overlap liever uit of test eerst in een veilige modus."
+msgstr ""
+
+#: includes/admin/field-logic/traits/ucp-admin-field-logic-state-trait.php:46
+msgid "Je site gebruikt plugins die gevoelig zijn voor markup-wijzigingen. Test alle flows handmatig voordat je dit live verder aanscherpt."
+msgstr ""
+
+#: includes/admin/field-logic/traits/ucp-admin-field-logic-state-trait.php:50
+msgid "Delay JS is een ingrijpende optimalisatie. Test altijd formulieren, sliders, cookiebanners, analytics en checkout."
+msgstr ""
+
+#: includes/admin/field-logic/traits/ucp-admin-field-logic-state-trait.php:52
+msgid "JavaScript samenvoegen - Geavanceerd wordt automatisch uitgezet zodra Delay JS actief is."
+msgstr ""
+
+#: includes/admin/field-logic/traits/ucp-admin-field-logic-state-trait.php:55
+msgid "De veilige script-laadstrategie gaat automatisch uit zodra Delay JS actief is."
+msgstr ""
+
+#: includes/admin/field-logic/traits/ucp-admin-field-logic-state-trait.php:60
+msgid "Delay JS neemt de laadstrategie over. Defer blijft als hoofdschakel zichtbaar voor consistentie, maar Delay bepaalt dan het gedrag."
+msgstr ""
+
+#: includes/admin/field-logic/traits/ucp-admin-field-logic-state-trait.php:72
+msgid "Deze expertoptie heeft geen effect zolang Delay JS actief is."
+msgstr ""
+
+#: includes/admin/field-logic/traits/ucp-admin-field-logic-state-trait.php:79
+msgid "Gebruik voorbereid laden alleen als formulieren, cookieflow en shopacties goed blijven werken."
+msgstr ""
+
+#: includes/admin/notices/traits/ucp-admin-notices-flash-toast-trait.php:90
+msgid "%1$s (%2$d keer)"
+msgstr ""
+
+#: includes/admin/notices/traits/ucp-admin-notices-render-trait.php:114
+msgid "WP_CACHE staat niet actief in wp-config.php. UltraCache kan daardoor niet vroeg genoeg laden."
+msgstr ""
+
+#: includes/admin/notices/traits/ucp-admin-notices-render-trait.php:116
+msgid "WP_CACHE veilig aanzetten"
+msgstr ""
+
+#: includes/admin/notices/traits/ucp-admin-notices-render-trait.php:132
+msgid "Mogelijke overlap gevonden: %s. UltraCache neemt automatisch over als er geen actieve andere page-cacheplugin is. Is er wel een actieve cacheplugin, kies dan bewust welke cachelaag actief mag zijn of gebruik de knop om UltraCache alsnog te activeren."
+msgstr ""
+
+#: includes/admin/notices/traits/ucp-admin-notices-render-trait.php:136
+msgid "Cachelaag controleren"
+msgstr ""
+
+#: includes/admin/notices/traits/ucp-admin-notices-render-trait.php:147
+msgid "Er staat al een advanced-cache.php van een andere cachelaag. Als er geen andere cacheplugin actief is, neemt UltraCache dit automatisch veilig over. Anders kun je bewust een back-up maken en cache activeren."
+msgstr ""
+
+#: includes/admin/notices/traits/ucp-admin-notices-render-trait.php:149
+msgid "Bestaande drop-in back-uppen en cache activeren"
+msgstr ""
+
+#: includes/admin/notices/traits/ucp-admin-notices-render-trait.php:159
+msgid "Aanbevolen veilige modus door overlap: %s."
+msgstr ""
+
+#: includes/admin/notices/traits/ucp-admin-notices-render-trait.php:165
+msgid "Aandacht vereist"
+msgstr ""
+
+#: includes/admin/notices/traits/ucp-admin-notices-render-trait.php:166
+msgid "Context voor deze tab"
+msgstr ""
+
+#: includes/admin/notices/traits/ucp-admin-notices-render-trait.php:27
+msgid "Testtaken gemaakt."
+msgstr ""
+
+#: includes/admin/notices/traits/ucp-admin-notices-render-trait.php:31
+msgid "Instelhulp is klaar."
+msgstr ""
+
+#: includes/admin/notices/traits/ucp-admin-notices-render-trait.php:36
+msgid "Snelle hulp is aangepast."
+msgstr ""
+
+#: includes/admin/notices/traits/ucp-admin-notices-render-trait.php:37
+msgid "Automatische hulp is toegepast."
+msgstr ""
+
+#: includes/admin/notices/traits/ucp-admin-notices-render-trait.php:38
+msgid "Veilige Heartbeat instellingen zijn toegepast."
+msgstr ""
+
+#: includes/admin/notices/traits/ucp-admin-notices-render-trait.php:39
+msgid "Veilige opwarminstellingen zijn toegepast."
+msgstr ""
+
+#: includes/admin/notices/traits/ucp-admin-notices-render-trait.php:40
+msgid "UltraCache is nu de actieve page-cache drop-in."
+msgstr ""
+
+#: includes/admin/notices/traits/ucp-admin-notices-render-trait.php:41
+msgid "Drop-in bestandsrechten opnieuw gecontroleerd."
+msgstr ""
+
+#: includes/admin/notices/traits/ucp-admin-notices-render-trait.php:42
+msgid "De vorige advanced-cache.php is veilig als backup bewaard."
+msgstr ""
+
+#: includes/admin/notices/traits/ucp-admin-notices-render-trait.php:43
+msgid "UltraCache heeft automatisch de page-cache drop-in geactiveerd omdat er geen actieve andere cacheplugin is gevonden."
+msgstr ""
+
+#: includes/admin/notices/traits/ucp-admin-notices-render-trait.php:44
+msgid "UltraCache heeft de bestaande drop-in niet automatisch vervangen omdat er nog een actieve cacheplugin is gevonden."
+msgstr ""
+
+#: includes/admin/notices/traits/ucp-admin-notices-render-trait.php:45
+msgid "WP_CACHE is aangezet. De bestaande advanced-cache.php is bewaard als backup en UltraCache is actief gemaakt."
+msgstr ""
+
+#: includes/admin/notices/traits/ucp-admin-notices-render-trait.php:46
+msgid "Veilige HTML-instellingen actief."
+msgstr ""
+
+#: includes/admin/notices/traits/ucp-admin-notices-render-trait.php:47
+msgid "Cloud synchronisatie is uitgevoerd."
+msgstr ""
+
+#: includes/admin/notices/traits/ucp-admin-notices-render-trait.php:48
+msgid "Object cache status is gecontroleerd."
+msgstr ""
+
+#: includes/admin/notices/traits/ucp-admin-notices-render-trait.php:49
+msgid "Afbeeldingsoptimalisatie is uitgevoerd."
+msgstr ""
+
+#: includes/admin/notices/traits/ucp-admin-notices-render-trait.php:50
+msgid "Systeemtest is uitgevoerd."
+msgstr ""
+
+#: includes/admin/notices/traits/ucp-admin-notices-render-trait.php:73
+msgid "%d taak opnieuw in de wachtrij gezet."
+msgid_plural "%d taken opnieuw in de wachtrij gezet."
+msgstr[0] ""
+msgstr[1] ""
+
+#: includes/admin/notices/traits/ucp-admin-notices-render-trait.php:84
+msgid "%d taak is overgeslagen omdat er al een actieve dubbele taak bestaat."
+msgid_plural "%d taken zijn overgeslagen omdat er al actieve dubbele taken bestaan."
+msgstr[0] ""
+msgstr[1] ""
+
+#: includes/admin/notices/traits/ucp-admin-notices-render-trait.php:91
+msgid "%d taak bestond niet meer."
+msgid_plural "%d taken bestonden niet meer."
+msgstr[0] ""
+msgstr[1] ""
+
+#: includes/admin/notices/traits/ucp-admin-notices-render-trait.php:98
+msgid "%d taak kon niet opnieuw worden ingepland."
+msgid_plural "%d taken konden niet opnieuw worden ingepland."
+msgstr[0] ""
+msgstr[1] ""
+
+#: includes/admin/tabs/class-ucp-admin-tab-optimization.php:45
+msgid "Automatisch herkend: %1$d groep met %2$d uitsluiting."
+msgid_plural "Automatisch herkend: %1$d groepen met %2$d uitsluitingen."
+msgstr[0] ""
+msgstr[1] ""
+
+#: includes/admin/tabs/class-ucp-admin-tab-optimization.php:53
+msgid "Vooral voor: %s."
+msgstr ""
+
+#: includes/admin/tabs/class-ucp-admin-tab-tools.php:10
+msgid "CSS genereren"
+msgstr ""
+
+#: includes/admin/tabs/class-ucp-admin-tab-tools.php:11
+msgid "CSS opschonen"
+msgstr ""
+
+#: includes/admin/tabs/class-ucp-admin-tab-tools.php:24
+msgid "Bezig"
+msgstr ""
+
+#: includes/admin/tabs/class-ucp-admin-tab-tools.php:25
+msgid "Opnieuw proberen"
+msgstr ""
+
+#: includes/admin/tabs/class-ucp-admin-tab-tools.php:9
+msgid "URL opwarmen"
+msgstr ""
+
+#: includes/admin/traits/ucp-admin-assets-trait.php:48
+msgid "Regel toegevoegd."
+msgstr ""
+
+#: includes/admin/traits/ucp-admin-assets-trait.php:49
+msgid "Je hebt iets aangepast. Wil je weggaan zonder op te slaan?"
+msgstr ""
+
+#: includes/admin/traits/ucp-admin-assets-trait.php:50
+msgid "UltraCache: instellingen opgeslagen."
+msgstr ""
+
+#: includes/admin/traits/ucp-admin-render-trait.php:13
+#: includes/admin/actions/ucp-admin-actions-cleanup-trait.php:10
+#: includes/admin/actions/ucp-admin-actions-maintenance-trait.php:10
+#: includes/admin/actions/ucp-admin-actions-maintenance-trait.php:28
+#: includes/admin/actions/ucp-admin-actions-maintenance-trait.php:80
+#: includes/admin/actions/ucp-admin-actions-maintenance-trait.php:116
+#: includes/admin/actions/ucp-admin-actions-maintenance-trait.php:126
+#: includes/admin/actions/ucp-admin-actions-maintenance-trait.php:145
+#: includes/admin/actions/ucp-admin-actions-import-export-trait.php:10
+#: includes/admin/actions/ucp-admin-actions-import-export-trait.php:23
+#: includes/admin/actions/ucp-admin-actions-import-export-trait.php:36
+#: includes/admin/actions/ucp-admin-actions-import-export-trait.php:100
+#: includes/admin/actions/ucp-admin-actions-import-export-trait.php:110
+#: includes/admin/actions/ucp-admin-actions-import-export-trait.php:121
+#: includes/admin/actions/ucp-admin-actions-import-export-trait.php:132
+#: includes/admin/actions/ucp-admin-actions-presets-trait.php:10
+#: includes/admin/actions/ucp-admin-actions-presets-trait.php:26
+#: includes/admin/actions/ucp-admin-actions-presets-trait.php:40
+#: includes/admin/actions/ucp-admin-actions-presets-trait.php:51
+#: includes/admin/actions/ucp-admin-actions-presets-trait.php:106
+#: includes/admin/actions/ucp-admin-actions-presets-trait.php:138
+#: includes/admin/actions/ucp-admin-actions-presets-trait.php:169
+#: includes/admin/actions/ucp-admin-actions-presets-trait.php:188
+#: includes/database/cleanup/ucp-db-cleanup-runner-trait.php:11
+#: includes/jobs/traits/ucp-jobs-admin-actions-trait.php:36
+#: includes/jobs/traits/ucp-jobs-admin-actions-trait.php:46
+#: includes/cache/traits/ucp-cache-admin-bar-trait.php:94
+#: includes/cache/traits/ucp-cache-admin-bar-trait.php:104
+#: includes/cache/traits/ucp-cache-admin-bar-trait.php:115
+#: includes/preload/traits/ucp-preload-admin-trait.php:9
+#: includes/cloud/class-ucp-cloud.php:27
+#: includes/core/class-ucp-runtime-tests.php:38
+#: includes/core/maintenance/ucp-maintenance-cleanup-trait.php:78
+msgid "Geen toegang."
+msgstr ""
+
+#: includes/admin/traits/ucp-admin-routing-trait.php:53
+msgid "UltraCache"
+msgstr ""
+
+#: includes/admin/views/class-ucp-admin-view.php:21
+msgid "Controleren"
+msgstr ""
+
+#: includes/admin/views/class-ucp-admin-view.php:22
+msgid "Info"
+msgstr ""
+
+#: includes/admin/views/controllers/assets/cleanup-intro.php:10
+msgid "Zet daarna alleen handles uit die je echt herkent. Laat onbekende WordPress-, WooCommerce- en builderbestanden met rust."
+msgstr ""
+
+#: includes/admin/views/controllers/assets/cleanup-intro.php:13
+msgid "Handig als je de voorkant van je site controleert."
+msgstr ""
+
+#: includes/admin/views/controllers/assets/cleanup-intro.php:13
+msgid "Snelle knop bovenaan"
+msgstr ""
+
+#: includes/admin/views/controllers/assets/cleanup-intro.php:7
+msgid "Asset cleanup"
+msgstr ""
+
+#: includes/admin/views/controllers/assets/cleanup-intro.php:7
+msgid "Gebruik dit alleen als een pagina echt te veel CSS of scripts laadt."
+msgstr ""
+
+#: includes/admin/views/controllers/assets/cleanup-intro.php:7
+msgid "Veilige start aanbevolen toepassen"
+msgstr ""
+
+#: includes/admin/views/controllers/assets/cleanup-intro.php:9
+msgid "Zo gebruik je dit veilig"
+msgstr ""
+
+#: includes/admin/views/controllers/assets/exclusions.php:10
+msgid "Deze scriptbestanden overslaan"
+msgstr ""
+
+#: includes/admin/views/controllers/assets/exclusions.php:7
+msgid "Hier zet je bestanden neer die UltraCache met rust moet laten."
+msgstr ""
+
+#: includes/admin/views/controllers/assets/exclusions.php:7
+msgid "Uitzonderingen voor bestanden"
+msgstr ""
+
+#: includes/admin/views/controllers/assets/exclusions.php:9
+msgid "Deze stijlbestanden overslaan"
+msgstr ""
+
+#: includes/admin/views/controllers/assets/exclusions.php:9
+#: includes/admin/views/controllers/assets/exclusions.php:10
+msgid "Één handle of deel van de naam per regel."
+msgstr ""
+
+#: includes/admin/views/controllers/assets/rule-row.php:13
+msgid "Waarde voor de regel"
+msgstr ""
+
+#: includes/admin/views/controllers/assets/rule-row.php:15
+msgid "CSS-optimalisatie uitzetten"
+msgstr ""
+
+#: includes/admin/views/controllers/assets/rule-row.php:15
+msgid "Cache uitzetten"
+msgstr ""
+
+#: includes/admin/views/controllers/assets/rule-row.php:15
+msgid "Cloud CSS overslaan"
+msgstr ""
+
+#: includes/admin/views/controllers/assets/rule-row.php:15
+msgid "Later laden uitzetten"
+msgstr ""
+
+#: includes/admin/views/controllers/assets/rule-row.php:15
+msgid "Opwarmen van links uitzetten"
+msgstr ""
+
+#: includes/admin/views/controllers/assets/rule-row.php:15
+msgid "Scriptoptimalisatie uitzetten"
+msgstr ""
+
+#: includes/admin/views/controllers/assets/rule-row.php:20
+msgid "Regel omhoog"
+msgstr ""
+
+#: includes/admin/views/controllers/assets/rule-row.php:20
+msgid "Regel omlaag"
+msgstr ""
+
+#: includes/admin/views/controllers/assets/rule-row.php:20
+msgid "Regel verwijderen"
+msgstr ""
+
+#: includes/admin/views/controllers/assets/rule-row.php:20
+msgid "Weg"
+msgstr ""
+
+#: includes/admin/views/controllers/assets/rule-row.php:9
+msgid "404"
+msgstr ""
+
+#: includes/admin/views/controllers/assets/rule-row.php:9
+msgid "Archief"
+msgstr ""
+
+#: includes/admin/views/controllers/assets/rule-row.php:9
+msgid "Device"
+msgstr ""
+
+#: includes/admin/views/controllers/assets/rule-row.php:9
+msgid "Homepage"
+msgstr ""
+
+#: includes/admin/views/controllers/assets/rule-row.php:9
+msgid "Ingelogd"
+msgstr ""
+
+#: includes/admin/views/controllers/assets/rule-row.php:9
+msgid "Pad bevat"
+msgstr ""
+
+#: includes/admin/views/controllers/assets/rule-row.php:9
+msgid "Post type"
+msgstr ""
+
+#: includes/admin/views/controllers/assets/rule-row.php:9
+msgid "Regex"
+msgstr ""
+
+#: includes/admin/views/controllers/assets/rule-row.php:9
+msgid "Singular"
+msgstr ""
+
+#: includes/admin/views/controllers/assets/rule-row.php:9
+msgid "Type pagina"
+msgstr ""
+
+#: includes/admin/views/controllers/assets/rule-row.php:9
+msgid "URL bevat"
+msgstr ""
+
+#: includes/admin/views/controllers/assets/rule-row.php:9
+msgid "Uitgelogd"
+msgstr ""
+
+#: includes/admin/views/controllers/assets/rules.php:12
+msgid "Houd het klein"
+msgstr ""
+
+#: includes/admin/views/controllers/assets/rules.php:13
+msgid "Maak zo weinig mogelijk regels. Minder regels is makkelijker en veiliger."
+msgstr ""
+
+#: includes/admin/views/controllers/assets/rules.php:16
+#: includes/admin/views/tabs/tools.php:66
+msgid "Actie"
+msgstr ""
+
+#: includes/admin/views/controllers/assets/rules.php:16
+msgid "Waarde"
+msgstr ""
+
+#: includes/admin/views/controllers/assets/rules.php:16
+msgid "Wanneer"
+msgstr ""
+
+#: includes/admin/views/controllers/assets/rules.php:8
+msgid "Extra regels"
+msgstr ""
+
+#: includes/admin/views/controllers/assets/rules.php:8
+msgid "Gebruik dit alleen als de gewone opties niet genoeg zijn."
+msgstr ""
+
+#: includes/admin/views/controllers/assets/rules.php:9
+msgid "Regel toevoegen"
+msgstr ""
+
+#: includes/admin/views/controllers/assets/snapshot.php:14
+msgid "Stijlen: %d"
+msgstr ""
+
+#: includes/admin/views/controllers/assets/snapshot.php:18
+msgid "Scripts: %d"
+msgstr ""
+
+#: includes/admin/views/controllers/assets/snapshot.php:22
+msgid "Overgeslagen: %d"
+msgstr ""
+
+#: includes/admin/views/controllers/assets/snapshot.php:26
+msgid "Overal uitgezet: %d"
+msgstr ""
+
+#: includes/admin/views/controllers/assets/snapshot.php:30
+msgid "Asset Manager regels: %d"
+msgstr ""
+
+#: includes/admin/views/controllers/assets/snapshot.php:36
+msgid "Naam"
+msgstr ""
+
+#: includes/admin/views/controllers/assets/snapshot.php:37
+msgid "Soort"
+msgstr ""
+
+#: includes/admin/views/controllers/assets/snapshot.php:38
+msgid "Bestand"
+msgstr ""
+
+#: includes/admin/views/controllers/assets/snapshot.php:39
+msgid "Afhankelijkheden"
+msgstr ""
+
+#: includes/admin/views/controllers/assets/snapshot.php:40
+msgid "Gebruikt door"
+msgstr ""
+
+#: includes/admin/views/controllers/assets/snapshot.php:41
+msgid "Wat doen we?"
+msgstr ""
+
+#: includes/admin/views/controllers/assets/snapshot.php:42
+msgid "Herkomst"
+msgstr ""
+
+#: includes/admin/views/controllers/assets/snapshot.php:47
+msgid "Er zijn op dit scherm geen bestanden gevonden."
+msgstr ""
+
+#: includes/admin/views/controllers/assets/snapshot.php:52
+msgid "Script"
+msgstr ""
+
+#: includes/admin/views/controllers/assets/snapshot.php:52
+msgid "Stijl"
+msgstr ""
+
+#: includes/admin/views/controllers/assets/snapshot.php:57
+msgid "Frontend snapshot"
+msgstr ""
+
+#: includes/admin/views/controllers/assets/snapshot.php:57
+msgid "Huidig scherm"
+msgstr ""
+
+#: includes/admin/views/controllers/assets/snapshot.php:7
+msgid "Technische details en geladen bestanden"
+msgstr ""
+
+#: includes/admin/views/controllers/assets/snapshot.php:9
+msgid "Laatste frontend snapshot: %1$s om %2$s"
+msgstr ""
+
+#: includes/admin/views/controllers/assets/unloads.php:10
+msgid "Deze scriptbestanden overal uitzetten"
+msgstr ""
+
+#: includes/admin/views/controllers/assets/unloads.php:10
+msgid "Eén handle per regel. Voorbeeld: wc-cart-fragments"
+msgstr ""
+
+#: includes/admin/views/controllers/assets/unloads.php:11
+msgid "Eén regel per keer. Voorbeeld: /afrekenen/ => theme-checkout"
+msgstr ""
+
+#: includes/admin/views/controllers/assets/unloads.php:11
+msgid "Stijlbestanden per pagina uitzetten"
+msgstr ""
+
+#: includes/admin/views/controllers/assets/unloads.php:12
+msgid "Eén regel per keer. Voorbeeld: /account/ => reviews-loader"
+msgstr ""
+
+#: includes/admin/views/controllers/assets/unloads.php:12
+msgid "Scriptbestanden per pagina uitzetten"
+msgstr ""
+
+#: includes/admin/views/controllers/assets/unloads.php:13
+msgid "Asset Manager 2.0 regels"
+msgstr ""
+
+#: includes/admin/views/controllers/assets/unloads.php:13
+msgid "Formaat: script|handle|disable|path_contains|/contact/ of style|handle|keep|post_type|product. Scopes: all, path_contains, url_contains, post_type, archive, device, logged_in, logged_out, regex, front_page, singular, 404."
+msgstr ""
+
+#: includes/admin/views/controllers/assets/unloads.php:14
+msgid "Asset Manager testmodus"
+msgstr ""
+
+#: includes/admin/views/controllers/assets/unloads.php:14
+msgid "Past asset-regels alleen toe voor beheerders, zodat bezoekers nog de normale site zien."
+msgstr ""
+
+#: includes/admin/views/controllers/assets/unloads.php:15
+msgid "Frontend asset-inspector voor admins"
+msgstr ""
+
+#: includes/admin/views/controllers/assets/unloads.php:15
+msgid "Slaat de laatst bezochte frontend-assets op voor het assetoverzicht. Alleen voor beheerders."
+msgstr ""
+
+#: includes/admin/views/controllers/assets/unloads.php:7
+msgid "Bestanden uitzetten"
+msgstr ""
+
+#: includes/admin/views/controllers/assets/unloads.php:7
+msgid "Gebruik dit alleen voor handles die je echt herkent."
+msgstr ""
+
+#: includes/admin/views/controllers/assets/unloads.php:9
+msgid "Deze stijlbestanden overal uitzetten"
+msgstr ""
+
+#: includes/admin/views/controllers/assets/unloads.php:9
+msgid "Eén handle per regel. Voorbeeld: contact-form-7"
+msgstr ""
+
+#: includes/admin/views/shell/start.php:21
+msgid "UltraCache onderdelen"
+msgstr ""
+
+#: includes/admin/views/shell/start.php:6
+msgid "UltraCache beheer"
+msgstr ""
+
+#: includes/admin/views/submit/submit-row.php:10
+msgid "Sla op om je wijziging te bewaren."
+msgstr ""
+
+#: includes/admin/views/submit/submit-row.php:13
+#: includes/admin/views/tabs/tools.php:72
+msgid "Terugzetten"
+msgstr ""
+
+#: includes/admin/views/submit/submit-row.php:9
+msgid "Je hebt iets aangepast."
+msgstr ""
+
+#: includes/admin/views/submit/tools-import-form.php:10
+msgid "Upload een eerder geexporteerde UltraCache configuratie. Import overschrijft bestaande instellingen; exporteer eerst een back-up."
+msgstr ""
+
+#: includes/admin/views/submit/tools-import-form.php:11
+msgid "Veiligheidsstap: de import start pas nadat je hieronder bevestigt dat je een recente export of database-back-up hebt."
+msgstr ""
+
+#: includes/admin/views/submit/tools-import-form.php:18
+msgid "Configuratiebestand"
+msgstr ""
+
+#: includes/admin/views/submit/tools-import-form.php:19
+msgid "Kies een .json of .txt exportbestand."
+msgstr ""
+
+#: includes/admin/views/submit/tools-import-form.php:24
+msgid "Ik heb een recente export of database-back-up en begrijp dat import bestaande UltraCache-instellingen overschrijft."
+msgstr ""
+
+#: includes/admin/views/submit/tools-import-form.php:26
+msgid "Import overschrijft bestaande UltraCache-instellingen. Doorgaan?"
+msgstr ""
+
+#: includes/admin/views/tabs/advanced-rules.php:10
+msgid "Bepaal wanneer de volledige cache automatisch wordt geleegd."
+msgstr ""
+
+#: includes/admin/views/tabs/advanced-rules.php:10
+msgid "Bestandsrechten controleren"
+msgstr ""
+
+#: includes/admin/views/tabs/advanced-rules.php:10
+msgid "Cachebestand herstellen"
+msgstr ""
+
+#: includes/admin/views/tabs/advanced-rules.php:12
+msgid "Maakt pagina’s sneller voor bezoekers."
+msgstr ""
+
+#: includes/admin/views/tabs/advanced-rules.php:12
+msgid "Pagina-cache inschakelen"
+msgstr ""
+
+#: includes/admin/views/tabs/advanced-rules.php:13
+msgid "0 = onbeperkt. 10 uur is een veilige standaard bij wisselende content."
+msgstr ""
+
+#: includes/admin/views/tabs/advanced-rules.php:13
+msgid "Cache legen na - uren"
+msgstr ""
+
+#: includes/admin/views/tabs/advanced-rules.php:14
+msgid "Cache legen na wijzigingen"
+msgstr ""
+
+#: includes/admin/views/tabs/advanced-rules.php:14
+msgid "Nieuwe content wordt dan sneller zichtbaar."
+msgstr ""
+
+#: includes/admin/views/tabs/advanced-rules.php:15
+msgid "12 uur"
+msgstr ""
+
+#: includes/admin/views/tabs/advanced-rules.php:15
+msgid "24 uur"
+msgstr ""
+
+#: includes/admin/views/tabs/advanced-rules.php:15
+msgid "48 uur"
+msgstr ""
+
+#: includes/admin/views/tabs/advanced-rules.php:15
+msgid "6 uur"
+msgstr ""
+
+#: includes/admin/views/tabs/advanced-rules.php:15
+msgid "Serveer tijdelijk oude cache als vernieuwen mislukt."
+msgstr ""
+
+#: includes/admin/views/tabs/advanced-rules.php:16
+msgid "Alleen gewijzigde pagina’s legen"
+msgstr ""
+
+#: includes/admin/views/tabs/advanced-rules.php:16
+msgid "Veilige en snelle standaard voor de meeste sites."
+msgstr ""
+
+#: includes/admin/views/tabs/advanced-rules.php:17
+msgid "Handig voor blogs, categorieën en archieven."
+msgstr ""
+
+#: includes/admin/views/tabs/advanced-rules.php:17
+msgid "Ook gerelateerde pagina’s legen"
+msgstr ""
+
+#: includes/admin/views/tabs/advanced-rules.php:22
+msgid "Gebruik dit voor gevoelige of dynamische pagina’s zoals checkout, account en persoonlijke content."
+msgstr ""
+
+#: includes/admin/views/tabs/advanced-rules.php:22
+msgid "Nooit URL(s) cachen"
+msgstr ""
+
+#: includes/admin/views/tabs/advanced-rules.php:23
+msgid "Eén pad of URL-fragment per regel. Bijvoorbeeld /checkout/ of ?preview=true."
+msgstr ""
+
+#: includes/admin/views/tabs/advanced-rules.php:23
+msgid "Specificeer URL’s of pagina’s die nooit gecached mogen worden"
+msgstr ""
+
+#: includes/admin/views/tabs/advanced-rules.php:27
+msgid "Nooit cookies cachen"
+msgstr ""
+
+#: includes/admin/views/tabs/advanced-rules.php:27
+msgid "Voorkom caching wanneer specifieke cookies aanwezig zijn."
+msgstr ""
+
+#: includes/admin/views/tabs/advanced-rules.php:28
+msgid "Cookie-ID’s die caching moeten overslaan"
+msgstr ""
+
+#: includes/admin/views/tabs/advanced-rules.php:28
+msgid "Eén volledige of gedeeltelijke cookie-ID per regel."
+msgstr ""
+
+#: includes/admin/views/tabs/advanced-rules.php:32
+msgid "Gebruik dit voor bots, apps of browsers die eigen cachegedrag nodig hebben."
+msgstr ""
+
+#: includes/admin/views/tabs/advanced-rules.php:32
+msgid "Nooit user agent(s) cachen"
+msgstr ""
+
+#: includes/admin/views/tabs/advanced-rules.php:33
+msgid "Eén user-agent fragment per regel. Gebruik (.*) wildcards."
+msgstr ""
+
+#: includes/admin/views/tabs/advanced-rules.php:33
+msgid "User-agent strings die nooit cache mogen zien"
+msgstr ""
+
+#: includes/admin/views/tabs/advanced-rules.php:37
+msgid "Altijd URL(s) legen"
+msgstr ""
+
+#: includes/admin/views/tabs/advanced-rules.php:37
+msgid "Deze URL’s worden extra geleegd wanneer content wijzigt."
+msgstr ""
+
+#: includes/admin/views/tabs/advanced-rules.php:38
+msgid "Eén pad of URL per regel. Wildcardregels legen minimaal de homepage mee."
+msgstr ""
+
+#: includes/admin/views/tabs/advanced-rules.php:38
+msgid "URL’s die altijd mee geleegd moeten worden"
+msgstr ""
+
+#: includes/admin/views/tabs/advanced-rules.php:45
+msgid "Query string(s) cachen"
+msgstr ""
+
+#: includes/admin/views/tabs/advanced-rules.php:45
+msgid "Sta specifieke GET-parameters toe als eigen cachevariant."
+msgstr ""
+
+#: includes/admin/views/tabs/advanced-rules.php:47
+msgid "Alleen onderstaande parameters toestaan"
+msgstr ""
+
+#: includes/admin/views/tabs/advanced-rules.php:47
+msgid "Laat uit, tenzij filters, zoekresultaten of campagnes unieke content tonen."
+msgstr ""
+
+#: includes/admin/views/tabs/advanced-rules.php:47
+msgid "Query strings cachen"
+msgstr ""
+
+#: includes/admin/views/tabs/advanced-rules.php:48
+msgid "Alleen nodig als mobiel andere inhoud toont."
+msgstr ""
+
+#: includes/admin/views/tabs/advanced-rules.php:48
+msgid "Aparte cache voor mobiel"
+msgstr ""
+
+#: includes/admin/views/tabs/advanced-rules.php:50
+msgid "Eén parameter per regel. Bijvoorbeeld lang, currency, orderby, filter_*."
+msgstr ""
+
+#: includes/admin/views/tabs/advanced-rules.php:50
+msgid "Specificeer query strings voor caching"
+msgstr ""
+
+#: includes/admin/views/tabs/advanced-rules.php:54
+msgid "Developer opties verplaatst"
+msgstr ""
+
+#: includes/admin/views/tabs/advanced-rules.php:54
+msgid "REST-cache en fragment cache staan nu apart onder Developer, zodat gewone cache-regels schoon blijven."
+msgstr ""
+
+#: includes/admin/views/tabs/cdn.php:101
+msgid "Eén keuze vervangt CDN inschakelen en bestandstypen herschrijven."
+msgstr ""
+
+#: includes/admin/views/tabs/cdn.php:109
+msgid "Statische bestanden herschrijven"
+msgstr ""
+
+#: includes/admin/views/tabs/cdn.php:110
+msgid "Vul alleen hostnamen in, zonder pad. UltraCache gebruikt de huidige URL-structuur en vervangt alleen het domein."
+msgstr ""
+
+#: includes/admin/views/tabs/cdn.php:114
+msgid "CDN CNAME(s)"
+msgstr ""
+
+#: includes/admin/views/tabs/cdn.php:114
+msgid "Eén host per regel. Voorbeeld: cdn.example.com. Gebruik geen volledige asset-URL met /wp-content/."
+msgstr ""
+
+#: includes/admin/views/tabs/cdn.php:118
+msgid "Test na opslaan altijd een pagina in een privévenster en controleer in DevTools of CSS, JS en afbeeldingen nog zonder 404 of CORS-fouten laden."
+msgstr ""
+
+#: includes/admin/views/tabs/cdn.php:12
+#: includes/admin/views/tabs/cdn.php:101
+msgid "Alle statische bestanden"
+msgstr ""
+
+#: includes/admin/views/tabs/cdn.php:126
+msgid "Sluit dynamische endpoints, problematische pluginbestanden of assets met strikte domeincontrole uit."
+msgstr ""
+
+#: includes/admin/views/tabs/cdn.php:13
+#: includes/admin/views/tabs/cdn.php:101
+msgid "Alleen CSS en JavaScript"
+msgstr ""
+
+#: includes/admin/views/tabs/cdn.php:130
+msgid "Eén URL, domein, pad of bestand per regel. Voorbeelden: /wp-json/, .php, /wp-content/plugins/some-plugin/(.*).css."
+msgstr ""
+
+#: includes/admin/views/tabs/cdn.php:130
+msgid "Niet via CDN laden"
+msgstr ""
+
+#: includes/admin/views/tabs/cdn.php:132
+msgid "Voorbeelden van CDN uitsluitingen"
+msgstr ""
+
+#: includes/admin/views/tabs/cdn.php:14
+#: includes/admin/views/tabs/cdn.php:101
+#: includes/admin/views/tabs/media.php:89
+msgid "Alleen afbeeldingen"
+msgstr ""
+
+#: includes/admin/views/tabs/cdn.php:142
+msgid "Edge cache en Cloudflare"
+msgstr ""
+
+#: includes/admin/views/tabs/cdn.php:147
+msgid "Huidige bewaartijd voor statische bestanden: ongeveer %d dagen."
+msgstr ""
+
+#: includes/admin/views/tabs/cdn.php:155
+msgid "1 jaar"
+msgstr ""
+
+#: includes/admin/views/tabs/cdn.php:155
+msgid "30 dagen"
+msgstr ""
+
+#: includes/admin/views/tabs/cdn.php:155
+msgid "6 maanden"
+msgstr ""
+
+#: includes/admin/views/tabs/cdn.php:155
+#: includes/admin/views/tabs/media.php:105
+msgid "Aangepast"
+msgstr ""
+
+#: includes/admin/views/tabs/cdn.php:155
+msgid "Browser-cache statische bestanden"
+msgstr ""
+
+#: includes/admin/views/tabs/cdn.php:155
+msgid "Eén keuze vervangt browser-cache headers en bewaartijd."
+msgstr ""
+
+#: includes/admin/views/tabs/cdn.php:156
+msgid "Aangepaste bewaartijd"
+msgstr ""
+
+#: includes/admin/views/tabs/cdn.php:156
+msgid "In seconden. Alleen nodig wanneer je Aangepast gebruikt."
+msgstr ""
+
+#: includes/admin/views/tabs/cdn.php:159
+msgid "Alleen gebruiken wanneer je host of edge-laag deze headers ondersteunt."
+msgstr ""
+
+#: includes/admin/views/tabs/cdn.php:159
+msgid "Extra host-headers inschakelen"
+msgstr ""
+
+#: includes/admin/views/tabs/cdn.php:160
+msgid "Cloudflare purge/API-ondersteuning"
+msgstr ""
+
+#: includes/admin/views/tabs/cdn.php:160
+msgid "Gebruik dit alleen wanneer Cloudflare actief is en je een zone ID en API-token invult."
+msgstr ""
+
+#: includes/admin/views/tabs/cdn.php:163
+msgid "Cloudflare zone ID"
+msgstr ""
+
+#: includes/admin/views/tabs/cdn.php:163
+msgid "Te vinden in je Cloudflare dashboard bij de zone-overzichtspagina."
+msgstr ""
+
+#: includes/admin/views/tabs/cdn.php:164
+msgid "Cloudflare API-token"
+msgstr ""
+
+#: includes/admin/views/tabs/cdn.php:164
+msgid "Gebruik een token met alleen de noodzakelijke cache purge-rechten voor deze zone."
+msgstr ""
+
+#: includes/admin/views/tabs/cdn.php:170
+msgid "Eerst inschakelen"
+msgstr ""
+
+#: includes/admin/views/tabs/cdn.php:171
+msgid "Zodra je CDN herschrijven aanzet, verschijnen hier het CDN-adres, de bestandstypen en de uitsluitingen. Cloudflare- en edge-opties staan in geavanceerde modus."
+msgstr ""
+
+#: includes/admin/views/tabs/cdn.php:42
+msgid "Koppel alleen een CDN-CNAME wanneer je statische bestanden wilt herschrijven. Gebruik je Cloudflare, Sucuri of een host-proxy voor je volledige domein? Dan is een CNAME meestal niet nodig."
+msgstr ""
+
+#: includes/admin/views/tabs/cdn.php:46
+msgid "CDN statusoverzicht"
+msgstr ""
+
+#: includes/admin/views/tabs/cdn.php:50
+#: includes/admin/views/tabs/cdn.php:101
+msgid "CDN herschrijven"
+msgstr ""
+
+#: includes/admin/views/tabs/cdn.php:51
+msgid "Ingeschakeld"
+msgstr ""
+
+#: includes/admin/views/tabs/cdn.php:51
+msgid "Uitgeschakeld"
+msgstr ""
+
+#: includes/admin/views/tabs/cdn.php:57
+msgid "CDN CNAME"
+msgstr ""
+
+#: includes/admin/views/tabs/cdn.php:63
+msgid " +%d extra"
+msgstr ""
+
+#: includes/admin/views/tabs/cdn.php:74
+msgid "Bestandstypen"
+msgstr ""
+
+#: includes/admin/views/tabs/cdn.php:8
+msgid "Niet ingesteld"
+msgstr ""
+
+#: includes/admin/views/tabs/cdn.php:81
+msgid "Cloudflare API"
+msgstr ""
+
+#: includes/admin/views/tabs/cdn.php:82
+msgid "Optioneel"
+msgstr ""
+
+#: includes/admin/views/tabs/cdn.php:82
+msgid "Zone en token ingevuld"
+msgstr ""
+
+#: includes/admin/views/tabs/cdn.php:89
+msgid "Route 1"
+msgstr ""
+
+#: includes/admin/views/tabs/cdn.php:90
+msgid "Pull CDN / CNAME"
+msgstr ""
+
+#: includes/admin/views/tabs/cdn.php:91
+msgid "Gebruik dit wanneer assets via bijvoorbeeld cdn.jedomein.nl geladen moeten worden."
+msgstr ""
+
+#: includes/admin/views/tabs/cdn.php:94
+msgid "Route 2"
+msgstr ""
+
+#: includes/admin/views/tabs/cdn.php:95
+msgid "Proxy / WAF"
+msgstr ""
+
+#: includes/admin/views/tabs/cdn.php:96
+msgid "Bij Cloudflare of Sucuri op je hoofddomein laat je CDN herschrijven meestal uit en gebruik je alleen purge/API-opties wanneer nodig."
+msgstr ""
+
+#: includes/admin/views/tabs/database.php:13
+msgid "Backup je database voordat je het opschonen begint. Database optimalisatie kan niet ongedaan worden gemaakt."
+msgstr ""
+
+#: includes/admin/views/tabs/database.php:13
+msgid "Database opschonen kan geselecteerde revisies, concepten, prullenbakitems, spamreacties, sessies en transients definitief verwijderen. Heb je een recente database-back-up?"
+msgstr ""
+
+#: includes/admin/views/tabs/database.php:13
+msgid "Ruim revisies, concepten, spam, prullenbak en tijdelijke gegevens veilig op. Maak altijd eerst een databaseback-up."
+msgstr ""
+
+#: includes/admin/views/tabs/database.php:14
+#: includes/admin/views/tabs/media.php:94
+msgid "Let op"
+msgstr ""
+
+#: includes/admin/views/tabs/database.php:14
+msgid "Revisies, concepten en prullenbakitems worden definitief verwijderd wanneer je die opties aanvinkt."
+msgstr ""
+
+#: includes/admin/views/tabs/database.php:18
+msgid "Berichten opschonen"
+msgstr ""
+
+#: includes/admin/views/tabs/database.php:18
+msgid "Gebruik dit niet als je revisies of concepten wilt behouden."
+msgstr ""
+
+#: includes/admin/views/tabs/database.php:20
+msgid "%d revisie in je database."
+msgid_plural "%d revisies in je database."
+msgstr[0] ""
+msgstr[1] ""
+
+#: includes/admin/views/tabs/database.php:21
+msgid "%d concept in je database."
+msgid_plural "%d concepten in je database."
+msgstr[0] ""
+msgstr[1] ""
+
+#: includes/admin/views/tabs/database.php:22
+msgid "%d verwijderd bericht in je database."
+msgid_plural "%d verwijderde berichten in je database."
+msgstr[0] ""
+msgstr[1] ""
+
+#: includes/admin/views/tabs/database.php:25
+msgid "Berichtrevisies opschonen"
+msgstr ""
+
+#: includes/admin/views/tabs/database.php:25
+msgid "Verwijdert oude revisies, maar bewaart het ingestelde aantal per bericht."
+msgstr ""
+
+#: includes/admin/views/tabs/database.php:26
+msgid "Aanbevolen: 5 revisies."
+msgstr ""
+
+#: includes/admin/views/tabs/database.php:26
+msgid "Aantal revisies bewaren"
+msgstr ""
+
+#: includes/admin/views/tabs/database.php:27
+msgid "Automatische concepten verwijderen"
+msgstr ""
+
+#: includes/admin/views/tabs/database.php:27
+msgid "Verwijdert auto-drafts die WordPress tijdelijk heeft aangemaakt."
+msgstr ""
+
+#: includes/admin/views/tabs/database.php:28
+msgid "Verwijderde berichten opschonen"
+msgstr ""
+
+#: includes/admin/views/tabs/database.php:28
+msgid "Verwijdert berichten die al in de prullenbak staan."
+msgstr ""
+
+#: includes/admin/views/tabs/database.php:33
+msgid "Reacties opschonen"
+msgstr ""
+
+#: includes/admin/views/tabs/database.php:33
+msgid "Spam en verwijderde reacties worden definitief verwijderd."
+msgstr ""
+
+#: includes/admin/views/tabs/database.php:35
+msgid "%d spam reactie in je database."
+msgid_plural "%d spam reacties in je database."
+msgstr[0] ""
+msgstr[1] ""
+
+#: includes/admin/views/tabs/database.php:36
+msgid "%d verwijderde reactie in je database."
+msgid_plural "%d verwijderde reacties in je database."
+msgstr[0] ""
+msgstr[1] ""
+
+#: includes/admin/views/tabs/database.php:39
+msgid "Spamreacties verwijderen"
+msgstr ""
+
+#: includes/admin/views/tabs/database.php:39
+msgid "Veilig voor de meeste sites."
+msgstr ""
+
+#: includes/admin/views/tabs/database.php:40
+msgid "Reacties uit prullenbak verwijderen"
+msgstr ""
+
+#: includes/admin/views/tabs/database.php:40
+msgid "Verwijdert reacties die al in de prullenbak staan."
+msgstr ""
+
+#: includes/admin/views/tabs/database.php:45
+msgid "Transients opschonen"
+msgstr ""
+
+#: includes/admin/views/tabs/database.php:45
+msgid "Transients zijn tijdelijke opties; ze worden opnieuw gegenereerd wanneer plugins ze nodig hebben."
+msgstr ""
+
+#: includes/admin/views/tabs/database.php:47
+msgid "%d transient in je database."
+msgid_plural "%d transients in je database."
+msgstr[0] ""
+msgstr[1] ""
+
+#: includes/admin/views/tabs/database.php:48
+msgid "%d verlopen transient in je database."
+msgid_plural "%d verlopen transients in je database."
+msgstr[0] ""
+msgstr[1] ""
+
+#: includes/admin/views/tabs/database.php:51
+msgid "Veilig: verwijdert alleen verlopen tijdelijke gegevens."
+msgstr ""
+
+#: includes/admin/views/tabs/database.php:51
+msgid "Verlopen transients verwijderen"
+msgstr ""
+
+#: includes/admin/views/tabs/database.php:52
+msgid "Alle transients verwijderen - Geavanceerd"
+msgstr ""
+
+#: includes/admin/views/tabs/database.php:52
+msgid "Alleen gebruiken bij probleemoplossing; sommige plugins bouwen gegevens opnieuw op."
+msgstr ""
+
+#: includes/admin/views/tabs/database.php:57
+msgid "Verminder overhead binnen plugin-tabellen en oude WooCommerce-sessies."
+msgstr ""
+
+#: includes/admin/views/tabs/database.php:59
+msgid "Databasetabellen optimaliseren"
+msgstr ""
+
+#: includes/admin/views/tabs/database.php:59
+msgid "Optimaliseert alleen UltraCache-tabellen, niet de volledige WordPress-database."
+msgstr ""
+
+#: includes/admin/views/tabs/database.php:60
+msgid "Alleen nuttig voor webshops."
+msgstr ""
+
+#: includes/admin/views/tabs/database.php:60
+msgid "Oude WooCommerce-sessies verwijderen"
+msgstr ""
+
+#: includes/admin/views/tabs/database.php:65
+msgid "Automatisch opruimen"
+msgstr ""
+
+#: includes/admin/views/tabs/database.php:65
+msgid "Laat dit uit tenzij je zeker weet welke onderdelen periodiek verwijderd mogen worden."
+msgstr ""
+
+#: includes/admin/views/tabs/database.php:68
+msgid "Automatische database-opschoning"
+msgstr ""
+
+#: includes/admin/views/tabs/database.php:68
+msgid "Kies Uit of een schema. De losse inschakelknop is samengevoegd met deze frequentiekeuze."
+msgstr ""
+
+#: includes/admin/views/tabs/database.php:68
+msgid "Maandelijks"
+msgstr ""
+
+#: includes/admin/views/tabs/developer.php:10
+msgid "Alleen gebruiken voor publieke, voorspelbare output. Niet gebruiken voor formulieren, accountdata, carts of persoonlijke content."
+msgstr ""
+
+#: includes/admin/views/tabs/developer.php:10
+msgid "Developer cache"
+msgstr ""
+
+#: includes/admin/views/tabs/developer.php:12
+msgid "Fragment Cache API inschakelen"
+msgstr ""
+
+#: includes/admin/views/tabs/developer.php:12
+msgid "Voor ontwikkelaars: cachet losse outputfragmenten. Alleen gebruiken als je weet welke fragments veilig zijn."
+msgstr ""
+
+#: includes/admin/views/tabs/developer.php:13
+msgid "3600 is een veilige standaard."
+msgstr ""
+
+#: includes/admin/views/tabs/developer.php:13
+msgid "Fragment cache TTL in seconden"
+msgstr ""
+
+#: includes/admin/views/tabs/developer.php:14
+msgid "Cachet publieke GET API-antwoorden. Test formulieren, zoekfuncties en externe koppelingen na inschakelen."
+msgstr ""
+
+#: includes/admin/views/tabs/developer.php:14
+msgid "REST API-cache inschakelen"
+msgstr ""
+
+#: includes/admin/views/tabs/developer.php:15
+msgid "300 is een veilige standaard."
+msgstr ""
+
+#: includes/admin/views/tabs/developer.php:15
+msgid "REST cache TTL in seconden"
+msgstr ""
+
+#: includes/admin/views/tabs/developer.php:17
+msgid "Eén routeprefix per regel. Gebruik alleen publieke contentroutes."
+msgstr ""
+
+#: includes/admin/views/tabs/developer.php:17
+msgid "REST API paden wel cachen"
+msgstr ""
+
+#: includes/admin/views/tabs/developer.php:18
+msgid "Eén routeprefix per regel. Gebruik voor formulieren, accounts, carts, zoek- en app-endpoints."
+msgstr ""
+
+#: includes/admin/views/tabs/developer.php:18
+msgid "REST API paden nooit cachen"
+msgstr ""
+
+#: includes/admin/views/tabs/developer.php:22
+msgid "Belangrijke compatibiliteitsopties blijven beschikbaar, maar staan bewust onder Developer omdat verkeerd gebruik persoonlijke content of builderflows kan raken."
+msgstr ""
+
+#: includes/admin/views/tabs/developer.php:24
+msgid "Laat Redis, Memcached of APCu met rust wanneer die actief zijn."
+msgstr ""
+
+#: includes/admin/views/tabs/developer.php:24
+msgid "Object cache respecteren"
+msgstr ""
+
+#: includes/admin/views/tabs/developer.php:25
+msgid "Beschermt winkelwagen, afrekenen, account en wc-ajax tegen caching en agressieve optimalisaties."
+msgstr ""
+
+#: includes/admin/views/tabs/developer.php:25
+msgid "WooCommerce regels automatisch toepassen"
+msgstr ""
+
+#: includes/admin/views/tabs/developer.php:26
+msgid "Cache voor ingelogde gebruikers"
+msgstr ""
+
+#: includes/admin/views/tabs/developer.php:26
+msgid "Developer-only. Meestal uit laten, omdat dashboards, builders en accounts persoonlijke content kunnen tonen."
+msgstr ""
+
+#: includes/admin/views/tabs/developer.php:31
+msgid "Extra bescherming voor builders, ingelogde sessies en toegankelijkheid."
+msgstr ""
+
+#: includes/admin/views/tabs/developer.php:33
+msgid "Accessibility mode"
+msgstr ""
+
+#: includes/admin/views/tabs/developer.php:33
+msgid "Vermindert risicovolle optimalisaties om interacties, focus en dynamische UI veiliger te houden."
+msgstr ""
+
+#: includes/admin/views/tabs/developer.php:34
+msgid "Aanbevolen voor builders en beheerwerk. Voorkomt dat frontend-optimalisaties editor- of previewflows raken."
+msgstr ""
+
+#: includes/admin/views/tabs/developer.php:34
+msgid "Optimalisaties uitschakelen voor ingelogde gebruikers"
+msgstr ""
+
+#: includes/admin/views/tabs/developer.php:35
+msgid "Schone uninstall"
+msgstr ""
+
+#: includes/admin/views/tabs/developer.php:35
+msgid "Verwijdert plugininstellingen bij deïnstallatie. Alleen aanzetten als je de configuratie niet wilt bewaren."
+msgstr ""
+
+#: includes/admin/views/tabs/developer.php:6
+msgid "REST-cache, fragment cache en technische veiligheidsopties. Standaard uit laten en eerst op staging testen."
+msgstr ""
+
+#: includes/admin/views/tabs/heartbeat.php:10
+msgid "Kies hieronder per locatie Behouden, Verminderen of Uitschakelen. UltraCache zet de interne Heartbeat-controle automatisch aan zodra één locatie wordt aangepast, en uit wanneer alles op Behouden staat."
+msgstr ""
+
+#: includes/admin/views/tabs/heartbeat.php:13
+#: includes/admin/views/tabs/heartbeat.php:14
+#: includes/admin/views/tabs/heartbeat.php:15
+msgid "Behouden"
+msgstr ""
+
+#: includes/admin/views/tabs/heartbeat.php:13
+msgid "Gedrag in de backend"
+msgstr ""
+
+#: includes/admin/views/tabs/heartbeat.php:13
+#: includes/admin/views/tabs/heartbeat.php:14
+#: includes/admin/views/tabs/heartbeat.php:15
+msgid "Uitschakelen"
+msgstr ""
+
+#: includes/admin/views/tabs/heartbeat.php:13
+#: includes/admin/views/tabs/heartbeat.php:14
+#: includes/admin/views/tabs/heartbeat.php:15
+msgid "Verminder activiteit"
+msgstr ""
+
+#: includes/admin/views/tabs/heartbeat.php:14
+msgid "Gedrag in de berichten editor"
+msgstr ""
+
+#: includes/admin/views/tabs/heartbeat.php:15
+msgid "Gedrag in de frontend"
+msgstr ""
+
+#: includes/admin/views/tabs/heartbeat.php:28
+msgid "120 sec"
+msgstr ""
+
+#: includes/admin/views/tabs/heartbeat.php:28
+msgid "30 sec"
+msgstr ""
+
+#: includes/admin/views/tabs/heartbeat.php:28
+msgid "60 sec"
+msgstr ""
+
+#: includes/admin/views/tabs/heartbeat.php:28
+msgid "Aangepast per locatie"
+msgstr ""
+
+#: includes/admin/views/tabs/heartbeat.php:28
+msgid "Eén keuze vervangt de drie losse intervalvelden. Kies Aangepast voor verschillende waarden per locatie."
+msgstr ""
+
+#: includes/admin/views/tabs/heartbeat.php:28
+msgid "Heartbeat interval bij verminderen"
+msgstr ""
+
+#: includes/admin/views/tabs/heartbeat.php:32
+msgid "Gebruikt wanneer frontend op verminderen staat."
+msgstr ""
+
+#: includes/admin/views/tabs/heartbeat.php:33
+msgid "Gebruikt wanneer editor op verminderen staat."
+msgstr ""
+
+#: includes/admin/views/tabs/heartbeat.php:34
+msgid "Gebruikt wanneer backend op verminderen staat."
+msgstr ""
+
+#: includes/admin/views/tabs/heartbeat.php:38
+#: includes/admin/views/tabs/onboarding.php:56
+msgid "Veilige start"
+msgstr ""
+
+#: includes/admin/views/tabs/heartbeat.php:39
+msgid "Gebruik 60 seconden als veilige algemene instelling. Kies Aangepast per locatie als je de editor sneller wilt houden dan frontend of backend."
+msgstr ""
+
+#: includes/admin/views/tabs/heartbeat.php:7
+msgid "Gebruik veilige standaard"
+msgstr ""
+
+#: includes/admin/views/tabs/heartbeat.php:7
+msgid "Maak dit simpel. Voor de meeste sites zijn veilige standaardwaarden genoeg."
+msgstr ""
+
+#: includes/admin/views/tabs/heartbeat.php:9
+msgid "Hoofdschakelaar samengevoegd"
+msgstr ""
+
+#: includes/admin/views/tabs/media.php:100
+msgid "Afbeeldingen optimaliseren"
+msgstr ""
+
+#: includes/admin/views/tabs/media.php:101
+msgid "Maakt WebP- en AVIF-versies wanneer je server dit ondersteunt."
+msgstr ""
+
+#: includes/admin/views/tabs/media.php:104
+msgid "Afbeeldingsoptimalisatie"
+msgstr ""
+
+#: includes/admin/views/tabs/media.php:104
+msgid "Eén keuze vervangt de losse optimalisatie-, WebP- en AVIF-knoppen. Laat uit als ShortPixel, Imagify, LiteSpeed, CDN-transforms of een andere image optimizer dit al doet."
+msgstr ""
+
+#: includes/admin/views/tabs/media.php:104
+msgid "Nieuwe uploads optimaliseren"
+msgstr ""
+
+#: includes/admin/views/tabs/media.php:104
+msgid "Optimaliseren + WebP + AVIF maken"
+msgstr ""
+
+#: includes/admin/views/tabs/media.php:104
+msgid "Optimaliseren + WebP maken"
+msgstr ""
+
+#: includes/admin/views/tabs/media.php:105
+msgid "Aanbevolen: 2 preloaden + 4 beschermen"
+msgstr ""
+
+#: includes/admin/views/tabs/media.php:105
+msgid "Eén keuze vervangt kritieke afbeeldingen preloaden en bovenste afbeeldingen niet lazyloaden."
+msgstr ""
+
+#: includes/admin/views/tabs/media.php:105
+msgid "Hero beschermen: niet lazyloaden"
+msgstr ""
+
+#: includes/admin/views/tabs/media.php:105
+msgid "Hero preloaden"
+msgstr ""
+
+#: includes/admin/views/tabs/media.php:105
+msgid "LCP-afbeeldingen"
+msgstr ""
+
+#: includes/admin/views/tabs/media.php:110
+msgid "Kan CLS verbeteren bij uploads zonder width/height. Staging eerst testen."
+msgstr ""
+
+#: includes/admin/views/tabs/media.php:110
+msgid "Ontbrekende afbeeldingsafmetingen toevoegen"
+msgstr ""
+
+#: includes/admin/views/tabs/media.php:112
+msgid "Aanbevolen: 82. Dit houdt afbeeldingen scherp met een kleinere bestandsgrootte."
+msgstr ""
+
+#: includes/admin/views/tabs/media.php:112
+msgid "Afbeeldingskwaliteit"
+msgstr ""
+
+#: includes/admin/views/tabs/media.php:120
+msgid "Fonts en extra snelheid"
+msgstr ""
+
+#: includes/admin/views/tabs/media.php:121
+msgid "Host Google Fonts lokaal en gebruik optionele snelheidsfuncties alleen wanneer de basis goed werkt."
+msgstr ""
+
+#: includes/admin/views/tabs/media.php:128
+msgid "Google Fonts"
+msgstr ""
+
+#: includes/admin/views/tabs/media.php:129
+msgid "Sla Google Fonts lokaal op wanneer je thema of plugins ze vanaf Google laden."
+msgstr ""
+
+#: includes/admin/views/tabs/media.php:132
+msgid "Alleen font-display swap"
+msgstr ""
+
+#: includes/admin/views/tabs/media.php:132
+msgid "Eén keuze vervangt lokaal hosten, font-display swap en Google Fonts uitschakelen."
+msgstr ""
+
+#: includes/admin/views/tabs/media.php:132
+msgid "Google Fonts gedrag"
+msgstr ""
+
+#: includes/admin/views/tabs/media.php:132
+msgid "Google Fonts uitschakelen"
+msgstr ""
+
+#: includes/admin/views/tabs/media.php:132
+msgid "Lokaal hosten + swap"
+msgstr ""
+
+#: includes/admin/views/tabs/media.php:134
+msgid "Eén .woff2 URL per regel."
+msgstr ""
+
+#: includes/admin/views/tabs/media.php:134
+msgid "Fonts vooraf laden"
+msgstr ""
+
+#: includes/admin/views/tabs/media.php:135
+msgid "Eén vroege externe origin per regel, bijvoorbeeld https://fonts.gstatic.com."
+msgstr ""
+
+#: includes/admin/views/tabs/media.php:135
+msgid "Preconnect URLs"
+msgstr ""
+
+#: includes/admin/views/tabs/media.php:136
+msgid "DNS prefetch domeinen"
+msgstr ""
+
+#: includes/admin/views/tabs/media.php:136
+msgid "Eén domein per regel, bijvoorbeeld fonts.googleapis.com."
+msgstr ""
+
+#: includes/admin/views/tabs/media.php:137
+msgid "Lokale lettertypes wissen"
+msgstr ""
+
+#: includes/admin/views/tabs/media.php:137
+msgid "Priority elements wissen"
+msgstr ""
+
+#: includes/admin/views/tabs/media.php:142
+msgid "Vooruit laden - optioneel"
+msgstr ""
+
+#: includes/admin/views/tabs/media.php:143
+msgid "Gebruik dit pas nadat lazy load en de basisinstellingen goed werken."
+msgstr ""
+
+#: includes/admin/views/tabs/media.php:146
+msgid "Eén keuze vervangt speculative loading, modus en snelheid. Test menu's, formulieren en winkelpagina's."
+msgstr ""
+
+#: includes/admin/views/tabs/media.php:146
+msgid "Prefetch normaal"
+msgstr ""
+
+#: includes/admin/views/tabs/media.php:146
+msgid "Prefetch rustig"
+msgstr ""
+
+#: includes/admin/views/tabs/media.php:146
+msgid "Prerender voorzichtig"
+msgstr ""
+
+#: includes/admin/views/tabs/media.php:146
+msgid "Volgende pagina voorbereiden"
+msgstr ""
+
+#: includes/admin/views/tabs/media.php:149
+msgid "Deze paden overslaan"
+msgstr ""
+
+#: includes/admin/views/tabs/media.php:149
+msgid "Eén pad per regel. Gebruik dit voor checkout, account, login, formulieren en dynamische pagina’s."
+msgstr ""
+
+#: includes/admin/views/tabs/media.php:74
+msgid "Afbeeldingen en lazy load"
+msgstr ""
+
+#: includes/admin/views/tabs/media.php:75
+msgid "Laad media slimmer en maak moderne afbeeldingsvarianten zonder onnodige extra instellingen."
+msgstr ""
+
+#: includes/admin/views/tabs/media.php:78
+msgid "Bestaande afbeeldingen optimaliseren"
+msgstr ""
+
+#: includes/admin/views/tabs/media.php:85
+msgid "Lazy load"
+msgstr ""
+
+#: includes/admin/views/tabs/media.php:86
+msgid "Beelden en embeds later laden, met veilige standaardinstellingen."
+msgstr ""
+
+#: includes/admin/views/tabs/media.php:89
+msgid "Afbeeldingen + iframes/video"
+msgstr ""
+
+#: includes/admin/views/tabs/media.php:89
+msgid "Afbeeldingen + iframes/video + YouTube preview"
+msgstr ""
+
+#: includes/admin/views/tabs/media.php:89
+msgid "Eén keuze vervangt lazyload voor afbeeldingen, iframes/video en YouTube preview."
+msgstr ""
+
+#: includes/admin/views/tabs/media.php:89
+msgid "Media lazyload"
+msgstr ""
+
+#: includes/admin/views/tabs/media.php:90
+msgid "Geef trefwoorden op, zoals bestandsnaam, CSS-klasse, domein of iframe-bron. Eén per regel."
+msgstr ""
+
+#: includes/admin/views/tabs/media.php:90
+msgid "Uitgesloten afbeeldingen of iframes"
+msgstr ""
+
+#: includes/admin/views/tabs/media.php:91
+msgid "Eén selector per regel, zoals .hero of .product-gallery."
+msgstr ""
+
+#: includes/admin/views/tabs/media.php:91
+msgid "Lazyload uitsluiten binnen selectors"
+msgstr ""
+
+#: includes/admin/views/tabs/media.php:94
+msgid "Test formulieren, cookiebanners en checkout nog even visueel als je lazy load of het voorbereiden van links aanpast."
+msgstr ""
+
+#: includes/admin/views/tabs/onboarding.php:10
+msgid "Klaar in een paar stappen."
+msgstr ""
+
+#: includes/admin/views/tabs/onboarding.php:21
+msgid "Kies je site"
+msgstr ""
+
+#: includes/admin/views/tabs/onboarding.php:22
+msgid "Kies wat het beste past."
+msgstr ""
+
+#: includes/admin/views/tabs/onboarding.php:26
+msgid "Kies je doel"
+msgstr ""
+
+#: includes/admin/views/tabs/onboarding.php:27
+msgid "Veilig, gebalanceerd of sterker optimaliseren."
+msgstr ""
+
+#: includes/admin/views/tabs/onboarding.php:31
+msgid "Plugins"
+msgstr ""
+
+#: includes/admin/views/tabs/onboarding.php:32
+msgid "We kijken welke plugins actief zijn."
+msgstr ""
+
+#: includes/admin/views/tabs/onboarding.php:37
+msgid "Sla op en ga verder."
+msgstr ""
+
+#: includes/admin/views/tabs/onboarding.php:47
+msgid "Gewone site"
+msgstr ""
+
+#: includes/admin/views/tabs/onboarding.php:48
+msgid "WooCommerce winkel"
+msgstr ""
+
+#: includes/admin/views/tabs/onboarding.php:49
+msgid "Bouwsite"
+msgstr ""
+
+#: includes/admin/views/tabs/onboarding.php:50
+msgid "Cloudflare site"
+msgstr ""
+
+#: includes/admin/views/tabs/onboarding.php:58
+msgid "Sterker"
+msgstr ""
+
+#: includes/admin/views/tabs/onboarding.php:62
+msgid "Gevonden plugins"
+msgstr ""
+
+#: includes/admin/views/tabs/onboarding.php:71
+msgid "Instellen"
+msgstr ""
+
+#: includes/admin/views/tabs/onboarding.php:9
+#: includes/admin/views/tabs/onboarding.php:36
+msgid "Afronden"
+msgstr ""
+
+#: includes/admin/views/tabs/optimization.php:100
+msgid "Device fetchpriority-regels"
+msgstr ""
+
+#: includes/admin/views/tabs/optimization.php:100
+msgid "Formaat: selector|device|context|priority. Bijvoorbeeld .wp-post-image|mobile|front_page|high of .custom-logo|desktop|all|high."
+msgstr ""
+
+#: includes/admin/views/tabs/optimization.php:107
+msgid "Laat alleen de hoofdkeuzes direct zien. Risicovolle of conflicterende opties staan achter Meer JavaScript opties."
+msgstr ""
+
+#: includes/admin/views/tabs/optimization.php:109
+msgid "Experimenteel. Zet dit alleen aan na stagingtests, vooral checkout, formulieren en cookie banners."
+msgstr ""
+
+#: includes/admin/views/tabs/optimization.php:109
+msgid "JavaScript verkleinen"
+msgstr ""
+
+#: includes/admin/views/tabs/optimization.php:110
+msgid "Defer JS"
+msgstr ""
+
+#: includes/admin/views/tabs/optimization.php:110
+msgid "Stelt niet-kritieke scripts later in de laadvolgorde uit. Kan samen met minify; test checkout en formulieren."
+msgstr ""
+
+#: includes/admin/views/tabs/optimization.php:111
+msgid "Alle scripts behalve uitsluitingen"
+msgstr ""
+
+#: includes/admin/views/tabs/optimization.php:111
+msgid "Alleen opgegeven scripts"
+msgstr ""
+
+#: includes/admin/views/tabs/optimization.php:111
+msgid "Eén keuze vervangt Delay JS, modus en veilige modus. Test altijd formulieren, sliders, cookie banners en checkout op staging."
+msgstr ""
+
+#: includes/admin/views/tabs/optimization.php:111
+#: includes/compat/traits/ucp-compat-combine-trait.php:80
+msgid "JavaScript uitstellen"
+msgstr ""
+
+#: includes/admin/views/tabs/optimization.php:111
+msgid "Veilige modus"
+msgstr ""
+
+#: includes/admin/views/tabs/optimization.php:115
+msgid "Automatische JavaScript-compatibiliteit"
+msgstr ""
+
+#: includes/admin/views/tabs/optimization.php:116
+msgid "UltraCache zet JavaScript samenvoegen automatisch uit zodra Delay JS actief is. Als JavaScript samenvoegen aan staat, blijft JS verkleinen automatisch aan. Defer JS blijft een losse, veiligere keuze met uitsluitingen."
+msgstr ""
+
+#: includes/admin/views/tabs/optimization.php:123
+msgid "Delay JS, uitzonderingen en expertopties staan samen in één overzichtelijk blok."
+msgstr ""
+
+#: includes/admin/views/tabs/optimization.php:123
+msgid "JavaScript extra opties"
+msgstr ""
+
+#: includes/admin/views/tabs/optimization.php:126
+msgid "Delay JS en uitzonderingen"
+msgstr ""
+
+#: includes/admin/views/tabs/optimization.php:129
+msgid "Automatische hulp"
+msgstr ""
+
+#: includes/admin/views/tabs/optimization.php:132
+msgid "Pas veilige Delay JS-uitsluitingen toe voor actieve plugins."
+msgstr ""
+
+#: includes/admin/views/tabs/optimization.php:132
+msgid "Snelle uitsluitingen"
+msgstr ""
+
+#: includes/admin/views/tabs/optimization.php:135
+msgid "Scripts uitsluiten van Delay JS"
+msgstr ""
+
+#: includes/admin/views/tabs/optimization.php:135
+msgid "Voeg hier eigen handles, URL-fragmenten of delen van bestandsnamen toe. De automatische detectie blijft daarnaast actief. Eén regel per item."
+msgstr ""
+
+#: includes/admin/views/tabs/optimization.php:146
+msgid "Aanbevolen op basis van je actieve site-stack."
+msgstr ""
+
+#: includes/admin/views/tabs/optimization.php:153
+msgid "Alleen deze scripts delayen"
+msgstr ""
+
+#: includes/admin/views/tabs/optimization.php:153
+msgid "Eén handle, URL-fragment of scriptnaam per regel. Alleen actief bij Alleen opgegeven scripts."
+msgstr ""
+
+#: includes/admin/views/tabs/optimization.php:154
+msgid "Fallback als er geen interactie komt."
+msgstr ""
+
+#: includes/admin/views/tabs/optimization.php:154
+msgid "Wachttijd voor Delay JS (seconden)"
+msgstr ""
+
+#: includes/admin/views/tabs/optimization.php:160
+msgid "Meer JavaScript opties"
+msgstr ""
+
+#: includes/admin/views/tabs/optimization.php:163
+msgid "JS samenvoegen zet JS verkleinen automatisch aan. Delay JS en geavanceerde scriptstrategie kunnen niet tegelijk met JS samenvoegen; UltraCache corrigeert dit bij opslaan."
+msgstr ""
+
+#: includes/admin/views/tabs/optimization.php:164
+msgid "Alleen voor eenvoudige sites. JavaScript verkleinen mag aan blijven; alleen samenvoegen wordt automatisch uitgezet wanneer Delay JS of geavanceerde scriptstrategie actief is."
+msgstr ""
+
+#: includes/admin/views/tabs/optimization.php:164
+msgid "JavaScript samenvoegen - Geavanceerd"
+msgstr ""
+
+#: includes/admin/views/tabs/optimization.php:165
+msgid "Expertoptie. Wordt niet gecombineerd met Delay JS of JS samenvoegen, maar JavaScript verkleinen mag aan blijven."
+msgstr ""
+
+#: includes/admin/views/tabs/optimization.php:165
+msgid "Veilige script-laadstrategie"
+msgstr ""
+
+#: includes/admin/views/tabs/optimization.php:166
+msgid "Advanced: verplaatst type=module scripts naar net voor </body>. Test met moderne themes/blocks."
+msgstr ""
+
+#: includes/admin/views/tabs/optimization.php:166
+msgid "Module scripts naar footer verplaatsen"
+msgstr ""
+
+#: includes/admin/views/tabs/optimization.php:167
+msgid "Slaat toegestane externe CSS, JS en fonts lokaal op in de UltraCache cachemap."
+msgstr ""
+
+#: includes/admin/views/tabs/optimization.php:167
+msgid "Third-party CSS/JS/fonts lokaal hosten"
+msgstr ""
+
+#: includes/admin/views/tabs/optimization.php:168
+msgid "Domeinen lokaal hosten"
+msgstr ""
+
+#: includes/admin/views/tabs/optimization.php:168
+msgid "Eén domein per regel. Bijvoorbeeld fonts.googleapis.com of www.googletagmanager.com."
+msgstr ""
+
+#: includes/admin/views/tabs/optimization.php:170
+msgid "Geef URLs, handles, domeinen of trefwoorden op die uitgesloten worden van minify, combineren en defer. Automatische detectie blijft daarnaast actief. Eén per regel."
+msgstr ""
+
+#: includes/admin/views/tabs/optimization.php:170
+msgid "JavaScript-bestanden uitsluiten"
+msgstr ""
+
+#: includes/admin/views/tabs/optimization.php:174
+msgid "Leeg laten voor normaal gedrag."
+msgstr ""
+
+#: includes/admin/views/tabs/optimization.php:174
+msgid "Scripts forceren naar veilige laadstrategie"
+msgstr ""
+
+#: includes/admin/views/tabs/optimization.php:33
+msgid "Laat samenvoegen en Delay alleen aan als je die overlap bewust test."
+msgstr ""
+
+#: includes/admin/views/tabs/optimization.php:33
+msgid "Overlap gedetecteerd"
+msgstr ""
+
+#: includes/admin/views/tabs/optimization.php:40
+msgid "HTML en CSS"
+msgstr ""
+
+#: includes/admin/views/tabs/optimization.php:41
+msgid "De belangrijkste optimalisaties staan overzichtelijk in één scherm."
+msgstr ""
+
+#: includes/admin/views/tabs/optimization.php:46
+msgid "HTML"
+msgstr ""
+
+#: includes/admin/views/tabs/optimization.php:46
+msgid "Laat alleen de veilige hoofdkeuzes direct zien. Uitzonderingen staan in het uitklapblok."
+msgstr ""
+
+#: includes/admin/views/tabs/optimization.php:48
+msgid "Alleen comments verwijderen"
+msgstr ""
+
+#: includes/admin/views/tabs/optimization.php:48
+msgid "Eén duidelijke keuze. HTML verkleinen zet comments verwijderen automatisch aan en slaat gevoelige WooCommerce-, builder- en previewpagina’s over."
+msgstr ""
+
+#: includes/admin/views/tabs/optimization.php:48
+msgid "HTML optimalisatie"
+msgstr ""
+
+#: includes/admin/views/tabs/optimization.php:48
+msgid "HTML verkleinen + comments verwijderen"
+msgstr ""
+
+#: includes/admin/views/tabs/optimization.php:51
+msgid "Automatische HTML-compatibiliteit"
+msgstr ""
+
+#: includes/admin/views/tabs/optimization.php:51
+msgid "HTML verkleinen gebruikt comments verwijderen als onderdeel van dezelfde veilige methode. Gevoelige templates, WooCommerce-flows, previews en uitgesloten URLs worden automatisch overgeslagen."
+msgstr ""
+
+#: includes/admin/views/tabs/optimization.php:54
+msgid "HTML uitzonderingen"
+msgstr ""
+
+#: includes/admin/views/tabs/optimization.php:57
+msgid "Deze URLs nooit aanpassen"
+msgstr ""
+
+#: includes/admin/views/tabs/optimization.php:57
+msgid "Eén URL-fragment of pad per regel. Bijvoorbeeld /checkout of ?elementor-preview=."
+msgstr ""
+
+#: includes/admin/views/tabs/optimization.php:58
+msgid "Deze templates nooit aanpassen"
+msgstr ""
+
+#: includes/admin/views/tabs/optimization.php:58
+msgid "Eén templatebestand of slug per regel."
+msgstr ""
+
+#: includes/admin/views/tabs/optimization.php:65
+msgid "Laat alleen de hoofdkeuzes direct zien. Alles met meer risico staat in het uitklapblok."
+msgstr ""
+
+#: includes/admin/views/tabs/optimization.php:67
+msgid "CSS verkleinen"
+msgstr ""
+
+#: includes/admin/views/tabs/optimization.php:67
+msgid "Experimenteel: staat standaard uit en vereist expliciet inschakelen. Test altijd op staging, vooral checkout, formulieren en cookie banners."
+msgstr ""
+
+#: includes/admin/views/tabs/optimization.php:68
+#: includes/admin/views/tabs/optimization.php:69
+msgid "CSS-levering optimaliseren"
+msgstr ""
+
+#: includes/admin/views/tabs/optimization.php:68
+msgid "Elimineert render-blocking CSS. Er kan maar één methode actief zijn. Ongebruikte CSS verwijderen is staging-first en gebruikt de AST-parser wanneer vendor libraries aanwezig zijn; CSS asynchroon laden is de veiligere fallback als layout breekt."
+msgstr ""
+
+#: includes/admin/views/tabs/optimization.php:69
+msgid "CSS asynchroon laden"
+msgstr ""
+
+#: includes/admin/views/tabs/optimization.php:69
+msgid "Kies één methode. Ongebruikte CSS gebruikt de AST-parser wanneer vendor libraries aanwezig zijn en valt anders veilig terug. Test grondig op staging, vooral met Elementor, sticky headers, sliders en WooCommerce."
+msgstr ""
+
+#: includes/admin/views/tabs/optimization.php:69
+msgid "Ongebruikte CSS verwijderen - staging"
+msgstr ""
+
+#: includes/admin/views/tabs/optimization.php:72
+msgid "Meer CSS-opties"
+msgstr ""
+
+#: includes/admin/views/tabs/optimization.php:75
+#: includes/admin/views/tabs/optimization.php:163
+msgid "Automatische compatibiliteit"
+msgstr ""
+
+#: includes/admin/views/tabs/optimization.php:75
+msgid "UltraCache zet CSS samenvoegen automatisch uit zodra Ongebruikte CSS verwijderen of CSS asynchroon laden actief is. De CSS-achtergrondwachtrij wordt automatisch gekoppeld aan CSS-levering; Cloud CSS blijft uit totdat Cloud-rendering is ingericht."
+msgstr ""
+
+#: includes/admin/views/tabs/optimization.php:76
+#: includes/compat/traits/ucp-compat-combine-trait.php:77
+msgid "CSS samenvoegen"
+msgstr ""
+
+#: includes/admin/views/tabs/optimization.php:76
+msgid "CSS verkleinen mag samen met CSS-levering. Alleen CSS samenvoegen wordt automatisch uitgezet wanneer CSS-levering optimaliseren actief is, omdat combine vaker builder-/formulierproblemen geeft."
+msgstr ""
+
+#: includes/admin/views/tabs/optimization.php:77
+msgid "Alleen beschikbaar als Cloud-rendering is ingericht."
+msgstr ""
+
+#: includes/admin/views/tabs/optimization.php:77
+msgid "Cloud CSS gebruiken"
+msgstr ""
+
+#: includes/admin/views/tabs/optimization.php:80
+msgid "Wachtrijstatus"
+msgstr ""
+
+#: includes/admin/views/tabs/optimization.php:83
+msgid "CSS-bestanden uitsluiten"
+msgstr ""
+
+#: includes/admin/views/tabs/optimization.php:83
+msgid "Geef URLs, handles, domeinen of padfragmenten op. Wildcards zoals (.*).css worden ondersteund. Eén per regel."
+msgstr ""
+
+#: includes/admin/views/tabs/optimization.php:84
+msgid "CSS veilige lijst"
+msgstr ""
+
+#: includes/admin/views/tabs/optimization.php:84
+msgid "Geef CSS-bestandsnamen, IDs of klassen op die niet verwijderd/asynchroon gemaakt mogen worden. Eén per regel, bijvoorbeeld elementor, jeg-elementor-kit of sticky-header."
+msgstr ""
+
+#: includes/admin/views/tabs/optimization.php:85
+msgid "Minimumgrootte CSS-artifact"
+msgstr ""
+
+#: includes/admin/views/tabs/optimization.php:85
+msgid "Voorkomt dat lege of kapotte Used/Critical CSS wordt uitgerold."
+msgstr ""
+
+#: includes/admin/views/tabs/optimization.php:86
+msgid "Maximaal aantal CSS retries"
+msgstr ""
+
+#: includes/admin/views/tabs/optimization.php:86
+msgid "Na deze limiet stopt UltraCache met automatisch opnieuw proberen."
+msgstr ""
+
+#: includes/admin/views/tabs/optimization.php:87
+msgid "Behoudt de laatst werkende CSS-artifacts bij een mislukte build."
+msgstr ""
+
+#: includes/admin/views/tabs/optimization.php:87
+msgid "CSS rollback bewaren"
+msgstr ""
+
+#: includes/admin/views/tabs/optimization.php:94
+msgid "Lazy render - geavanceerd"
+msgstr ""
+
+#: includes/admin/views/tabs/optimization.php:96
+msgid "Alleen testen op staging"
+msgstr ""
+
+#: includes/admin/views/tabs/optimization.php:96
+msgid "Voegt content-visibility toe aan handmatige selectors. Gebruik dit alleen voor secties onder de vouw, zoals footer, reviews of related products."
+msgstr ""
+
+#: includes/admin/views/tabs/optimization.php:98
+msgid "Gebruik content-visibility voor geselecteerde offscreen containers."
+msgstr ""
+
+#: includes/admin/views/tabs/optimization.php:98
+msgid "Lazy render selectors inschakelen"
+msgstr ""
+
+#: includes/admin/views/tabs/optimization.php:99
+msgid "Eén CSS-selector per regel. Bijvoorbeeld .site-footer of .related-products."
+msgstr ""
+
+#: includes/admin/views/tabs/optimization.php:99
+msgid "Lazy render selectors"
+msgstr ""
+
+#: includes/admin/views/tabs/overview.php:103
+msgid "Maatwerk"
+msgstr ""
+
+#: includes/admin/views/tabs/overview.php:107
+msgid "Maatwerkprofiel verwijderen?"
+msgstr ""
+
+#: includes/admin/views/tabs/overview.php:107
+msgid "Verwijderen"
+msgstr ""
+
+#: includes/admin/views/tabs/overview.php:121
+msgid "CSS en JavaScript optimaliseren."
+msgstr ""
+
+#: includes/admin/views/tabs/overview.php:125
+msgid "Cache-levensduur, uitsluitingen en query strings."
+msgstr ""
+
+#: includes/admin/views/tabs/overview.php:13
+msgid "UltraCache in het kort"
+msgstr ""
+
+#: includes/admin/views/tabs/overview.php:130
+msgid "Afbeeldingen, WebP/AVIF en iframe-opties."
+msgstr ""
+
+#: includes/admin/views/tabs/overview.php:134
+msgid "Revisies, transients en tabellen opruimen."
+msgstr ""
+
+#: includes/admin/views/tabs/overview.php:138
+msgid "Import, export, supportrapport en onderhoud."
+msgstr ""
+
+#: includes/admin/views/tabs/overview.php:14
+msgid "Kies één preset en beheer daarna alleen cache, optimalisatie en expertinstellingen als dat nodig is."
+msgstr ""
+
+#: includes/admin/views/tabs/overview.php:18
+msgid "%d aandachtspunt"
+msgid_plural "%d aandachtspunten"
+msgstr[0] ""
+msgstr[1] ""
+
+#: includes/admin/views/tabs/overview.php:20
+msgid "Geen grote overlap"
+msgstr ""
+
+#: includes/admin/views/tabs/overview.php:26
+#: includes/core/class-ucp-dashboard-widget.php:20
+msgid "Page cache"
+msgstr ""
+
+#: includes/admin/views/tabs/overview.php:28
+msgid "De belangrijkste snelheidsfunctie."
+msgstr ""
+
+#: includes/admin/views/tabs/overview.php:31
+msgid "Cachebestand"
+msgstr ""
+
+#: includes/admin/views/tabs/overview.php:32
+msgid "Andere plugin"
+msgstr ""
+
+#: includes/admin/views/tabs/overview.php:32
+msgid "Nog niet actief"
+msgstr ""
+
+#: includes/admin/views/tabs/overview.php:32
+msgid "UltraCache actief"
+msgstr ""
+
+#: includes/admin/views/tabs/overview.php:33
+msgid "Controleer dit onder Cache."
+msgstr ""
+
+#: includes/admin/views/tabs/overview.php:33
+msgid "Nodig voor snelle pagina-cache."
+msgstr ""
+
+#: includes/admin/views/tabs/overview.php:36
+#: includes/admin/views/tabs/overview.php:73
+msgid "Preset"
+msgstr ""
+
+#: includes/admin/views/tabs/overview.php:37
+#: includes/core/class-ucp-dashboard-widget.php:18
+msgid "Handmatig"
+msgstr ""
+
+#: includes/admin/views/tabs/overview.php:38
+msgid "Je kunt later altijd wisselen."
+msgstr ""
+
+#: includes/admin/views/tabs/overview.php:45
+msgid "Zet de belangrijkste page-cachefunctie aan met de veilige standaardinstellingen."
+msgstr ""
+
+#: includes/admin/views/tabs/overview.php:50
+msgid "Verwijder bestaande cachebestanden zodat bezoekers de nieuwste versie van de site zien."
+msgstr ""
+
+#: includes/admin/views/tabs/overview.php:55
+msgid "Leeg de cache en bouw belangrijke pagina’s opnieuw op, zodat ze sneller klaarstaan."
+msgstr ""
+
+#: includes/admin/views/tabs/overview.php:64
+msgid "Kies je preset"
+msgstr ""
+
+#: includes/admin/views/tabs/overview.php:65
+msgid "Presets zetten meerdere instellingen tegelijk goed. Begin veilig en finetune alleen als dat nodig is."
+msgstr ""
+
+#: includes/admin/views/tabs/overview.php:76
+msgid "Deze kiezen"
+msgstr ""
+
+#: includes/admin/views/tabs/overview.php:76
+msgid "Opnieuw toepassen"
+msgstr ""
+
+#: includes/admin/views/tabs/overview.php:85
+msgid "Maatwerkprofiel opslaan"
+msgstr ""
+
+#: includes/admin/views/tabs/overview.php:86
+msgid "Bewaar de huidige configuratie als eigen profiel voor klanttypes, staging of multisite-hergebruik."
+msgstr ""
+
+#: includes/admin/views/tabs/overview.php:93
+msgid "Naam maatwerkprofiel"
+msgstr ""
+
+#: includes/admin/views/tabs/overview.php:94
+msgid "Bijv. Elementor webshop veilig"
+msgstr ""
+
+#: includes/admin/views/tabs/overview.php:96
+msgid "Huidige instellingen opslaan"
+msgstr ""
+
+#: includes/admin/views/tabs/preload.php:18
+msgid "Cache preloaden"
+msgstr ""
+
+#: includes/admin/views/tabs/preload.php:18
+msgid "Preload bouwt cachebestanden vooraf op zodat bezoekers direct gecachte pagina’s krijgen."
+msgstr ""
+
+#: includes/admin/views/tabs/preload.php:19
+msgid "Cache legen en preloaden"
+msgstr ""
+
+#: includes/admin/views/tabs/preload.php:19
+msgid "Veilige preload standaard"
+msgstr ""
+
+#: includes/admin/views/tabs/preload.php:22
+msgid "Alleen homepage"
+msgstr ""
+
+#: includes/admin/views/tabs/preload.php:22
+msgid "Cache preload"
+msgstr ""
+
+#: includes/admin/views/tabs/preload.php:22
+msgid "Eén keuze vervangt preload aan/uit, queue, sitemap en homepage meenemen."
+msgstr ""
+
+#: includes/admin/views/tabs/preload.php:22
+msgid "Handmatig / geavanceerd"
+msgstr ""
+
+#: includes/admin/views/tabs/preload.php:22
+msgid "Veilig aanbevolen: queue + sitemap + homepage"
+msgstr ""
+
+#: includes/admin/views/tabs/preload.php:23
+msgid "Gebruikt lichte requests wanneer mogelijk, met normale preload als fallback."
+msgstr ""
+
+#: includes/admin/views/tabs/preload.php:23
+msgid "Lichte preload requests gebruiken"
+msgstr ""
+
+#: includes/admin/views/tabs/preload.php:25
+msgid "Taken"
+msgstr ""
+
+#: includes/admin/views/tabs/preload.php:25
+#: includes/admin/views/tabs/optimization.php:80
+msgid "Wacht: %1$d · Bezig: %2$d · Opnieuw: %3$d · Mislukt: %4$d"
+msgstr ""
+
+#: includes/admin/views/tabs/preload.php:29
+msgid "Link preloaden bereidt een pagina voor wanneer een bezoeker over een interne link beweegt."
+msgstr ""
+
+#: includes/admin/views/tabs/preload.php:29
+msgid "Links preloaden"
+msgstr ""
+
+#: includes/admin/views/tabs/preload.php:31
+msgid "Link preloaden activeren"
+msgstr ""
+
+#: includes/admin/views/tabs/preload.php:31
+msgid "Verbetert de beleving bij interne navigatie."
+msgstr ""
+
+#: includes/admin/views/tabs/preload.php:36
+msgid "Geavanceerde preload instellingen"
+msgstr ""
+
+#: includes/admin/views/tabs/preload.php:39
+msgid "Pagina’s per batch"
+msgstr ""
+
+#: includes/admin/views/tabs/preload.php:39
+msgid "Veilige start: 15 pagina’s per batch."
+msgstr ""
+
+#: includes/admin/views/tabs/preload.php:40
+#: includes/admin/views/tabs/database.php:68
+#: includes/admin/views/tabs/tools.php:12
+msgid "Dagelijks"
+msgstr ""
+
+#: includes/admin/views/tabs/preload.php:40
+msgid "Elke 2 uur"
+msgstr ""
+
+#: includes/admin/views/tabs/preload.php:40
+msgid "Laat dit uit tenzij je automatische heropwarming nodig hebt."
+msgstr ""
+
+#: includes/admin/views/tabs/preload.php:40
+msgid "Periodieke cache refresh"
+msgstr ""
+
+#: includes/admin/views/tabs/preload.php:40
+#: includes/admin/views/tabs/database.php:68
+msgid "Wekelijks"
+msgstr ""
+
+#: includes/admin/views/tabs/preload.php:41
+msgid "Maximaal aantal pagina’s"
+msgstr ""
+
+#: includes/admin/views/tabs/preload.php:41
+msgid "Veilige start: maximaal 250 pagina’s."
+msgstr ""
+
+#: includes/admin/views/tabs/preload.php:42
+msgid "Aanbevolen: 500 ms tussen aanvragen."
+msgstr ""
+
+#: includes/admin/views/tabs/preload.php:42
+msgid "Pauze per aanvraag (ms)"
+msgstr ""
+
+#: includes/admin/views/tabs/preload.php:44
+msgid "Comma-separated: posts,archives,terms,authors."
+msgstr ""
+
+#: includes/admin/views/tabs/preload.php:44
+msgid "Preload inhoud"
+msgstr ""
+
+#: includes/admin/views/tabs/preload.php:45
+msgid "Eén URL of pad per regel. Gebruik (.*) wildcards, bijvoorbeeld /author/(.*)."
+msgstr ""
+
+#: includes/admin/views/tabs/preload.php:45
+msgid "URL’s uitsluiten van preload"
+msgstr ""
+
+#: includes/admin/views/tabs/tools.php:15
+#: includes/cache/traits/ucp-cache-admin-bar-trait.php:30
+msgid "Cache legen en opwarmen"
+msgstr ""
+
+#: includes/admin/views/tabs/tools.php:17
+msgid "Wachtrij verwerken"
+msgstr ""
+
+#: includes/admin/views/tabs/tools.php:21
+#: includes/admin/tabs/class-ucp-admin-tab-tools.php:12
+msgid "Onderhoud"
+msgstr ""
+
+#: includes/admin/views/tabs/tools.php:23
+msgid "Onderhoud uitvoeren"
+msgstr ""
+
+#: includes/admin/views/tabs/tools.php:24
+msgid "Veilige instellingen toepassen"
+msgstr ""
+
+#: includes/admin/views/tabs/tools.php:26
+msgid "Supportrapport downloaden"
+msgstr ""
+
+#: includes/admin/views/tabs/tools.php:27
+msgid "Compatibiliteitslijsten controleren"
+msgstr ""
+
+#: includes/admin/views/tabs/tools.php:28
+#: includes/admin/notices/traits/ucp-admin-notices-render-trait.php:140
+msgid "Back-up maken en cache activeren"
+msgstr ""
+
+#: includes/admin/views/tabs/tools.php:28
+msgid "Drop-in bestandsrechten controleren"
+msgstr ""
+
+#: includes/admin/views/tabs/tools.php:35
+msgid "Alleen snelle, performancegerichte WordPress-tweaks. Brede hardening-opties zoals XML-RPC, REST API, feeds, reacties en login-aanpassingen zijn bewust uit de hoofdinterface gehaald."
+msgstr ""
+
+#: includes/admin/views/tabs/tools.php:35
+msgid "Lichte WordPress performance-tweaks"
+msgstr ""
+
+#: includes/admin/views/tabs/tools.php:37
+msgid "Emojis uitschakelen"
+msgstr ""
+
+#: includes/admin/views/tabs/tools.php:38
+msgid "Alleen voor niet-ingelogde bezoekers."
+msgstr ""
+
+#: includes/admin/views/tabs/tools.php:38
+msgid "Dashicons uitschakelen voor bezoekers"
+msgstr ""
+
+#: includes/admin/views/tabs/tools.php:39
+msgid "Insluitingen uitschakelen"
+msgstr ""
+
+#: includes/admin/views/tabs/tools.php:40
+msgid "Alleen gebruiken na testen met oudere thema’s/plugins."
+msgstr ""
+
+#: includes/admin/views/tabs/tools.php:40
+msgid "jQuery Migrate verwijderen voor bezoekers"
+msgstr ""
+
+#: includes/admin/views/tabs/tools.php:41
+msgid "Globale stijlen verwijderen"
+msgstr ""
+
+#: includes/admin/views/tabs/tools.php:42
+msgid "Blokstijlen gescheiden laden"
+msgstr ""
+
+#: includes/admin/views/tabs/tools.php:43
+msgid "Auto-save interval"
+msgstr ""
+
+#: includes/admin/views/tabs/tools.php:43
+msgid "In seconden. Standaard 60."
+msgstr ""
+
+#: includes/admin/views/tabs/tools.php:47
+msgid "Lijsten controleren"
+msgstr ""
+
+#: includes/admin/views/tabs/tools.php:47
+msgid "Lijsten met insluitingen en uitsluitingen"
+msgstr ""
+
+#: includes/admin/views/tabs/tools.php:47
+msgid "UltraCache gebruikt lokale compatibiliteitslijsten voor CDN, cache, CSS, JavaScript, lazyload en builders."
+msgstr ""
+
+#: includes/admin/views/tabs/tools.php:48
+msgid "%d lokale JSON-lijst aanwezig en valideerbaar."
+msgid_plural "%d lokale JSON-lijsten aanwezig en valideerbaar."
+msgstr[0] ""
+msgstr[1] ""
+
+#: includes/admin/views/tabs/tools.php:48
+msgid "Er is bewust geen nep-remote updater toegevoegd; nieuwe lijsten worden met pluginupdates meegeleverd."
+msgstr ""
+
+#: includes/admin/views/tabs/tools.php:49
+msgid "Meta opties opschonen"
+msgstr ""
+
+#: includes/admin/views/tabs/tools.php:49
+msgid "Standaardopties terugzetten"
+msgstr ""
+
+#: includes/admin/views/tabs/tools.php:49
+msgid "Standaardopties terugzetten?"
+msgstr ""
+
+#: includes/admin/views/tabs/tools.php:56
+msgid "Instellingen-back-ups"
+msgstr ""
+
+#: includes/admin/views/tabs/tools.php:57
+msgid "UltraCache bewaart automatisch de laatste 5 instellingen vóór wijzigingen. Maak ook handmatig een snapshot voordat je agressiever optimaliseert."
+msgstr ""
+
+#: includes/admin/views/tabs/tools.php:60
+msgid "Snapshot maken"
+msgstr ""
+
+#: includes/admin/views/tabs/tools.php:66
+msgid "Moment"
+msgstr ""
+
+#: includes/admin/views/tabs/tools.php:66
+msgid "Type"
+msgstr ""
+
+#: includes/admin/views/tabs/tools.php:72
+msgid "Deze snapshot terugzetten? De huidige instellingen worden eerst automatisch bewaard."
+msgstr ""
+
+#: includes/admin/views/tabs/tools.php:78
+msgid "Nog geen snapshots aanwezig. Na de eerstvolgende wijziging wordt automatisch een snapshot gemaakt."
+msgstr ""
+
+#: includes/admin/views/tabs/tools.php:83
+msgid "Import, export en onderhoud"
+msgstr ""
+
+#: includes/admin/views/tabs/tools.php:85
+msgid "Gebruik export/import om een goede configuratie op een andere site te hergebruiken."
+msgstr ""
+
+#: includes/admin/views/tabs/tools.php:85
+#: includes/admin/views/tabs/cdn.php:117
+msgid "Tip"
+msgstr ""
+
+#: includes/admin/views/tabs/tools.php:87
+msgid "Achtergrondtaken bewaren"
+msgstr ""
+
+#: includes/admin/views/tabs/tools.php:9
+#: includes/admin/views/tabs/overview.php:42
+msgid "Snelle acties"
+msgstr ""
+
+#: includes/admin/views/tabs/tools.php:9
+msgid "Voer veelgebruikte onderhoudstaken snel uit. Minder gebruikte taken staan lager op deze pagina."
+msgstr ""
+
+#: includes/cache/traits/purge/ucp-cache-purge-actions-trait.php:65
+msgid "Cache voor deze pagina is geleegd."
+msgstr ""
+
+#: includes/cache/traits/ucp-cache-admin-bar-trait.php:14
+msgid "Cache uit"
+msgstr ""
+
+#: includes/cache/traits/ucp-cache-admin-bar-trait.php:39
+msgid "Gebruikte CSS legen"
+msgstr ""
+
+#: includes/cache/traits/ucp-cache-admin-bar-trait.php:48
+msgid "Priority elements legen"
+msgstr ""
+
+#: includes/cache/traits/ucp-cache-admin-bar-trait.php:57
+msgid "Deze pagina legen"
+msgstr ""
+
+#: includes/cache/traits/ucp-cache-admin-bar-trait.php:65
+#: includes/core/class-ucp-dashboard-widget.php:31
+msgid "UltraCache openen"
+msgstr ""
+
+#: includes/cache/traits/ucp-cache-admin-bar-trait.php:72
+msgid "Teststand staat aan"
+msgstr ""
+
+#: includes/class-ucp-fragment-cache.php:21
+msgid "Fragment cache is actief."
+msgstr ""
+
+#: includes/class-ucp-image-optimizer.php:60
+msgid "Je hebt geen rechten om afbeeldingen te optimaliseren."
+msgstr ""
+
+#: includes/class-ucp-image-optimizer.php:87
+msgid "UltraCache heeft %d afbeelding(en) verwerkt."
+msgstr ""
+
+#: includes/class-ucp-object-cache.php:24
+msgid "Je hebt geen rechten om object cache te controleren."
+msgstr ""
+
+#: includes/class-ucp-object-cache.php:29
+msgid "Object cache is actief. UltraCache laat de bestaande drop-in bewust met rust."
+msgstr ""
+
+#: includes/class-ucp-object-cache.php:31
+msgid "Redis of Memcached lijkt beschikbaar, maar er is nog geen actieve WordPress object-cache drop-in."
+msgstr ""
+
+#: includes/class-ucp-object-cache.php:33
+msgid "Geen Redis/Memcached object-cache laag gevonden. Gebruik je hostingpaneel of een gespecialiseerde object-cache drop-in."
+msgstr ""
+
+#: includes/compat/traits/ucp-compat-combine-trait.php:14
+msgid "Deze site lijkt via HTTP/2 of HTTP/3 te draaien. Bestanden samenvoegen levert dan meestal weinig op en kan caching/debugging lastiger maken."
+msgstr ""
+
+#: includes/compat/traits/ucp-compat-combine-trait.php:18
+msgid "Er is al een optimalisatieplugin actief. Voorkom dubbele CSS/JS-combinatie en kies één plugin die dit beheert."
+msgstr ""
+
+#: includes/compat/traits/ucp-compat-combine-trait.php:24
+msgid "CSS-levering optimaliseren is actief. UltraCache zet CSS samenvoegen uit omdat dit conflicteert met Used/Critical CSS per pagina."
+msgstr ""
+
+#: includes/compat/traits/ucp-compat-combine-trait.php:29
+msgid "Er is een builder of formulierplugin gedetecteerd. CSS samenvoegen is dan extra breekgevoelig en blijft daarom vergrendeld."
+msgstr ""
+
+#: includes/compat/traits/ucp-compat-combine-trait.php:36
+msgid "Delay JS is actief. Net als WP Rocket schakelt UltraCache JavaScript samenvoegen dan uit om de uitvoervolgorde te beschermen."
+msgstr ""
+
+#: includes/compat/traits/ucp-compat-combine-trait.php:39
+msgid "Er is al een script-laadstrategie actief. JavaScript samenvoegen wordt daarom vergrendeld."
+msgstr ""
+
+#: includes/compat/traits/ucp-compat-combine-trait.php:44
+msgid "Er is een builder, shop, formulier- of cookieplugin gedetecteerd. JavaScript samenvoegen kan dan interacties breken en blijft daarom uit."
+msgstr ""
+
+#: includes/compat/traits/ucp-compat-combine-trait.php:76
+msgid "pagina-cache"
+msgstr ""
+
+#: includes/compat/traits/ucp-compat-combine-trait.php:78
+msgid "JavaScript samenvoegen"
+msgstr ""
+
+#: includes/compat/traits/ucp-compat-combine-trait.php:79
+msgid "bestanden uitschakelen"
+msgstr ""
+
+#: includes/compat/traits/ucp-compat-combine-trait.php:81
+msgid "ongebruikte CSS verwijderen"
+msgstr ""
+
+#: includes/compat/traits/ucp-compat-combine-trait.php:82
+msgid "kritieke CSS laden"
+msgstr ""
+
+#: includes/compat/traits/ucp-compat-combine-trait.php:83
+msgid "object-cache overlap"
+msgstr ""
+
+#: includes/compat/traits/ucp-compat-detection-trait.php:256
+msgid "Bestaande advanced-cache.php (%s)"
+msgstr ""
+
+#: includes/compat/traits/ucp-compat-detection-trait.php:289
+msgid "Maak eerst een back-up. Activeer UltraCache alleen als je zeker weet dat deze plugin de actieve page-cachelaag mag worden."
+msgstr ""
+
+#: includes/compat/traits/ucp-compat-detection-trait.php:292
+msgid "Laat Redis/Memcached object cache als aparte laag werken en voorkom dubbele object-cache drop-ins."
+msgstr ""
+
+#: includes/compat/traits/ucp-compat-detection-trait.php:295
+msgid "Schakel overlappende CSS/JS combine, delay of asset-unload opties in één van beide plugins uit."
+msgstr ""
+
+#: includes/compat/traits/ucp-compat-detection-trait.php:298
+msgid "Gebruik UltraCache als applicatielaag en purge de server/CDN-laag expliciet na wijzigingen."
+msgstr ""
+
+#: includes/compat/traits/ucp-compat-detection-trait.php:300
+msgid "Controleer overlap met page cache, minify, preload, CDN of cache legen voordat je ingrijpende opties inschakelt."
+msgstr ""
+
+#: includes/core/class-ucp-dashboard-widget.php:11
+msgid "UltraCache status"
+msgstr ""
+
+#: includes/core/class-ucp-dashboard-widget.php:21
+msgid "Preload"
+msgstr ""
+
+#: includes/core/class-ucp-dashboard-widget.php:22
+msgid "CSS minify"
+msgstr ""
+
+#: includes/core/class-ucp-dashboard-widget.php:23
+msgid "Lazyload media"
+msgstr ""
+
+#: includes/core/class-ucp-dashboard-widget.php:25
+msgid "Actieve preset:"
+msgstr ""
+
+#: includes/core/class-ucp-optimization-intelligence.php:298
+msgid "CSS-artifacts zijn als stale gemarkeerd en de homepage is opnieuw ingepland."
+msgstr ""
+
+#: includes/core/class-ucp-page-overrides.php:11
+msgid "Alle UltraCache optimalisaties uitschakelen"
+msgstr ""
+
+#: includes/core/class-ucp-page-overrides.php:12
+msgid "Pagina-cache uitschakelen"
+msgstr ""
+
+#: includes/core/class-ucp-page-overrides.php:13
+msgid "Delay JS uitschakelen"
+msgstr ""
+
+#: includes/core/class-ucp-page-overrides.php:14
+msgid "CSS-optimalisatie uitschakelen"
+msgstr ""
+
+#: includes/core/class-ucp-page-overrides.php:15
+msgid "JS-optimalisatie uitschakelen"
+msgstr ""
+
+#: includes/core/class-ucp-page-overrides.php:16
+msgid "Speculative loading uitschakelen"
+msgstr ""
+
+#: includes/core/class-ucp-page-overrides.php:78
+msgid "UltraCache pagina-uitzonderingen"
+msgstr ""
+
+#: includes/core/class-ucp-page-overrides.php:90
+msgid "Gebruik dit alleen voor pagina’s met formulier-, checkout-, builder- of scriptsproblemen."
+msgstr ""
+
+#: includes/core/class-ucp-presets.php:23
+msgid "Maatwerk preset"
+msgstr ""
+
+#: includes/core/class-ucp-presets.php:239
+msgid "PageSpeed Auto"
+msgstr ""
+
+#: includes/core/class-ucp-presets.php:24
+msgid "Opgeslagen vanuit de huidige UltraCache-instellingen."
+msgstr ""
+
+#: includes/core/class-ucp-presets.php:240
+msgid "Staging-vriendelijk profiel voor Elementor/WooCommerce: cache, preload, CSS-minify, lokale fonts, lazyload en veilige checkout-bypasses. Used CSS en Delay JS blijven bewust handmatig."
+msgstr ""
+
+#: includes/core/class-ucp-presets.php:245
+msgid "Basis-cache en veilige headers zonder agressieve frontend-optimalisatie."
+msgstr ""
+
+#: includes/core/class-ucp-presets.php:259
+msgid "WP Rocket-achtige veilige standaard: cache, preload, minify, heartbeat en link preload."
+msgstr ""
+
+#: includes/core/class-ucp-presets.php:272
+msgid "Snel"
+msgstr ""
+
+#: includes/core/class-ucp-presets.php:273
+msgid "Extra optimalisatie zonder Delay JS of Used CSS: lazyload, veilige defer-fallback, font-display en query-string cleanup."
+msgstr ""
+
+#: includes/core/class-ucp-presets.php:282
+msgid "Agressief - staging"
+msgstr ""
+
+#: includes/core/class-ucp-presets.php:283
+msgid "Alleen voor staging of ervaren gebruikers. Kan scripts, checkout of builders raken."
+msgstr ""
+
+#: includes/core/class-ucp-presets.php:291
+msgid "Webshop veilig"
+msgstr ""
+
+#: includes/core/class-ucp-presets.php:292
+msgid "Beschermt winkelwagen, afrekenen, account, order-pay en WooCommerce-fragmenten extra."
+msgstr ""
+
+#: includes/core/class-ucp-presets.php:302
+msgid "Builder veilig"
+msgstr ""
+
+#: includes/core/class-ucp-presets.php:303
+msgid "Veiliger voor Elementor, Bricks, Divi, Beaver Builder en visuele editors."
+msgstr ""
+
+#: includes/core/class-ucp-presets.php:310
+msgid "Edge eerst"
+msgstr ""
+
+#: includes/core/class-ucp-presets.php:311
+msgid "Gemaakt voor Cloudflare-achtige opzet zonder lokale agressieve JS/CSS-magie."
+msgstr ""
+
+#: includes/core/class-ucp-presets.php:318
+msgid "Veilige stand"
+msgstr ""
+
+#: includes/core/class-ucp-presets.php:319
+msgid "Zet de sterkere snelheid uit en laat alleen conservatieve optimalisatie over."
+msgstr ""
+
+#: includes/core/class-ucp-presets.php:42
+msgid "Opgeslagen maatwerkprofiel."
+msgstr ""
+
+#: includes/core/class-ucp-runtime-tests.php:105
+msgid "CSS samenvoegen staat aan. Bij builders werkt uit vaak beter."
+msgstr ""
+
+#: includes/core/class-ucp-runtime-tests.php:108
+msgid "Uitgesteld JS noemt Elementor nu niet."
+msgstr ""
+
+#: includes/core/class-ucp-runtime-tests.php:123
+msgid "HTML kleiner maken staat live aan op een site met gevoelige plugins. Test dit eerst rustig op staging of handmatig."
+msgstr ""
+
+#: includes/core/class-ucp-runtime-tests.php:134
+msgid "Cloudflare is niet gevonden in plugin, headers of API."
+msgstr ""
+
+#: includes/core/class-ucp-runtime-tests.php:137
+msgid "Cloudflare Zone ID en API token zijn nog niet compleet."
+msgstr ""
+
+#: includes/core/class-ucp-runtime-tests.php:140
+msgid "Preload Link headers staat uit."
+msgstr ""
+
+#: includes/core/class-ucp-runtime-tests.php:143
+msgid "Edge cache headers staan uit."
+msgstr ""
+
+#: includes/core/class-ucp-runtime-tests.php:50
+msgid "wp-content is niet schrijfbaar."
+msgstr ""
+
+#: includes/core/class-ucp-runtime-tests.php:53
+msgid "De UltraCache cachemap ontbreekt."
+msgstr ""
+
+#: includes/core/class-ucp-runtime-tests.php:56
+msgid "Het rewrite-systeem is niet gestart."
+msgstr ""
+
+#: includes/core/class-ucp-runtime-tests.php:67
+msgid "WooCommerce staat niet aan op deze site."
+msgstr ""
+
+#: includes/core/class-ucp-runtime-tests.php:80
+msgid "Deze WooCommerce pagina ontbreekt: %s."
+msgstr ""
+
+#: includes/core/class-ucp-runtime-tests.php:84
+msgid "De winkelwagen staat niet in uitgesloten URL's."
+msgstr ""
+
+#: includes/core/class-ucp-runtime-tests.php:87
+msgid "wc-cart-fragments staat niet in Uitgesteld JS."
+msgstr ""
+
+#: includes/core/class-ucp-runtime-tests.php:94
+msgid "Elementor staat niet aan op deze site."
+msgstr ""
+
+#: includes/core/class-ucp-site-health.php:21
+msgid "UltraCache cachemap"
+msgstr ""
+
+#: includes/core/class-ucp-site-health.php:25
+msgid "UltraCache wachtrij"
+msgstr ""
+
+#: includes/core/class-ucp-site-health.php:29
+msgid "UltraCache cacheconflicten"
+msgstr ""
+
+#: includes/core/class-ucp-site-health.php:33
+msgid "UltraCache drop-in configuratie"
+msgstr ""
+
+#: includes/core/class-ucp-site-health.php:42
+msgid "UltraCache cachemap heeft aandacht nodig"
+msgstr ""
+
+#: includes/core/class-ucp-site-health.php:42
+msgid "UltraCache cachemap is schrijfbaar"
+msgstr ""
+
+#: includes/core/class-ucp-site-health.php:44
+#: includes/core/class-ucp-site-health.php:57
+#: includes/core/quality/ucp-quality-suite-site-health-trait.php:18
+msgid "Snelheid"
+msgstr ""
+
+#: includes/core/class-ucp-site-health.php:45
+msgid "UltraCache heeft een schrijfbare cachemap nodig voor cache, gemaakte CSS en controles."
+msgstr ""
+
+#: includes/core/class-ucp-site-health.php:55
+msgid "Controleer de UltraCache wachtrij"
+msgstr ""
+
+#: includes/core/class-ucp-site-health.php:55
+msgid "UltraCache wachtrij ziet er goed uit"
+msgstr ""
+
+#: includes/core/class-ucp-site-health.php:59
+msgid "Nu in de wachtrij: %1$d open, %2$d mislukt."
+msgstr ""
+
+#: includes/core/class-ucp-site-health.php:72
+msgid "Geen bekende UltraCache conflicten gevonden"
+msgstr ""
+
+#: includes/core/class-ucp-site-health.php:72
+msgid "UltraCache heeft mogelijke overlap met andere cachelagen"
+msgstr ""
+
+#: includes/core/class-ucp-site-health.php:75
+msgid "Er zijn geen bekende overlap-signalen gevonden."
+msgstr ""
+
+#: includes/core/class-ucp-site-health.php:86
+msgid "WP_CACHE ontbreekt of staat uit in wp-config.php."
+msgstr ""
+
+#: includes/core/class-ucp-site-health.php:89
+msgid "De drop-in configuratie is nog niet geschreven."
+msgstr ""
+
+#: includes/core/class-ucp-site-health.php:92
+msgid "WP_CACHE en de drop-in configuratie zijn aanwezig."
+msgstr ""
+
+#: includes/core/class-ucp-site-health.php:95
+msgid "UltraCache drop-in configuratie heeft aandacht nodig"
+msgstr ""
+
+#: includes/core/class-ucp-site-health.php:95
+msgid "UltraCache drop-in configuratie is in orde"
+msgstr ""
+
+#: includes/core/log-package/ucp-log-package-download-trait.php:29
+msgid "Je hebt geen rechten om UltraCache logs te downloaden."
+msgstr ""
+
+#: includes/core/log-package/ucp-log-package-download-trait.php:40
+msgid "Kon geen tijdelijk logpakket maken."
+msgstr ""
+
+#: includes/core/log-package/ucp-log-package-download-trait.php:52
+msgid "Kon het logpakket niet bouwen. Controleer of ZipArchive beschikbaar is."
+msgstr ""
+
+#: includes/core/maintenance/ucp-maintenance-cleanup-trait.php:13
+msgid "Elke dag"
+msgstr ""
+
+#: includes/core/maintenance/ucp-maintenance-privacy-trait.php:100
+msgid "UltraCache Pro controles"
+msgstr ""
+
+#: includes/core/maintenance/ucp-maintenance-privacy-trait.php:104
+msgid "Pad"
+msgstr ""
+
+#: includes/core/maintenance/ucp-maintenance-privacy-trait.php:105
+msgid "Notities"
+msgstr ""
+
+#: includes/core/maintenance/ucp-maintenance-privacy-trait.php:106
+msgid "Assets"
+msgstr ""
+
+#: includes/core/maintenance/ucp-maintenance-privacy-trait.php:107
+msgid "Gegenereerd"
+msgstr ""
+
+#: includes/core/maintenance/ucp-maintenance-privacy-trait.php:15
+msgid "UltraCache Pro kan logs en controles bewaren voor beheerders. Deze gegevens blijven lokaal in WordPress voor controle en hulp bij problemen."
+msgstr ""
+
+#: includes/core/maintenance/ucp-maintenance-privacy-trait.php:22
+#: includes/core/maintenance/ucp-maintenance-privacy-trait.php:30
+msgid "UltraCache Pro gegevens"
+msgstr ""
+
+#: includes/core/maintenance/ucp-maintenance-privacy-trait.php:74
+msgid "UltraCache Pro logs"
+msgstr ""
+
+#: includes/core/maintenance/ucp-maintenance-privacy-trait.php:77
+msgid "Niveau"
+msgstr ""
+
+#: includes/core/maintenance/ucp-maintenance-privacy-trait.php:78
+msgid "Onderdeel"
+msgstr ""
+
+#: includes/core/maintenance/ucp-maintenance-privacy-trait.php:79
+msgid "Gebeurtenis"
+msgstr ""
+
+#: includes/core/maintenance/ucp-maintenance-privacy-trait.php:80
+msgid "Bericht"
+msgstr ""
+
+#: includes/core/maintenance/ucp-maintenance-privacy-trait.php:81
+msgid "Context"
+msgstr ""
+
+#: includes/core/maintenance/ucp-maintenance-privacy-trait.php:82
+#: includes/core/maintenance/ucp-maintenance-privacy-trait.php:103
+msgid "URL"
+msgstr ""
+
+#: includes/core/maintenance/ucp-maintenance-privacy-trait.php:83
+msgid "Aangemaakt"
+msgstr ""
+
+#: includes/core/quality/ucp-quality-suite-actions-trait.php:17
+msgid "Debug/testmodus is 30 minuten ingeschakeld."
+msgstr ""
+
+#: includes/core/quality/ucp-quality-suite-actions-trait.php:22
+msgid "WP_CACHE en drop-in herstelactie uitgevoerd."
+msgstr ""
+
+#: includes/core/quality/ucp-quality-suite-actions-trait.php:28
+msgid "Preset kon niet worden toegepast."
+msgstr ""
+
+#: includes/core/quality/ucp-quality-suite-actions-trait.php:30
+msgid "Preset toegepast."
+msgstr ""
+
+#: includes/core/quality/ucp-quality-suite-conflicts-trait.php:12
+msgid "%d mogelijke overlap gevonden."
+msgid_plural "%d mogelijke overlaps gevonden."
+msgstr[0] ""
+msgstr[1] ""
+
+#: includes/core/quality/ucp-quality-suite-conflicts-trait.php:34
+msgid "Actieve plugin gevonden: %s. Controleer overlappende cache/optimalisatie-instellingen."
+msgstr ""
+
+#: includes/core/quality/ucp-quality-suite-release-logs-trait.php:26
+msgid "Logs opgehaald."
+msgstr ""
+
+#: includes/core/quality/ucp-quality-suite-release-logs-trait.php:8
+msgid "Release checklist opgehaald."
+msgstr ""
+
+#: includes/core/quality/ucp-quality-suite-runtime-trait.php:20
+msgid "Cache runtime test uitgevoerd."
+msgstr ""
+
+#: includes/core/quality/ucp-quality-suite-site-health-trait.php:16
+msgid "UltraCache runtime cache test is recent en compleet"
+msgstr ""
+
+#: includes/core/quality/ucp-quality-suite-site-health-trait.php:16
+msgid "Voer de UltraCache runtime cache test uit"
+msgstr ""
+
+#: includes/core/quality/ucp-quality-suite-site-health-trait.php:19
+msgid "Gebruik UltraCache > Diagnostiek > Cache runtime test uitvoeren om HIT/BYPASS-signalen te controleren."
+msgstr ""
+
+#: includes/core/quality/ucp-quality-suite-site-health-trait.php:19
+msgid "WP_CACHE, advanced-cache.php en drop-in config zijn aanwezig in de laatste test."
+msgstr ""
+
+#: includes/core/quality/ucp-quality-suite-site-health-trait.php:8
+msgid "UltraCache runtime cache test"
+msgstr ""
+
+#: includes/css/traits/ucp-css-artifact-trait.php:50
+msgid "URL is niet toegestaan voor CSS-opbouw."
+msgstr ""
+
+#: includes/css/traits/ucp-css-artifact-trait.php:78
+msgid "CSS-opbouw redirectte naar een niet-toegestane URL."
+msgstr ""
+
+#: includes/css/traits/ucp-css-artifact-trait.php:83
+msgid "Te veel redirects tijdens CSS-opbouw."
+msgstr ""
+
+#: includes/database/cleanup/ucp-db-cleanup-schedule-trait.php:11
+msgid "Monthly"
+msgstr ""
+
+#: includes/filesystem/traits/ucp-helpers-dropin-trait.php:91
+#: includes/filesystem/traits/ucp-helpers-dropin-trait.php:122
+msgid "Onbekende cachelaag"
+msgstr ""
+
+#: includes/integrations/traits/ucp-integrations-delay-js-profiles-trait.php:298
+msgid "Winkelwagen, productvariaties en checkout scripts."
+msgstr ""
+
+#: includes/integrations/traits/ucp-integrations-delay-js-profiles-trait.php:302
+msgid "Builders"
+msgstr ""
+
+#: includes/integrations/traits/ucp-integrations-delay-js-profiles-trait.php:303
+msgid "Elementor, Bricks, Breakdance, Oxygen en andere builders."
+msgstr ""
+
+#: includes/integrations/traits/ucp-integrations-delay-js-profiles-trait.php:307
+msgid "Formulieren"
+msgstr ""
+
+#: includes/integrations/traits/ucp-integrations-delay-js-profiles-trait.php:308
+msgid "Contact Form 7, WPForms, Gravity Forms en vergelijkbaar."
+msgstr ""
+
+#: includes/integrations/traits/ucp-integrations-delay-js-profiles-trait.php:312
+msgid "Cookie banners"
+msgstr ""
+
+#: includes/integrations/traits/ucp-integrations-delay-js-profiles-trait.php:313
+msgid "Complianz, Cookiebot, Borlabs en andere consent tools."
+msgstr ""
+
+#: includes/integrations/traits/ucp-integrations-delay-js-profiles-trait.php:317
+msgid "Analytics en ads"
+msgstr ""
+
+#: includes/integrations/traits/ucp-integrations-delay-js-profiles-trait.php:318
+msgid "Google Analytics, GTM, Meta Pixel en advertentie scripts."
+msgstr ""
+
+#: includes/integrations/traits/ucp-integrations-delay-js-profiles-trait.php:322
+msgid "Video en kaarten"
+msgstr ""
+
+#: includes/integrations/traits/ucp-integrations-delay-js-profiles-trait.php:323
+msgid "YouTube, Wistia, Typekit, Google Maps en vergelijkbaar."
+msgstr ""
+
+#: includes/integrations/traits/ucp-integrations-status-trait.php:19
+msgid "Afgezwakt door conflict"
+msgstr ""
+
+#: includes/integrations/traits/ucp-integrations-status-trait.php:22
+msgid "Bestanden"
+msgstr ""
+
+#: includes/integrations/traits/ucp-integrations-status-trait.php:24
+msgid "Minify-instellingen actief"
+msgstr ""
+
+#: includes/integrations/traits/ucp-integrations-status-trait.php:29
+msgid "Later laden actief"
+msgstr ""
+
+#: includes/integrations/traits/ucp-integrations-status-trait.php:29
+msgid "Niet aangepast"
+msgstr ""
+
+#: includes/integrations/traits/ucp-integrations-status-trait.php:32
+msgid "Autopilot"
+msgstr ""
+
+#: includes/integrations/traits/ucp-integrations-status-trait.php:34
+msgid "Slimme detectie actief"
+msgstr ""
+
+#: includes/integrations/traits/ucp-integrations-status-trait.php:40
+msgid "Conflictbewaking"
+msgstr ""
+
+#: includes/integrations/traits/ucp-integrations-status-trait.php:43
+msgid "%d overlap gevonden"
+msgid_plural "%d overlaps gevonden"
+msgstr[0] ""
+msgstr[1] ""
+
+#: includes/integrations/traits/ucp-integrations-status-trait.php:49
+msgid "Exclusions automatisch aangevuld"
+msgstr ""
+
+#: includes/integrations/traits/ucp-integrations-status-trait.php:61
+msgid "Winkelwagen, afrekenen en account zijn automatisch uitgesloten van zware optimalisatie."
+msgstr ""
+
+#: includes/integrations/traits/ucp-integrations-status-trait.php:64
+msgid "Builder scripts staan nu in de veilige uitzonderingen en samenvoegen blijft uit."
+msgstr ""
+
+#: includes/integrations/traits/ucp-integrations-status-trait.php:67
+msgid "Taal- en valuta-cookies zijn toegevoegd aan de cache-uitzonderingen."
+msgstr ""
+
+#: includes/integrations/traits/ucp-integrations-status-trait.php:70
+msgid "Tracking-, consent- en SEO-scripts zijn toegevoegd aan de JS-uitzonderingen."
+msgstr ""
+
+#: includes/integrations/traits/ucp-integrations-status-trait.php:73
+msgid "Formulier-scripts zijn beschermd tegen Delay JS en ingrijpende optimalisatie."
+msgstr ""
+
+#: includes/integrations/traits/ucp-integrations-status-trait.php:76
+msgid "Dubbele optimalisatie wordt afgezwakt door combine, delay en HTML-minify uit te houden."
+msgstr ""
+
+#: includes/jobs/traits/ucp-jobs-schedule-trait.php:33
+msgid "Elke minuut"
+msgstr ""
+
+#: includes/jobs/traits/ucp-jobs-schedule-trait.php:37
+#: includes/core/class-ucp-health.php:32
+msgid "Elke 5 minuten"
+msgstr ""
+
+#: includes/optimization/traits/media/ucp-optimizer-media-iframe-trait.php:31
+msgid "YouTube-video afspelen"
+msgstr ""
+
+#: includes/optimization/traits/ucp-optimizer-core-bloat-trait.php:100
+msgid "REST API is uitgeschakeld voor publieke verzoeken."
+msgstr ""
+
+#: includes/optimization/traits/ucp-optimizer-core-bloat-trait.php:124
+msgid "Feeds zijn uitgeschakeld."
+msgstr ""
+
+#: includes/preload/traits/ucp-preload-schedule-trait.php:11
+msgid "Every 2 hours"
+msgstr ""
+
+#: includes/preload/traits/ucp-preload-schedule-trait.php:17
+msgid "Weekly"
+msgstr ""
+
+#: includes/rest/admin/class-ucp-rest-admin-controller.php:154
+#: includes/core/class-ucp-optimization-intelligence.php:258
+#: includes/core/quality/ucp-quality-suite-routing-trait.php:38
+msgid "Je hebt geen rechten om UltraCache Pro te beheren."
+msgstr ""
+
+#: includes/rest/admin/class-ucp-rest-admin-controller.php:162
+#: includes/core/class-ucp-optimization-intelligence.php:263
+#: includes/core/quality/ucp-quality-suite-routing-trait.php:42
+msgid "Ongeldige of ontbrekende REST-beveiligingstoken."
+msgstr ""
+
+#: includes/rest/admin/traits/ucp-rest-actions-trait.php:122
+msgid "Kritieke CSS is aangezet. De CSS-wachtrij bouwt de bestanden opnieuw op."
+msgstr ""
+
+#: includes/rest/admin/traits/ucp-rest-actions-trait.php:122
+msgid "Kritieke CSS is gegenereerd en CSS-levering is bijgewerkt."
+msgstr ""
+
+#: includes/rest/admin/traits/ucp-rest-actions-trait.php:149
+msgid "Used CSS is aangezet en opnieuw gegenereerd voor de homepage."
+msgstr ""
+
+#: includes/rest/admin/traits/ucp-rest-actions-trait.php:149
+msgid "Used CSS is aangezet. De CSS-wachtrij bouwt de bestanden opnieuw op."
+msgstr ""
+
+#: includes/rest/admin/traits/ucp-rest-actions-trait.php:160
+msgid "Verkleinde CSS is gewist."
+msgstr ""
+
+#: includes/rest/admin/traits/ucp-rest-actions-trait.php:168
+msgid "Verkleinde JavaScript is gewist."
+msgstr ""
+
+#: includes/rest/admin/traits/ucp-rest-actions-trait.php:174
+msgid "Database cleanup is niet beschikbaar."
+msgstr ""
+
+#: includes/rest/admin/traits/ucp-rest-actions-trait.php:179
+msgid "Database opschoning is uitgevoerd."
+msgstr ""
+
+#: includes/rest/admin/traits/ucp-rest-actions-trait.php:187
+msgid "Health check uitgevoerd."
+msgstr ""
+
+#: includes/rest/admin/traits/ucp-rest-actions-trait.php:192
+msgid "Quality suite is niet beschikbaar."
+msgstr ""
+
+#: includes/rest/admin/traits/ucp-rest-actions-trait.php:219
+msgid "Jobrunner is niet beschikbaar."
+msgstr ""
+
+#: includes/rest/admin/traits/ucp-rest-actions-trait.php:231
+msgid "0 taken verwerkt. Er staan nog %d mislukte taken; gebruik \"Mislukte taken opnieuw proberen\" om ze terug in de wachtrij te zetten."
+msgstr ""
+
+#: includes/rest/admin/traits/ucp-rest-actions-trait.php:241
+msgid "%d taak verwerkt."
+msgid_plural "%d taken verwerkt."
+msgstr[0] ""
+msgstr[1] ""
+
+#: includes/rest/admin/traits/ucp-rest-actions-trait.php:250
+msgid "Jobtabel is niet beschikbaar."
+msgstr ""
+
+#: includes/rest/admin/traits/ucp-rest-actions-trait.php:259
+msgid "Jobtabel is ongeldig."
+msgstr ""
+
+#: includes/rest/admin/traits/ucp-rest-actions-trait.php:285
+msgid "%1$d taken teruggezet in de wachtrij. %2$d direct verwerkt."
+msgstr ""
+
+#: includes/rest/admin/traits/ucp-rest-actions-trait.php:29
+#: includes/rest/admin/traits/ucp-rest-actions-trait.php:68
+msgid "Cachemodule is niet beschikbaar."
+msgstr ""
+
+#: includes/rest/admin/traits/ucp-rest-actions-trait.php:295
+msgid "Support report is niet beschikbaar."
+msgstr ""
+
+#: includes/rest/admin/traits/ucp-rest-actions-trait.php:37
+msgid "Alle cache is geleegd."
+msgstr ""
+
+#: includes/rest/admin/traits/ucp-rest-actions-trait.php:48
+msgid "Pagina-cache is geleegd."
+msgstr ""
+
+#: includes/rest/admin/traits/ucp-rest-actions-trait.php:65
+msgid "Ongeldige of niet-lokale URL."
+msgstr ""
+
+#: includes/rest/admin/traits/ucp-rest-actions-trait.php:77
+msgid "De cache voor deze URL is geleegd."
+msgstr ""
+
+#: includes/rest/admin/traits/ucp-rest-actions-trait.php:93
+msgid "Cache opwarmen is gestart."
+msgstr ""
+
+#: includes/rest/admin/traits/ucp-rest-actions-trait.php:95
+msgid "Preloadmodule is niet beschikbaar."
+msgstr ""
+
+#: includes/rest/admin/traits/ucp-rest-diagnostics-trait.php:40
+msgid "Browser scan is niet beschikbaar."
+msgstr ""
+
+#: includes/rest/admin/traits/ucp-rest-diagnostics-trait.php:49
+msgid "PageSpeed browser scan opgeslagen."
+msgstr ""
+
+#: includes/rest/admin/traits/ucp-rest-settings-trait.php:101
+msgid "Instellingen konden niet worden geïmporteerd. Controleer de serverlog voor details."
+msgstr ""
+
+#: includes/rest/admin/traits/ucp-rest-settings-trait.php:130
+msgid "Snapshot niet gevonden."
+msgstr ""
+
+#: includes/rest/admin/traits/ucp-rest-settings-trait.php:134
+msgid "Snapshot teruggezet."
+msgstr ""
+
+#: includes/rest/admin/traits/ucp-rest-settings-trait.php:148
+msgid "Geef een geldige naam op voor het maatwerkprofiel."
+msgstr ""
+
+#: includes/rest/admin/traits/ucp-rest-settings-trait.php:32
+msgid "Ongeldige instellingen ontvangen."
+msgstr ""
+
+#: includes/rest/admin/traits/ucp-rest-settings-trait.php:43
+msgid "Instellingen opgeslagen."
+msgstr ""
+
+#: includes/rest/admin/traits/ucp-rest-settings-trait.php:49
+msgid "Instellingen konden niet worden opgeslagen. Controleer de serverlog voor details."
+msgstr ""
+
+#: includes/rest/admin/traits/ucp-rest-settings-trait.php:68
+msgid "Bevestig eerst dat je een recente export of database-back-up hebt voordat instellingen worden geïmporteerd."
+msgstr ""
+
+#: includes/rest/admin/traits/ucp-rest-settings-trait.php:74
+msgid "Ongeldige import ontvangen."
+msgstr ""
+
+#: includes/rest/admin/traits/ucp-rest-settings-trait.php:82
+msgid "Geen geldige UltraCache instellingen gevonden."
+msgstr ""
+
+#: includes/rest/admin/traits/ucp-rest-settings-trait.php:95
+msgid "Instellingen geïmporteerd."
+msgstr ""
+
+#: includes/rest/admin/traits/ucp-rest-status-trait.php:144
+msgid "LMS/membership-functionaliteit gevonden: ingelogde en persoonlijke pagina’s vragen veilige cache-regels."
+msgstr ""
+
+#: includes/rest/admin/traits/ucp-rest-status-trait.php:154
+msgid "Formulierplugin gevonden: Delay JS moet voorzichtig blijven zodat formulieren betrouwbaar werken."
+msgstr ""
+
+#: includes/rest/admin/traits/ucp-rest-status-trait.php:160
+msgid "Multisite gedetecteerd. Test wijzigingen per site en voorkom netwerkbrede verrassingen."
+msgstr ""
+
+#: includes/rest/admin/traits/ucp-rest-status-trait.php:164
+msgid "Geen duidelijke shop-, builder- of membership-risico’s gevonden."
+msgstr ""
+
+#: includes/rest/admin/traits/ucp-rest-status-trait.php:176
+msgid "Maatwerk veilig"
+msgstr ""
+
+#: includes/rest/admin/traits/ucp-rest-status-trait.php:177
+msgid "Maatwerk preset: shop/builder veilig"
+msgstr ""
+
+#: includes/rest/admin/traits/ucp-rest-status-trait.php:178
+msgid "UltraCache adviseert een eigen veilige preset: cache, preload, minify, lazy load en lokale fonts aan; combineren, Delay JS, REST cache en Used CSS blijven uit."
+msgstr ""
+
+#: includes/rest/admin/traits/ucp-rest-status-trait.php:192
+msgid "Maatwerk voorzichtig"
+msgstr ""
+
+#: includes/rest/admin/traits/ucp-rest-status-trait.php:193
+msgid "Maatwerk preset: builder/veel plugins"
+msgstr ""
+
+#: includes/rest/admin/traits/ucp-rest-status-trait.php:194
+msgid "UltraCache adviseert een eigen conservatieve preset: veilige cache en minify aan, maar agressieve JS/CSS-optimalisatie uit tot je gericht test."
+msgstr ""
+
+#: includes/rest/admin/traits/ucp-rest-status-trait.php:205
+msgid "Snelste modus"
+msgstr ""
+
+#: includes/rest/admin/traits/ucp-rest-status-trait.php:206
+msgid "Advies: Snelste modus"
+msgstr ""
+
+#: includes/rest/admin/traits/ucp-rest-status-trait.php:207
+msgid "Deze omgeving lijkt staging/dev en er zijn weinig risicosignalen. Je kunt Used CSS en Delay JS hier veilig testen voordat je live gaat."
+msgstr ""
+
+#: includes/rest/admin/traits/ucp-rest-status-trait.php:217
+#: includes/admin/views/tabs/onboarding.php:57
+#: includes/core/class-ucp-presets.php:258
+msgid "Gebalanceerd"
+msgstr ""
+
+#: includes/rest/admin/traits/ucp-rest-status-trait.php:218
+msgid "Advies: Gebalanceerd"
+msgstr ""
+
+#: includes/rest/admin/traits/ucp-rest-status-trait.php:219
+msgid "Dit is de beste standaard voor de meeste bedrijfswebsites: cache, preload, minify, lazy images en lokale fonts aan; combineren, Delay JS en Used CSS blijven uit."
+msgstr ""
+
+#: generated release sync
+msgid "kolom"
+msgstr ""
+
+#: generated release sync
+msgid "kolommen"
+msgstr ""
+
+#: generated release sync
+msgid "Herstel indeling"
+msgstr ""
+
+#: generated release sync
+msgid "WordPress performance"
+msgstr ""
+
+#: generated release sync
+msgid "Native WordPress dashboard voor cache, optimalisatie, preload, WooCommerce-safety en websitecontrole."
+msgstr ""
+
+#: generated release sync
+msgid "Cache actief"
+msgstr ""
+
+#: generated release sync
+msgid "WooCommerce veilig"
+msgstr ""
+
+#: generated release sync
+msgid "WooCommerce standaard"
+msgstr ""
+
+#: generated release sync
+msgid "taken"
+msgstr ""
+
+#: generated release sync
+msgid "Geen wachtrij"
+msgstr ""
+
+#: generated release sync
+msgid "JS testen"
+msgstr ""
+
+#: generated release sync
+msgid "Setup kiezen"
+msgstr ""
+
+#: generated release sync
+msgid "UltraCache Pro onderdelen"
+msgstr ""
+
+#: generated release sync
+msgid "Kaartvolgorde bijgewerkt."
+msgstr ""
+
+#: generated release sync
+msgid "Kaartenindeling bijgewerkt."
+msgstr ""
+
+#: generated release sync
+msgid "Standaardindeling hersteld."
+msgstr ""
+
+#: generated release sync
+msgid "Kies een rustige kolomweergave. Kaarten kunnen met muis of toetsenbord worden verplaatst; herstel zet alles terug naar standaard."
+msgstr ""
+
+#: generated release sync
+msgid "UltraCache Pro wordt geladen"
+msgstr ""
+
+#: generated release sync
+msgid "APCu is beschikbaar. Je kunt de UltraCache APCu object-cache drop-in optioneel activeren."
+msgstr ""
+
+#: generated release sync
+msgid "Geen Redis/Memcached/APCu object-cache laag gevonden. Gebruik je hostingpaneel of een gespecialiseerde object-cache drop-in."
+msgstr ""
+
+#: generated release sync
+msgid "Je hebt geen rechten om de object-cache drop-in te installeren."
+msgstr ""
+
+#: generated release sync
+msgid "APCu object cache vereist APCu en een expliciet ingeschakelde optie."
+msgstr ""
+
+#: generated release sync
+msgid "Er bestaat al een object-cache.php drop-in. UltraCache overschrijft die niet automatisch."
+msgstr ""
+
+#: generated release sync
+msgid "Kon de APCu object-cache drop-in niet installeren."
+msgstr ""
+
+#: generated release sync
+msgid "APCu object-cache drop-in geïnstalleerd."
+msgstr ""
+
+#: generated release sync
+msgid "Kies één methode. Ongebruikte CSS gebruikt de parser-first flow wanneer de Composer-library beschikbaar is en valt veilig terug op de lokale scanner. Test grondig op staging, vooral met Elementor, sticky headers, sliders en WooCommerce."
+msgstr ""
+
+#: generated release sync
+msgid "wp_options engine: %s"
+msgstr ""
+
+#: generated release sync
+msgid "Mogelijke ontbrekende indexen: %s"
+msgstr ""
+
+#: generated release sync
+msgid "Sta expliciete MyISAM → InnoDB conversie van wp_options toe"
+msgstr ""
+
+#: generated release sync
+msgid "Staging-first: alleen gebruiken met recente database-back-up."
+msgstr ""
+
+#: generated release sync
+msgid "Converteer wp_options naar InnoDB? Maak eerst een database-back-up."
+msgstr ""
+
+#: generated release sync
+msgid "0 taken verwerkt. Er staan nog %d mislukte taken; gebruik \"Mislukte taken opnieuw proberen\" om ze terug in de wachtrij te zetten."
+msgstr ""
+
+#: generated release sync
+msgid "Geen rechten."
+msgstr ""
+
+#: generated release sync
+msgid "InnoDB-conversie vereist expliciete bevestiging in de instellingen."
+msgstr ""
+

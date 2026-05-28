@@ -1,4 +1,5 @@
 <?php
+// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals -- Existing public UCP API/drop-in symbols are intentionally preserved for backward compatibility.
 if (!defined('ABSPATH')) {
     exit;
 }
@@ -167,7 +168,7 @@ trait UCP_Helpers_URL_Trait {
     }
 
     public static function current_full_url() {
-        $uri = isset($_SERVER['REQUEST_URI']) ? wp_unslash($_SERVER['REQUEST_URI']) : '/';
+        $uri = isset($_SERVER['REQUEST_URI']) ? esc_url_raw(wp_unslash($_SERVER['REQUEST_URI'])) : '/';
         $uri = self::normalize_url_syntax((string) $uri);
         $parts = wp_parse_url($uri);
         $path = isset($parts['path']) ? $parts['path'] : '/';
@@ -176,7 +177,22 @@ trait UCP_Helpers_URL_Trait {
     }
 
     public static function is_mobile_request() {
-        return function_exists('wp_is_mobile') ? wp_is_mobile() : false;
+        // Use the SAME user-agent signature as advanced-cache.php so the early drop-in
+        // and the PHP fallback compute an identical cache key (otherwise the fast path misses).
+        $ua = isset($_SERVER['HTTP_USER_AGENT']) ? sanitize_text_field(wp_unslash($_SERVER['HTTP_USER_AGENT'])) : '';
+        if ('' === $ua) {
+            return false;
+        }
+        return 1 === preg_match(self::mobile_user_agent_regex(), $ua);
+    }
+
+    /**
+     * Single source of truth for mobile detection. Both the PHP fallback (above) and the
+     * pre-WordPress advanced-cache.php drop-in use this exact pattern (the drop-in receives it
+     * via dropin-config.php) so they always agree on the 'guest' vs 'guest-mobile' suffix.
+     */
+    public static function mobile_user_agent_regex() {
+        return '/Mobile|Android|Silk\/|Kindle|BlackBerry|Opera Mini|Opera Mobi|iPhone|iPad|iPod/i';
     }
 
     public static function user_state_suffix() {
@@ -193,13 +209,16 @@ trait UCP_Helpers_URL_Trait {
         }
         $url = self::enforce_local_url($url);
         $parts = wp_parse_url($url);
-        $path = isset($parts['path']) ? untrailingslashit($parts['path']) : '';
-        $path = empty($path) ? 'home' : trim(str_replace('/', '-', $path), '-');
+        $raw_path = isset($parts['path']) ? untrailingslashit($parts['path']) : '';
+        // Readable slug for humans browsing the cache dir...
+        $path = '' === $raw_path ? 'home' : trim(str_replace('/', '-', $raw_path), '-');
+        // ...plus a short hash of the FULL path so '/foo/bar' and '/foo-bar' never collide.
+        $path_hash = substr(md5('' === $raw_path ? '/' : $raw_path), 0, 8);
         $normalized_query = isset($parts['query']) ? self::normalized_cache_query($parts['query']) : '';
         $query = '' !== $normalized_query ? md5($normalized_query) : 'noq';
         $host = isset($parts['host']) ? strtolower((string) $parts['host']) : wp_parse_url(home_url(), PHP_URL_HOST);
         $host_key = $host ? md5($host) : 'nohost';
-        return sanitize_file_name($host_key . '-' . $path . '-' . self::user_state_suffix() . '-' . $query);
+        return sanitize_file_name($host_key . '-' . $path . '-' . $path_hash . '-' . self::user_state_suffix() . '-' . $query);
     }
 
     public static function cache_file_path($url = '') {

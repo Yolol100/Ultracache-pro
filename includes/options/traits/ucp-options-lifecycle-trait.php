@@ -1,4 +1,5 @@
 <?php
+// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals -- Existing public UCP API/drop-in symbols are intentionally preserved for backward compatibility.
 if (!defined('ABSPATH')) {
     exit;
 }
@@ -158,9 +159,9 @@ trait UCP_Options_Lifecycle_Trait {
         }
 
         $settings = wp_parse_args($settings, self::defaults());
-        $settings['allow_wp_config_write'] = 0;
-        $settings['allow_dropin_writes'] = 0;
-        $settings['allow_dropin_takeover'] = 0;
+        // H1: do not force drop-in / wp-config writes off here any more. Preserve whatever the
+        // site already has (existing sites keep their choice; fresh installs inherit the enabled
+        // default). Admins can still disable these in the UI or via filters.
         $settings['enable_logs'] = 1;
         if (class_exists('UCP_Presets')) {
             $settings = array_merge($settings, UCP_Presets::pagespeed_auto_overrides());

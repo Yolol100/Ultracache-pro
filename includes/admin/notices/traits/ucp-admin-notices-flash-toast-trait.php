@@ -1,4 +1,5 @@
 <?php
+// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals -- Existing public UCP API/drop-in symbols are intentionally preserved for backward compatibility.
 if (!defined('ABSPATH')) {
     exit;
 }
@@ -53,8 +54,12 @@ trait UCP_Admin_Notices_Flash_Toast_Trait {
         if (!$use_debug) {
             $style_min  = 'assets/admin/css/ucp-cache-toast.min.css';
             $script_min = 'assets/admin/js/core/cache-toast.min.js';
-            if (file_exists(UCP_PATH . $style_min))  { $style_rel  = $style_min; }
-            if (file_exists(UCP_PATH . $script_min)) { $script_rel = $script_min; }
+            if (file_exists(UCP_PATH . $style_min)) {
+                $style_rel = $style_min;
+            }
+            if (file_exists(UCP_PATH . $script_min)) {
+                $script_rel = $script_min;
+            }
         }
         $style_path = UCP_PATH . $style_rel;
         $script_path = UCP_PATH . $script_rel;

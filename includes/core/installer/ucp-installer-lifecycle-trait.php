@@ -1,4 +1,5 @@
 <?php
+// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals -- Existing public UCP API/drop-in symbols are intentionally preserved for backward compatibility.
 if (!defined('ABSPATH')) {
     exit;
 }
@@ -17,8 +18,7 @@ trait UCP_Installer_Lifecycle_Trait {
             self::schedule_events();
             update_option('ucp_db_version', UCP_VERSION, false);
             if (class_exists('UCP_Cache')) {
-                $reflector = new ReflectionClass('UCP_Cache');
-                $cache = $reflector->newInstanceWithoutConstructor();
+                $cache = UCP_Helpers::new_without_constructor('UCP_Cache');
                 $cache->purge_and_preload_after_lifecycle_change('ultracache_upgrade', array('item' => UCP_BASENAME));
             }
         }
@@ -56,8 +56,7 @@ trait UCP_Installer_Lifecycle_Trait {
         UCP_Maintenance::schedule();
         update_option('ucp_db_version', UCP_VERSION, false);
         if (class_exists('UCP_Cache')) {
-            $reflector = new ReflectionClass('UCP_Cache');
-            $cache = $reflector->newInstanceWithoutConstructor();
+            $cache = UCP_Helpers::new_without_constructor('UCP_Cache');
             $cache->purge_and_preload_after_lifecycle_change('ultracache_activation', array('item' => UCP_BASENAME));
         }
     }
@@ -78,8 +77,7 @@ trait UCP_Installer_Lifecycle_Trait {
 
     protected static function deactivate_single_site() {
         if (class_exists('UCP_Cache')) {
-            $reflector = new ReflectionClass('UCP_Cache');
-            $cache = $reflector->newInstanceWithoutConstructor();
+            $cache = UCP_Helpers::new_without_constructor('UCP_Cache');
             $cache->purge_all();
             UCP_Diagnostics::record('cache', 'Purged full cache during UltraCache deactivation');
         }

@@ -23,14 +23,12 @@
 
     var tabs = [
         {key:'dashboard', label:__('Dashboard','ultracache-pro'), icon:'dashicons-dashboard'},
+        {key:'cache', label:__('Cache','ultracache-pro'), icon:'dashicons-admin-generic'},
         {key:'optimization', label:__('Bestandsoptimalisatie','ultracache-pro'), icon:'dashicons-performance'},
         {key:'media', label:__('Media','ultracache-pro'), icon:'dashicons-format-image'},
         {key:'preload', label:__('Preloaden','ultracache-pro'), icon:'dashicons-controls-repeat'},
-        {key:'advanced', label:__('Geavanceerde regels','ultracache-pro'), icon:'dashicons-list-view'},
+        {key:'advanced', label:__('Regels','ultracache-pro'), icon:'dashicons-list-view'},
         {key:'database', label:__('Database','ultracache-pro'), icon:'dashicons-database'},
-        {key:'cdn', label:'CDN', icon:'dashicons-admin-site-alt3'},
-        {key:'heartbeat', label:'Heartbeat', icon:'dashicons-heart'},
-        {key:'diagnostics', label:__('Websitecontrole','ultracache-pro'), icon:'dashicons-chart-area'},
         {key:'developer', label:__('Developer','ultracache-pro'), icon:'dashicons-editor-code'},
         {key:'tools', label:__('Tools','ultracache-pro'), icon:'dashicons-admin-tools'}
     ];
@@ -143,13 +141,16 @@
                 el('strong', {}, props.title || __('Indeling','ultracache-pro')),
                 props.help ? el('span', {}, props.help) : null
             ),
-            el('div', {className:'ucp-layout-toolbar__controls', role:'toolbar', 'aria-label':props.title || __('Indeling','ultracache-pro')}, options.map(function(option){
-                return el(Button, {
-                    key:option,
-                    variant:columns === option ? 'primary' : 'secondary',
-                    onClick:function(){ props.onChange(option); }
-                }, option + 'x' + option);
-            }))
+            el('div', {className:'ucp-layout-toolbar__controls', role:'toolbar', 'aria-label':props.title || __('Indeling','ultracache-pro')},
+                options.map(function(option){
+                    return el(Button, {
+                        key:option,
+                        variant:columns === option ? 'primary' : 'secondary',
+                        onClick:function(){ props.onChange(option); }
+                    }, option + ' ' + (option === 1 ? __('kolom','ultracache-pro') : __('kolommen','ultracache-pro')));
+                }),
+                props.onReset ? el(Button, {variant:'tertiary', onClick:props.onReset}, __('Herstel indeling','ultracache-pro')) : null
+            )
         );
     }
 
@@ -214,16 +215,24 @@
         );
     }
 
+    function ProductHeader(props) {
+        return el('header', {className:'ucp-app-header ucp-app-header--native ucp-app-header--simple'},
+            el('div', {className:'ucp-app-header__main'},
+                el('p', {className:'ucp-eyebrow'}, __('WordPress performance','ultracache-pro')),
+                el('h1', {}, __('UltraCache Pro','ultracache-pro')),
+                el('p', {}, __('Rustig dashboard voor cache, optimalisatie, preload en websitecontrole.','ultracache-pro'))
+            )
+        );
+    }
+
     function AdminShell(props) {
-        return el('div', {className:'ucp-admin-app__shell'},
-            el('nav', {className:'ucp-admin-nav', role:'tablist', 'aria-label':__('UltraCache Pro hoofdtabbladen','ultracache-pro')}, tabs.map(function(tab){
+        return el('div', {className:'ucp-admin-app__shell ucp-admin-app__shell--no-header'},
+            el('nav', {className:'ucp-admin-nav', 'aria-label':__('UltraCache Pro onderdelen','ultracache-pro')}, tabs.map(function(tab){
                 var active = props.activeTab === tab.key;
                 return el('button', {
                     key:tab.key,
                     type:'button',
-                    role:'tab',
                     className:'ucp-admin-nav__item' + (active ? ' is-active' : ''),
-                    'aria-selected':active,
                     'aria-current':active ? 'page' : undefined,
                     onClick:function(){props.onTab(tab.key);}
                 },
@@ -907,16 +916,22 @@
             {title:'Uitsluitingen', fields:[['preload_exclude_urls','URL’s uitsluiten van preload','textarea','Eén URL of patroon per regel. Gebruik voor author-, account-, checkout-, zoek-, filter- of paginatiepagina’s.']]} ,
             {title:'Serverbelasting', fields:[['preload_batch_size','Batchgrootte','number','Aantal URL’s per run. Gebruik 10-20 op shared hosting en verhoog alleen als de server stabiel blijft.'],['preload_max_urls','Maximaal aantal URL’s','number','Maximaal aantal URL’s per preloadronde.'],['preload_delay_ms','Pauze tussen requests','number','Milliseconden tussen requests. 500 ms is een veilige basis; verhoog dit als hosting traag reageert.'],['preload_content_scope','Content scope','text','Bijv. posts,archives,terms. Laat standaard staan als je twijfelt.']]}
         ],
+        cache: [
+            {title:'Page cache', fields:[['enable_cache','Pagina-cache inschakelen','toggle','Maakt statische cachebestanden voor bezoekers. Zet uit bij diagnose of conflicten.'],['cache_lifespan','Cache bewaren voor','number','Aantal uren voordat een cachebestand automatisch wordt vernieuwd. 10 uur is veilig voor de meeste websites.'],['stale_cache_mode','Stale cache','select','Serveer tijdelijk oude cache als vernieuwen mislukt.',[['off','Uit'],['6','6 uur'],['12','12 uur'],['24','24 uur'],['48','48 uur']]]]},
+            {title:'Varianten en purge', fields:[['cache_mobile_separately','Mobiele cache apart bewaren','toggle','Gebruik dit alleen wanneer mobiel en desktop duidelijk andere HTML krijgen.'],['enable_cache_tags','Gerelateerde pagina’s meeverversen','toggle','Handig voor blogs, categorieën en archieven.'],['cache_logged_in','Cache voor ingelogde gebruikers','toggle','Developer-only. Meestal uit laten, omdat accounts en builders persoonlijke content kunnen tonen.']]}
+        ],
         advanced: [
-            {title:'Cache levensduur', fields:[['cache_lifespan','Cache bewaren voor','number','Aantal uren voordat een cachebestand automatisch wordt vernieuwd. 10 uur is veilig voor de meeste websites.'],['stale_cache_mode','Stale cache','select','Serveer tijdelijk oude cache als vernieuwen mislukt.',[['off','Uit'],['6','6 uur'],['12','12 uur'],['24','24 uur'],['48','48 uur']]]]},
             {title:'Pagina’s', fields:[['exclude_urls','Nooit URL’s cachen','textarea','Eén pad of patroon per regel. Gebruik dit voor cart, checkout, account, zoekresultaten, filters of persoonlijke content.']]},
             {title:'Cookies / agents', fields:[['exclude_cookies','Nooit cachen bij cookies','textarea','Eén cookie of gedeeltelijke cookienaam per regel. Nuttig voor winkelwagens en gepersonaliseerde content.'],['exclude_user_agents','Nooit cachen voor user-agents','textarea','Eén user-agent fragment per regel. Laat leeg tenzij een apparaat, browser of bot afwijkende content krijgt.']]},
             {title:'Automatisch legen bij wijzigingen', fields:[['always_purge_urls','Altijd extra URL’s legen','textarea','Eén URL of patroon per regel. Gebruik voor pagina’s die mee moeten verversen wanneer content wijzigt, zoals homepage of archieven.']]},
-            {title:'Query strings cachen', fields:[['query_string_cache_mode','Query strings cachen','select','Eén keuze vervangt de losse aan/uit-knop. Gebruik dit alleen voor bekende parameters die geen persoonlijke content tonen.',[['off','Uit'],['allow_list','Alleen onderstaande parameters toestaan']]],['cache_query_string_inclusions','Toegestane query parameters','textarea','Eén parameter per regel, zonder vraagteken. Wildcards aan het einde zijn toegestaan, bijvoorbeeld filter_* of query_type_*.']]}
+            {title:'Query strings cachen', fields:[['query_string_cache_mode','Query strings cachen','select','Eén keuze vervangt de losse aan/uit-knop. Gebruik dit alleen voor bekende parameters die geen persoonlijke content tonen.',[['off','Uit'],['allow_list','Alleen onderstaande parameters toestaan']]],['cache_query_string_inclusions','Toegestane query parameters','textarea','Eén parameter per regel, zonder vraagteken. Wildcards aan het einde zijn toegestaan, bijvoorbeeld filter_* of query_type_*.']]},
+            {title:'CDN basis', fields:[['cdn_rewrite_mode','CDN herschrijven','select','Eén keuze vervangt CDN inschakelen en bestandstypen herschrijven.',[['off','Uit'],['css_js','Alleen CSS en JS'],['images','Alleen afbeeldingen'],['all','Alle statische bestanden']]],['cdn_cnames','CDN CNAMEs','textarea','Eén domein per regel.'],['cdn_exclude','CDN uitsluitingen','textarea','Eén patroon per regel.'],['browser_cache_mode','Browser-cache statische bestanden','select','Eén keuze vervangt browser-cache headers en bewaartijd.',[['off','Uit'],['30d','30 dagen'],['180d','6 maanden'],['365d','1 jaar'],['custom','Aangepast']]],['cache_control_max_age','Aangepaste browser-cache bewaartijd','number','In seconden. Alleen nodig wanneer je Aangepast gebruikt.']]}
         ],
         developer: [
             {title:'Developer cache', fields:[['enable_fragment_cache','Fragment cache','toggle','Voor ontwikkelaars: cachet losse outputfragmenten. Alleen gebruiken als je weet welke fragments veilig zijn.'],['fragment_cache_ttl','Fragment cache TTL','number','Aantal seconden voordat fragment cache verloopt.'],['enable_rest_cache','REST cache','toggle','Cachet REST API responses. Gebruik dit alleen voor publieke GET-endpoints en test formulieren, zoekfuncties en externe koppelingen na inschakelen.'],['rest_cache_ttl','REST cache TTL','number','Aantal seconden voordat REST cache verloopt.'],['rest_cache_inclusions','REST inclusies','textarea','Eén endpoint per regel dat expliciet gecachet mag worden.'],['rest_cache_exclusions','REST uitsluitingen','textarea','Eén endpoint per regel dat nooit gecachet mag worden.']]},
-            {title:'Compatibiliteit', fields:[['enable_object_cache_support','Object cache respecteren','toggle','Laat Redis, Memcached of APCu met rust wanneer die actief zijn.'],['enable_woocommerce_rules','WooCommerce regels automatisch toepassen','toggle','Beschermt winkelwagen, afrekenen, account en wc-ajax tegen caching en agressieve optimalisaties.'],['cache_logged_in','Cache voor ingelogde gebruikers','toggle','Developer-only. Meestal uit laten, omdat dashboards, builders en accounts persoonlijke content kunnen tonen.']]},
+            {title:'Compatibiliteit', fields:[['enable_object_cache_support','Object cache respecteren','toggle','Laat Redis, Memcached of APCu met rust wanneer die actief zijn.'],['enable_woocommerce_rules','WooCommerce regels automatisch toepassen','toggle','Beschermt winkelwagen, afrekenen, account en wc-ajax tegen caching en agressieve optimalisaties.']]},
+            {title:'Heartbeat', fields:[['heartbeat_frontend_behavior','Frontend gedrag','select','Heartbeat op frontend. De interne hoofdschakelaar volgt automatisch.',[['keep','Ongewijzigd'],['reduce','Verminderen'],['disable','Uitschakelen']]],['heartbeat_editor_behavior','Editor gedrag','select','Heartbeat in editor. De interne hoofdschakelaar volgt automatisch.',[['keep','Ongewijzigd'],['reduce','Verminderen'],['disable','Uitschakelen']]],['heartbeat_backend_behavior','Backend gedrag','select','Heartbeat in dashboard. De interne hoofdschakelaar volgt automatisch.',[['keep','Ongewijzigd'],['reduce','Verminderen'],['disable','Uitschakelen']]],['heartbeat_interval_mode','Heartbeat interval bij verminderen','heartbeat_interval','Eén keuze vervangt de drie losse intervalvelden. Kies Aangepast voor verschillende waarden per locatie.',[['30','30 sec'],['60','60 sec'],['120','120 sec'],['custom','Aangepast per locatie']]]]},
+            {title:'Cloudflare / Edge', fields:[['enable_edge_cache_headers','Edge cache headers','toggle','Stuurt edge cache hints.'],['enable_cloudflare_apo_mode','Cloudflare APO modus','toggle','Alleen met correcte Cloudflare setup.'],['enable_early_hints_links','Preload Link headers','toggle','Experimenteel.'],['cloudflare_zone_id','Cloudflare zone ID','text','Alleen nodig voor purge/API.'],['cloudflare_api_token','Cloudflare API token','text','Bewaar veilig.']]},
             {title:'Veiligheidsmodus', fields:[['accessibility_mode','Accessibility mode','toggle','Vermindert risicovolle optimalisaties om interacties, focus en dynamische UI veiliger te houden.'],['disable_logged_in_optimizations','Optimalisaties uitschakelen voor ingelogde gebruikers','toggle','Aanbevolen voor builders en beheerwerk. Voorkomt dat frontend-optimalisaties de editor, previews of beheerflows raken.'],['clean_uninstall','Schone uninstall','toggle','Verwijdert plugininstellingen bij deïnstallatie. Alleen aanzetten als je zeker weet dat je de configuratie niet wilt bewaren.']]}
         ],
         database: [
@@ -925,13 +940,6 @@
             {title:'Reacties opruimen', fields:[['db_cleanup_spam_comments','Spamreacties verwijderen','toggle','Verwijdert reacties die al als spam zijn gemarkeerd.'],['db_cleanup_trashed_comments','Prullenbakreacties verwijderen','toggle','Verwijdert reacties die al in de prullenbak staan.']]},
             {title:'Transients opruimen', fields:[['db_cleanup_expired_transients','Verlopen transients verwijderen','toggle','Veilige basis. Verwijdert tijdelijke data waarvan de verloopdatum voorbij is.'],['db_cleanup_all_transients','Alle transients verwijderen','toggle','Kan tijdelijke caches van plugins wissen. Gebruik dit alleen wanneer je problemen met tijdelijke data vermoedt.']]},
             {title:'Tabellen optimaliseren', fields:[['db_cleanup_optimize_tables','Databasetabellen optimaliseren','toggle','Ruimt tabel-overhead op waar de database-engine dit ondersteunt. Maak eerst een backup.']]}
-        ],
-        cdn: [
-            {title:'CDN', fields:[['cdn_rewrite_mode','CDN herschrijven','select','Eén keuze vervangt CDN inschakelen en bestandstypen herschrijven.',[['off','Uit'],['css_js','Alleen CSS en JS'],['images','Alleen afbeeldingen'],['all','Alle statische bestanden']]],['cdn_cnames','CDN CNAMEs','textarea','Eén domein per regel.'],['cdn_exclude','CDN uitsluitingen','textarea','Eén patroon per regel.'],['browser_cache_mode','Browser-cache statische bestanden','select','Eén keuze vervangt browser-cache headers en bewaartijd.',[['off','Uit'],['30d','30 dagen'],['180d','6 maanden'],['365d','1 jaar'],['custom','Aangepast']]],['cache_control_max_age','Aangepaste browser-cache bewaartijd','number','In seconden. Alleen nodig wanneer je Aangepast gebruikt.']]},
-            {title:'Cloudflare / Edge', fields:[['enable_edge_cache_headers','Edge cache headers','toggle','Stuurt edge cache hints.'],['enable_cloudflare_apo_mode','Cloudflare APO modus','toggle','Alleen met correcte Cloudflare setup.'],['enable_early_hints_links','Preload Link headers','toggle','Experimenteel.'],['cloudflare_zone_id','Cloudflare zone ID','text','Alleen nodig voor purge/API.'],['cloudflare_api_token','Cloudflare API token','text','Bewaar veilig.']]}
-        ],
-        heartbeat: [
-            {title:'Heartbeat', fields:[['heartbeat_frontend_behavior','Frontend gedrag','select','Heartbeat op frontend. De interne hoofdschakelaar volgt automatisch.',[['keep','Ongewijzigd'],['reduce','Verminderen'],['disable','Uitschakelen']]],['heartbeat_editor_behavior','Editor gedrag','select','Heartbeat in editor. De interne hoofdschakelaar volgt automatisch.',[['keep','Ongewijzigd'],['reduce','Verminderen'],['disable','Uitschakelen']]],['heartbeat_backend_behavior','Backend gedrag','select','Heartbeat in dashboard. De interne hoofdschakelaar volgt automatisch.',[['keep','Ongewijzigd'],['reduce','Verminderen'],['disable','Uitschakelen']]],['heartbeat_interval_mode','Heartbeat interval bij verminderen','heartbeat_interval','Eén keuze vervangt de drie losse intervalvelden. Kies Aangepast voor verschillende waarden per locatie.',[['30','30 sec'],['60','60 sec'],['120','120 sec'],['custom','Aangepast per locatie']]]]}
         ],
         diagnostics: [
             {title:'Diagnostiek en logs', fields:[['enable_diagnostics','Diagnostiek registreren','toggle','Slaat beperkte runtime-diagnostiek op voor cache- en optimalisatiecontrole.'],['enable_logs','Logboek inschakelen','toggle','Bewaar technische meldingen voor foutopsporing. Zet uit op productie als je dit niet actief gebruikt.'],['enable_health_checks','Health checks plannen','toggle','Controleert cachemap, drop-in en runtimevoorwaarden.'],['enable_admin_queue_runner','Admin queue runner','toggle','Mag wachtrijtaken vanuit het dashboard proberen te verwerken.']]},
@@ -942,14 +950,13 @@
 
     function settingsIntro(kind) {
         var data = {
+            cache: {title: __('Cache overzicht','ultracache-pro'), text: __('Beheer de algemene page cache, bewaartijd en veilige purge-instellingen zonder de uitzonderingsregels te mengen met optimalisatie.','ultracache-pro'), steps: [__('Page cache','ultracache-pro'), __('Bewaartijd','ultracache-pro'), __('Varianten en purge','ultracache-pro')]},
             optimization: {title: __('Bestandsoptimalisatie overzicht','ultracache-pro'), text: __('Begin met veilige optimalisaties. Zet risicovolle CSS- en JavaScript-opties pas aan nadat je de frontend, formulieren en checkout hebt getest.','ultracache-pro'), steps: [__('1. Kies eerst een preset','ultracache-pro'), __('2. Controleer HTML en CSS','ultracache-pro'), __('3. Test JavaScript apart','ultracache-pro')]},
             media: {title: __('Media optimalisatie overzicht','ultracache-pro'), text: __('Gebruik veilige media-optimalisaties eerst: lazy load voor offscreen media, vaste afbeeldingsafmetingen en font-display swap. Gebruik preload alleen voor kritieke fonts of hero-afbeeldingen.','ultracache-pro'), steps: [__('Aanbevolen basis','ultracache-pro'), __('Afbeeldingen','ultracache-pro'), __('Fonts','ultracache-pro'), __('Uitsluitingen en connecties','ultracache-pro')]},
             preload: {title: __('Preload overzicht','ultracache-pro'), text: __('Preload maakt cachebestanden klaar voordat bezoekers pagina’s openen. Gebruik de queue en sitemap als veilige basis; stuur snelheid met batchgrootte en pauze.','ultracache-pro'), steps: [__('Cache vooraf opbouwen','ultracache-pro'), __('Link preload','ultracache-pro'), __('Uitsluitingen','ultracache-pro'), __('Serverbelasting','ultracache-pro')]},
-            advanced: {title: __('Geavanceerde regels overzicht','ultracache-pro'), text: __('Gebruik deze pagina alleen voor uitzonderingen: pagina’s die nooit gecachet mogen worden, cookies die gepersonaliseerde content tonen en query parameters. Laat velden leeg wanneer je geen specifieke uitzondering nodig hebt.','ultracache-pro'), steps: [__('Cache levensduur','ultracache-pro'), __('Uitsluitingen','ultracache-pro'), __('Query strings','ultracache-pro')]},
+            advanced: {title: __('Regels overzicht','ultracache-pro'), text: __('Gebruik deze pagina voor cache-uitzonderingen, cookies, query parameters, purge-regels en CDN-basisinstellingen. Laat velden leeg wanneer je geen specifieke regel nodig hebt.','ultracache-pro'), steps: [__('URL’s en cookies','ultracache-pro'), __('Query strings','ultracache-pro'), __('CDN basis','ultracache-pro')]},
             developer: {title: __('Developer instellingen','ultracache-pro'), text: __('Gebruik deze pagina alleen voor REST-cache, fragment cache en technische veiligheidsopties. Deze instellingen blijven standaard uit en horen eerst op staging getest te worden.','ultracache-pro'), steps: [__('REST-cache','ultracache-pro'), __('Fragment cache','ultracache-pro'), __('Compatibiliteit','ultracache-pro'), __('Veiligheidsmodus','ultracache-pro')]},
             database: {title: __('Database onderhoud','ultracache-pro'), text: __('Ruim alleen gegevens op die je bewust hebt geselecteerd. Verlopen transients zijn meestal veilig; revisies, prullenbak, alle transients en tabeloptimalisatie vragen meer voorzichtigheid.','ultracache-pro'), steps: [__('Veilig eerst','ultracache-pro'), __('Berichten','ultracache-pro'), __('Reacties','ultracache-pro'), __('Transients','ultracache-pro'), __('Tabellen','ultracache-pro')]},
-            cdn: {title: __('CDN overzicht','ultracache-pro'), text: __('Configureer CDN- en edge-opties alleen wanneer je CNAMEs en Cloudflare-instellingen bekend zijn.','ultracache-pro'), steps: [__('CDN CNAMEs','ultracache-pro'), __('Uitsluitingen','ultracache-pro'), __('Cloudflare','ultracache-pro')]},
-            heartbeat: {title: __('Heartbeat overzicht','ultracache-pro'), text: __('Verminder WordPress Heartbeat voorzichtig. Uitschakelen kan invloed hebben op editors, autosave of plugins.','ultracache-pro'), steps: [__('Frontend','ultracache-pro'), __('Editor','ultracache-pro'), __('Backend','ultracache-pro')]},
         };
         return data[kind] || data.optimization;
     }
@@ -1115,29 +1122,62 @@
         var orderState = useState(function(){ return normalizeOrder(storageGet(layoutKey + '-order', ids), ids); }), order = orderState[0], setOrder = orderState[1];
         var colsState = useState(function(){ return parseInt(storageGet(colsKey, defaultColumns), 10) || defaultColumns; }), columns = colsState[0], setColumns = colsState[1];
         var dragState = useState(null), draggingId = dragState[0], setDraggingId = dragState[1];
+        var announceState = useState(''), layoutAnnouncement = announceState[0], setLayoutAnnouncement = announceState[1];
         useEffect(function(){
             setOrder(normalizeOrder(storageGet(layoutKey + '-order', ids), ids));
             setColumns(parseInt(storageGet(colsKey, defaultColumns), 10) || defaultColumns);
+            setLayoutAnnouncement('');
         }, [props.kind]);
         function updateOrder(nextOrder) {
             var normalized = normalizeOrder(nextOrder, ids);
             setOrder(normalized);
             storageSet(layoutKey + '-order', normalized);
+            setLayoutAnnouncement(__('Kaartvolgorde bijgewerkt.','ultracache-pro'));
         }
+        function getColumnOptions(count) {
+            count = parseInt(count || 0, 10) || 0;
+            if (count <= 1) {
+                return [1];
+            }
+            return count > 4 ? [1, 2, 3, 4] : [1, 2];
+        }
+        function normalizeColumns(value, options) {
+            value = parseInt(value || 1, 10) || 1;
+            options = options && options.length ? options : [1];
+            if (options.indexOf(value) === -1) {
+                return options[options.length - 1];
+            }
+            return value;
+        }
+        var columnOptions = getColumnOptions(groups.length);
+        columns = normalizeColumns(columns, columnOptions);
         function updateColumns(nextColumns) {
-            setColumns(nextColumns);
-            storageSet(colsKey, nextColumns);
+            var safeColumns = normalizeColumns(nextColumns, columnOptions);
+            setColumns(safeColumns);
+            storageSet(colsKey, safeColumns);
+            setLayoutAnnouncement(__('Kaartenindeling bijgewerkt.','ultracache-pro'));
+        }
+        function resetLayout() {
+            setOrder(ids);
+            var resetColumns = normalizeColumns(defaultColumns, columnOptions);
+            setColumns(resetColumns);
+            storageSet(layoutKey + '-order', ids);
+            storageSet(colsKey, resetColumns);
+            setLayoutAnnouncement(__('Standaardindeling hersteld.','ultracache-pro'));
         }
         var groupsById = {};
         groups.forEach(function(group){ groupsById[group.__id] = group; });
         var orderedGroups = normalizeOrder(order, ids).map(function(id){ return groupsById[id]; }).filter(Boolean);
         return el('div', {className:'ucp-settings-page ucp-settings-page--' + props.kind},
             el(SettingsIntro, {kind:props.kind}),
+            el('div', {className:'screen-reader-text', 'aria-live':'polite'}, layoutAnnouncement),
             el(LayoutToolbar, {
                 title:__('Kaartenindeling','ultracache-pro'),
-                help:__('Zet groepen in 1, 2, 3 of 4 kolommen en sleep kaarten om de volgorde aan te passen. In 1x1 blijven compacte velden op een nette rij; brede velden, lange hulptekst en risicovolle opties stapelen automatisch.','ultracache-pro'),
+                help:__('Kies een rustige kolomweergave. Kaarten kunnen met muis of toetsenbord worden verplaatst; herstel zet alles terug naar standaard.','ultracache-pro'),
                 columns:columns,
-                onChange:updateColumns
+                options:columnOptions,
+                onChange:updateColumns,
+                onReset:resetLayout
             }),
             el('div', {className:'ucp-layout-grid ucp-layout-grid--settings', style:{'--ucp-grid-columns': columns}}, orderedGroups.map(function(group){
                 return el(Card, {
@@ -1857,6 +1897,14 @@
         );
     }
 
+
+    function ToolsPage(props) {
+        return el(Fragment, {},
+            el(SettingsPage, Object.assign({}, props, {kind:'diagnostics'})),
+            el(ActionsPage, Object.assign({}, props, {title:__('Tools','ultracache-pro')}))
+        );
+    }
+
     function LoadingScreen(){
         return el('div', {className:'ucp-loading-screen', role:'status', 'aria-live':'polite'},
             el('div', {className:'ucp-loading-card'},
@@ -1865,7 +1913,7 @@
                     el('span', {className:'ucp-loading-dot'})
                 ),
                 el('div', {className:'ucp-loading-copy'},
-                    el('h1', {}, __('UltraCache Pro wordt voorbereid','ultracache-pro')),
+                    el('h1', {}, __('UltraCache Pro wordt geladen','ultracache-pro')),
                     el('p', {}, __('We laden je cache-instellingen en websitecontrole. Dit duurt meestal maar even.','ultracache-pro'))
                 )
             )
@@ -1889,20 +1937,18 @@
         useEffect(function(){ refresh(); }, []);
         if (loading && !settings) return el(LoadingScreen, {});
         var shared = {settings:settings || {}, setSettings:setSettings, status:status || {}, setStatus:setStatus, addNotice:addNotice, onRefresh:refresh, loading:loading};
-        return el(AdminShell,{activeTab:activeTab,onTab:setActiveTab,onRefresh:refresh,loading:loading,onOpenWizard:function(){setWizardOpen(true);}},
+        return el(AdminShell,{activeTab:activeTab,onTab:setActiveTab,onRefresh:refresh,loading:loading,onOpenWizard:function(){setWizardOpen(true);},status:status || {},addNotice:addNotice,setStatus:setStatus},
             el(NoticeArea,{notices:notices,onRemove:removeNotice}),
             wizardOpen ? el(SetupWizard,Object.assign({}, shared, {onClose:function(){setWizardOpen(false); saveSettings({onboarding_completed:1}).then(function(resp){ if(resp.settings) setSettings(resp.settings); });}})) : null,
             activeTab === 'dashboard' ? el(DashboardPage,Object.assign({}, shared, {status:status,onOpenWizard:function(){}})) : null,
+            activeTab === 'cache' ? el(SettingsPage,Object.assign({}, shared, {kind:'cache'})) : null,
             activeTab === 'optimization' ? el(SettingsPage,Object.assign({}, shared, {kind:'optimization'})) : null,
             activeTab === 'media' ? el(SettingsPage,Object.assign({}, shared, {kind:'media'})) : null,
             activeTab === 'preload' ? el(SettingsPage,Object.assign({}, shared, {kind:'preload'})) : null,
             activeTab === 'advanced' ? el(SettingsPage,Object.assign({}, shared, {kind:'advanced'})) : null,
             activeTab === 'database' ? el(SettingsPage,Object.assign({}, shared, {kind:'database'})) : null,
-            activeTab === 'cdn' ? el(SettingsPage,Object.assign({}, shared, {kind:'cdn'})) : null,
-            activeTab === 'heartbeat' ? el(SettingsPage,Object.assign({}, shared, {kind:'heartbeat'})) : null,
-            activeTab === 'diagnostics' ? el(DiagnosticsPage,Object.assign({}, shared, {status:status})) : null,
             activeTab === 'developer' ? el(SettingsPage,Object.assign({}, shared, {kind:'developer'})) : null,
-            activeTab === 'tools' ? el(ActionsPage,Object.assign({}, shared, {title:__('Tools','ultracache-pro')})) : null
+            activeTab === 'tools' ? el(ToolsPage,Object.assign({}, shared, {status:status})) : null
         );
     }
 

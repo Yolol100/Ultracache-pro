@@ -1,11 +1,18 @@
 <?php
-if (!defined('ABSPATH')) { exit; }
+// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals -- Existing public UCP API/drop-in symbols are intentionally preserved for backward compatibility.
+// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Plugin-owned diagnostics/maintenance queries; caching would make these admin metrics stale.
+// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Dynamic table identifiers are validated with UCP_Helpers::is_safe_table_name() and quoted before use; values remain prepared.
+if (!defined('ABSPATH')) {
+    exit;
+}
 
 class UCP_CWV {
     const OPTION_KEY = 'ucp_cwv_metrics';
     const MAX_VALUE = 120000;
     const MAX_SAMPLES_PER_METRIC = 500;
     const MAX_DAILY_SAMPLES_PER_METRIC = 1000;
+    const MAX_IP_SAMPLES_PER_MINUTE = 20;
+    const MAX_SITE_SAMPLES_PER_MINUTE = 120;
     const TOKEN_WINDOW_SECONDS = 604800;
 
     public function __construct() {
@@ -46,12 +53,18 @@ class UCP_CWV {
                     'sanitize_callback' => array($this, 'sanitize_local_url_param'),
                 ),
                 'lcp_element_json' => array(
+                    'type'              => 'string',
                     'required'          => false,
+                    'maxLength'         => 2048,
                     'sanitize_callback' => array($this, 'sanitize_lcp_element_json'),
                 ),
                 'lcp_imagesrcset' => array(
                     'required'          => false,
                     'sanitize_callback' => array($this, 'sanitize_lcp_srcset_param'),
+                ),
+                'token' => array(
+                    'required'          => true,
+                    'sanitize_callback' => 'sanitize_text_field',
                 ),
             ),
         ));
@@ -120,17 +133,26 @@ class UCP_CWV {
 
     private function is_local_header_url($url) {
         $url = trim((string) $url);
-        if ('' === $url) {
-            return true;
+        return '' === $url || self::is_same_origin_url($url);
+    }
+
+    private static function default_port_for_scheme($scheme) {
+        if ('https' === $scheme) {
+            return 443;
         }
 
-        $url_host = wp_parse_url($url, PHP_URL_HOST);
-        $home_host = wp_parse_url(home_url('/'), PHP_URL_HOST);
-        return $url_host && $home_host && strtolower((string) $url_host) === strtolower((string) $home_host);
+        if ('http' === $scheme) {
+            return 80;
+        }
+
+        return 0;
     }
 
     public function print_rum_script() {
-        if (is_admin() || empty(UCP_Options::get('enable_cwv_monitoring'))) { return; }
+        if (is_admin() || empty(UCP_Options::get('enable_cwv_monitoring'))) {
+            return;
+        }
+
         $endpoint = esc_url_raw(rest_url('ultracache-pro/v1/cwv'));
         $token = $this->cwv_token(); ?>
 <script id="ucp-cwv-monitor">
@@ -140,24 +162,30 @@ class UCP_CWV {
 
     public function record_metric($request) {
         $metric = strtoupper(sanitize_key($request->get_param('metric')));
-        if (!$this->validate_metric($metric)) { return new WP_REST_Response(array('ok' => false), 400); }
+        if (!$this->validate_metric($metric)) {
+            return new WP_REST_Response(array('ok' => false), 400);
+        }
 
         $value = (float) $request->get_param('value');
-        if (!$this->validate_metric_value($value)) { return new WP_REST_Response(array('ok' => false), 400); }
+        if (!$this->validate_metric_value($value)) {
+            return new WP_REST_Response(array('ok' => false), 400);
+        }
 
-        $visitor_key = $this->visitor_rate_key($metric);
-        if (get_transient($visitor_key)) {
+        if (!$this->bump_rate_counter($this->visitor_rate_key($metric), 1, MINUTE_IN_SECONDS)) {
             return new WP_REST_Response(array('ok' => false, 'reason' => 'rate_limited'), 429);
         }
 
-        $daily_key = $this->daily_rate_key($metric);
-        $daily_count = absint(get_transient($daily_key));
-        if ($daily_count >= self::MAX_DAILY_SAMPLES_PER_METRIC) {
+        if (!$this->bump_rate_counter($this->daily_rate_key($metric), self::MAX_DAILY_SAMPLES_PER_METRIC, DAY_IN_SECONDS)) {
             return new WP_REST_Response(array('ok' => false, 'reason' => 'daily_limit_reached'), 429);
         }
 
-        set_transient($visitor_key, 1, MINUTE_IN_SECONDS);
-        set_transient($daily_key, $daily_count + 1, DAY_IN_SECONDS);
+        if (!$this->bump_rate_counter($this->ip_minute_rate_key(), self::MAX_IP_SAMPLES_PER_MINUTE, MINUTE_IN_SECONDS)) {
+            return new WP_REST_Response(array('ok' => false, 'reason' => 'ip_rate_limited'), 429);
+        }
+
+        if (!$this->bump_rate_counter($this->site_minute_rate_key(), self::MAX_SITE_SAMPLES_PER_MINUTE, MINUTE_IN_SECONDS)) {
+            return new WP_REST_Response(array('ok' => false, 'reason' => 'site_rate_limited'), 429);
+        }
 
         $data = get_option(self::OPTION_KEY, array());
         if (!is_array($data)) {
@@ -208,7 +236,7 @@ class UCP_CWV {
      */
     public function sanitize_local_url_param($url) {
         $url = trim((string) $url);
-        if ('' === $url) {
+        if ('' === $url || strlen($url) > 2048) {
             return '';
         }
 
@@ -237,11 +265,13 @@ class UCP_CWV {
      * @return string JSON encoded safe metadata.
      */
     public function sanitize_lcp_element_json($json) {
-        if (is_array($json)) {
-            $decoded = $json;
-        } else {
-            $decoded = json_decode((string) $json, true);
+        $raw = is_array($json) ? wp_json_encode($json) : (string) $json;
+
+        if (!is_string($raw) || '' === $raw || strlen($raw) > 2048) {
+            return '';
         }
+
+        $decoded = json_decode($raw, true);
         if (!is_array($decoded)) {
             return '';
         }
@@ -288,9 +318,7 @@ class UCP_CWV {
             return '';
         }
 
-        $url_host = wp_parse_url($absolute, PHP_URL_HOST);
-        $home_host = wp_parse_url(home_url('/'), PHP_URL_HOST);
-        if (!$url_host || !$home_host || strtolower((string) $url_host) !== strtolower((string) $home_host)) {
+        if (!self::is_same_origin_url($absolute)) {
             return '';
         }
 
@@ -298,11 +326,35 @@ class UCP_CWV {
     }
 
     /**
-     * Keep only same-origin candidates in browser-provided srcset metadata.
+     * Check whether a URL matches the configured site origin.
      *
-     * @param string $srcset Raw srcset.
-     * @return string
+     * @param string $url Absolute URL.
+     * @return bool
      */
+    private static function is_same_origin_url($url) {
+        $url_parts = wp_parse_url($url);
+        $home_parts = wp_parse_url(home_url('/'));
+
+        if (!is_array($url_parts) || !is_array($home_parts)) {
+            return false;
+        }
+
+        $url_host = isset($url_parts['host']) ? strtolower((string) $url_parts['host']) : '';
+        $home_host = isset($home_parts['host']) ? strtolower((string) $home_parts['host']) : '';
+        $url_scheme = isset($url_parts['scheme']) ? strtolower((string) $url_parts['scheme']) : '';
+        $home_scheme = isset($home_parts['scheme']) ? strtolower((string) $home_parts['scheme']) : '';
+        $url_port = isset($url_parts['port']) ? absint($url_parts['port']) : self::default_port_for_scheme($url_scheme);
+        $home_port = isset($home_parts['port']) ? absint($home_parts['port']) : self::default_port_for_scheme($home_scheme);
+
+        return '' !== $url_host
+            && '' !== $home_host
+            && '' !== $url_scheme
+            && '' !== $home_scheme
+            && $url_host === $home_host
+            && $url_scheme === $home_scheme
+            && $url_port === $home_port;
+    }
+
     private static function sanitize_lcp_srcset($srcset) {
         $srcset = substr(sanitize_textarea_field((string) $srcset), 0, 1200);
         if ('' === trim($srcset)) {
@@ -341,9 +393,10 @@ class UCP_CWV {
         }
 
         $table = ucp_table_name('lcp');
-        if ('' === $table || !self::lcp_table_exists($table)) {
+        if ('' === $table || !class_exists('UCP_Helpers') || !UCP_Helpers::is_safe_table_name($table) || !self::lcp_table_exists($table)) {
             return false;
         }
+        $table_sql = UCP_Helpers::quote_table_name($table);
 
         $url = isset($data['url']) ? self::sanitize_lcp_local_url((string) $data['url']) : '';
         $lcp_url = isset($data['lcp_url']) ? self::sanitize_lcp_local_url((string) $data['lcp_url']) : '';
@@ -379,9 +432,10 @@ class UCP_CWV {
         $url_hash = hash('sha256', $url);
         $now = current_time('mysql');
 
+        // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter -- plugin-owned LCP table identifier is validated before quoting.
         $existing = $wpdb->get_row(
             $wpdb->prepare(
-                "SELECT id, sample_count FROM {$table} WHERE url_hash = %s AND device = %s LIMIT 1",
+                "SELECT id, sample_count FROM {$table_sql} WHERE url_hash = %s AND device = %s LIMIT 1",
                 $url_hash,
                 $device
             ),
@@ -400,6 +454,7 @@ class UCP_CWV {
 
         if (is_array($existing) && !empty($existing['id'])) {
             $payload['sample_count'] = absint($existing['sample_count']) + 1;
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- plugin-owned LCP table write.
             return false !== $wpdb->update(
                 $table,
                 $payload,
@@ -414,6 +469,7 @@ class UCP_CWV {
         $payload['sample_count'] = 1;
         $payload['created_at'] = $now;
 
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- plugin-owned LCP table write.
         return false !== $wpdb->insert(
             $table,
             $payload,
@@ -436,9 +492,10 @@ class UCP_CWV {
         }
 
         $table = ucp_table_name('lcp');
-        if ('' === $table || !self::lcp_table_exists($table)) {
+        if ('' === $table || !class_exists('UCP_Helpers') || !UCP_Helpers::is_safe_table_name($table) || !self::lcp_table_exists($table)) {
             return array();
         }
+        $table_sql = UCP_Helpers::quote_table_name($table);
 
         $url = self::sanitize_lcp_local_url((string) $url);
         if ('' === $url) {
@@ -451,9 +508,10 @@ class UCP_CWV {
         }
 
         $url_hash = hash('sha256', $url);
+        // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter -- plugin-owned LCP table identifier is validated before quoting.
         $row = $wpdb->get_row(
             $wpdb->prepare(
-                "SELECT * FROM {$table} WHERE url_hash = %s AND device = %s ORDER BY last_measured DESC LIMIT 1",
+                "SELECT * FROM {$table_sql} WHERE url_hash = %s AND device = %s ORDER BY last_measured DESC LIMIT 1",
                 $url_hash,
                 $device
             ),
@@ -461,9 +519,10 @@ class UCP_CWV {
         );
 
         if (!is_array($row) && 'all' !== $device) {
+            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter -- plugin-owned LCP table identifier is validated before quoting.
             $row = $wpdb->get_row(
                 $wpdb->prepare(
-                    "SELECT * FROM {$table} WHERE url_hash = %s AND device = %s ORDER BY last_measured DESC LIMIT 1",
+                    "SELECT * FROM {$table_sql} WHERE url_hash = %s AND device = %s ORDER BY last_measured DESC LIMIT 1",
                     $url_hash,
                     'all'
                 ),
@@ -475,7 +534,6 @@ class UCP_CWV {
     }
 
 
-
     public static function atf_hints_summary($limit = 20) {
         global $wpdb;
         $limit = max(1, min(100, absint($limit)));
@@ -484,13 +542,15 @@ class UCP_CWV {
             return $out;
         }
         $table = ucp_table_name('lcp');
-        if ('' === $table || !self::lcp_table_exists($table)) {
+        if ('' === $table || !class_exists('UCP_Helpers') || !UCP_Helpers::is_safe_table_name($table) || !self::lcp_table_exists($table)) {
             return $out;
         }
-        // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- plugin-owned LCP diagnostics.
-        $out['total'] = (int) $wpdb->get_var("SELECT COUNT(*) FROM {$table}");
-        // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- plugin-owned LCP diagnostics.
-        $sql = $wpdb->prepare("SELECT url, device, lcp_url, value_ms, sample_count, last_measured FROM {$table} ORDER BY last_measured DESC LIMIT %d", $limit);
+        $table_sql = UCP_Helpers::quote_table_name($table);
+        // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter -- plugin-owned LCP diagnostics with validated table identifier.
+        $out['total'] = (int) $wpdb->get_var("SELECT COUNT(*) FROM {$table_sql}");
+        // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- plugin-owned LCP diagnostics with validated table identifier.
+        $sql = $wpdb->prepare("SELECT url, device, lcp_url, value_ms, sample_count, last_measured FROM {$table_sql} ORDER BY last_measured DESC LIMIT %d", $limit);
+        // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter -- $sql is prepared above with a validated table identifier and integer LIMIT placeholder.
         $out['recent'] = $wpdb->get_results($sql, ARRAY_A);
         return $out;
     }
@@ -504,7 +564,7 @@ class UCP_CWV {
     private static function lcp_table_exists($table) {
         global $wpdb;
         $table = (string) $table;
-        if ('' === $table || !isset($wpdb) || !is_object($wpdb)) {
+        if ('' === $table || !isset($wpdb) || !is_object($wpdb) || !class_exists('UCP_Helpers') || !UCP_Helpers::is_safe_table_name($table)) {
             return false;
         }
 
@@ -521,6 +581,56 @@ class UCP_CWV {
         return $ok;
     }
 
+    private function bump_rate_counter($key, $limit, $ttl) {
+        $key = sanitize_key((string) $key);
+        $limit = max(1, absint($limit));
+        $ttl = max(1, absint($ttl));
+
+        if ('' === $key) {
+            return false;
+        }
+
+        $lock_key = '_ucp_lock_' . $key;
+        $now = time();
+        $locked = add_option($lock_key, $now, '', 'no');
+
+        if (!$locked) {
+            $created = absint(get_option($lock_key));
+            if ($created && $created < ($now - 5)) {
+                delete_option($lock_key);
+                $locked = add_option($lock_key, $now, '', 'no');
+            }
+        }
+
+        if (!$locked) {
+            return false;
+        }
+
+        try {
+            $count = absint(get_transient($key));
+            if ($count >= $limit) {
+                return false;
+            }
+
+            if (!set_transient($key, $count + 1, $ttl)) {
+                return false;
+            }
+
+            return true;
+        } finally {
+            delete_option($lock_key);
+        }
+    }
+
+    private function site_minute_rate_key() {
+        return 'ucp_cwv_site_' . gmdate('YmdHi');
+    }
+
+    private function ip_minute_rate_key() {
+        $ip = isset($_SERVER['REMOTE_ADDR']) ? sanitize_text_field(wp_unslash($_SERVER['REMOTE_ADDR'])) : 'unknown';
+        return 'ucp_cwv_ip_' . wp_hash($ip . '|' . gmdate('YmdHi'));
+    }
+
     private function daily_rate_key($metric) {
         return 'ucp_cwv_daily_' . gmdate('Ymd') . '_' . sanitize_key((string) $metric);
     }
@@ -531,5 +641,7 @@ class UCP_CWV {
         return 'ucp_cwv_rate_' . wp_hash($metric . '|' . $ip . '|' . substr($agent, 0, 120));
     }
 
-    public static function summary() { return get_option(self::OPTION_KEY, array()); }
+    public static function summary() {
+        return get_option(self::OPTION_KEY, array());
+    }
 }

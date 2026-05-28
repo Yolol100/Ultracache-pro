@@ -1,4 +1,5 @@
 <?php
+// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals -- Existing public UCP API/drop-in symbols are intentionally preserved for backward compatibility.
 if (!defined('ABSPATH')) {
     exit;
 }
@@ -30,11 +31,19 @@ trait UCP_Quality_Suite_Actions_Trait {
         return self::action_success(__('Preset toegepast.', 'ultracache-pro'), array('preset' => $preset));
     }
 
-    public static function rest_preset_woocommerce_safe() { return self::apply_preset_and_reply('woocommerce'); }
+    public static function rest_preset_woocommerce_safe() {
+        return self::apply_preset_and_reply('woocommerce');
+    }
 
-    public static function rest_preset_elementor_safe() { return self::apply_preset_and_reply('builder'); }
+    public static function rest_preset_elementor_safe() {
+        return self::apply_preset_and_reply('builder');
+    }
 
-    public static function rest_preset_debug_test() { return self::rest_enable_debug_mode(); }
+    public static function rest_preset_debug_test() {
+        return self::rest_enable_debug_mode();
+    }
 
-    public static function rest_preset_aggressive() { return self::apply_preset_and_reply('aggressive'); }
+    public static function rest_preset_aggressive() {
+        return self::apply_preset_and_reply('aggressive');
+    }
 }

@@ -1,4 +1,5 @@
 <?php
+// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals -- Existing public UCP API/drop-in symbols are intentionally preserved for backward compatibility.
 if (!defined('ABSPATH')) {
     exit;
 }
@@ -13,12 +14,7 @@ trait UCP_Quality_Suite_Routing_Trait {
 
     public static function register_routes() {
         $routes = array(
-            'runtime-cache-test' => 'rest_runtime_cache_test',
-            'detect-conflicts'   => 'rest_detect_conflicts',
-            'release-checklist'  => 'rest_release_checklist',
-            'log-viewer'         => 'rest_log_viewer',
-            'enable-debug-mode'  => 'rest_enable_debug_mode',
-            'repair-cache-files' => 'rest_repair_cache_files',
+            'log-viewer'              => 'rest_log_viewer',
             'preset-woocommerce-safe' => 'rest_preset_woocommerce_safe',
             'preset-elementor-safe'   => 'rest_preset_elementor_safe',
             'preset-debug-test'       => 'rest_preset_debug_test',
@@ -34,14 +30,7 @@ trait UCP_Quality_Suite_Routing_Trait {
     }
 
     public static function permissions_check($request = null) {
-        if (!current_user_can('manage_options')) {
-            return new WP_Error('ucp_forbidden', __('Je hebt geen rechten om UltraCache Pro te beheren.', 'ultracache-pro'), array('status' => 403));
-        }
-        $nonce = ($request instanceof WP_REST_Request) ? (string) $request->get_header('x_wp_nonce') : '';
-        if ('' === $nonce || !wp_verify_nonce($nonce, 'wp_rest')) {
-            return new WP_Error('ucp_rest_nonce_missing', __('Ongeldige of ontbrekende REST-beveiligingstoken.', 'ultracache-pro'), array('status' => 403));
-        }
-        return true;
+        return UCP_Helpers::rest_admin_permission_check($request);
     }
 
     protected static function action_success($message, $data = array()) {

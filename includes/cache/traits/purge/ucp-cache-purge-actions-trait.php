@@ -1,4 +1,5 @@
 <?php
+// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals -- Existing public UCP API/drop-in symbols are intentionally preserved for backward compatibility.
 if (!defined('ABSPATH')) {
     exit;
 }
@@ -30,13 +31,14 @@ trait UCP_Cache_Purge_Actions_Trait {
     }
 
     public static function clear_all() {
-        $reflector = new ReflectionClass(__CLASS__);
-        $cache = $reflector->newInstanceWithoutConstructor();
+        $cache = UCP_Helpers::new_without_constructor(__CLASS__);
         $cache->purge_all();
     }
 
     public function purge_all() {
         UCP_Helpers::safe_glob_delete(UCP_CACHE_DIR . 'pages/*.html');
+        UCP_Helpers::safe_glob_delete(UCP_CACHE_DIR . 'pages/*.html.gz');
+        UCP_Helpers::safe_glob_delete(UCP_CACHE_DIR . 'pages/*.html.br');
         UCP_Helpers::safe_glob_delete(UCP_CACHE_DIR . 'used-css/*.css');
         UCP_Helpers::safe_glob_delete(UCP_CACHE_DIR . 'critical-css/*.css');
         UCP_Helpers::safe_glob_delete(UCP_CACHE_DIR . 'diagnostics/*.json');

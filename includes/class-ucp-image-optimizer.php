@@ -1,4 +1,5 @@
 <?php
+// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals -- Existing public UCP API/drop-in symbols are intentionally preserved for backward compatibility.
 // phpcs:disable WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- Attachment lookup intentionally uses meta_query for plugin-owned optimization metadata.
 if (!defined('ABSPATH')) {
     exit;
@@ -11,6 +12,10 @@ class UCP_Image_Optimizer {
         add_filter('wp_generate_attachment_metadata', array($this, 'generate_variants_on_upload'), 20, 2);
         add_action('admin_post_ucp_optimize_missing_images', array($this, 'optimize_missing_images'));
         add_filter('wp_get_attachment_image_src', array($this, 'maybe_serve_modern_variant'), 20, 4);
+        // Cache-safe delivery: rewrite <img> into <picture> with modern <source> sets inside the
+        // front-end HTML buffer. Unlike Accept-negotiated URL swapping, <picture> lets each browser
+        // pick the format it supports, so the SAME cached HTML is correct for every visitor (no Vary needed).
+        add_filter('ucp_process_html', array($this, 'rewrite_images_to_picture'), 5);
     }
 
     public static function server_support() {
@@ -161,6 +166,118 @@ class UCP_Image_Optimizer {
         $uploads = wp_upload_dir();
         if (!empty($uploads['basedir']) && !empty($uploads['baseurl']) && 0 === strpos($path, $uploads['basedir'])) {
             return str_replace($uploads['basedir'], $uploads['baseurl'], $path);
+        }
+        return '';
+    }
+
+    /**
+     * Map an uploads-relative image URL to its on-disk path inside the uploads dir.
+     * Returns '' for anything outside uploads or with a traversal attempt.
+     */
+    protected function uploads_path_from_url($url) {
+        $url = (string) $url;
+        if ('' === $url) {
+            return '';
+        }
+        $uploads = wp_upload_dir();
+        if (empty($uploads['baseurl']) || empty($uploads['basedir'])) {
+            return '';
+        }
+        $baseurl = preg_replace('#^https?:#i', '', (string) $uploads['baseurl']);
+        $candidate = preg_replace('#^https?:#i', '', $url);
+        if (0 !== strpos($candidate, $baseurl)) {
+            return '';
+        }
+        $relative = ltrim(substr($candidate, strlen($baseurl)), '/');
+        if (false !== strpos($relative, '..')) {
+            return '';
+        }
+        $path = trailingslashit($uploads['basedir']) . $relative;
+        $real = realpath($path);
+        $base_real = realpath($uploads['basedir']);
+        if (!$real || !$base_real || 0 !== strpos($real, $base_real)) {
+            return '';
+        }
+        return $real;
+    }
+
+    /**
+     * Wrap eligible <img> tags in <picture> with avif/webp <source> elements when the
+     * generated variants exist on disk. Safe inside cached HTML: the browser negotiates.
+     *
+     * @param string $html
+     * @return string
+     */
+    public function rewrite_images_to_picture($html) {
+        if (!is_string($html) || '' === trim($html)) {
+            return $html;
+        }
+        if (empty(UCP_Options::get('enable_webp_generation')) && empty(UCP_Options::get('enable_avif_generation'))) {
+            return $html;
+        }
+        if (false === stripos($html, '<img')) {
+            return $html;
+        }
+
+        $rewritten = preg_replace_callback('#<img\b[^>]*>#i', function ($matches) {
+            $tag = $matches[0];
+            // Skip tags we should not touch.
+            if (false !== stripos($tag, 'data-ucp-no-picture') || false !== stripos($tag, 'data-no-optimize')) {
+                return $tag;
+            }
+            // Only operate on a real, parseable src.
+            if (!preg_match('/\ssrc=("|\')(.*?)\1/i', $tag, $src_match)) {
+                return $tag;
+            }
+            $src = html_entity_decode($src_match[2], ENT_QUOTES);
+            if ('' === $src || preg_match('#^data:#i', $src)) {
+                return $tag;
+            }
+            $base_path = $this->uploads_path_from_url($src);
+            if ('' === $base_path) {
+                return $tag;
+            }
+
+            $sources = '';
+            // AVIF first (best compression), then WebP.
+            if (!empty(UCP_Options::get('enable_avif_generation'))) {
+                $avif = $this->sibling_variant_url($base_path, 'avif');
+                if ('' !== $avif) {
+                    $sources .= '<source srcset="' . esc_url($avif) . '" type="image/avif">';
+                }
+            }
+            if (!empty(UCP_Options::get('enable_webp_generation'))) {
+                $webp = $this->sibling_variant_url($base_path, 'webp');
+                if ('' !== $webp) {
+                    $sources .= '<source srcset="' . esc_url($webp) . '" type="image/webp">';
+                }
+            }
+            if ('' === $sources) {
+                return $tag;
+            }
+            // phpcs:ignore WordPress.WP.EnqueuedResources -- buffered front-end HTML rewrite, not an enqueue.
+            return '<picture data-ucp-picture="1">' . $sources . $tag . '</picture>';
+        }, $html);
+
+        return is_string($rewritten) ? $rewritten : $html;
+    }
+
+    /**
+     * Return the public URL of a same-name sibling variant (file.jpg -> file.webp / file.jpg.webp)
+     * only when it actually exists on disk.
+     */
+    protected function sibling_variant_url($base_path, $format) {
+        $candidates = array(
+            preg_replace('/\.(jpe?g|png)$/i', '.' . $format, $base_path),
+            $base_path . '.' . $format,
+        );
+        foreach ($candidates as $candidate) {
+            if (is_string($candidate) && '' !== $candidate && $candidate !== $base_path && is_file($candidate)) {
+                $url = $this->path_to_url($candidate);
+                if ('' !== $url) {
+                    return $url;
+                }
+            }
         }
         return '';
     }

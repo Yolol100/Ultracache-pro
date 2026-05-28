@@ -1,4 +1,5 @@
 <?php
+// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals -- Existing public UCP API/drop-in symbols are intentionally preserved for backward compatibility.
 if (!defined('ABSPATH')) {
     exit;
 }
@@ -84,7 +85,7 @@ trait UCP_Assets_Minify_Trait {
             if ('' === $minified || $min_bytes < 20) {
                 return '';
             }
-                        if (($original_bytes - $min_bytes) < 2048 || $min_bytes > (int) floor($original_bytes * 0.90)) {
+            if (($original_bytes - $min_bytes) < 2048 || $min_bytes > (int) floor($original_bytes * 0.90)) {
                 return '';
             }
 
@@ -97,8 +98,8 @@ trait UCP_Assets_Minify_Trait {
             $target = $dir . $hash . '.' . $type;
             if (!file_exists($target)) {
                 $tmp = $target . '.tmp.' . wp_generate_password(8, false, false);
-                if (!UCP_Helpers::write_file($tmp, $minified) || !@rename($tmp, $target)) {
-                    @unlink($tmp);
+                if (!UCP_Helpers::write_file($tmp, $minified) || !UCP_Helpers::move_file($tmp, $target)) {
+                    UCP_Helpers::safe_delete_file($tmp);
                     return '';
                 }
             }

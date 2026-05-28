@@ -1,4 +1,6 @@
 <?php
+// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals -- Existing public UCP API/drop-in symbols are intentionally preserved for backward compatibility.
+// phpcs:disable WordPress.Security.NonceVerification.Recommended -- Request data is inspected only to decide cache eligibility; no form data is processed or persisted here.
 if (!defined('ABSPATH')) {
     exit;
 }
@@ -140,12 +142,35 @@ trait UCP_Cache_Request_Policy_Trait {
             'cookie_notice_',
             'cmplz_',
             'complianz_',
+            'cookieyes',
+            'cky-',
+            'borlabs',
             'joinchat_',
+            'wp-settings-',
             '_ga',
             '_gid',
             '_gat',
+            '_gcl_',
             '_fbp',
             '_fbc',
+            '_hj',
+            '_clck',
+            '_clsk',
+            '_pk_id',
+            '_pk_ses',
+            '_uetsid',
+            '_uetvid',
+            '_pin_unauth',
+            '_scid',
+            'li_gc',
+            'lidc',
+            'bcookie',
+            'bscookie',
+            'tk_ai',
+            '__stripe_mid',
+            '__stripe_sid',
+            '__cf_bm',
+            'cf_clearance',
         ));
     }
 
@@ -159,13 +184,42 @@ trait UCP_Cache_Request_Policy_Trait {
             'cookie_notice_',
             'cmplz_',
             'complianz_',
+            'cookieyes',
+            'cky-',
+            'borlabs',
             'joinchat_',
             'wordpress_test_cookie',
+            'wp-settings-',
+            'wp-settings-time-',
+            // Analytics / heatmap / advertising client-side cookies (no server personalization).
             '_ga',
             '_gid',
             '_gat',
+            '_gcl_',
             '_fbp',
             '_fbc',
+            '_hj',
+            '_clck',
+            '_clsk',
+            '_pk_id',
+            '_pk_ses',
+            '_uetsid',
+            '_uetvid',
+            '_pin_unauth',
+            '_scid',
+            'li_gc',
+            'li_mc',
+            'lidc',
+            'bcookie',
+            'bscookie',
+            'tk_ai',
+            'tk_qs',
+            // Payment-provider browser fingerprints that do not change page HTML.
+            '__stripe_mid',
+            '__stripe_sid',
+            // Cloudflare bot-management cookie (per-request, not user state).
+            '__cf_bm',
+            'cf_clearance',
         ));
     }
 
@@ -333,8 +387,10 @@ trait UCP_Cache_Request_Policy_Trait {
                     return $this->bypass_cache('cookie');
                 }
             }
-            // Note: unknown request cookies often indicate personalization/session state. Do not serve or write shared page cache for them by default.
-            if (!$this->request_cookie_is_cache_safe($cookie_name) && (bool) apply_filters('ucp_block_unknown_request_cookies', true, $cookie_name)) {
+            // Note: unknown request cookies are common on real sites (analytics, A/B, chat, payment, consent).
+            // Blocking on them collapses the cache hit-rate, so the default is now permissive: only bypass when
+            // a cookie matches the explicit sensitive list above. Strict mode remains available via the filter.
+            if (!$this->request_cookie_is_cache_safe($cookie_name) && (bool) apply_filters('ucp_block_unknown_request_cookies', false, $cookie_name)) {
                 UCP_Diagnostics::record('cache', 'Bypassed cache for unknown request cookie', array('cookie' => $cookie_name));
                 return $this->bypass_cache('unknown_cookie');
             }
@@ -352,14 +408,18 @@ trait UCP_Cache_Request_Policy_Trait {
         $request_uri = isset($_SERVER['REQUEST_URI']) ? esc_url_raw(wp_unslash($_SERVER['REQUEST_URI'])) : $path;
         foreach ((array) $uri_rules as $rule) {
             $rule = trim((string) $rule);
-            if ('' === $rule) { continue; }
+            if ('' === $rule) {
+                continue;
+            }
             if ('^' === substr($rule, 0, 1)) {
                 if (UCP_Helpers::safe_regex_match($rule, $request_uri)) {
                     return $this->bypass_cache('uri_rule');
                 }
                 continue;
             }
-            if (false !== stripos($request_uri, $rule)) { return $this->bypass_cache('uri_rule'); }
+            if (false !== stripos($request_uri, $rule)) {
+                return $this->bypass_cache('uri_rule');
+            }
         }
 
         if (UCP_Rule_Engine::has_action('disable_cache')) {

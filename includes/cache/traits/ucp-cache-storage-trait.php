@@ -1,4 +1,5 @@
 <?php
+// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals -- Existing public UCP API/drop-in symbols are intentionally preserved for backward compatibility.
 if (!defined('ABSPATH')) {
     exit;
 }
@@ -18,8 +19,8 @@ trait UCP_Cache_Storage_Trait {
                 $etag = '"' . dechex($modified) . '"';
                 $last_modified_hdr = gmdate('D, d M Y H:i:s', $modified) . ' GMT';
                 // 304 Not Modified
-                $ifnm = isset($_SERVER['HTTP_IF_NONE_MATCH'])    ? trim((string)$_SERVER['HTTP_IF_NONE_MATCH'])    : '';
-                $ifms = isset($_SERVER['HTTP_IF_MODIFIED_SINCE']) ? trim((string)$_SERVER['HTTP_IF_MODIFIED_SINCE']) : '';
+                $ifnm = isset($_SERVER['HTTP_IF_NONE_MATCH']) ? sanitize_text_field(wp_unslash($_SERVER['HTTP_IF_NONE_MATCH'])) : '';
+                $ifms = isset($_SERVER['HTTP_IF_MODIFIED_SINCE']) ? sanitize_text_field(wp_unslash($_SERVER['HTTP_IF_MODIFIED_SINCE'])) : '';
                 if (($ifnm && $ifnm === $etag) || ($ifms && strtotime($ifms) >= $modified)) {
                     header('X-UltraCache: HIT-304');
                     header('ETag: ' . $etag);

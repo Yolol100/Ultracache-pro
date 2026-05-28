@@ -1,4 +1,5 @@
 <?php
+// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals -- Existing public UCP API/drop-in symbols are intentionally preserved for backward compatibility.
 if (!defined('ABSPATH')) {
     exit;
 }
@@ -58,24 +59,33 @@ class UCP_Edge {
         if (headers_sent() || empty($candidates)) {
             return;
         }
-        $server = strtolower(isset($_SERVER['SERVER_SOFTWARE']) ? (string) $_SERVER['SERVER_SOFTWARE'] : '');
+        $server = strtolower(isset($_SERVER['SERVER_SOFTWARE']) ? sanitize_text_field(wp_unslash($_SERVER['SERVER_SOFTWARE'])) : '');
         $cf = self::cloudflare_headers_present();
         $supports = $cf || false !== strpos($server, 'litespeed') || false !== strpos($server, 'nginx');
         if (!$supports) {
             return;
         }
-        $protocol = isset($_SERVER['SERVER_PROTOCOL']) ? preg_replace('/[^A-Z0-9\.\/]/', '', (string) $_SERVER['SERVER_PROTOCOL']) : 'HTTP/1.1';
+        $protocol = isset($_SERVER['SERVER_PROTOCOL']) ? preg_replace('/[^A-Z0-9\.\/]/', '', sanitize_text_field(wp_unslash($_SERVER['SERVER_PROTOCOL']))) : 'HTTP/1.1';
         header($protocol . ' 103 Early Hints', true, 103);
         $sent = 0;
         foreach ((array) $candidates as $candidate) {
-            if ($sent >= 3) { break; }
+            if ($sent >= 3) {
+                break;
+            }
+
             $href = !empty($candidate['href']) ? esc_url_raw($candidate['href'], array('http', 'https')) : '';
             $as = !empty($candidate['as']) ? sanitize_key($candidate['as']) : 'script';
-            if (!$href || !UCP_Helpers::is_local_url($href)) { continue; }
+            if (!$href || !UCP_Helpers::is_local_url($href)) {
+                continue;
+            }
+
             header('Link: <' . $href . '>; rel=preload; as=' . $as, false);
             $sent++;
         }
-        if (function_exists('flush')) { @flush(); }
+
+        if (function_exists('flush')) {
+            @flush();
+        }
     }
 
     public static function cloudflare_headers_present() {
@@ -134,6 +144,7 @@ class UCP_Edge {
             'timeout' => 20,
             'redirection' => 0,
             'reject_unsafe_urls' => true,
+            'limit_response_size' => 65536,
             'headers' => array(
                 'Authorization' => 'Bearer ' . $token,
                 'Content-Type' => 'application/json',

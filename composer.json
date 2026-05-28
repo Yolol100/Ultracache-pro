@@ -7,5 +7,14 @@
     "sabberworm/php-css-parser": "^8.7",
     "matthiasmullie/minify": "^1.3"
   },
-  "license": "GPL-2.0-or-later"
+  "license": "GPL-2.0-or-later",
+  "require-dev": {
+    "humbug/php-scoper": "^0.18"
+  },
+  "scripts": {
+    "build:scoped-vendor": [
+      "php-scoper add-prefix --config=scoper.inc.php --output-dir=vendor-scoped vendor",
+      "@php -r \"echo 'Scoped vendor generated in vendor-scoped/. Copy the scoped package into vendor/ during release packaging.\\n';\""
+    ]
+  }
 }

@@ -1,4 +1,5 @@
 <?php
+// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals -- Existing public UCP API/drop-in symbols are intentionally preserved for backward compatibility.
 if (!defined('ABSPATH')) {
     exit;
 }
@@ -221,10 +222,11 @@ trait UCP_CSS_Delivery_Trait {
     }
 
     private function extract_used_css_rules_with_sabberworm($css, $html, $safelist, $max) {
-        if (!class_exists('Sabberworm\CSS\Parser')) {
+        $parser_class = function_exists('ucp_dependency_class') ? ucp_dependency_class('Sabberworm\\CSS\\Parser') : '';
+        if ('' === $parser_class) {
             return array();
         }
-        $parser = new Sabberworm\CSS\Parser((string) $css);
+        $parser = new $parser_class((string) $css);
         $document = $parser->parse();
         if (!is_object($document) || !method_exists($document, 'getContents')) {
             return array();

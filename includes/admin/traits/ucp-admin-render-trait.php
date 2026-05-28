@@ -1,4 +1,5 @@
 <?php
+// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals -- Existing public UCP API/drop-in symbols are intentionally preserved for backward compatibility.
 if (!defined('ABSPATH')) {
     exit;
 }
@@ -13,53 +14,15 @@ trait UCP_Admin_Render_Trait {
             wp_die(esc_html__('Geen toegang.', 'ultracache-pro'), '', array('response' => 403));
         }
 
-        if (class_exists('UCP_Admin_React_App') && UCP_Admin_React_App::should_render()) {
-            UCP_Admin_React_App::render_root();
-            return;
+        if (!class_exists('UCP_Admin_React_App') || !UCP_Admin_React_App::should_render()) {
+            wp_die(
+                esc_html__('UltraCache Pro admin kan niet laden omdat de React admin assets ontbreken.', 'ultracache-pro'),
+                esc_html__('UltraCache Pro', 'ultracache-pro'),
+                array('response' => 500)
+            );
         }
 
-        $settings = UCP_Options::get_all();
-        $tab = $this->get_current_tab();
-        $mode = !empty($settings['ui_mode']) && 'advanced' === $settings['ui_mode'] ? 'advanced' : 'simple';
-        $visible_tabs = $this->visible_tabs($mode);
-
-        $health = UCP_Health::latest();
-        $jobs_summary = UCP_Jobs::get_summary();
-        $integrations = UCP_Integrations::detected();
-        $presets = UCP_Presets::all();
-        $rules = UCP_Rule_Engine::get_rules();
-
-        $tab_meta = $this->tab_meta($tab);
-        $is_settings_tab = UCP_Admin_Settings_Screen::is_settings_tab($tab);
-
-        UCP_Admin_Shell::render_start($this, $mode, $tab, $tab_meta, $visible_tabs);
-        UCP_Admin_Shell::render_context($this, $mode, $tab, $settings, $integrations, $tab_meta);
-
-        if ($is_settings_tab) {
-            UCP_Admin_Submit::open_settings_form($tab);
-        }
-
-        echo '<div class="ucp-grid">';
-        UCP_Admin_Settings_Screen::render(
-            $this,
-            $tab,
-            $settings,
-            array(
-                'presets'      => $presets,
-                'integrations' => $integrations,
-                'health'       => $health,
-                'jobs_summary' => $jobs_summary,
-                'rules'        => $rules,
-            )
-        );
-        echo '</div>';
-
-        if ($is_settings_tab) {
-            UCP_Admin_Submit::render_submit_row();
-            UCP_Admin_Submit::close_settings_form();
-        }
-
-        UCP_Admin_Shell::render_end($this, $tab);
+        UCP_Admin_React_App::render_root();
     }
 
     protected function tabs() {

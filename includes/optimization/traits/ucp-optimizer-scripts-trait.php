@@ -1,4 +1,5 @@
 <?php
+// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals -- Existing public UCP API/drop-in symbols are intentionally preserved for backward compatibility.
 if (!defined('ABSPATH')) {
     exit;
 }
@@ -103,7 +104,6 @@ trait UCP_Optimizer_Scripts_Trait {
                 if ($forced_by_browser_scan) {
                     $forced_delayed++;
                 }
-                // phpcs:ignore WordPress.WP.EnqueuedResources.NonEnqueuedScript -- rewrites already-enqueued script tags in buffered front-end HTML for delay loading.
                 // phpcs:ignore WordPress.WP.EnqueuedResources.NonEnqueuedScript -- rewrites already-enqueued script tags in buffered front-end HTML for delay loading.
                 $bucket = $this->delay_bucket_for_script($attrs, '', $script_src);
                 return '<script type="text/ucpdelayed" data-ucp-bucket="' . esc_attr($bucket) . '" data-ucp-src="' . esc_url($script_src) . '"' . $this->prepare_delay_placeholder_attrs($attrs, true) . '></script>';

@@ -60,9 +60,29 @@
 
 .ucp-cache-toast.is-dismissing {animation: ucpCacheToastOut .18s ease-in forwards;}
 
-@keyframes ucpCacheToastIn;
+@keyframes ucpCacheToastIn {
+from {
+  opacity: 0;
+  transform: translate(-50%, 14px);
+}
 
-@keyframes ucpCacheToastOut;
+to {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+}
+
+@keyframes ucpCacheToastOut {
+from {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+to {
+  opacity: 0;
+  transform: translate(-50%, 14px);
+}
+}
 
 @media (max-width: 480px) {
 .ucp-cache-toast {

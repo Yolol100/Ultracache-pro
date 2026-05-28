@@ -1,4 +1,5 @@
 <?php
+// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals -- Existing public UCP API/drop-in symbols are intentionally preserved for backward compatibility.
 if (!defined('ABSPATH')) {
     exit;
 }
@@ -17,7 +18,6 @@ final class UCP_Plugin {
         register_activation_hook(UCP_FILE, array($this, 'activate'));
         register_deactivation_hook(UCP_FILE, array($this, 'deactivate'));
 
-        add_action('init', array($this, 'load_textdomain'), 0);
         add_action('init', array($this, 'bootstrap'));
         add_action('before_woocommerce_init', array($this, 'declare_woocommerce_features'));
         add_action('wpmu_new_blog', array($this, 'activate_new_blog'), 10, 1);
@@ -39,9 +39,6 @@ final class UCP_Plugin {
         \Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility('custom_order_tables', UCP_FILE, true);
     }
 
-    public function load_textdomain() {
-        load_plugin_textdomain('ultracache-pro', false, dirname(UCP_BASENAME) . '/languages');
-    }
 
     public function activate() {
         UCP_Installer::activate();
@@ -184,7 +181,7 @@ final class UCP_Plugin {
         ))) {
             new UCP_Image_Optimizer();
         }
-        if ($backend_context || UCP_Options::get('enable_object_cache_support')) {
+        if ($backend_context || UCP_Options::get('enable_object_cache_support') || UCP_Options::get('enable_apcu_object_cache') || UCP_Options::get('enable_redis_object_cache')) {
             new UCP_Object_Cache();
         }
         if ($backend_context || UCP_Options::get('enable_fragment_cache')) {
@@ -202,6 +199,7 @@ final class UCP_Plugin {
 
         if (is_admin()) {
             new UCP_Admin();
+            new UCP_Admin_Object_Cache_Page();
         }
     }
 }

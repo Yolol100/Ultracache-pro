@@ -1062,11 +1062,10 @@
 .ucp-react-admin-wrap .ucp-layout-grid--actions .ucp-action-group-card--danger .ucp-action-group-heading h2, .ucp-react-admin-wrap .ucp-layout-grid--actions .ucp-action-group-card--danger .ucp-action-group-description {color: inherit;}
 
 .ucp-react-admin-wrap .ucp-layout-toolbar {padding: 10px 12px;
-  border: 1px solid var(--ucp-color-border);
-  border-radius: var(--ucp-radius-sm);
-  background: var(--ucp-color-surface);
-  box-shadow: none;
-  border-color: #e5e7eb;}
+  border: 1px solid #c3c4c7;
+  border-radius: 4px;
+  background: #ffffff;
+  box-shadow: none;}
 
 .ucp-react-admin-wrap .ucp-layout-toolbar__title span {color: #8a8f98;
   font-size: 11px;}
@@ -1695,9 +1694,8 @@
 
 .ucp-count--warning {color: #b45309;}
 
-.ucp-react-admin-wrap {margin: 24px 24px 32px 4px;
-  max-width: none;
-  margin-top: 20px;}
+.ucp-react-admin-wrap {margin: 20px 0 32px;
+  max-width: 1280px;}
 
 .ucp-admin-app__shell {display: flex;
   flex-direction: column;
@@ -1886,7 +1884,7 @@
 }
 
 .ucp-react-admin-wrap {
-  margin: 16px 12px 24px 0;
+  margin: 16px 0 24px;
 }
 
 .ucp-app-header {
@@ -1905,13 +1903,13 @@
   line-height: 1.5;
   --ucp-border: var(--ucp-color-border);
   --ucp-subtle-border: #dcdcde;
-  --ucp-bg: #f0f0f1;
-  --ucp-surface: #ffffff;
+  --ucp-bg: var(--ucp-color-bg);
+  --ucp-surface: var(--ucp-color-surface);
   --ucp-primary: var(--ucp-color-primary);
   --ucp-primary-dark: var(--ucp-color-primary-active);
   --ucp-text: var(--ucp-color-heading);
   --ucp-muted: var(--ucp-color-muted);
-  --ucp-subtle: #f6f7f7;
+  --ucp-subtle: var(--ucp-color-surface-subtle);
   --ucp-success: #008a20;
   --ucp-warning: #996800;
   --ucp-primary-hover: var(--ucp-color-primary-hover);
@@ -1939,7 +1937,8 @@
   --ucp-premium-radius-lg: 24px;
   --ucp-premium-shadow-card: 0 1px 2px rgba(7, 17, 31, 0.05), 0 18px 46px rgba(7, 17, 31, 0.07);
   --ucp-premium-shadow-lift: 0 24px 70px rgba(7, 17, 31, 0.13);
-  --ucp-premium-focus: 0 0 0 2px #ffffff, 0 0 0 4px var(--ucp-premium-primary);}
+  --ucp-premium-focus: 0 0 0 2px #ffffff, 0 0 0 4px var(--ucp-premium-primary);
+  --ucp-focus: var(--ucp-ds-focus-ring);}
 
 .ucp-admin-app .components-button, .ucp-admin-app input, .ucp-admin-app select, .ucp-admin-app textarea {border-radius: var(--ucp-premium-radius-sm);}
 
@@ -2002,13 +2001,16 @@
   border-top: 1px solid rgba(217, 229, 239, 0.72);
   border-color: rgba(214, 227, 240, 0.78);}
 
-.ucp-admin-app .components-button.is-primary {border-color: var(--ucp-premium-primary-dark);
-  background: linear-gradient(135deg, var(--ucp-premium-primary), var(--ucp-premium-purple));
-  box-shadow: 0 14px 28px rgba(21, 91, 213, 0.22);}
+.ucp-admin-app .components-button.is-primary {background: #2271b1;
+  border-color: #2271b1;
+  color: #ffffff;
+  box-shadow: none;
+  transform: none;}
 
-.ucp-admin-app .components-button.is-primary:hover:not(:disabled) {background: linear-gradient(135deg, var(--ucp-primary-hover), #5848e8);
-  box-shadow: 0 18px 34px rgba(21, 91, 213, 0.28);
-  transform: translateY(-1px);}
+.ucp-admin-app .components-button.is-primary:hover:not(:disabled), .ucp-admin-app .components-button.is-primary:focus:not(:disabled) {background: #135e96;
+  border-color: #135e96;
+  box-shadow: none;
+  transform: none;}
 
 .ucp-admin-app .components-button:focus:not(:disabled), .ucp-admin-app a:focus, .ucp-admin-app input:focus, .ucp-admin-app select:focus, .ucp-admin-app textarea:focus {outline: 2px solid var(--ucp-focus-ring, var(--ucp-color-primary));
   outline-offset: 2px;
@@ -2066,12 +2068,12 @@
   gap: 6px;
   width: 100%;
   max-width: 100%;
-  margin: 0 0 10px;
+  margin: 0 0 18px;
   padding: 6px;
-  border: 1px solid var(--ucp-color-border);
-  border-radius: var(--ucp-radius-md);
-  background: var(--ucp-color-surface);
-  box-shadow: var(--ucp-shadow-sm);
+  border: 1px solid #c3c4c7;
+  border-radius: 4px;
+  background: #ffffff;
+  box-shadow: none;
   overflow-x: auto;
   overflow-y: hidden;
   white-space: nowrap;
@@ -2091,9 +2093,9 @@
   margin: 0;
   padding: 6px 12px;
   border: 1px solid transparent;
-  border-radius: var(--ucp-radius-sm);
+  border-radius: 3px;
   background: transparent;
-  color: var(--ucp-color-muted);
+  color: #50575e;
   font: inherit;
   font-size: 13px;
   font-weight: 600;
@@ -2136,10 +2138,10 @@
 }
 .ucp-react-admin-wrap .ucp-admin-nav__item.is-active,
 .ucp-react-admin-wrap .ucp-admin-nav__item[aria-current="page"] {
-  border-color: var(--ucp-color-primary);
-  background: var(--ucp-color-primary);
+  border-color: #2271b1;
+  background: #2271b1;
   color: #ffffff;
-  box-shadow: 0 1px 2px rgba(21, 91, 213, 0.18);
+  box-shadow: none;
 }
 .ucp-react-admin-wrap .ucp-admin-nav__item.is-active .dashicons,
 .ucp-react-admin-wrap .ucp-admin-nav__item[aria-current="page"] .dashicons {
@@ -2147,42 +2149,6 @@
 }
 
 
-
-/* 10.12 design-system cleanup: one token layer for React admin, no hard overrides. */
-.ucp-admin-app {
-  --ucp-primary: var(--ucp-color-primary);
-  --ucp-primary-hover: var(--ucp-color-primary-hover);
-  --ucp-bg: var(--ucp-color-bg);
-  --ucp-surface: var(--ucp-color-surface);
-  --ucp-subtle: var(--ucp-color-surface-subtle);
-  --ucp-muted: var(--ucp-color-muted);
-  --ucp-border: var(--ucp-color-border);
-  --ucp-focus: var(--ucp-ds-focus-ring);
-}
-.ucp-admin-app .ucp-card,
-.ucp-admin-app .ucp-settings-panel,
-.ucp-react-admin-wrap .ucp-card,
-.ucp-react-admin-wrap .ucp-settings-panel {
-  border-color: var(--ucp-color-border);
-  border-radius: var(--ucp-radius-lg);
-  background: var(--ucp-color-surface);
-  box-shadow: var(--ucp-shadow-sm);
-}
-.ucp-admin-app .components-button.is-primary {
-  background: var(--ucp-color-primary);
-  border-color: var(--ucp-color-primary);
-}
-.ucp-admin-app .components-button.is-primary:hover:not(:disabled),
-.ucp-admin-app .components-button.is-primary:focus:not(:disabled) {
-  background: var(--ucp-color-primary-hover);
-  border-color: var(--ucp-color-primary-hover);
-}
-.ucp-admin-app .components-button:focus:not(:disabled),
-.ucp-admin-app input:focus,
-.ucp-admin-app select:focus,
-.ucp-admin-app textarea:focus {
-  box-shadow: var(--ucp-ds-focus-ring);
-}
 .ucp-settings-intro .ucp-eyebrow {
   color: var(--ucp-color-primary);
   font-size: 12px;
@@ -2204,4 +2170,384 @@
   padding: 4px 10px;
   font-size: 12px;
   font-weight: 600;
+}
+
+
+/* 11.0.1 Gutenberg-native premium polish.
+   Keep the React admin visually aligned with WordPress core/admin components. */
+.ucp-react-admin-wrap .ucp-admin-app {
+  color: #1d2327;
+}
+.ucp-react-admin-wrap .ucp-app-header--native {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  margin: 0 0 18px;
+  padding: 20px 24px;
+  border: 1px solid #c3c4c7;
+  border-radius: 4px;
+  background: #ffffff;
+  box-shadow: none;
+  overflow: visible;
+}
+.ucp-react-admin-wrap .ucp-app-header--native::before {
+  content: none;
+}
+.ucp-react-admin-wrap .ucp-app-header__main {
+  min-width: 0;
+  max-width: 720px;
+}
+.ucp-react-admin-wrap .ucp-app-header__side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
+  min-width: 320px;
+}
+.ucp-react-admin-wrap .ucp-app-header__status,
+.ucp-react-admin-wrap .ucp-app-header__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.ucp-react-admin-wrap .ucp-app-header--native h1 {
+  margin: 0 0 6px;
+  color: #1d2327;
+  font-size: 23px;
+  font-weight: 400;
+  line-height: 1.3;
+  letter-spacing: 0;
+}
+.ucp-react-admin-wrap .ucp-app-header--native p {
+  margin: 0;
+  max-width: 720px;
+  color: #50575e;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.ucp-react-admin-wrap .ucp-eyebrow,
+.ucp-react-admin-wrap .ucp-settings-intro .ucp-eyebrow {
+  margin: 0 0 3px;
+  color: #646970;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+.ucp-react-admin-wrap .ucp-card.components-card,
+.ucp-react-admin-wrap .ucp-settings-panel.components-panel,
+.ucp-react-admin-wrap .ucp-action-group-card.components-card,
+.ucp-react-admin-wrap .ucp-preset-card,
+.ucp-react-admin-wrap .ucp-preset-card.components-card {
+  border: 1px solid #c3c4c7;
+  border-radius: 4px;
+  background: #ffffff;
+  box-shadow: none;
+}
+.ucp-react-admin-wrap .ucp-card.components-card:hover,
+.ucp-react-admin-wrap .ucp-settings-panel.components-panel:hover,
+.ucp-react-admin-wrap .ucp-action-group-card.components-card:hover,
+.ucp-react-admin-wrap .ucp-preset-card:hover,
+.ucp-react-admin-wrap .ucp-preset-card.components-card:hover {
+  border-color: #8c8f94;
+  box-shadow: none;
+  transform: none;
+}
+.ucp-react-admin-wrap .ucp-dashboard-hero.components-card,
+.ucp-react-admin-wrap .ucp-queue-card.components-card {
+  border-left: 4px solid #2271b1;
+}
+.ucp-react-admin-wrap .ucp-status-badge {
+  border-radius: 999px;
+  padding: 3px 8px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+.ucp-react-admin-wrap .ucp-status-badge--good {
+  background: #edfaef;
+  color: #0a4b23;
+  border-color: #68de7c;
+}
+.ucp-react-admin-wrap .ucp-status-badge--warning {
+  background: #fcf9e8;
+  color: #5f3800;
+  border-color: #f0c33c;
+}
+.ucp-react-admin-wrap .ucp-status-badge--info {
+  background: #f0f6fc;
+  color: #1e5b8f;
+  border-color: #72aee6;
+}
+.ucp-react-admin-wrap .ucp-status-badge--error {
+  background: #fcf0f1;
+  color: #8a2424;
+  border-color: #ff8085;
+}
+.ucp-react-admin-wrap .ucp-layout-card__drag {
+  color: #50575e;
+  background: #f6f7f7;
+}
+.ucp-react-admin-wrap .ucp-dialog {
+  border-radius: 4px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, .20);
+}
+@media (max-width: 960px) {
+  .ucp-react-admin-wrap .ucp-app-header--native {
+    flex-direction: column;
+  }
+  .ucp-react-admin-wrap .ucp-app-header__side {
+    align-items: flex-start;
+    min-width: 0;
+    width: 100%;
+  }
+  .ucp-react-admin-wrap .ucp-app-header__status,
+  .ucp-react-admin-wrap .ucp-app-header__actions {
+    justify-content: flex-start;
+  }
+}
+
+/* UI cleanup 2026-05-28: rustige WordPress-native admin layout. */
+.ucp-react-admin-wrap .ucp-app-header--simple {
+    display: block;
+    padding: 24px 28px;
+    margin: 0 0 18px;
+    border: 1px solid #dcdcde;
+    border-radius: 4px;
+    background: #fff;
+    box-shadow: none;
+}
+.ucp-react-admin-wrap .ucp-app-header--simple::before,
+.ucp-react-admin-wrap .ucp-app-header--simple .ucp-app-header__side,
+.ucp-react-admin-wrap .ucp-app-header--simple .ucp-app-header__status,
+.ucp-react-admin-wrap .ucp-app-header--simple .ucp-app-header__actions {
+    display: none;
+}
+.ucp-react-admin-wrap .ucp-app-header--simple .ucp-app-header__main {
+    max-width: 860px;
+}
+.ucp-react-admin-wrap .ucp-app-header--simple .ucp-eyebrow {
+    margin: 0 0 8px;
+    color: #50575e;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+}
+.ucp-react-admin-wrap .ucp-app-header--simple h1 {
+    margin: 0 0 8px;
+    color: #1d2327;
+    font-size: 28px;
+    line-height: 1.2;
+    font-weight: 400;
+}
+.ucp-react-admin-wrap .ucp-app-header--simple p:not(.ucp-eyebrow) {
+    margin: 0;
+    color: #50575e;
+    font-size: 14px;
+    line-height: 1.55;
+}
+.ucp-react-admin-wrap .ucp-admin-nav {
+    margin: 0 0 18px;
+    padding: 8px;
+    gap: 4px;
+    border: 1px solid #dcdcde;
+    border-radius: 4px;
+    background: #fff;
+    box-shadow: none;
+}
+.ucp-react-admin-wrap .ucp-admin-nav__item,
+.ucp-react-admin-wrap button.ucp-admin-nav__item {
+    min-height: 40px;
+    padding: 8px 12px;
+    border-radius: 3px;
+    font-size: 13px;
+}
+.ucp-react-admin-wrap .ucp-page--dashboard {
+    gap: 18px;
+}
+.ucp-react-admin-wrap .ucp-queue-card.components-card {
+    border-left: 4px solid #2271b1;
+    border-radius: 4px;
+    box-shadow: none;
+}
+.ucp-react-admin-wrap .ucp-queue-card--always .components-card__header {
+    min-height: 56px;
+    padding: 16px 20px;
+    border-bottom: 1px solid #dcdcde;
+    background: #fff;
+}
+.ucp-react-admin-wrap .ucp-queue-card--always .components-card__header h2 {
+    margin: 0;
+    color: #1d2327;
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.35;
+}
+.ucp-react-admin-wrap .ucp-queue-card--always .components-card__body {
+    padding: 18px 20px 20px;
+}
+.ucp-react-admin-wrap .ucp-queue-status-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+}
+.ucp-react-admin-wrap .ucp-queue-status-grid .ucp-status-row {
+    min-height: 76px;
+    padding: 14px 16px;
+    border: 1px solid #f0f0f1;
+    border-radius: 4px;
+    background: #f6f7f7;
+}
+.ucp-react-admin-wrap .ucp-queue-status-grid .ucp-status-row span {
+    margin-bottom: 6px;
+    color: #50575e;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1.3;
+    text-transform: uppercase;
+    letter-spacing: .02em;
+}
+.ucp-react-admin-wrap .ucp-queue-status-grid .ucp-status-row strong {
+    color: #1d2327;
+    font-size: 22px;
+    font-weight: 600;
+    line-height: 1.2;
+    text-align: left;
+}
+.ucp-react-admin-wrap .ucp-settings-intro.components-card {
+    margin: 0 0 18px;
+    border: 1px solid #dcdcde;
+    border-left: 4px solid #2271b1;
+    border-radius: 4px;
+    background: #fff;
+    box-shadow: none;
+}
+.ucp-react-admin-wrap .ucp-settings-intro .components-card__body {
+    display: grid;
+    grid-template-columns: minmax(120px, 170px) minmax(0, 1fr);
+    gap: 16px 24px;
+    align-items: start;
+    padding: 22px 26px;
+}
+.ucp-react-admin-wrap .ucp-settings-intro .ucp-eyebrow {
+    grid-row: 1 / span 3;
+    margin: 2px 0 0;
+    color: #50575e;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: .02em;
+    text-transform: uppercase;
+}
+.ucp-react-admin-wrap .ucp-settings-intro h2 {
+    margin: 0;
+    color: #1d2327;
+    font-size: 18px;
+    font-weight: 600;
+    line-height: 1.35;
+}
+.ucp-react-admin-wrap .ucp-settings-intro p {
+    margin: 0;
+    max-width: 860px;
+    color: #1d2327;
+    font-size: 14px;
+    line-height: 1.65;
+}
+.ucp-react-admin-wrap .ucp-settings-intro .ucp-step-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 2px 0 0;
+}
+.ucp-react-admin-wrap .ucp-settings-intro .ucp-step-list span {
+    display: inline-flex;
+    align-items: center;
+    min-height: 28px;
+    padding: 4px 12px;
+    border: 1px solid #dcdcde;
+    border-radius: 999px;
+    background: #f6f7f7;
+    color: #3c434a;
+    font-size: 12px;
+    line-height: 1.4;
+}
+.ucp-react-admin-wrap .ucp-layout-toolbar {
+    margin: 0 0 14px;
+    padding: 12px 14px;
+    border: 1px solid #dcdcde;
+    border-radius: 4px;
+    background: #fff;
+    box-shadow: none;
+}
+.ucp-react-admin-wrap .ucp-layout-toolbar__title span {
+    max-width: 680px;
+    color: #646970;
+    font-size: 12px;
+}
+.ucp-react-admin-wrap .ucp-layout-toolbar__controls .components-button {
+    min-height: 34px;
+    min-width: 0;
+    padding: 6px 12px;
+}
+.ucp-react-admin-wrap .ucp-layout-grid {
+    gap: 18px;
+}
+.ucp-react-admin-wrap .ucp-settings-card.components-card {
+    border: 1px solid #dcdcde;
+    border-radius: 4px;
+    box-shadow: none;
+}
+.ucp-react-admin-wrap .ucp-settings-card .components-card__header {
+    min-height: 60px;
+    padding: 16px 20px;
+    border-bottom: 1px solid #dcdcde;
+    background: #fff;
+}
+.ucp-react-admin-wrap .ucp-settings-card .components-card__header h2 {
+    margin: 0;
+    color: #1d2327;
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.35;
+}
+.ucp-react-admin-wrap .ucp-settings-card .components-card__body {
+    padding: 18px 20px 20px;
+}
+.ucp-react-admin-wrap .ucp-settings-card .ucp-setting-field {
+    padding: 16px 0;
+    border-bottom: 1px solid #f0f0f1;
+}
+.ucp-react-admin-wrap .ucp-settings-card .ucp-setting-field:last-child {
+    border-bottom: 0;
+}
+@media (max-width: 960px) {
+    .ucp-react-admin-wrap .ucp-settings-intro .components-card__body,
+    .ucp-react-admin-wrap .ucp-queue-status-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* UI correction 2026-05-28: remove the product header area completely and tighten the menu-to-content rhythm. */
+.ucp-react-admin-wrap .ucp-admin-app__shell,
+.ucp-react-admin-wrap .ucp-admin-app__shell--no-header {
+    gap: 10px;
+}
+.ucp-react-admin-wrap .ucp-admin-app__shell--no-header .ucp-app-header,
+.ucp-react-admin-wrap .ucp-admin-app__shell--no-header .ucp-app-header--native,
+.ucp-react-admin-wrap .ucp-admin-app__shell--no-header .ucp-app-header--simple {
+    display: none !important;
+}
+.ucp-react-admin-wrap .ucp-admin-nav {
+    margin: 0;
+    padding: 7px;
+}
+.ucp-react-admin-wrap .ucp-page,
+.ucp-react-admin-wrap .ucp-settings-page,
+.ucp-react-admin-wrap .ucp-page--dashboard {
+    gap: 14px;
+}
+.ucp-react-admin-wrap .ucp-page--dashboard > .ucp-queue-card--always.components-card:first-child {
+    margin-top: 0;
 }

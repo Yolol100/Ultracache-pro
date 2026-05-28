@@ -2,7 +2,7 @@
  * UltraCache Pro — Admin Design Tokens (single source of truth).
  *
  * This file is loaded as a shared dependency by both the legacy server-rendered
- * admin (ucp-admin-design-system.css) and the React-based admin (ucp-react-admin.css).
+ * React-based admin (ucp-react-admin.css) and shared admin notices.
  * Keeping the tokens in one file guarantees identical colors, spacing, radii and
  * shadows across both UI surfaces.
  */
@@ -19,15 +19,15 @@
   --ucp-color-accent-soft: #e9fbf4;
 
   /* Neutrals */
-  --ucp-color-bg: #f3f7fb;
-  --ucp-color-bg-soft: #f8fbff;
+  --ucp-color-bg: #f0f0f1;
+  --ucp-color-bg-soft: #f6f7f7;
   --ucp-color-surface: #ffffff;
-  --ucp-color-surface-subtle: #fbfdff;
-  --ucp-color-text: #1e293b;
-  --ucp-color-heading: #07111f;
-  --ucp-color-muted: #5f7086;
+  --ucp-color-surface-subtle: #f6f7f7;
+  --ucp-color-text: #1d2327;
+  --ucp-color-heading: #1d2327;
+  --ucp-color-muted: #50575e;
   --ucp-color-muted-soft: #7a8da3;
-  --ucp-color-border: #d6e3f0;
+  --ucp-color-border: #c3c4c7;
   --ucp-color-border-strong: #b9ccff;
 
   /* Semantic */
@@ -49,15 +49,15 @@
   --ucp-space-8: 40px;
 
   /* Radii */
-  --ucp-radius-sm: 8px;
-  --ucp-radius-md: 12px;
-  --ucp-radius-lg: 16px;
-  --ucp-radius-xl: 20px;
+  --ucp-radius-sm: 4px;
+  --ucp-radius-md: 4px;
+  --ucp-radius-lg: 4px;
+  --ucp-radius-xl: 4px;
 
   /* Elevation */
-  --ucp-shadow-sm: 0 1px 2px rgba(7, 17, 31, 0.05);
-  --ucp-shadow-md: 0 1px 2px rgba(7, 17, 31, 0.05), 0 18px 46px rgba(7, 17, 31, 0.07);
-  --ucp-shadow-lg: 0 24px 70px rgba(7, 17, 31, 0.13);
+  --ucp-shadow-sm: none;
+  --ucp-shadow-md: none;
+  --ucp-shadow-lg: none;
 
   /* Motion */
   --ucp-transition: 160ms ease;
@@ -68,4 +68,38 @@
 
   /* System font stack */
   --ucp-ds-font-admin: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+
+  /* ---------------------------------------------------------------------
+   * Compatibility aliases.
+   * The compiled React admin stylesheet references a number of short and
+   * "premium" token names that were not defined here, so those declarations
+   * silently resolved to nothing (broken focus rings, missing muted text
+   * colour, unstyled premium cards). These aliases map them onto the canonical
+   * tokens above so every var() reference resolves. Keep in sync if tokens move.
+   * ------------------------------------------------------------------- */
+  --ucp-primary: var(--ucp-color-primary);
+  --ucp-primary-hover: var(--ucp-color-primary-hover);
+  --ucp-primary-dark: var(--ucp-color-primary-active);
+  --ucp-purple: var(--ucp-color-premium-purple);
+  --ucp-accent: var(--ucp-color-accent);
+  --ucp-border: var(--ucp-color-border);
+  --ucp-muted: var(--ucp-color-muted);
+  --ucp-subtle: var(--ucp-color-surface-subtle);
+  --ucp-surface: var(--ucp-color-surface);
+  --ucp-text: var(--ucp-color-text);
+
+  /* Premium surface family */
+  --ucp-premium-ink: var(--ucp-color-premium-ink);
+  --ucp-premium-primary: var(--ucp-color-primary);
+  --ucp-premium-primary-dark: var(--ucp-color-primary-active);
+  --ucp-premium-purple: var(--ucp-color-premium-purple);
+  --ucp-premium-muted: var(--ucp-color-muted);
+  --ucp-premium-danger: var(--ucp-color-danger);
+  --ucp-premium-focus: var(--ucp-color-primary);
+  --ucp-premium-radius-sm: var(--ucp-radius-sm);
+  --ucp-premium-shadow-card: var(--ucp-shadow-sm);
+  --ucp-premium-shadow-lift: var(--ucp-shadow-md);
+
+  /* Layout */
+  --ucp-grid-columns: 2;
 }

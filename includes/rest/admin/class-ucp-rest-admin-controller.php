@@ -1,4 +1,5 @@
 <?php
+// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals -- Existing public UCP API/drop-in symbols are intentionally preserved for backward compatibility.
 if (!defined('ABSPATH')) {
     exit;
 }
@@ -143,20 +144,7 @@ class UCP_REST_Admin_Controller {
 
 
     public static function permissions_check($request = null) {
-        if (!current_user_can('manage_options')) {
-            return new WP_Error('ucp_forbidden', __('Je hebt geen rechten om UltraCache Pro te beheren.', 'ultracache-pro'), array('status' => 403));
-        }
-
-        $method = ($request instanceof WP_REST_Request) ? strtoupper((string) $request->get_method()) : 'GET';
-        $require_nonce = apply_filters('ucp_rest_require_nonce_for_mutations', true, $request);
-        if ($require_nonce && !in_array($method, array('GET', 'HEAD', 'OPTIONS'), true)) {
-            $nonce = ($request instanceof WP_REST_Request) ? (string) $request->get_header('x_wp_nonce') : '';
-            if ('' === $nonce || !wp_verify_nonce($nonce, 'wp_rest')) {
-                return new WP_Error('ucp_rest_nonce_missing', __('Ongeldige of ontbrekende REST-beveiligingstoken.', 'ultracache-pro'), array('status' => 403));
-            }
-        }
-
-        return true;
+        return UCP_Helpers::rest_admin_permission_check($request);
     }
 
 }

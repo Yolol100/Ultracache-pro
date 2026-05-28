@@ -1,4 +1,5 @@
 <?php
+// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals -- Existing public UCP API/drop-in symbols are intentionally preserved for backward compatibility.
 if (!defined('ABSPATH')) {
     exit;
 }
@@ -384,6 +385,7 @@ trait UCP_REST_Status_Trait {
                     'enabled'        => !empty($settings['enable_cache']),
                     'browserHeaders' => !empty($settings['browser_cache_headers']),
                     'objectCache'    => wp_using_ext_object_cache(),
+                    'objectCacheDetail' => class_exists('UCP_Object_Cache') ? UCP_Object_Cache::status() : array(),
                     'wooSafety'      => !empty($settings['woocommerce_safety_mode']),
                     'compatibility'  => !empty($settings['compatibility_mode']),
                     'lastPurge'      => get_option('ucp_last_purge_at', ''),

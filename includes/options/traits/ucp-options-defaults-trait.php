@@ -1,4 +1,5 @@
 <?php
+// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals -- Existing public UCP API/drop-in symbols are intentionally preserved for backward compatibility.
 if (!defined('ABSPATH')) {
     exit;
 }
@@ -68,9 +69,9 @@ trait UCP_Options_Defaults_Trait {
             'preload_delay_ms'               => 500,
             'preload_batch_size'             => 15,
             'preload_max_urls'               => 250,
-            'enable_html_minify'             => 1,
+            'enable_html_minify'             => 0,
             'enable_html_test_mode'          => 0,
-            'remove_html_comments'           => 1,
+            'remove_html_comments'           => 0,
             'html_exclude_urls'              => "cart\ncheckout\nmy-account\naccount\norder-pay\norder-received\nadd-payment-method\nwc-api\nwc-ajax\nadd-to-cart\ncustomer-logout\nwp-json\npreview=true\nelementor-preview=\nfl_builder\nbricks=run\nct_builder=\nbreakdance=\ncustomize_changeset_uuid=",
             'html_exclude_templates'         => "template-elementor-canvas.php\nfl-theme-builder-layout.php\nbricks-template.php\nblank-template.php",
             'enable_css_minify'              => 1,
@@ -86,8 +87,8 @@ trait UCP_Options_Defaults_Trait {
             'cls_reserve_selectors'          => ".cookie-banner|80px\n.cmplz-cookiebanner|120px\n#cookie-notice|80px",
             'enable_expand_missing_srcset'   => 1,
             'enable_worker_lazyload'         => 0,
-            'enable_adaptive_speculation'    => 1,
             'enable_apcu_object_cache'       => 0,
+            'enable_redis_object_cache'      => 0,
             'db_allow_myisam_innodb_convert' => 0,
             'css_exclusions'                 => "admin-bar\nwp-block-library\nwp-interactivity",
             'disabled_style_handles'        => '',
@@ -182,7 +183,6 @@ hubspot",
             'css_artifact_min_bytes'         => 200,
             'css_artifact_retry_limit'       => 5,
             'css_artifact_retry_backoff'     => 'exponential',
-            'enable_css_stale_refresh'       => 1,
             'css_artifact_rollback'          => 1,
             'enable_css_queue'               => 1,
             'enable_remote_css_render'       => 0,
@@ -223,8 +223,12 @@ hubspot",
             'enable_early_hints_links'       => 0,
             'cloudflare_zone_id'             => '',
             'cloudflare_api_token'           => '',
-            'allow_wp_config_write'          => 0,
-            'allow_dropin_writes'            => 0,
+            // H1: enable automatic drop-in management out of the box. Writing wp-content/advanced-cache.php
+            // and the WP_CACHE constant is standard behaviour for a page-cache plugin; the installer
+            // backs up and preserves any third-party drop-in and only ever takes over its own.
+            // Both remain filter/UI overridable and degrade gracefully when the files are not writable.
+            'allow_wp_config_write'          => 1,
+            'allow_dropin_writes'            => 1,
             'allow_dropin_takeover'          => 0,
             'allow_browser_cache_rule_writes'=> 0,
             'enable_disable_xmlrpc'          => 0,
@@ -263,7 +267,6 @@ hubspot",
             'enable_cache_tags'             => 1,
             'enable_object_cache_support'   => 1,
             'object_cache_fail_safe'         => 1,
-            'enable_logged_in_private_cache' => 0,
             'enable_fragment_cache'          => 0,
             'fragment_cache_ttl'             => 3600,
             'enable_rest_cache'              => 0,

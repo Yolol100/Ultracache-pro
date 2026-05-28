@@ -1,4 +1,5 @@
 <?php
+// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals -- Existing public UCP API/drop-in symbols are intentionally preserved for backward compatibility.
 if (!defined('ABSPATH')) {
     exit;
 }
@@ -7,7 +8,6 @@ trait UCP_Admin_Lifecycle_Trait {
     public function __construct() {
         $this->actions = new UCP_Admin_Actions($this);
         $this->notices = new UCP_Admin_Notices($this);
-        $this->ui = new UCP_Admin_UI();
         add_action('admin_menu', array($this, 'menu'));
         add_action('admin_init', array($this, 'register_settings'));
         add_action('admin_init', array($this, 'normalize_admin_routes'));
@@ -52,20 +52,11 @@ trait UCP_Admin_Lifecycle_Trait {
     }
 
     public function __call($method, $arguments) {
-        $allowed = array('get_onboarding_steps', 'current_onboarding_step', 'metric_card', 'chip', 'status_row', 'checkbox', 'text', 'number', 'textarea', 'select');
-        if (in_array($method, $allowed, true) && method_exists($this->ui, $method)) {
-            return call_user_func_array(array($this->ui, $method), $arguments);
-        }
-
         if (method_exists($this, $method) && '__call' !== $method) {
             return call_user_func_array(array($this, $method), $arguments);
         }
 
         throw new BadMethodCallException(sprintf('Method %s does not exist.', esc_html($method)));
-    }
-
-    public function ui() {
-        return $this->ui;
     }
 
     public function sanitize($input) {

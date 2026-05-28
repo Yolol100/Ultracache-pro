@@ -1,4 +1,5 @@
 <?php
+// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals -- Existing public UCP API/drop-in symbols are intentionally preserved for backward compatibility.
 // phpcs:disable WordPress.Security.NonceVerification.Recommended -- Cache bypass checks only inspect request state; they do not mutate data or process submitted forms.
 if (!defined('ABSPATH')) {
     exit;

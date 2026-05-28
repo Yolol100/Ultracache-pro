@@ -1,0 +1,68 @@
+
+
+11.0.14 (review fix: dead option flags removed)
+- Removed three option flags that were saved as settings but never read by any code, so they could never take effect: enable_adaptive_speculation (was default ON), enable_css_stale_refresh (was default ON) and enable_logged_in_private_cache (was default OFF). They were leftover scaffolding with no UI field, no logic and no preset reference; deleting them from the defaults and the sanitizer removes a false "this is active" impression. No working feature was affected: speculative loading still runs via enable_speculative_loading, CSS artifacts via the css_artifact_* / enable_css_queue options, and object caching via the existing object-cache options.
+
+11.0.14 (key single-source-of-truth + self-test)
+- Single source of truth for mobile detection: the mobile user-agent regex now lives in one place (UCP_Helpers::mobile_user_agent_regex) and is written into dropin-config.php, so advanced-cache.php and the PHP fallback can no longer drift apart on the guest vs guest-mobile suffix.
+- Quality suite: the runtime cache test now includes an automated cache-key consistency check that recomputes the key the drop-in way and the PHP way for several tricky URLs (including the /foo/bar vs /foo-bar collision pair) and fails if they ever diverge.
+
+11.0.13 (object-cache UI + design fixes)
+- New server-rendered "Object Cache" admin sub-page (works without a React rebuild): shows live status (external object cache active, current drop-in owner, phpredis/APCu availability, live Redis connectivity) and provides install / uninstall actions for the UltraCache Redis and APCu drop-ins. All actions are capability- + nonce-protected and only ever remove UltraCache's own drop-in, never a third-party one. Includes a copy-paste wp-config.php Redis snippet.
+- Object-cache install handlers now redirect back to the Object Cache page and surface a flash notice there.
+- Design fix: the compiled React admin stylesheet referenced ~21 design tokens (short aliases like --ucp-primary/--ucp-muted/--ucp-border/--ucp-text and the whole --ucp-premium-* family, plus --ucp-grid-columns) that were never defined, so those declarations silently broke (missing muted text colour, broken focus rings, unstyled "premium" cards). Added the missing aliases to both ucp-admin-tokens.css and ucp-admin-tokens.min.css so every var() reference resolves to the canonical token.
+
+11.0.12 (auto drop-in + Redis object cache)
+- Auto drop-in: advanced-cache.php and the WP_CACHE constant are now installed automatically on activation (allow_dropin_writes / allow_wp_config_write default ON). The installer still backs up and preserves any third-party drop-in, only ever takes over its own, and degrades gracefully with an admin notice when wp-content / wp-config are not writable. The previous migration no longer force-disables these flags.
+- Redis object cache: added a full phpredis-backed object-cache drop-in (dropins/object-cache-redis.php) implementing the complete WordPress object-cache API (get/set/add/replace/delete, *_multiple, incr/decr via atomic INCRBY/DECRBY, flush, flush_group, flush_runtime, global + non-persistent groups, multisite key segmentation, installation salt). Connection via WP_REDIS_HOST/PORT/PASSWORD/DATABASE/TIMEOUT/PREFIX constants. Degrades to a non-persistent runtime cache when Redis is unavailable, and never flushes beyond this installation's namespace.
+- New enable_redis_object_cache option + admin-post installer (cap + nonce + connectivity probe), object-cache status now reports backend + live Redis connectivity, REST status exposes objectCacheDetail, and clean uninstall removes our Redis drop-in as well.
+
+11.0.11 (review fixes)
+- Cache hit-rate: unknown request/response cookies are no longer blocked by default (was the main cause of low real-world hit-rates). Strict mode stays available via the ucp_block_unknown_request_cookies / ucp_dropin_block_unknown_cookies filters. Safe-cookie lists expanded with common analytics, consent, heatmap, LinkedIn, Stripe and Cloudflare cookies, in the drop-in, the dropin-config writer and the PHP request policy.
+- Cache key: added a short hash of the full request path to both advanced-cache.php and the PHP key builder so '/foo/bar' and '/foo-bar' can never resolve to the same cache file.
+- Mobile cache: the PHP fallback now uses the exact same user-agent signature as advanced-cache.php, so the early drop-in and the PHP path compute an identical key (fixes systematic fast-path misses on mobile).
+- WebP/AVIF: generated variants are now actually delivered via cache-safe <picture> rewriting in the front-end buffer (works inside cached HTML, no Vary: Accept needed). Output buffering now also starts when only image variant generation is enabled.
+- Purge: per-URL purge and purge-all now also remove the .gz and .br pre-compressed variants so a stale compressed copy can never be served after a purge.
+- HTML minify: now defaults to OFF (with comment removal), and the collapse no longer removes whitespace between adjacent tags, so inline elements can no longer be glued together. Enable on staging when needed.
+11.0.10
+- Hardened CWV counter ordering and fail-closed transient writes.
+- Added runtime-backed APCu object-cache fallback and wp_cache_reset compatibility.
+- Sanitized cloud API header material before outbound requests.
+
+UltraCache Pro 11.0.10
+
+- Hardened APCu object-cache increment/decrement paths with atomic APCu operations.
+- Added validated job-table helpers for queue SQL and guarded empty table states.
+- Reformatted remaining compact callbacks and lazy-render selector assembly for stricter WPCS readability.
+
+UltraCache Pro 11.0.8
+
+- Hardened CWV/RUM burst limits so per-IP and site-wide caps are global per minute instead of per metric.
+- Added locked counter updates for all CWV/RUM minute, visitor and daily rate-limit counters to reduce concurrent bypass risk.
+- Added strict scheme, host and port checks for same-origin CWV/RUM headers and LCP hint URLs.
+- Added length bounds before decoding LCP element JSON metadata.
+- Switched APCu object-cache drop-in installation to WordPress filesystem writes.
+- Removed UltraCache-owned object-cache.php during clean uninstall.
+- Removed duplicate REST action route registrations from the quality suite layer.
+- Added HTTP response-size limits for remote CSS/font/cloud/Cloudflare requests.
+- Reformatted compact admin/font/router code paths for stricter WPCS readability.
+
+UltraCache Pro 11.0.3
+
+- Fixed cache toast CSS keyframes in both readable and production assets so admin cache notifications animate and dismiss consistently.
+- Re-ran full static validation after the UI/release fixes.
+
+UltraCache Pro 11.0.2
+
+- Fixed production minified React asset so translated UI copy keeps spaces inside strings.
+- Corrected malformed fallback admin navigation selectors.
+- Re-synced minified assets safely from validated readable sources.
+
+UltraCache Pro 11.0.1 release package
+
+This production zip excludes tests and internal docs/dev notes. Runtime assets, compatibility lists, language template, drop-in templates and plugin files are included.
+
+Validation before production:
+- Run in a clean WordPress staging install.
+- Run Plugin Check or wp plugin check ultracache-pro --format=json.
+- Test activation, deactivation, uninstall, cache purge, preload and WooCommerce cart/checkout/account/order-pay flows.

@@ -1,4 +1,5 @@
 <?php
+// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals -- Existing public UCP API/drop-in symbols are intentionally preserved for backward compatibility.
 if (!defined('ABSPATH')) {
     exit;
 }
@@ -115,7 +116,7 @@ trait UCP_Cache_Admin_Bar_Trait {
             wp_die(esc_html__('Geen toegang.', 'ultracache-pro'), '', array('response' => 403));
         }
         check_admin_referer('ucp_purge_url');
-        $url = isset($_GET['url']) ? wp_unslash($_GET['url']) : home_url('/');
+        $url = isset($_GET['url']) ? esc_url_raw(wp_unslash($_GET['url'])) : home_url('/');
         $url = UCP_Helpers::strict_local_url($url, home_url('/'));
         if (!$url) {
             $url = home_url('/');

@@ -1,4 +1,5 @@
 <?php
+// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals -- Existing public UCP API/drop-in symbols are intentionally preserved for backward compatibility.
 // phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Uninstall intentionally removes plugin-owned custom tables and options.
 if (!defined('WP_UNINSTALL_PLUGIN')) {
     exit;
@@ -11,7 +12,6 @@ function ucp_safe_table_name($table) {
 function ucp_quote_table_name($table) {
     return '`' . str_replace('`', '``', (string) $table) . '`';
 }
-
 
 function ucp_read_file($path) {
     if (!is_string($path) || '' === $path || !is_file($path) || !is_readable($path)) {
@@ -42,6 +42,36 @@ function ucp_safe_remove_dir($dir) {
 
     // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_rmdir -- final empty managed cache directory cleanup during uninstall.
     @rmdir($real_dir);
+}
+
+
+function ucp_safe_remove_local_font_cache() {
+    $uploads = function_exists('wp_upload_dir') ? wp_upload_dir(null, false) : array();
+    if (empty($uploads['basedir'])) {
+        return;
+    }
+
+    $dir = trailingslashit($uploads['basedir']) . 'ultracache-pro/fonts';
+    $real_dir = realpath($dir);
+    if (!$real_dir) {
+        return;
+    }
+
+    $base = trailingslashit(wp_normalize_path($real_dir));
+    $items = glob(trailingslashit($real_dir) . '*');
+    if ($items) {
+        foreach ($items as $item) {
+            $normalized = wp_normalize_path((string) $item);
+            if (is_file($item) && 0 === strpos($normalized, $base)) {
+                wp_delete_file($item);
+            }
+        }
+    }
+
+    // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_rmdir -- final empty plugin-owned upload cache directory cleanup during uninstall.
+    @rmdir($real_dir);
+    // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_rmdir -- remove empty plugin-owned parent directory when possible.
+    @rmdir(dirname($real_dir));
 }
 
 function ucp_uninstall_site() {
@@ -118,11 +148,21 @@ function ucp_uninstall_site() {
     if (is_dir($cache_root)) {
         ucp_safe_remove_dir($cache_root);
     }
+
+    ucp_safe_remove_local_font_cache();
     $advanced = WP_CONTENT_DIR . '/advanced-cache.php';
     if (is_file($advanced) && is_readable($advanced)) {
         $content = ucp_read_file($advanced);
         if (is_string($content) && false !== strpos($content, 'UltraCache Pro Drop-in')) {
             wp_delete_file($advanced);
+        }
+    }
+
+    $object_cache = WP_CONTENT_DIR . '/object-cache.php';
+    if (is_file($object_cache) && is_readable($object_cache)) {
+        $content = ucp_read_file($object_cache);
+        if (is_string($content) && (false !== strpos($content, 'UltraCache Pro APCu Object Cache') || false !== strpos($content, 'UltraCache Pro Redis Object Cache'))) {
+            wp_delete_file($object_cache);
         }
     }
 }

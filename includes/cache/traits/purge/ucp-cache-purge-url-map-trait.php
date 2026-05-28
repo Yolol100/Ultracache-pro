@@ -1,4 +1,5 @@
 <?php
+// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals -- Existing public UCP API/drop-in symbols are intentionally preserved for backward compatibility.
 if (!defined('ABSPATH')) {
     exit;
 }
@@ -40,9 +41,13 @@ trait UCP_Cache_Purge_Url_Map_Trait {
                             $parent_id = isset($term->parent) ? absint($term->parent) : 0;
                             while ($parent_id > 0) {
                                 $parent = get_term($parent_id, $taxonomy);
-                                if (!$parent || is_wp_error($parent)) { break; }
+                                if (!$parent || is_wp_error($parent)) {
+                                    break;
+                                }
                                 $parent_link = get_term_link($parent);
-                                if (!is_wp_error($parent_link)) { $urls[] = $parent_link; }
+                                if (!is_wp_error($parent_link)) {
+                                    $urls[] = $parent_link;
+                                }
                                 $parent_id = isset($parent->parent) ? absint($parent->parent) : 0;
                             }
                         }
@@ -90,7 +95,11 @@ trait UCP_Cache_Purge_Url_Map_Trait {
         if (!$url || !wp_http_validate_url($url)) {
             return;
         }
-        UCP_Helpers::safe_delete_file(UCP_Helpers::cache_file_path($url));
+        $page_cache_file = UCP_Helpers::cache_file_path($url);
+        UCP_Helpers::safe_delete_file($page_cache_file);
+        // Also remove the pre-compressed variants so a stale .gz/.br can never be served after purge.
+        UCP_Helpers::safe_delete_file($page_cache_file . '.gz');
+        UCP_Helpers::safe_delete_file($page_cache_file . '.br');
         UCP_Helpers::safe_delete_file(UCP_Helpers::get_used_css_path($url));
         UCP_Helpers::safe_delete_file(UCP_Helpers::get_critical_css_path($url));
         UCP_Helpers::safe_delete_file(UCP_Diagnostics::get_file($url));

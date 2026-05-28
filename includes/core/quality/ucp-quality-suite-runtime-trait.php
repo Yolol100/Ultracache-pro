@@ -1,4 +1,5 @@
 <?php
+// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals -- Existing public UCP API/drop-in symbols are intentionally preserved for backward compatibility.
 if (!defined('ABSPATH')) {
     exit;
 }
@@ -34,6 +35,9 @@ trait UCP_Quality_Suite_Runtime_Trait {
         $report['home']['second'] = self::probe_url($home);
         $report['home']['result'] = self::classify_cache_result($report['home']['first'], $report['home']['second']);
 
+        // Guard against drop-in / PHP cache-key drift (the class of bug behind K3 + H2).
+        $report['key_consistency'] = self::check_key_consistency();
+
         $tests = array('winkelwagen' => home_url('/winkelwagen/'), 'afrekenen' => home_url('/afrekenen/'), 'mijn_account' => home_url('/mijn-account/'));
         if (function_exists('wc_get_page_id')) {
             foreach (array('cart' => 'cart', 'checkout' => 'checkout', 'my_account' => 'myaccount') as $key => $wc_page) {
@@ -52,6 +56,59 @@ trait UCP_Quality_Suite_Runtime_Trait {
         update_option(self::RUNTIME_OPTION, $report, false);
         UCP_Logger::log('notice', 'runtime', 'runtime_cache_test_completed', 'Cache runtime test completed.', array('home_result' => $report['home']['result'], 'wp_cache' => $report['wp_cache']));
         return $report;
+    }
+
+    /**
+     * Recompute the cache key the way advanced-cache.php does and compare it to the PHP
+     * helper for a set of tricky URLs. Returns ok=false (with the offending samples) if they
+     * ever diverge, so the quality suite surfaces drop-in/PHP key drift before it ships.
+     */
+    protected static function check_key_consistency() {
+        $samples = array(
+            home_url('/'),
+            home_url('/foo/bar/'),
+            home_url('/foo-bar/'),
+            home_url('/a/b/c'),
+            home_url('/sample-page/'),
+        );
+        $mismatches = array();
+        foreach ($samples as $url) {
+            $php_key = UCP_Helpers::cache_key_for_url($url);
+            $dropin_key = self::dropin_style_key($url);
+            if ($php_key !== $dropin_key) {
+                $mismatches[] = array('url' => $url, 'php' => $php_key, 'dropin' => $dropin_key);
+            }
+        }
+        // The collision pair must also map to DIFFERENT keys.
+        $k1 = UCP_Helpers::cache_key_for_url(home_url('/foo/bar/'));
+        $k2 = UCP_Helpers::cache_key_for_url(home_url('/foo-bar/'));
+        $collision = ($k1 === $k2);
+
+        return array(
+            'ok' => empty($mismatches) && !$collision,
+            'mismatches' => $mismatches,
+            'slash_dash_collision' => $collision,
+        );
+    }
+
+    /**
+     * Mirror of the advanced-cache.php key recipe for verification only (guest user, no query).
+     * Kept deliberately close to the drop-in so divergence shows up as a failing check.
+     */
+    protected static function dropin_style_key($url) {
+        $parts = wp_parse_url($url);
+        $path_only = isset($parts['path']) && '' !== $parts['path'] ? $parts['path'] : '/';
+        $path = rtrim($path_only, '/');
+        $raw_path = '' === $path ? '/' : $path;
+        $path = '' === $path ? 'home' : trim(str_replace('/', '-', $path), '-');
+        $path_hash = substr(md5($raw_path), 0, 8);
+        $query = isset($parts['query']) ? UCP_Helpers::normalized_cache_query($parts['query']) : '';
+        $query_key = '' !== $query ? md5($query) : 'noq';
+        $host = isset($parts['host']) ? strtolower((string) $parts['host']) : strtolower((string) wp_parse_url(home_url('/'), PHP_URL_HOST));
+        $host_key = $host ? md5($host) : 'nohost';
+        $is_mobile = UCP_Options::get('cache_mobile_separately') && UCP_Helpers::is_mobile_request();
+        $suffix = 'guest' . ($is_mobile ? '-mobile' : '');
+        return preg_replace('/[^A-Za-z0-9_.-]/', '-', $host_key . '-' . $path . '-' . $path_hash . '-' . $suffix . '-' . $query_key);
     }
 
     protected static function probe_url($url) {
