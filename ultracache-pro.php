@@ -85,8 +85,10 @@ require_once UCP_PATH . 'includes/bootstrap/class-ucp-loader.php';
 UCP_Loader::load();
 require_once UCP_PATH . 'includes/bootstrap/class-ucp-plugin.php';
 require_once UCP_PATH . 'includes/core/class-ucp-optimization-intelligence.php';
+require_once UCP_PATH . 'includes/core/class-ucp-testing-mode-runtime.php';
 
 UCP_Plugin::instance();
+UCP_Testing_Mode_Runtime::bootstrap();
 if (defined('WP_CLI') && WP_CLI && class_exists('UCP_CLI')) {
     UCP_CLI::bootstrap();
 }
