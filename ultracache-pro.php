@@ -10,6 +10,8 @@
  * Requires at least: 6.3
  * Tested up to: 7.0
  * Requires PHP: 8.0
+ * GitHub Plugin URI: Yolol100/Ultracache-pro
+ * Primary Branch: main
  * License: GPLv2 or later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  */
