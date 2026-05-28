@@ -25,6 +25,56 @@ class UCP_Helpers {
     }
 
     /**
+     * Whether frontend Testing Mode is enabled.
+     *
+     * `enable_asset_test_mode` already existed as a narrow asset test flag. It now
+     * acts as the compatibility alias for the broader Perfmatters-style Testing
+     * Mode layer. A future UI can write `testing_mode`; older installs and exports
+     * keep working through `enable_asset_test_mode`.
+     *
+     * @return bool
+     */
+    public static function testing_mode_active() {
+        if (!class_exists('UCP_Options')) {
+            return false;
+        }
+
+        return (bool) apply_filters(
+            'ucp_testing_mode_active',
+            !empty(UCP_Options::get('testing_mode', 0)) || !empty(UCP_Options::get('enable_asset_test_mode', 0))
+        );
+    }
+
+    /**
+     * Whether the current request may see Testing Mode frontend optimizations.
+     *
+     * @return bool
+     */
+    public static function current_user_can_preview_testing_mode() {
+        return is_user_logged_in() && current_user_can('manage_options');
+    }
+
+    /**
+     * Central frontend gate for cache/optimization modules.
+     *
+     * When Testing Mode is disabled, behaviour is unchanged. When enabled,
+     * frontend optimizations run only for admins so public visitors keep seeing
+     * the production-safe version until the admin disables Testing Mode.
+     *
+     * @return bool
+     */
+    public static function frontend_optimizations_allowed() {
+        if (!self::testing_mode_active()) {
+            return true;
+        }
+
+        return (bool) apply_filters(
+            'ucp_testing_mode_allow_current_request',
+            self::current_user_can_preview_testing_mode()
+        );
+    }
+
+    /**
      * Shared permission callback for UltraCache Pro admin REST routes.
      *
      * Single source of truth used by every admin REST controller: requires the
