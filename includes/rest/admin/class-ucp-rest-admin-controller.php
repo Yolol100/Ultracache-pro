@@ -22,6 +22,11 @@ class UCP_REST_Admin_Controller {
             'callback'            => array(__CLASS__, 'get_status'),
             'permission_callback' => array(__CLASS__, 'permissions_check'),
         ));
+        register_rest_route(self::REST_NAMESPACE, '/optimization-lifecycle', array(
+            'methods'             => WP_REST_Server::READABLE,
+            'callback'            => array(__CLASS__, 'get_optimization_lifecycle'),
+            'permission_callback' => array(__CLASS__, 'permissions_check'),
+        ));
         register_rest_route(self::REST_NAMESPACE, '/settings', array(
             array(
                 'methods'             => WP_REST_Server::READABLE,
@@ -142,6 +147,10 @@ class UCP_REST_Admin_Controller {
         }
     }
 
+    public static function get_optimization_lifecycle() {
+        $lifecycle = class_exists('UCP_Optimization_Status') ? UCP_Optimization_Status::all() : array();
+        return rest_ensure_response(array('success' => true, 'lifecycle' => $lifecycle, 'timestamp' => time()));
+    }
 
     public static function permissions_check($request = null) {
         return UCP_Helpers::rest_admin_permission_check($request);
