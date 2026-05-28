@@ -8,7 +8,7 @@
  * Text Domain: ultracache-pro
  * Domain Path: /languages
  * Requires at least: 6.3
- * Tested up to: 7.0
+ * Tested up to: 6.9
  * Requires PHP: 8.0
  * GitHub Plugin URI: Yolol100/Ultracache-pro
  * Primary Branch: main
