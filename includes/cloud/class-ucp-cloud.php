@@ -7,11 +7,9 @@ if (!defined('ABSPATH')) {
 trait UCP_Cloud_Routes_Trait {
     public function register_routes() {
         register_rest_route('ultracache-pro/v1', '/cloud/status', array(
-            'methods' => 'GET',
-            'permission_callback' => function () {
-                return current_user_can('manage_options');
-            },
-            'callback' => array($this, 'status'),
+            'methods'             => 'GET',
+            'permission_callback' => array('UCP_Helpers', 'rest_admin_permission_check'),
+            'callback'            => array($this, 'status'),
         ));
     }
 

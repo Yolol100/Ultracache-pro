@@ -34,6 +34,7 @@ class UCP_Fonts {
         if (!wp_mkdir_p($dir)) {
             return false;
         }
+        $this->ensure_font_cache_index($dir);
 
         $file = trailingslashit($dir) . md5($href) . '.css';
         if (!file_exists($file)) {
@@ -64,6 +65,7 @@ class UCP_Fonts {
         if (!wp_mkdir_p($dir)) {
             return false;
         }
+        $this->ensure_font_cache_index($dir);
 
         $file = trailingslashit($dir) . md5($href) . '.css';
         $response = wp_remote_get(
@@ -92,7 +94,11 @@ class UCP_Fonts {
         }
 
         $body = $this->localize_font_files($body, $dir, trailingslashit($uploads['baseurl']) . 'ultracache-pro/fonts/');
-        return $this->write_cached_file($file, $body, $dir);
+        $written = $this->write_cached_file($file, $body, $dir);
+        if ($written) {
+            $this->store_font_preload_candidates($body);
+        }
+        return $written;
     }
 
     protected function schedule_refresh($href) {
@@ -106,6 +112,16 @@ class UCP_Fonts {
         }
 
         wp_schedule_single_event(time() + MINUTE_IN_SECONDS, 'ucp_refresh_google_font_cache', array($href));
+    }
+
+    protected function ensure_font_cache_index($dir) {
+        $index = trailingslashit((string) $dir) . 'index.html';
+        if (file_exists($index) || !wp_is_writable($dir)) {
+            return;
+        }
+
+        // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents -- static directory index in the plugin-owned public font cache.
+        file_put_contents($index, '', LOCK_EX);
     }
 
     protected function write_cached_file($path, $body, $base_dir) {
@@ -156,6 +172,32 @@ class UCP_Fonts {
         }
 
         return $css;
+    }
+
+    protected function store_font_preload_candidates($css) {
+        if (!is_string($css) || '' === $css || !preg_match_all('#url\(([^)]+\.(?:woff2|woff))(?:\?[^)]*)?\)#i', $css, $matches)) {
+            return;
+        }
+
+        $existing = get_option('ucp_local_font_preload_candidates', array());
+        $existing = is_array($existing) ? $existing : array();
+        $candidates = array();
+        foreach (array_merge($existing, $matches[1]) as $raw_url) {
+            $font_url = trim((string) $raw_url, '\"\' ');
+            $font_url = esc_url_raw($font_url, array('http', 'https'));
+            if (!$font_url || !UCP_Helpers::is_local_url($font_url)) {
+                continue;
+            }
+            if (!preg_match('/\.(woff2|woff)(\?|$)/i', $font_url)) {
+                continue;
+            }
+            $candidates[$font_url] = $font_url;
+            if (count($candidates) >= 6) {
+                break;
+            }
+        }
+
+        update_option('ucp_local_font_preload_candidates', array_values($candidates), false);
     }
 
     protected function normalize_font_url($raw_url) {

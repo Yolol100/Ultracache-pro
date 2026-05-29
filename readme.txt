@@ -2,9 +2,9 @@
 Contributors: ultracache-pro
 Tags: cache, performance, core web vitals, critical css, used css
 Requires at least: 6.3
-Tested up to: 7.0
+Tested up to: 6.9
 Requires PHP: 8.0
-Stable tag: 11.0.14
+Stable tag: 11.0.19
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -69,6 +69,11 @@ UltraCache Pro may store cache metadata, diagnostic records, Core Web Vitals sam
 4. Diagnostics and Core Web Vitals overview.
 
 == Changelog ==
+
+= 11.0.19 =
+* Added conservative automatic resource hints from the latest frontend asset snapshot.
+* Added safe local-font preload candidates for cached Google Fonts.
+* Added PageSpeed Auto v9 defaults for resource hints and font preload infrastructure.
 
 = 11.0.14 =
 * Removed the unused pre-React admin field-rendering layer (admin UI field helpers, field-logic schema/state and admin metrics helper) that the React admin no longer calls.

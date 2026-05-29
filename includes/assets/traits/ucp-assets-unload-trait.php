@@ -54,6 +54,10 @@ trait UCP_Assets_Unload_Trait {
             if (!$handle) {
                 continue;
             }
+            if (wp_style_is($handle, 'registered') && $this->should_protect_asset_unload($handle, 'style')) {
+                $applied['skipped'][] = 'style:' . $handle . ':protected';
+                continue;
+            }
             if (wp_style_is($handle, 'registered') && !$this->has_dependents($handle, 'style')) {
                 $applied['styles'][] = $handle;
                 wp_dequeue_style($handle);
@@ -65,6 +69,10 @@ trait UCP_Assets_Unload_Trait {
         foreach ($script_handles as $handle) {
             $handle = sanitize_key($handle);
             if (!$handle) {
+                continue;
+            }
+            if (wp_script_is($handle, 'registered') && $this->should_protect_asset_unload($handle, 'script')) {
+                $applied['skipped'][] = 'script:' . $handle . ':protected';
                 continue;
             }
             if (wp_script_is($handle, 'registered') && !$this->has_dependents($handle, 'script')) {
@@ -127,10 +135,16 @@ trait UCP_Assets_Unload_Trait {
             if (!in_array($handle, $queue, true) && !in_array($handle, $done, true)) {
                 continue;
             }
+            $src = isset($obj->src) ? (string) $obj->src : '';
             $items[] = array(
                 'handle' => sanitize_key($handle),
                 'kind' => $kind,
-                'src' => isset($obj->src) ? esc_url_raw((string) $obj->src) : '',
+                'src' => esc_url_raw($src),
+                'owner' => $this->asset_owner_from_src($src),
+                'protected' => $this->should_protect_asset_unload($handle, $kind) ? 1 : 0,
+                'risk' => $this->asset_unload_risk($handle, $kind, $src),
+                'risk_reason' => $this->asset_unload_risk_reason($handle, $kind, $src),
+                'suggested_scope' => $this->asset_unload_suggested_scope($handle, $kind, $src),
                 'deps' => !empty($obj->deps) ? array_values(array_map('sanitize_key', (array) $obj->deps)) : array(),
                 'dependents' => isset($reverse[sanitize_key($handle)]) ? array_values(array_unique($reverse[sanitize_key($handle)])) : array(),
                 'queued' => in_array($handle, $queue, true),
@@ -138,6 +152,167 @@ trait UCP_Assets_Unload_Trait {
             );
         }
         return array_slice($items, 0, 250);
+    }
+
+
+
+    private function asset_unload_risk($handle, $kind, $src = '') {
+        $handle = sanitize_key($handle);
+        $kind = 'script' === $kind ? 'script' : 'style';
+        $haystack = strtolower($handle . ' ' . (string) $src);
+
+        if ($this->should_protect_asset_unload($handle, $kind)) {
+            return 'protected';
+        }
+        if ($this->asset_manager_request_is_sensitive()) {
+            return 'high';
+        }
+        if (preg_match('#(checkout|cart|payment|form|captcha|consent|cookie|login|account|member|subscription)#', $haystack)) {
+            return 'high';
+        }
+        if (preg_match('#(menu|navigation|header|sticky|swiper|splide|slick|slider|carousel|gallery|lightbox|popup|modal|elementor|bricks|divi|avada|fusion|flatsome)#', $haystack)) {
+            return 'medium';
+        }
+        if (preg_match('#(gtm|tagmanager|analytics|hotjar|clarity|facebook|fbq|adsbygoogle|doubleclick|pinterest|linkedin|twitter|tiktok|snapchat|intercom|tawk|crisp|zendesk|hubspot|trustpilot|yotpo|loox|reviews|share|social)#', $haystack)) {
+            return 'low';
+        }
+        if ('style' === $kind && preg_match('#(fontawesome|dashicons|icons|emoji)#', $haystack)) {
+            return 'low';
+        }
+        if (false !== strpos($haystack, '/wp-content/plugins/')) {
+            return 'medium';
+        }
+        return 'review';
+    }
+
+    private function asset_unload_risk_reason($handle, $kind, $src = '') {
+        $handle = sanitize_key($handle);
+        $kind = 'script' === $kind ? 'script' : 'style';
+        $haystack = strtolower($handle . ' ' . (string) $src);
+
+        if ($this->should_protect_asset_unload($handle, $kind)) {
+            return __('Beschermd door UltraCache omdat dit asset vaak nodig is voor checkout, formulieren, builders, consent, WordPress runtime of interactie.', 'ultracache-pro');
+        }
+        if ($this->asset_manager_request_is_sensitive()) {
+            return __('Gevoelige pagina. Test unload-regels hier alleen handmatig op staging.', 'ultracache-pro');
+        }
+        if (preg_match('#(gtm|tagmanager|analytics|hotjar|clarity|facebook|fbq|adsbygoogle|doubleclick|pinterest|linkedin|twitter|tiktok|snapchat)#', $haystack)) {
+            return __('Waarschijnlijk tracking/advertising. Vaak goede kandidaat voor delay of URL-scoped unload, maar meet consent en conversies.', 'ultracache-pro');
+        }
+        if (preg_match('#(intercom|tawk|crisp|zendesk|hubspot)#', $haystack)) {
+            return __('Waarschijnlijk chat/CRM-widget. Vaak zwaar voor INP/TBT; liever delay of alleen laden op pagina’s waar nodig.', 'ultracache-pro');
+        }
+        if (preg_match('#(trustpilot|yotpo|loox|reviews|share|social)#', $haystack)) {
+            return __('Waarschijnlijk review/social widget. Vaak geschikt voor pagina-specifiek unloaden of lazy renderen.', 'ultracache-pro');
+        }
+        if (preg_match('#(menu|navigation|header|sticky|swiper|splide|slick|slider|carousel|gallery|lightbox|popup|modal)#', $haystack)) {
+            return __('Interactief UI-asset. Alleen uitschakelen als deze functie niet op deze URL wordt gebruikt.', 'ultracache-pro');
+        }
+        if (false !== strpos($haystack, '/wp-content/plugins/')) {
+            return __('Plugin-asset. Start met URL-scoped testmodus voordat je dit breder uitschakelt.', 'ultracache-pro');
+        }
+        return __('Geen duidelijke categorie. Handmatig beoordelen in Asset Test Mode.', 'ultracache-pro');
+    }
+
+    private function asset_unload_suggested_scope($handle, $kind, $src = '') {
+        $risk = $this->asset_unload_risk($handle, $kind, $src);
+        if (in_array($risk, array('protected', 'high', 'medium', 'review'), true)) {
+            return 'path_contains';
+        }
+        return 'path_contains';
+    }
+
+    private function should_protect_asset_unload($handle, $kind) {
+        $handle = sanitize_key($handle);
+        $kind = 'script' === $kind ? 'script' : 'style';
+        if (!$handle) {
+            return true;
+        }
+
+        $src = $this->asset_src_for_handle($handle, $kind);
+        $haystack = strtolower($handle . ' ' . $src);
+        $protected = array(
+            'jquery', 'jquery-core', 'jquery-migrate', 'wp-i18n', 'wp-hooks', 'wp-element', 'wp-components', 'wp-api-fetch', 'wp-polyfill',
+            'wc-', 'woocommerce', 'cart-fragments', 'wc-cart-fragments', 'wc-checkout', 'checkout', 'cart', 'payment', 'stripe', 'paypal', 'mollie', 'klarna', 'adyen', 'ideal', 'apple-pay', 'google-pay',
+            'recaptcha', 'grecaptcha', 'hcaptcha', 'turnstile', 'captcha',
+            'contact-form-7', 'wpcf7', 'gravityforms', 'gform', 'wpforms', 'fluentform', 'ninja-forms', 'formidable',
+            'complianz', 'cookiebot', 'cookieyes', 'borlabs', 'consent', 'cookie',
+            'elementor-frontend', 'elementor-pro-frontend', 'bricks', 'breakdance', 'oxygen', 'et-builder', 'divi', 'fusion-', 'avada', 'flatsome',
+            'wp-interactivity', 'wp-blocks', 'wp-block-library'
+        );
+
+        if ($this->asset_manager_request_is_sensitive()) {
+            $protected = array_merge($protected, array('login', 'account', 'my-account', 'member', 'profile', 'order', 'subscription', 'form'));
+        }
+
+        /**
+         * Filter handles/fragments that the Asset Manager may never unload automatically.
+         *
+         * @param string[] $protected Protected fragments.
+         * @param string   $kind      Asset kind: style or script.
+         * @param string   $handle    Asset handle.
+         * @param string   $src       Asset source URL/path.
+         */
+        $protected = apply_filters('ucp_asset_manager_protected_fragments', array_values(array_unique($protected)), $kind, $handle, $src);
+        foreach ((array) $protected as $needle) {
+            $needle = strtolower(trim((string) $needle));
+            if ('' !== $needle && false !== strpos($haystack, $needle)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private function asset_src_for_handle($handle, $kind) {
+        $registry = 'script' === $kind ? wp_scripts() : wp_styles();
+        if (!is_object($registry) || empty($registry->registered[$handle])) {
+            return '';
+        }
+        $obj = $registry->registered[$handle];
+        return isset($obj->src) ? (string) $obj->src : '';
+    }
+
+    private function asset_manager_request_is_sensitive() {
+        if (function_exists('is_checkout') && is_checkout()) {
+            return true;
+        }
+        if (function_exists('is_cart') && is_cart()) {
+            return true;
+        }
+        if (function_exists('is_account_page') && is_account_page()) {
+            return true;
+        }
+        if (class_exists('UCP_Helpers') && method_exists('UCP_Helpers', 'current_request_category')) {
+            $category = UCP_Helpers::current_request_category();
+            if (in_array($category, array('cart', 'checkout', 'account', 'admin', 'rest', 'ajax'), true)) {
+                return true;
+            }
+        }
+        $url = class_exists('UCP_Helpers') ? UCP_Helpers::current_full_url() : '';
+        return (bool) preg_match('#/(cart|checkout|my-account|account|order-pay|add-payment-method|wp-login\.php|wp-admin)(/|$)#i', (string) $url);
+    }
+
+    private function asset_owner_from_src($src) {
+        $src = (string) $src;
+        if ('' === $src) {
+            return 'inline/unknown';
+        }
+        $path = wp_parse_url($this->normalize_asset_url($src), PHP_URL_PATH);
+        $path = is_string($path) ? $path : $src;
+        if (preg_match('#/wp-content/plugins/([^/]+)/#', $path, $m)) {
+            return 'plugin:' . sanitize_key($m[1]);
+        }
+        if (preg_match('#/wp-content/themes/([^/]+)/#', $path, $m)) {
+            return 'theme:' . sanitize_key($m[1]);
+        }
+        if (false !== strpos($path, '/wp-includes/')) {
+            return 'wordpress-core';
+        }
+        $host = wp_parse_url($this->normalize_asset_url($src), PHP_URL_HOST);
+        if (!empty($host) && !UCP_Helpers::is_local_url($this->normalize_asset_url($src))) {
+            return 'external:' . sanitize_key($host);
+        }
+        return 'site/local';
     }
 
     private function conditional_handles_for_request($raw_rules) {

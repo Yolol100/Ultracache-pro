@@ -72,9 +72,13 @@ trait UCP_REST_Actions_Trait {
             $cache = UCP_Helpers::new_without_constructor('UCP_Cache');
             $cache->purge_url($url);
             update_option('ucp_last_purge_at', current_time('mysql'));
-            UCP_Logger::log('info', 'rest', 'cache_purged_url', 'Single URL purged from REST admin action.', array('url' => esc_url_raw($url)));
+            $preload_queued = false;
+            if (UCP_Options::get('enable_preload') && UCP_Options::get('enable_preload_queue') && class_exists('UCP_Jobs') && (!class_exists('UCP_Preload') || !UCP_Preload::is_safety_excluded_url($url))) {
+                $preload_queued = (bool) UCP_Jobs::enqueue_unique('preload_url', array('url' => $url), 5, 'preload');
+            }
+            UCP_Logger::log('info', 'rest', 'cache_purged_url', 'Single URL purged from REST admin action.', array('url' => esc_url_raw($url), 'preload_queued' => $preload_queued ? 1 : 0));
 
-            return self::action_success(__('De cache voor deze URL is geleegd.', 'ultracache-pro'), array('url' => esc_url_raw($url)), false);
+            return self::action_success(__('De cache voor deze URL is geleegd.', 'ultracache-pro'), array('url' => esc_url_raw($url), 'preload_queued' => $preload_queued), false);
         } catch (Throwable $e) {
             return self::action_error('ucp_purge_url_failed', $e->getMessage());
         }

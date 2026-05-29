@@ -11,10 +11,13 @@ trait UCP_Preload_Collector_Trait {
             $urls[] = home_url('/');
         }
         $max_urls = max(1, absint(UCP_Options::get('preload_max_urls', 250)));
+        $scope = array_filter(array_map('trim', explode(',', (string) UCP_Options::get('preload_content_scope', 'posts,archives,terms'))));
+        if ((in_array('posts', $scope, true) || in_array('content', $scope, true)) && count($urls) < $max_urls) {
+            $urls = array_merge($urls, $this->collect_recent_content_urls($max_urls - count($urls)));
+        }
         if (UCP_Options::get('preload_sitemaps') && count($urls) < $max_urls) {
             $urls = array_merge($urls, $this->get_urls_from_sitemap(home_url('/wp-sitemap.xml'), $max_urls - count($urls)));
         }
-        $scope = array_filter(array_map('trim', explode(',', (string) UCP_Options::get('preload_content_scope', 'posts,archives,terms'))));
         if (in_array('archives', $scope, true)) {
             $urls = array_merge($urls, $this->collect_archive_urls());
         }
@@ -40,6 +43,32 @@ trait UCP_Preload_Collector_Trait {
             return !$this->is_preload_excluded($url);
         }));
         return array_slice($clean, 0, $max_urls);
+    }
+
+    private function collect_recent_content_urls($limit = 50) {
+        $limit = max(1, min(200, absint($limit)));
+        $post_types = get_post_types(array('public' => true), 'names');
+        unset($post_types['attachment']);
+        $posts = get_posts(array(
+            'post_type'              => array_values($post_types),
+            'post_status'            => 'publish',
+            'posts_per_page'         => $limit,
+            'orderby'                => 'modified',
+            'order'                  => 'DESC',
+            'ignore_sticky_posts'    => true,
+            'no_found_rows'          => true,
+            'update_post_meta_cache' => false,
+            'update_post_term_cache' => false,
+            'fields'                 => 'ids',
+        ));
+        $urls = array();
+        foreach ((array) $posts as $post_id) {
+            $url = get_permalink((int) $post_id);
+            if ($url) {
+                $urls[] = $url;
+            }
+        }
+        return $urls;
     }
 
     private function collect_archive_urls() {

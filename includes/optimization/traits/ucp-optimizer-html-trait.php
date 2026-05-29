@@ -104,7 +104,9 @@ trait UCP_Optimizer_HTML_Trait {
             $html = $this->inject_preload_image_links($html);
         }
         if (!$skip_markup_optimizations && UCP_Options::get('enable_delay_js') && !$this->asset_manager_flag('disable_delay_js')) {
-            $html = $this->delay_js_in_html($html);
+            if ($this->should_run_delay_js_markup_rewrite()) {
+                $html = $this->delay_js_in_html($html);
+            }
         }
 
         $allow_comment_cleanup = UCP_Options::get('remove_html_comments') && !$this->should_bypass_html_comments();
@@ -143,6 +145,19 @@ trait UCP_Optimizer_HTML_Trait {
         return $optimized;
     }
 
+
+
+    private function should_run_delay_js_markup_rewrite() {
+        if (class_exists('UCP_Compat') && UCP_Compat::has_optimization_conflict()) {
+            if (class_exists('UCP_Diagnostics')) {
+                UCP_Diagnostics::record('html', 'Skipped Delay JS because another optimization plugin is active.', array(
+                    'conflicts' => UCP_Compat::detected_conflicts(),
+                ));
+            }
+            return false;
+        }
+        return true;
+    }
 
     private function inject_worker_lazyload_runtime($html) {
         if (!is_string($html) || false !== strpos($html, 'id="ucp-worker-lazyload"') || false === stripos($html, '</body>')) {

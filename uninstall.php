@@ -104,6 +104,7 @@ function ucp_uninstall_site() {
     delete_option('ucp_css_artifact_status');
     delete_option('ucp_cwv_metrics');
     delete_option('ucp_pagespeed_browser_scan_latest');
+    delete_option('ucp_pagespeed_browser_scan_map');
     delete_option('ucp_lcp_last_cleanup');
     global $wpdb;
     $tables = array(

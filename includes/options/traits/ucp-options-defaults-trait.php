@@ -33,7 +33,8 @@ trait UCP_Options_Defaults_Trait {
             'enable_move_module_scripts_footer', 'safe_settings_export', 'enable_remove_emojis', 'enable_disable_embeds',
             'cdn_file_types', 'enable_heartbeat_control', 'heartbeat_frontend_behavior', 'heartbeat_editor_behavior', 'heartbeat_backend_behavior', 'browser_cache_headers', 'enable_db_cleanup', 'db_cleanup_frequency', 'db_cleanup_post_revisions', 'db_cleanup_auto_drafts', 'enable_cdn',
             'enable_cloudflare_apo_mode', 'enable_edge_cache_headers', 'enable_cloud', 'enable_local_google_fonts',
-            'enable_image_optimization', 'compatibility_mode', 'woocommerce_safety_mode', 'wp_rocket_style_defaults'
+            'enable_image_optimization', 'compatibility_mode', 'woocommerce_safety_mode', 'wp_rocket_style_defaults', 'enable_delay_js_preload_delayed_scripts',
+            'enable_auto_resource_hints', 'enable_auto_font_preloads', 'resource_hints_preconnect_limit', 'resource_hints_dns_limit'
         );
 
         return array_intersect_key($defaults, array_flip($keys));
@@ -106,6 +107,7 @@ trait UCP_Options_Defaults_Trait {
             'delay_js_safe_mode'             => 1,
             'delay_js_temporary_safe_mode'   => 0,
             'delay_js_log_delayed_scripts'   => 1,
+            'enable_delay_js_preload_delayed_scripts' => 1,
             'delay_js_exclusions'            => "jquery\njquery-core\njquery-migrate\nrecaptcha\ngrecaptcha\ncontact-form-7\nwpcf7\ngravityforms\ngform\nfluentform\nwc-cart-fragments\nwc-checkout\nwoocommerce\njs-cookie\nwp-interactivity\nelementor-frontend\nelementor-pro-frontend\nDivi\nbricks\noxygen\nstripe\npaypal\nmollie\nklarna\nadyen\nideal\napple-pay\ngoogle-pay\ncomplianz\ncookiebot\ncookieyes\nborlabs
 wpforms
 formidable
@@ -158,10 +160,14 @@ hubspot",
             'preload_fonts'                  => '',
             'preconnect_domains'             => '',
             'dns_prefetch_domains'           => '',
+            'enable_auto_resource_hints'      => 1,
+            'resource_hints_preconnect_limit'=> 2,
+            'resource_hints_dns_limit'       => 8,
+            'enable_auto_font_preloads'      => 1,
             'enable_font_display_swap'       => 1,
             'enable_remove_query_strings'    => 0,
             'remove_query_string_extensions' => "css\njs\njpg\njpeg\npng\nwebp\nsvg\nwoff\nwoff2",
-            'enable_light_preload_requests'   => 1,
+            'enable_light_preload_requests'   => 0,
             'preload_content_scope'           => 'posts,archives,terms',
             'cache_refresh_interval'          => 'off',
             'enable_lazy_render'              => 0,

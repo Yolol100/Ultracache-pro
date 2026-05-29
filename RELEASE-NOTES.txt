@@ -1,4 +1,38 @@
 
+## 11.0.19 - Resource Hints and font priority
+
+- Added automatic resource-hint recommendations from the latest frontend asset snapshot.
+- Added conservative auto preconnect and DNS-prefetch limits to avoid over-hinting.
+- Added safe local-font preload candidate storage for cached Google Fonts.
+- Included auto font preload candidates in HTML preload links and Early Hints candidates.
+- Added PageSpeed Auto v9 migration for the new hint infrastructure without forcing aggressive defaults.
+
+## 11.0.18 - Asset Intelligence and conflict guard
+- Adds Asset Intelligence to the Asset Manager snapshot: owner grouping, risk levels, reasons and safe unload recommendations.
+- Adds per-asset suggested scopes so admins can start with URL-scoped test-mode rules instead of broad global unloads.
+- Adds a conflict guard for Delay JS when another optimization plugin is already active, with diagnostics logging instead of silently stacking duplicate rewrite layers.
+
+## 11.0.17 - PageSpeed LCP hint refinement
+
+- Added real-user background-image LCP detection so Elementor/cover hero backgrounds can be selected and preloaded from measured hints.
+- Preserved measured responsive image metadata (`srcset`/`sizes`) from browser scans and RUM beacons for more accurate LCP preload links.
+- Improved PageSpeed Auto migration so measured background/image priority can work without enabling risky CSS/JS rewrites.
+
+11.0.16 (Asset Manager execution upgrade)
+- Added an admin Asset Manager panel that reads the latest frontend asset snapshot and can create safe unload/keep rules from real enqueued CSS and JS handles. This brings the workflow closer to Perfmatters/Asset CleanUp while keeping UltraCache's staging-first defaults.
+- Asset snapshots now include owner/source grouping and protected-asset markers, making it easier to identify plugin, theme, core, external and inline assets before disabling anything.
+- Asset unloads now fail closed for critical core, WooCommerce, payment, form, CAPTCHA, cookie/consent and builder/runtime assets. These protected handles are skipped and logged instead of being deregistered by broad rules.
+- Added a REST diagnostics endpoint for the latest Asset Manager snapshot so the React admin can show actionable frontend asset data without exposing it publicly.
+- Added helper rule examples for disable-everywhere, disable-on-current-URL and keep-on-current-URL workflows, with Asset Test Mode kept visible next to the rule editor.
+
+11.0.15 (PageSpeed execution upgrade)
+- Preload now prioritizes recently modified public content before sitemap/archive URLs and PageSpeed Auto switches from light Range requests to full GET warming, so purged/updated pages are more likely to build a real HTML cache file before visitors arrive.
+- Per-URL browser speed scans are now stored in a bounded URL/device map. LCP, render-blocking CSS and Delay JS hints no longer depend only on the single latest scan, so homepage, landing pages and product pages can each keep their own measured hints.
+- The React diagnostics scan now accepts a target URL instead of only scanning the homepage. This makes it usable for key templates such as product, category and high-value landing pages.
+- Delay JS can preload delayed script files before interaction, preserving lower main-thread work while reducing latency when delayed scripts are eventually released.
+- A purged single URL is re-queued for preload when preload queueing is enabled, so targeted purges recover cache warmth faster.
+
+
 
 11.0.14 (review fix: dead option flags removed)
 - Removed three option flags that were saved as settings but never read by any code, so they could never take effect: enable_adaptive_speculation (was default ON), enable_css_stale_refresh (was default ON) and enable_logged_in_private_cache (was default OFF). They were leftover scaffolding with no UI field, no logic and no preset reference; deleting them from the defaults and the sanitizer removes a false "this is active" impression. No working feature was affected: speculative loading still runs via enable_speculative_loading, CSS artifacts via the css_artifact_* / enable_css_queue options, and object caching via the existing object-cache options.

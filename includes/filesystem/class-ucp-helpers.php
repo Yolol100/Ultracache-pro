@@ -94,6 +94,9 @@ class UCP_Helpers {
         $require_nonce = apply_filters('ucp_rest_require_nonce_for_mutations', true, $request);
         if ($require_nonce && !in_array($method, array('GET', 'HEAD', 'OPTIONS'), true)) {
             $nonce = ($request instanceof WP_REST_Request) ? (string) $request->get_header('x_wp_nonce') : '';
+            if ('' === $nonce && $request instanceof WP_REST_Request) {
+                $nonce = (string) $request->get_param('_wpnonce');
+            }
             if ('' === $nonce || !wp_verify_nonce($nonce, 'wp_rest')) {
                 return new WP_Error('ucp_rest_nonce_missing', __('Ongeldige of ontbrekende REST-beveiligingstoken.', 'ultracache-pro'), array('status' => 403));
             }

@@ -90,6 +90,18 @@ final class UCP_Plugin {
         if (method_exists('UCP_Options', 'maybe_upgrade_pagespeed_auto_v5')) {
             UCP_Options::maybe_upgrade_pagespeed_auto_v5();
         }
+        if (method_exists('UCP_Options', 'maybe_upgrade_pagespeed_auto_v6')) {
+            UCP_Options::maybe_upgrade_pagespeed_auto_v6();
+        }
+        if (method_exists('UCP_Options', 'maybe_upgrade_pagespeed_auto_v7')) {
+            UCP_Options::maybe_upgrade_pagespeed_auto_v7();
+        }
+        if (method_exists('UCP_Options', 'maybe_upgrade_pagespeed_auto_v8')) {
+            UCP_Options::maybe_upgrade_pagespeed_auto_v8();
+        }
+        if (method_exists('UCP_Options', 'maybe_upgrade_pagespeed_auto_v9')) {
+            UCP_Options::maybe_upgrade_pagespeed_auto_v9();
+        }
         UCP_Installer::maybe_upgrade();
         UCP_Helpers::ensure_cache_dirs();
         if ($backend_context && class_exists('UCP_Log_Package')) {
@@ -144,6 +156,7 @@ final class UCP_Plugin {
             'defer_all_js', 'enable_defer_js_fallback', 'enable_native_script_strategy',
             'enable_heartbeat_control', 'enable_cdn', 'enable_prefetch_links',
             'enable_speculative_loading', 'preload_fonts', 'dns_prefetch_domains',
+            'enable_auto_resource_hints', 'enable_auto_font_preloads',
             'enable_font_display_swap', 'enable_remove_query_strings',
             'enable_add_image_dimensions', 'preload_critical_images',
             'enable_disable_google_fonts', 'preconnect_domains', 'enable_lazy_render',

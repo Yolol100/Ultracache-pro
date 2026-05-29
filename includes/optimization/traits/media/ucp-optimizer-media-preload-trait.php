@@ -13,6 +13,8 @@ trait UCP_Optimizer_Media_Preload_Trait {
         $this->ucp_preload_image_entries = array();
         $this->ucp_background_preloaded = false;
         $this->ucp_lcp_candidate_src = '';
+        $this->ucp_lcp_candidate_srcset = '';
+        $this->ucp_lcp_candidate_sizes = '';
         $this->ucp_lcp_candidate_is_background = false;
     }
 
@@ -43,6 +45,12 @@ trait UCP_Optimizer_Media_Preload_Trait {
         $links = '';
         foreach ($entries as $entry) {
             $href = html_entity_decode((string) $entry['href'], ENT_QUOTES);
+            if (empty($entry['imagesrcset']) && '' !== (string) $this->ucp_lcp_candidate_srcset && $this->image_url_matches_lcp_candidate($href)) {
+                $entry['imagesrcset'] = $this->ucp_lcp_candidate_srcset;
+            }
+            if (empty($entry['imagesizes']) && '' !== (string) $this->ucp_lcp_candidate_sizes && $this->image_url_matches_lcp_candidate($href)) {
+                $entry['imagesizes'] = $this->ucp_lcp_candidate_sizes;
+            }
             if ('' === $href || isset($seen[$href]) || 0 === stripos($href, 'data:')) {
                 continue;
             }
@@ -75,7 +83,14 @@ trait UCP_Optimizer_Media_Preload_Trait {
         }
 
         if ('' !== (string) $this->ucp_lcp_candidate_src) {
-            $this->ucp_preload_image_urls[] = $this->ucp_lcp_candidate_src;
+            $entry = array('href' => $this->ucp_lcp_candidate_src);
+            if ('' !== (string) $this->ucp_lcp_candidate_srcset) {
+                $entry['imagesrcset'] = $this->ucp_lcp_candidate_srcset;
+            }
+            if ('' !== (string) $this->ucp_lcp_candidate_sizes) {
+                $entry['imagesizes'] = $this->ucp_lcp_candidate_sizes;
+            }
+            $this->ucp_preload_image_entries[] = $entry;
             $this->ucp_background_preloaded = true;
             if (class_exists('UCP_Diagnostics')) {
                 UCP_Diagnostics::record('lcp', 'Preloaded selected measured LCP candidate.', array(
@@ -220,7 +235,9 @@ trait UCP_Optimizer_Media_Preload_Trait {
                 $url = $this->normalize_lcp_image_candidate_url($row['lcp_url']);
                 if ($url) {
                     $this->ucp_lcp_candidate_src = esc_url_raw($url);
+                    $this->ucp_lcp_candidate_srcset = !empty($row['lcp_imagesrcset']) ? sanitize_textarea_field((string) $row['lcp_imagesrcset']) : '';
                     $element = !empty($row['lcp_element_json']) ? json_decode((string) $row['lcp_element_json'], true) : array();
+                    $this->ucp_lcp_candidate_sizes = is_array($element) && !empty($element['sizes']) ? substr(sanitize_text_field((string) $element['sizes']), 0, 240) : '';
                     $this->ucp_lcp_candidate_is_background = is_array($element) && !empty($element['background']);
                     if (class_exists('UCP_Diagnostics')) {
                         UCP_Diagnostics::record('lcp', 'Selected measured per-URL LCP candidate.', array('url' => $this->ucp_lcp_candidate_src, 'device' => $device));
@@ -235,6 +252,8 @@ trait UCP_Optimizer_Media_Preload_Trait {
                 $url = $this->normalize_lcp_image_candidate_url($hint['url']);
                 if ($url) {
                     $this->ucp_lcp_candidate_src = esc_url_raw($url);
+                    $this->ucp_lcp_candidate_srcset = !empty($hint['srcset']) ? sanitize_textarea_field((string) $hint['srcset']) : '';
+                    $this->ucp_lcp_candidate_sizes = !empty($hint['sizes']) ? substr(sanitize_text_field((string) $hint['sizes']), 0, 240) : '';
                     $this->ucp_lcp_candidate_is_background = !empty($hint['background']);
                     if (class_exists('UCP_Diagnostics')) {
                         UCP_Diagnostics::record('lcp', 'Selected browser-rendered LCP candidate.', array(

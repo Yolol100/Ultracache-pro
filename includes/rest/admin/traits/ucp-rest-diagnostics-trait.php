@@ -52,4 +52,184 @@ trait UCP_REST_Diagnostics_Trait {
         ));
     }
 
+
+    public static function asset_manager_snapshot(WP_REST_Request $request) {
+        $snapshot = get_option('ucp_asset_manager_last_snapshot', array());
+        $snapshot = is_array($snapshot) ? $snapshot : array();
+        $styles = !empty($snapshot['styles']) && is_array($snapshot['styles']) ? array_values($snapshot['styles']) : array();
+        $scripts = !empty($snapshot['scripts']) && is_array($snapshot['scripts']) ? array_values($snapshot['scripts']) : array();
+        $groups = array();
+        foreach (array_merge($styles, $scripts) as $item) {
+            if (!is_array($item)) {
+                continue;
+            }
+            $owner = !empty($item['owner']) ? sanitize_text_field((string) $item['owner']) : 'unknown';
+            if (!isset($groups[$owner])) {
+                $groups[$owner] = array('styles' => 0, 'scripts' => 0, 'protected' => 0, 'unprotected' => 0, 'low_risk' => 0, 'medium_risk' => 0, 'high_risk' => 0);
+            }
+            if (!empty($item['kind']) && 'script' === $item['kind']) {
+                $groups[$owner]['scripts']++;
+            } else {
+                $groups[$owner]['styles']++;
+            }
+            if (!empty($item['protected'])) {
+                $groups[$owner]['protected']++;
+            } else {
+                $groups[$owner]['unprotected']++;
+            }
+            $risk = !empty($item['risk']) ? sanitize_key((string) $item['risk']) : 'review';
+            if ('low' === $risk) {
+                $groups[$owner]['low_risk']++;
+            } elseif ('medium' === $risk || 'review' === $risk) {
+                $groups[$owner]['medium_risk']++;
+            } elseif ('high' === $risk || 'protected' === $risk) {
+                $groups[$owner]['high_risk']++;
+            }
+        }
+        $analysis = self::asset_snapshot_analysis($styles, $scripts, $groups);
+
+        return rest_ensure_response(array(
+            'success' => true,
+            'snapshot' => array(
+                'captured_at' => isset($snapshot['captured_at']) ? absint($snapshot['captured_at']) : 0,
+                'url' => isset($snapshot['url']) ? esc_url_raw((string) $snapshot['url']) : '',
+                'context' => !empty($snapshot['context']) && is_array($snapshot['context']) ? $snapshot['context'] : array(),
+                'styles' => array_slice($styles, 0, 250),
+                'scripts' => array_slice($scripts, 0, 250),
+                'groups' => $groups,
+                'analysis' => $analysis,
+                'recommendations' => self::asset_snapshot_recommendations($styles, $scripts),
+            ),
+            'settings' => array(
+                'test_mode' => (bool) UCP_Options::get('enable_asset_test_mode'),
+                'snapshot_enabled' => (bool) UCP_Options::get('enable_asset_manager_snapshot'),
+                'advanced_asset_rules' => (string) UCP_Options::get('advanced_asset_rules', ''),
+            ),
+            'examples' => array(
+                'disable_everywhere' => 'script|handle|disable|all|',
+                'disable_on_path' => 'script|handle|disable|path_contains|/voorbeeld/',
+                'keep_on_path' => 'script|handle|keep|path_contains|/voorbeeld/',
+            ),
+        ));
+    }
+
+
+    private static function asset_snapshot_analysis($styles, $scripts, $groups) {
+        $items = array_merge((array) $styles, (array) $scripts);
+        $analysis = array(
+            'total' => count($items),
+            'styles' => count((array) $styles),
+            'scripts' => count((array) $scripts),
+            'external' => 0,
+            'plugin_assets' => 0,
+            'theme_assets' => 0,
+            'protected' => 0,
+            'unprotected' => 0,
+            'with_dependents' => 0,
+            'low_risk_candidates' => 0,
+            'medium_risk_candidates' => 0,
+            'largest_owners' => array(),
+        );
+
+        foreach ($items as $item) {
+            if (!is_array($item)) {
+                continue;
+            }
+            $owner = !empty($item['owner']) ? (string) $item['owner'] : '';
+            if (0 === strpos($owner, 'external:')) {
+                $analysis['external']++;
+            } elseif (0 === strpos($owner, 'plugin:')) {
+                $analysis['plugin_assets']++;
+            } elseif (0 === strpos($owner, 'theme:')) {
+                $analysis['theme_assets']++;
+            }
+            if (!empty($item['protected'])) {
+                $analysis['protected']++;
+            } else {
+                $analysis['unprotected']++;
+            }
+            if (!empty($item['dependents']) && is_array($item['dependents'])) {
+                $analysis['with_dependents']++;
+            }
+            $risk = !empty($item['risk']) ? sanitize_key((string) $item['risk']) : 'review';
+            if (empty($item['protected']) && 'low' === $risk) {
+                $analysis['low_risk_candidates']++;
+            } elseif (empty($item['protected']) && in_array($risk, array('medium', 'review'), true)) {
+                $analysis['medium_risk_candidates']++;
+            }
+        }
+
+        uasort($groups, function ($a, $b) {
+            $a_total = (isset($a['styles']) ? (int) $a['styles'] : 0) + (isset($a['scripts']) ? (int) $a['scripts'] : 0);
+            $b_total = (isset($b['styles']) ? (int) $b['styles'] : 0) + (isset($b['scripts']) ? (int) $b['scripts'] : 0);
+            return $b_total <=> $a_total;
+        });
+        foreach (array_slice($groups, 0, 8, true) as $owner => $group) {
+            $analysis['largest_owners'][] = array(
+                'owner' => sanitize_text_field((string) $owner),
+                'styles' => isset($group['styles']) ? absint($group['styles']) : 0,
+                'scripts' => isset($group['scripts']) ? absint($group['scripts']) : 0,
+                'protected' => isset($group['protected']) ? absint($group['protected']) : 0,
+                'unprotected' => isset($group['unprotected']) ? absint($group['unprotected']) : 0,
+            );
+        }
+
+        return $analysis;
+    }
+
+    private static function asset_snapshot_recommendations($styles, $scripts) {
+        $recommendations = array();
+        foreach (array_merge((array) $styles, (array) $scripts) as $item) {
+            if (!is_array($item) || !empty($item['protected'])) {
+                continue;
+            }
+            if (!empty($item['dependents']) && is_array($item['dependents'])) {
+                continue;
+            }
+            $risk = !empty($item['risk']) ? sanitize_key((string) $item['risk']) : 'review';
+            $haystack = strtolower((isset($item['handle']) ? (string) $item['handle'] : '') . ' ' . (isset($item['src']) ? (string) $item['src'] : '') . ' ' . (isset($item['owner']) ? (string) $item['owner'] : ''));
+            $priority = 50;
+            $reason = isset($item['risk_reason']) ? (string) $item['risk_reason'] : '';
+            $action = 'review';
+
+            if (preg_match('#(hotjar|clarity|facebook|fbq|adsbygoogle|doubleclick|pinterest|linkedin|twitter|tiktok|snapchat)#', $haystack)) {
+                $priority = 95;
+                $action = 'delay_or_path_unload';
+            } elseif (preg_match('#(intercom|tawk|crisp|zendesk|hubspot)#', $haystack)) {
+                $priority = 90;
+                $action = 'delay_or_path_unload';
+            } elseif (preg_match('#(trustpilot|yotpo|loox|reviews|share|social)#', $haystack)) {
+                $priority = 82;
+                $action = 'path_unload';
+            } elseif ('low' === $risk) {
+                $priority = 75;
+                $action = 'path_unload';
+            } elseif ('medium' === $risk) {
+                $priority = 58;
+            }
+
+            if ($priority < 70) {
+                continue;
+            }
+
+            $recommendations[] = array(
+                'handle' => isset($item['handle']) ? sanitize_key((string) $item['handle']) : '',
+                'kind' => !empty($item['kind']) && 'style' === $item['kind'] ? 'style' : 'script',
+                'owner' => isset($item['owner']) ? sanitize_text_field((string) $item['owner']) : '',
+                'src' => isset($item['src']) ? esc_url_raw((string) $item['src']) : '',
+                'risk' => $risk,
+                'priority' => $priority,
+                'action' => $action,
+                'suggested_scope' => 'path_contains',
+                'reason' => wp_strip_all_tags($reason),
+            );
+        }
+
+        usort($recommendations, function ($a, $b) {
+            return (int) $b['priority'] <=> (int) $a['priority'];
+        });
+
+        return array_slice($recommendations, 0, 20);
+    }
+
 }

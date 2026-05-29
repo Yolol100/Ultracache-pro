@@ -179,6 +179,7 @@
     function getLogs(){ return request('diagnostics/logs'); }
     function getRequests(){ return request('diagnostics/requests'); }
     function getBrowserScan(){ return request('diagnostics/browser-scan'); }
+    function getAssetSnapshot(){ return request('diagnostics/asset-snapshot'); }
     function saveBrowserScan(payload){ return request('actions/browser-scan', {method:'POST', data:payload}); }
     function scanPreset(){ return request('scan-preset'); }
     function exportSettings(){ return request('settings/export'); }
@@ -907,8 +908,8 @@
         media: [
             {title:'Basis', fields:[['media_lazyload_mode','Media lazyload','select','Eén keuze vervangt lazyload voor afbeeldingen, iframes/video en YouTube preview.',[['off','Uit'],['images','Alleen afbeeldingen'],['iframes','Afbeeldingen + iframes/video'],['youtube','Afbeeldingen + iframes/video + YouTube preview']]],['enable_add_image_dimensions','Afbeeldingsafmetingen toevoegen','toggle','Aanbevolen om layout shifts te beperken.']]} ,
             {title:'Afbeeldingen', fields:[['lcp_image_mode','LCP-afbeeldingen','lcp_images','Eén keuze voor boven-de-vouw afbeeldingen. Dit vervangt kritieke afbeeldingen preloaden en bovenste afbeeldingen niet lazyloaden.',[['off','Uit'],['protect_hero','Hero beschermen: niet lazyloaden'],['preload_hero','Hero preloaden'],['recommended','Aanbevolen: 2 preloaden + 4 beschermen'],['custom','Aangepast']]],['image_optimization_mode','Afbeeldingsoptimalisatie','select','Eén keuze vervangt de losse optimalisatie-, WebP- en AVIF-knoppen. Laat uit als een andere image optimizer dit al doet.',[['off','Uit'],['optimize','Nieuwe uploads optimaliseren'],['webp','Optimaliseren + WebP maken'],['webp_avif','Optimaliseren + WebP + AVIF maken']]],['image_quality','Afbeeldingskwaliteit','number','0-100. Gebruik meestal 80-85 voor goede balans.']]} ,
-            {title:'Fonts', fields:[['google_fonts_mode','Google Fonts gedrag','select','Eén keuze vervangt lokaal hosten, font-display swap en Google Fonts uitschakelen.',[['standard','Standaard'],['swap','Alleen font-display swap'],['local','Lokaal hosten + swap'],['disable','Google Fonts uitschakelen']]],['preload_fonts','Fonts preloaden','textarea','Alleen kritieke WOFF2-fontbestanden, één URL per regel.']]} ,
-            {title:'Uitsluitingen', fields:[['lazyload_exclusions','LazyLoad uitsluitingen','textarea','Eén patroon per regel. Gebruik voor logo’s, hero-afbeeldingen of sliders die direct zichtbaar zijn.'],['enable_lazy_render','Lazy render inschakelen','toggle','Stelt onder-de-vouw blokken uit op basis van de selectors hieronder. Test dit visueel.'],['lazy_render_selectors','Lazy render selectors','textarea','CSS selectors voor onder-de-vouw blokken. Werkt alleen wanneer Lazy render is ingeschakeld.'],['preconnect_domains','Preconnect domeinen','textarea','Alleen 1-3 echt belangrijke externe domeinen, één domein per regel.'],['dns_prefetch_domains','DNS prefetch domeinen','textarea','Minder kritieke externe domeinen, één domein per regel.']]}
+            {title:'Fonts', fields:[['google_fonts_mode','Google Fonts gedrag','select','Eén keuze vervangt lokaal hosten, font-display swap en Google Fonts uitschakelen.',[['standard','Standaard'],['swap','Alleen font-display swap'],['local','Lokaal hosten + swap'],['disable','Google Fonts uitschakelen']]],['enable_auto_font_preloads','Automatische font-preloads','toggle','Preloadt maximaal drie lokaal gecachete WOFF/WOFF2 fonts die door UltraCache zelf zijn opgeslagen.'],['preload_fonts','Fonts preloaden','textarea','Alleen kritieke WOFF2-fontbestanden, één URL per regel.']]} ,
+            {title:'Uitsluitingen', fields:[['lazyload_exclusions','LazyLoad uitsluitingen','textarea','Eén patroon per regel. Gebruik voor logo’s, hero-afbeeldingen of sliders die direct zichtbaar zijn.'],['enable_lazy_render','Lazy render inschakelen','toggle','Stelt onder-de-vouw blokken uit op basis van de selectors hieronder. Test dit visueel.'],['lazy_render_selectors','Lazy render selectors','textarea','CSS selectors voor onder-de-vouw blokken. Werkt alleen wanneer Lazy render is ingeschakeld.'],['enable_auto_resource_hints','Automatische resource hints','toggle','Gebruikt de laatste asset snapshot om beperkt preconnect en DNS-prefetch toe te voegen.'],['preconnect_domains','Preconnect domeinen','textarea','Alleen 1-3 echt belangrijke externe domeinen, één domein per regel.'],['resource_hints_preconnect_limit','Max auto-preconnects','number','Beperk automatische preconnects. 2 is veilig; hoger kan netwerkprioriteit verspillen.'],['dns_prefetch_domains','DNS prefetch domeinen','textarea','Minder kritieke externe domeinen, één domein per regel.'],['resource_hints_dns_limit','Max auto-DNS-prefetch','number','Beperk automatische DNS-prefetch hints.']]}
         ],
         preload: [
             {title:'Cache opbouwen', fields:[['preload_mode','Cache preload','select','Eén keuze vervangt preload aan/uit, queue, sitemap en homepage meenemen.',[['off','Uit'],['recommended','Veilig aanbevolen: queue + sitemap + homepage'],['homepage','Alleen homepage'],['manual','Handmatig / geavanceerd']]]]} ,
@@ -921,6 +922,7 @@
             {title:'Varianten en purge', fields:[['cache_mobile_separately','Mobiele cache apart bewaren','toggle','Gebruik dit alleen wanneer mobiel en desktop duidelijk andere HTML krijgen.'],['enable_cache_tags','Gerelateerde pagina’s meeverversen','toggle','Handig voor blogs, categorieën en archieven.'],['cache_logged_in','Cache voor ingelogde gebruikers','toggle','Developer-only. Meestal uit laten, omdat accounts en builders persoonlijke content kunnen tonen.']]}
         ],
         advanced: [
+            {title:'Asset Manager', fields:[['enable_asset_test_mode','Asset Test Mode','toggle','Aanbevolen bij nieuwe unload-regels. Alleen beheerders zien de assetregels totdat je deze modus uitschakelt.'],['enable_asset_manager_snapshot','Frontend asset snapshot','toggle','Wanneer je als beheerder een frontendpagina bezoekt, bewaart UltraCache de geladen CSS/JS handles voor de Asset Manager.'],['asset_manager_panel','Asset Manager snapshot','asset_manager','Bekijk de laatst gemeten assets en maak veilige unload/keep-regels op basis van echte frontend handles.'],['advanced_asset_rules','Geavanceerde assetregels','textarea','Formaat: kind|handle|actie|scope|waarde. Voorbeeld: script|contact-form-7|disable|path_contains|/blog/. Gebruik keep-regels als uitzondering op brede disable-regels.']]},
             {title:'Pagina’s', fields:[['exclude_urls','Nooit URL’s cachen','textarea','Eén pad of patroon per regel. Gebruik dit voor cart, checkout, account, zoekresultaten, filters of persoonlijke content.']]},
             {title:'Cookies / agents', fields:[['exclude_cookies','Nooit cachen bij cookies','textarea','Eén cookie of gedeeltelijke cookienaam per regel. Nuttig voor winkelwagens en gepersonaliseerde content.'],['exclude_user_agents','Nooit cachen voor user-agents','textarea','Eén user-agent fragment per regel. Laat leeg tenzij een apparaat, browser of bot afwijkende content krijgt.']]},
             {title:'Automatisch legen bij wijzigingen', fields:[['always_purge_urls','Altijd extra URL’s legen','textarea','Eén URL of patroon per regel. Gebruik voor pagina’s die mee moeten verversen wanneer content wijzigt, zoals homepage of archieven.']]},
@@ -1590,11 +1592,153 @@
             );
         } else if (type === 'css_delivery') {
             control = el(CssDeliveryControl,{label:label, help:help, value:currentValue || 'none', options:options, saving:saving, onChange:commit});
+        } else if (type === 'asset_manager') {
+            control = el(AssetManagerControl,{settings:props.settings || {}, setSettings:props.setSettings, addNotice:props.addNotice, setStatus:props.setStatus});
         } else {
             control = el(Fragment, {}, el(TextControl,{label:label, help:help, type:isSensitiveSetting(key) ? 'password' : 'text', autoComplete:isSensitiveSetting(key) ? 'new-password' : 'off', value:draft || '', disabled:saving, onChange:function(v){setDraft(v); setDirty(true);}}), dirty ? el(Button,{variant:'secondary', isBusy:saving, disabled:saving, onClick:function(){commit(draft || '');}},__('Opslaan','ultracache-pro')) : null);
         }
         var layoutClass = isCompactSettingField(props.field, props.kind) ? ' is-rowable' : ' is-stacked';
         return el('div',{className:'ucp-setting-field ucp-setting-field--' + type + layoutClass, 'data-ucp-field-key':key}, control, warning, saving ? el('span',{className:'ucp-saving-text'},__('Opslaan…','ultracache-pro')) : null);
+    }
+
+
+    function AssetManagerControl(props) {
+        var snapshotState = useState(null), snapshot = snapshotState[0], setSnapshot = snapshotState[1];
+        var loadingState = useState(false), loading = loadingState[0], setLoading = loadingState[1];
+        var filterState = useState(''), filter = filterState[0], setFilter = filterState[1];
+        var kindState = useState('all'), kindFilter = kindState[0], setKindFilter = kindState[1];
+        var rulesText = String((props.settings || {}).advanced_asset_rules || '');
+
+        function loadSnapshot(){
+            setLoading(true);
+            getAssetSnapshot().then(function(resp){ setSnapshot(resp && resp.snapshot ? resp.snapshot : {}); }).catch(function(err){
+                props.addNotice({status:'error', message:cleanErrorMessage(err, __('Asset snapshot kon niet worden geladen.','ultracache-pro'))});
+            }).finally(function(){ setLoading(false); });
+        }
+        useEffect(function(){ loadSnapshot(); }, []);
+
+        function currentPath(){
+            var url = snapshot && snapshot.url ? String(snapshot.url) : '';
+            try { return url ? (new URL(url)).pathname || '/' : '/'; } catch(e) { return '/'; }
+        }
+        function saveRuleLines(lines, successMessage){
+            var nextText = lines.join('\n');
+            var previousSettings = Object.assign({}, props.settings || {});
+            var next = Object.assign({}, previousSettings, {advanced_asset_rules: nextText});
+            props.setSettings(next);
+            saveSettings({advanced_asset_rules: nextText}).then(function(resp){
+                props.setSettings(resp.settings || next);
+                if (resp.status && props.setStatus) props.setStatus(resp.status);
+                props.addNotice({status:'success', message:successMessage || __('Assetregel toegevoegd. Test de pagina visueel voordat je Test Mode uitschakelt.','ultracache-pro')});
+            }).catch(function(err){
+                props.setSettings(previousSettings);
+                props.addNotice({status:'error', message:cleanErrorMessage(err, __('Assetregel kon niet worden opgeslagen.','ultracache-pro'))});
+            });
+        }
+        function appendRule(item, action, scope){
+            if (!item || !item.handle || item.protected && action === 'disable') {
+                props.addNotice({status:'warning', message:__('Beschermde assets worden niet automatisch uitgeschakeld. Gebruik alleen handmatige code als je exact weet wat je doet.','ultracache-pro')});
+                return;
+            }
+            scope = scope || item.suggested_scope || 'path_contains';
+            var value = scope === 'path_contains' ? currentPath() : '';
+            var line = [item.kind || 'script', item.handle, action || 'disable', scope, value].join('|');
+            var lines = rulesText.split(/\r?\n/).map(function(v){ return v.trim(); }).filter(Boolean);
+            if (lines.indexOf(line) === -1) lines.push(line);
+            saveRuleLines(lines, __('Assetregel toegevoegd. Test de pagina visueel voordat je Test Mode uitschakelt.','ultracache-pro'));
+        }
+        function appendOwnerRules(owner, kind){
+            var styles = snapshot && Array.isArray(snapshot.styles) ? snapshot.styles : [];
+            var scripts = snapshot && Array.isArray(snapshot.scripts) ? snapshot.scripts : [];
+            var lines = rulesText.split(/\r?\n/).map(function(v){ return v.trim(); }).filter(Boolean);
+            var added = 0;
+            styles.concat(scripts).forEach(function(item){
+                if (!item || item.owner !== owner || item.protected || item.kind !== kind) return;
+                if (item.dependents && item.dependents.length) return;
+                var line = [item.kind || 'script', item.handle, 'disable', 'path_contains', currentPath()].join('|');
+                if (lines.indexOf(line) === -1) { lines.push(line); added++; }
+            });
+            if (!added) {
+                props.addNotice({status:'info', message:__('Geen veilige onbeschermde assets gevonden voor deze eigenaar en dit type.','ultracache-pro')});
+                return;
+            }
+            saveRuleLines(lines, added + ' ' + __('URL-scoped assetregels toegevoegd. Controleer de pagina in Asset Test Mode.','ultracache-pro'));
+        }
+
+        var styles = snapshot && Array.isArray(snapshot.styles) ? snapshot.styles : [];
+        var scripts = snapshot && Array.isArray(snapshot.scripts) ? snapshot.scripts : [];
+        var items = styles.concat(scripts);
+        var needle = filter.toLowerCase();
+        items = items.filter(function(item){
+            if (kindFilter !== 'all' && item.kind !== kindFilter) return false;
+            if (!needle) return true;
+            return String((item.handle || '') + ' ' + (item.src || '') + ' ' + (item.owner || '')).toLowerCase().indexOf(needle) !== -1;
+        }).slice(0, 80);
+        var captured = snapshot && snapshot.captured_at ? new Date(snapshot.captured_at * 1000).toLocaleString() : __('Nog geen snapshot','ultracache-pro');
+        var analysis = snapshot && snapshot.analysis ? snapshot.analysis : {};
+        var recommendations = snapshot && Array.isArray(snapshot.recommendations) ? snapshot.recommendations : [];
+        var owners = snapshot && snapshot.groups ? Object.keys(snapshot.groups).map(function(owner){
+            var g = snapshot.groups[owner] || {};
+            return {owner:owner, total:(g.styles || 0) + (g.scripts || 0), styles:g.styles || 0, scripts:g.scripts || 0, protected:g.protected || 0, unprotected:g.unprotected || 0};
+        }).sort(function(a,b){ return b.total - a.total; }).slice(0, 8) : [];
+        return el('div', {className:'ucp-asset-manager-panel'},
+            el('div', {className:'ucp-asset-manager-panel__head'},
+                el('div', {},
+                    el('strong', {}, __('Laatst gemeten frontend-assets','ultracache-pro')),
+                    el('p', {className:'ucp-muted'}, snapshot && snapshot.url ? snapshot.url : __('Bezoek als beheerder een frontendpagina om een snapshot te maken.','ultracache-pro')),
+                    el('p', {className:'ucp-muted'}, captured)
+                ),
+                el(Button, {variant:'secondary', isBusy:loading, disabled:loading, onClick:loadSnapshot}, __('Vernieuwen','ultracache-pro'))
+            ),
+            snapshot && snapshot.analysis ? el('div', {className:'ucp-asset-intel-summary'},
+                el('strong', {}, __('Asset Intelligence','ultracache-pro')),
+                el('p', {className:'ucp-muted'}, __('Totaal: ','ultracache-pro') + (analysis.total || 0) + ' · CSS: ' + (analysis.styles || 0) + ' · JS: ' + (analysis.scripts || 0) + ' · External: ' + (analysis.external || 0) + ' · Onbeschermde kandidaten: ' + ((analysis.low_risk_candidates || 0) + (analysis.medium_risk_candidates || 0)))
+            ) : null,
+            recommendations.length ? el(Notice, {status:'info', isDismissible:false},
+                el('strong', {}, __('Aanbevolen startpunten','ultracache-pro')),
+                el('ul', {}, recommendations.slice(0, 5).map(function(item){
+                    return el('li', {key:'rec-' + item.kind + '-' + item.handle},
+                        el('code', {}, item.kind + ':' + item.handle),
+                        ' — ' + (item.reason || __('Kandidaat voor URL-scoped testregel.','ultracache-pro')) + ' ',
+                        el(Button, {variant:'tertiary', onClick:function(){ appendRule(item, 'disable', 'path_contains'); }}, __('Test uit op deze URL','ultracache-pro'))
+                    );
+                }))
+            ) : null,
+            owners.length ? el('div', {className:'ucp-asset-owner-groups'},
+                el('strong', {}, __('Grootste asset-eigenaren','ultracache-pro')),
+                owners.map(function(group){
+                    return el('div', {className:'ucp-asset-owner-row', key:'owner-' + group.owner},
+                        el('span', {}, group.owner + ' — ' + group.total + ' assets (' + group.unprotected + ' onbeschermd)'),
+                        el(Button, {variant:'tertiary', disabled:!group.unprotected, onClick:function(){ appendOwnerRules(group.owner, 'style'); }}, __('CSS test-unload op deze URL','ultracache-pro')),
+                        el(Button, {variant:'tertiary', disabled:!group.unprotected, onClick:function(){ appendOwnerRules(group.owner, 'script'); }}, __('JS test-unload op deze URL','ultracache-pro'))
+                    );
+                })
+            ) : null,
+            el('div', {className:'ucp-asset-manager-toolbar'},
+                el(TextControl, {label:__('Filter','ultracache-pro'), value:filter, onChange:setFilter, placeholder:__('handle, plugin, thema of URL','ultracache-pro')}),
+                el(SelectControl, {label:__('Type','ultracache-pro'), value:kindFilter, onChange:setKindFilter, options:[{value:'all', label:__('Alles','ultracache-pro')},{value:'style', label:'CSS'},{value:'script', label:'JS'}]})
+            ),
+            !items.length ? el(Notice, {status:'info', isDismissible:false}, __('Geen assets gevonden in de laatste snapshot of filter.','ultracache-pro')) : el('div', {className:'ucp-asset-manager-list'}, items.map(function(item){
+                var protectedLabel = item.protected ? el(StatusBadge, {state:'warning'}, __('Beschermd','ultracache-pro')) : null;
+                return el('div', {key:(item.kind || '') + ':' + item.handle, className:'ucp-asset-manager-item'},
+                    el('div', {className:'ucp-asset-manager-item__meta'},
+                        el('strong', {}, (item.kind === 'style' ? 'CSS: ' : 'JS: ') + item.handle),
+                        protectedLabel,
+                        el('span', {className:'ucp-muted'}, item.owner || ''),
+                        item.risk ? el(StatusBadge, {state:item.risk === 'low' ? 'success' : item.risk === 'protected' || item.risk === 'high' ? 'warning' : 'info'}, __('Risico: ','ultracache-pro') + item.risk) : null,
+                        item.risk_reason ? el('small', {}, item.risk_reason) : null,
+                        item.src ? el('code', {}, item.src) : null,
+                        item.dependents && item.dependents.length ? el('small', {}, __('Afhankelijkheden actief: ','ultracache-pro') + item.dependents.join(', ')) : null
+                    ),
+                    el('div', {className:'ucp-asset-manager-item__actions'},
+                        el(Button, {variant:'secondary', disabled:!!item.protected, onClick:function(){ appendRule(item, 'disable', 'path_contains'); }}, __('Uit op deze URL','ultracache-pro')),
+                        el(Button, {variant:'tertiary', disabled:!!item.protected, onClick:function(){ appendRule(item, 'disable', 'all'); }}, __('Uit overal','ultracache-pro')),
+                        el(Button, {variant:'tertiary', onClick:function(){ appendRule(item, 'keep', 'path_contains'); }}, __('Behouden op deze URL','ultracache-pro'))
+                    )
+                );
+            })),
+            el(Notice, {status:'warning', isDismissible:false}, __('Werk in Asset Test Mode, controleer menu, formulieren, sliders en checkout, en schakel daarna pas live door. Beschermde assets worden door de backend alsnog overgeslagen.','ultracache-pro'))
+        );
     }
 
     function CssDeliveryControl(props) {
@@ -1695,7 +1839,7 @@
             var rect = img.getBoundingClientRect ? img.getBoundingClientRect() : {top:0,width:0,height:0};
             var src = img.currentSrc || img.getAttribute('src') || '';
             if (!src) return;
-            var item = {url:src, tag:'img', className:img.className || '', width:Math.round(rect.width || img.naturalWidth || 0), height:Math.round(rect.height || img.naturalHeight || 0), top:Math.round(rect.top || 0), background:0};
+            var item = {url:src, tag:'img', className:img.className || '', width:Math.round(rect.width || img.naturalWidth || 0), height:Math.round(rect.height || img.naturalHeight || 0), top:Math.round(rect.top || 0), background:0, srcset:img.getAttribute('srcset') || '', sizes:img.getAttribute('sizes') || ''};
             item.score = scoreVisualCandidate(item, viewport.height);
             images.push(item);
         });
@@ -1766,8 +1910,23 @@
         };
         return {url:url || win.location.href, viewport:viewport, lcp:allCandidates[0] || {}, images:images.sort(function(a,b){return b.score-a.score;}).slice(0,25), backgrounds:backgrounds.sort(function(a,b){return b.score-a.score;}).slice(0,25), stylesheets:stylesheets, scripts:scripts, thirdParty:uniqueResourceList(third, 80), renderBlockingStylesheets:uniqueResourceList(renderBlockingStylesheets, 80), earlyScripts:uniqueResourceList(earlyScripts, 120), delayCandidates:uniqueResourceList(delayCandidates, 120), cssCandidates:uniqueResourceList(cssCandidates, 80), resourceTiming:resourceTiming.slice(0,160), recommendations:recommendations};
     }
+    function normalizeLocalScanUrl(value) {
+        var base = config.homeUrl || window.location.origin + '/';
+        try {
+            var target = new URL(value || base, base);
+            var home = new URL(base, window.location.href);
+            if (target.origin !== home.origin) {
+                throw new Error(__('Gebruik een URL binnen deze website.', 'ultracache-pro'));
+            }
+            target.hash = '';
+            return target.href;
+        } catch (e) {
+            throw new Error(e && e.message ? e.message : __('Ongeldige scan-URL.', 'ultracache-pro'));
+        }
+    }
+
     function runBrowserRenderedScan(targetUrl) {
-        targetUrl = targetUrl || config.homeUrl || window.location.origin + '/';
+        targetUrl = normalizeLocalScanUrl(targetUrl || config.homeUrl || window.location.origin + '/');
         return new Promise(function(resolve, reject){
             var frame = document.createElement('iframe');
             var done = false;
@@ -1809,6 +1968,7 @@
         var health = status.health || {};
         var runner = status.runner || {};
         var browserState = useState(null), browserScan = browserState[0], setBrowserScan = browserState[1];
+        var scanUrlState = useState(config.homeUrl || window.location.origin + '/'), scanUrl = scanUrlState[0], setScanUrl = scanUrlState[1];
         var browserBusyState = useState(false), browserBusy = browserBusyState[0], setBrowserBusy = browserBusyState[1];
         var loadState = useState(false), loading = loadState[0], setLoading = loadState[1];
         function loadDiagnostics(){
@@ -1821,7 +1981,7 @@
         }
         function runPageSpeedBrowserScan(){
             setBrowserBusy(true);
-            runBrowserRenderedScan(config.homeUrl).then(function(metrics){
+            runBrowserRenderedScan(scanUrl || config.homeUrl).then(function(metrics){
                 return saveBrowserScan(metrics);
             }).then(function(res){
                 setBrowserScan(res && res.scan ? res.scan : null);
@@ -1864,7 +2024,8 @@
                     el('div', {className:'ucp-action-row ucp-action-row--static'},
                         el('div', {className:'ucp-action-copy'},
                             el('strong', {}, __('Snelheidsscan uitvoeren','ultracache-pro')),
-                            el('p', {}, __('Controleert de homepage en helpt verbeterpunten voor snelheid te vinden.','ultracache-pro'))
+                            el('p', {}, __('Controleert een publieke pagina en past LCP-, CSS- en Delay JS-hints per URL toe. Gebruik eerst homepage, belangrijke landingspagina’s en productpagina’s.','ultracache-pro')),
+                            el(TextControl, {label:__('Te scannen URL','ultracache-pro'), value:scanUrl, disabled:browserBusy, onChange:function(value){ setScanUrl(value); }})
                         ),
                         el('div', {className:'ucp-action-button'},
                             el(Button, {variant:'primary', isBusy:browserBusy, disabled:browserBusy, onClick:runPageSpeedBrowserScan}, __('Snelheidsscan uitvoeren','ultracache-pro'))

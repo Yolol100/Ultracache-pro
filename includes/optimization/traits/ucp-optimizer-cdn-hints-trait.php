@@ -85,15 +85,124 @@ trait UCP_Optimizer_CDN_Hints_Trait {
         if ($this->should_skip_frontend_optimizations()) {
             return $urls;
         }
-        $dns = UCP_Helpers::normalize_multiline(UCP_Options::get('dns_prefetch_domains', ''));
-        $preconnect = UCP_Helpers::normalize_multiline(UCP_Options::get('preconnect_domains', ''));
+
+        $urls = is_array($urls) ? $urls : array();
+        $manual_dns = $this->normalize_resource_hint_list(UCP_Helpers::normalize_multiline(UCP_Options::get('dns_prefetch_domains', '')));
+        $manual_preconnect = $this->normalize_resource_hint_list(UCP_Helpers::normalize_multiline(UCP_Options::get('preconnect_domains', '')));
+        $auto = UCP_Options::get('enable_auto_resource_hints') ? $this->automatic_resource_hint_domains($relation_type, $manual_preconnect) : array();
+
         if ('dns-prefetch' === $relation_type) {
-            $urls = array_merge($urls, $dns);
+            $limit = max(0, min(12, absint(UCP_Options::get('resource_hints_dns_limit', 8))));
+            $urls = array_merge($urls, $manual_dns, array_slice($auto, 0, $limit));
+        } elseif ('preconnect' === $relation_type) {
+            $limit = max(0, min(4, absint(UCP_Options::get('resource_hints_preconnect_limit', 2))));
+            $urls = array_merge($urls, $manual_preconnect, array_slice($auto, 0, $limit));
         }
-        if ('preconnect' === $relation_type) {
-            $urls = array_merge($urls, $preconnect);
+
+        return $this->dedupe_resource_hints($urls);
+    }
+
+    private function normalize_resource_hint_list($items) {
+        $out = array();
+        foreach ((array) $items as $item) {
+            $hint = $this->normalize_resource_hint_url($item);
+            if ('' !== $hint) {
+                $out[] = $hint;
+            }
         }
-        return array_values(array_unique($urls));
+        return $this->dedupe_resource_hints($out);
+    }
+
+    private function normalize_resource_hint_url($value) {
+        $value = trim((string) $value);
+        if ('' === $value || preg_match('/[\r\n<>]/', $value)) {
+            return '';
+        }
+        if (0 === strpos($value, '//')) {
+            $value = (is_ssl() ? 'https:' : 'http:') . $value;
+        } elseif (!preg_match('#^https?://#i', $value)) {
+            $value = 'https://' . ltrim($value, '/');
+        }
+        $host = UCP_Helpers::normalize_domain_host((string) wp_parse_url($value, PHP_URL_HOST));
+        if ('' === $host || $host === UCP_Helpers::normalize_domain_host((string) wp_parse_url(home_url('/'), PHP_URL_HOST))) {
+            return '';
+        }
+        return esc_url_raw((is_ssl() ? 'https://' : 'https://') . $host);
+    }
+
+    private function dedupe_resource_hints($items) {
+        $seen = array();
+        $out = array();
+        foreach ((array) $items as $item) {
+            $hint = is_array($item) && !empty($item['href']) ? $this->normalize_resource_hint_url($item['href']) : $this->normalize_resource_hint_url($item);
+            if ('' === $hint || isset($seen[$hint])) {
+                continue;
+            }
+            $seen[$hint] = true;
+            $out[] = $hint;
+        }
+        return $out;
+    }
+
+    private function automatic_resource_hint_domains($relation_type, $preconnect_domains = array()) {
+        $snapshot = get_option('ucp_asset_manager_last_snapshot', array());
+        if (!is_array($snapshot) || empty($snapshot['url'])) {
+            return array();
+        }
+
+        $items = array_merge(
+            !empty($snapshot['styles']) && is_array($snapshot['styles']) ? $snapshot['styles'] : array(),
+            !empty($snapshot['scripts']) && is_array($snapshot['scripts']) ? $snapshot['scripts'] : array()
+        );
+        $scores = array();
+        foreach ($items as $item) {
+            if (!is_array($item) || empty($item['src'])) {
+                continue;
+            }
+            $src = esc_url_raw((string) $item['src'], array('http', 'https'));
+            if (!$src || UCP_Helpers::is_local_url($src)) {
+                continue;
+            }
+            $host = UCP_Helpers::normalize_domain_host((string) wp_parse_url($src, PHP_URL_HOST));
+            if ('' === $host) {
+                continue;
+            }
+            $haystack = strtolower($host . ' ' . (isset($item['handle']) ? (string) $item['handle'] : '') . ' ' . (isset($item['owner']) ? (string) $item['owner'] : '') . ' ' . $src);
+            $score = 10;
+            if (false !== strpos($haystack, 'fonts.gstatic.com') || false !== strpos($haystack, 'fonts.googleapis.com')) {
+                $score += 90;
+            } elseif (!empty($item['kind']) && 'style' === $item['kind']) {
+                $score += 55;
+            } elseif (preg_match('#(cdn|cdnjs|jsdelivr|unpkg|static|assets)#', $haystack)) {
+                $score += 45;
+            }
+            if (preg_match('#(tagmanager|analytics|gtm|facebook|doubleclick|hotjar|clarity|tiktok|pinterest|intercom|tawk|crisp|zendesk)#', $haystack)) {
+                $score -= ('preconnect' === $relation_type) ? 40 : 5;
+            }
+            if (!isset($scores[$host]) || $score > $scores[$host]) {
+                $scores[$host] = $score;
+            }
+        }
+
+        if ('dns-prefetch' === $relation_type) {
+            foreach ((array) $preconnect_domains as $preconnect_domain) {
+                $host = UCP_Helpers::normalize_domain_host((string) wp_parse_url($preconnect_domain, PHP_URL_HOST));
+                unset($scores[$host]);
+            }
+        }
+        arsort($scores, SORT_NUMERIC);
+
+        $out = array();
+        foreach ($scores as $host => $score) {
+            if ('preconnect' === $relation_type && $score < 45) {
+                continue;
+            }
+            $hint = $this->normalize_resource_hint_url($host);
+            if ('' !== $hint) {
+                $out[] = $hint;
+            }
+        }
+        return $out;
     }
 
 
@@ -322,11 +431,29 @@ trait UCP_Optimizer_CDN_Hints_Trait {
     }
 
     public function output_preload_fonts() {
-        foreach (UCP_Helpers::normalize_multiline(UCP_Options::get('preload_fonts', '')) as $font_url) {
-            $font_url = esc_url($font_url);
-            if ($font_url) {
-                echo '<link rel="preload" href="' . esc_url($font_url) . '" as="font" type="font/woff2" crossorigin>' . "\n";
+        $fonts = UCP_Helpers::normalize_multiline(UCP_Options::get('preload_fonts', ''));
+        if (UCP_Options::get('enable_auto_font_preloads')) {
+            $auto = get_option('ucp_local_font_preload_candidates', array());
+            if (is_array($auto)) {
+                $fonts = array_merge($fonts, array_slice($auto, 0, 3));
             }
+        }
+
+        $seen = array();
+        foreach ($fonts as $font_url) {
+            $font_url = esc_url_raw((string) $font_url, array('http', 'https'));
+            if (!$font_url || isset($seen[$font_url]) || preg_match('/[\r\n<>]/', $font_url)) {
+                continue;
+            }
+            if (!preg_match('/\.(woff2|woff)(\?|$)/i', $font_url)) {
+                continue;
+            }
+            if (!UCP_Helpers::is_local_url($font_url) && !wp_http_validate_url($font_url)) {
+                continue;
+            }
+            $seen[$font_url] = true;
+            $type = preg_match('/\.woff2(\?|$)/i', $font_url) ? 'font/woff2' : 'font/woff';
+            echo '<link rel="preload" href="' . esc_url($font_url) . '" as="font" type="' . esc_attr($type) . '" crossorigin data-ucp="font-preload">' . "\n";
         }
     }
 

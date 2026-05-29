@@ -66,7 +66,8 @@ trait UCP_Optimizer_Scripts_Trait {
         $delayed = 0;
         $forced_delayed = 0;
         $delayed_handles = array();
-        $html = preg_replace_callback('#<script\b([^>]*)>(.*?)</script>#is', function ($matches) use ($excluded, $safe_mode, $delay_mode, $specified, $forced_delay_hints, &$delayed, &$forced_delayed, &$delayed_handles) {
+        $delayed_preload_urls = array();
+        $html = preg_replace_callback('#<script\b([^>]*)>(.*?)</script>#is', function ($matches) use ($excluded, $safe_mode, $delay_mode, $specified, $forced_delay_hints, &$delayed, &$forced_delayed, &$delayed_handles, &$delayed_preload_urls) {
             $attrs = $matches[1];
             $body = $matches[2];
             if (!$this->is_delayable_script_type($attrs) || $this->script_has_no_delay_marker($attrs, $body) || false !== stripos($attrs, 'type="module"') || false !== stripos($attrs, "type='module'") || false !== stripos($attrs, 'importmap') || false !== stripos($attrs, 'nomodule') || preg_match('/\bdata-cfasync\s*=\s*(["\']?)false\1/i', $attrs)) {
@@ -104,6 +105,9 @@ trait UCP_Optimizer_Scripts_Trait {
                 if ($forced_by_browser_scan) {
                     $forced_delayed++;
                 }
+                if (UCP_Options::get('enable_delay_js_preload_delayed_scripts') && $this->should_preload_delayed_script($script_src)) {
+                    $delayed_preload_urls[] = esc_url_raw($script_src);
+                }
                 // phpcs:ignore WordPress.WP.EnqueuedResources.NonEnqueuedScript -- rewrites already-enqueued script tags in buffered front-end HTML for delay loading.
                 $bucket = $this->delay_bucket_for_script($attrs, '', $script_src);
                 return '<script type="text/ucpdelayed" data-ucp-bucket="' . esc_attr($bucket) . '" data-ucp-src="' . esc_url($script_src) . '"' . $this->prepare_delay_placeholder_attrs($attrs, true) . '></script>';
@@ -126,7 +130,10 @@ trait UCP_Optimizer_Scripts_Trait {
         if ($delayed < 1) {
             return $html;
         }
-        UCP_Diagnostics::record('scripts', 'Delayed scripts in HTML', array('count' => $delayed, 'safe_mode' => $safe_mode ? 1 : 0, 'browser_scan_forced' => $forced_delayed, 'delayed' => array_slice(array_values(array_unique($delayed_handles)), 0, 25)));
+        UCP_Diagnostics::record('scripts', 'Delayed scripts in HTML', array('count' => $delayed, 'safe_mode' => $safe_mode ? 1 : 0, 'browser_scan_forced' => $forced_delayed, 'preloaded' => count(array_unique($delayed_preload_urls)), 'delayed' => array_slice(array_values(array_unique($delayed_handles)), 0, 25)));
+        if (!empty($delayed_preload_urls) && UCP_Options::get('enable_delay_js_preload_delayed_scripts')) {
+            $html = $this->inject_delayed_script_preloads($html, $delayed_preload_urls);
+        }
         $timeout = max(1, absint(UCP_Options::get('delay_js_timeout', 4)) * 1000);
         $loader = $this->inline_script_tag($this->delay_loader_script($timeout, (bool) UCP_Options::get('delay_js_disable_click_delay')), array('id' => 'ucp-delay-loader'));
         $count = 0;
@@ -139,6 +146,49 @@ trait UCP_Optimizer_Scripts_Trait {
 
 
 
+
+
+    private function should_preload_delayed_script($src) {
+        $src = trim((string) $src);
+        if ('' === $src || 0 === strpos($src, 'data:') || 0 === strpos($src, 'blob:')) {
+            return false;
+        }
+        if (UCP_Helpers::is_local_url($src)) {
+            return true;
+        }
+        return (bool) wp_http_validate_url($src);
+    }
+
+    private function inject_delayed_script_preloads($html, $urls) {
+        $urls = array_values(array_unique(array_filter((array) $urls, 'strlen')));
+        $limit = max(0, min(12, absint(apply_filters('ucp_delay_js_preload_limit', 8))));
+        if ($limit < 1 || empty($urls)) {
+            return $html;
+        }
+        $links = '';
+        foreach (array_slice($urls, 0, $limit) as $url) {
+            $links .= $this->delayed_script_preload_link($url);
+        }
+        if ('' === $links) {
+            return $html;
+        }
+        $count = 0;
+        $html = preg_replace('#</head>#i', $links . '</head>', (string) $html, 1, $count);
+        if (!$count) {
+            $html = $links . (string) $html;
+        }
+        return $html;
+    }
+
+    private function delayed_script_preload_link($url) {
+        $url = esc_url($url);
+        if ('' === $url) {
+            return '';
+        }
+        $crossorigin = UCP_Helpers::is_local_url($url) ? '' : ' crossorigin';
+        return '<link rel="preload" as="script" href="' . $url . '" data-ucp="delayed-script-preload"' . $crossorigin . '>
+';
+    }
 
     private function delay_bucket_for_script($attrs, $body = '', $src = '') {
         $haystack = strtolower((string) $attrs . ' ' . (string) $src . ' ' . substr((string) $body, 0, 500));

@@ -56,9 +56,9 @@ class UCP_REST_Cache {
         if ($status < 200 || $status >= 300) {
             return $response;
         }
-        $headers = $cache_response->get_headers();
-        foreach (array('Set-Cookie', 'set-cookie', 'Authorization', 'authorization') as $unsafe_header) {
-            unset($headers[$unsafe_header]);
+        $headers = $this->sanitize_cacheable_headers($cache_response->get_headers());
+        if (false === $headers) {
+            return $response;
         }
         set_transient($this->cacheable_requests[$signature], array(
             'data' => $cache_response->get_data(),
@@ -104,6 +104,9 @@ class UCP_REST_Cache {
             }
         }
         $params = $request->get_query_params();
+        if ($this->has_sensitive_query_params($params)) {
+            return false;
+        }
         foreach (array('context', '_locale') as $sensitive_param) {
             if (isset($params[$sensitive_param]) && !in_array((string) $params[$sensitive_param], array('', 'view'), true)) {
                 return false;
@@ -134,6 +137,95 @@ class UCP_REST_Cache {
             }
         }
         return false;
+    }
+
+
+    /**
+     * Avoid caching tokenized or preview-style anonymous REST requests.
+     *
+     * REST cache is opt-in per route prefix, but query parameters can still
+     * carry nonces, secrets or one-off preview/auth tokens. Treat those names
+     * conservatively so a tokenized response is never shared as a public HIT.
+     */
+    protected function has_sensitive_query_params($params) {
+        if (!is_array($params) || empty($params)) {
+            return false;
+        }
+
+        $exact = array(
+            '_wpnonce',
+            '_nonce',
+            'nonce',
+            'token',
+            'access_token',
+            'auth',
+            'authorization',
+            'key',
+            'api_key',
+            'password',
+            'pass',
+            'secret',
+            'signature',
+            'preview',
+            'preview_id',
+            'preview_nonce',
+        );
+
+        foreach ($params as $key => $value) {
+            $clean_key = strtolower(sanitize_key((string) $key));
+            if (in_array($clean_key, $exact, true) || preg_match('/(?:nonce|token|password|secret|signature|auth|key)$/', $clean_key)) {
+                return true;
+            }
+
+            if (is_array($value) && $this->has_sensitive_query_params($value)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Strip unsafe or private response headers before storing a public REST HIT.
+     *
+     * @return array|false Sanitized headers, or false when the response opts out
+     *                     via Cache-Control.
+     */
+    protected function sanitize_cacheable_headers($headers) {
+        if (!is_array($headers)) {
+            return array();
+        }
+
+        $unsafe = array(
+            'set-cookie',
+            'authorization',
+            'www-authenticate',
+            'proxy-authenticate',
+            'x-wp-nonce',
+        );
+        $clean = array();
+
+        foreach ($headers as $name => $value) {
+            $header_name = (string) $name;
+            $lower_name = strtolower($header_name);
+
+            if (in_array($lower_name, $unsafe, true)) {
+                continue;
+            }
+
+            $header_value = is_array($value) ? implode(', ', array_map('strval', $value)) : (string) $value;
+            if ('cache-control' === $lower_name && preg_match('/(?:^|,|\s)(?:private|no-store|no-cache)(?:,|$|\s)/i', $header_value)) {
+                return false;
+            }
+
+            if ('' === $header_name || '' === $header_value) {
+                continue;
+            }
+
+            $clean[$header_name] = sanitize_text_field($header_value);
+        }
+
+        return $clean;
     }
 
     public static function bump_version() {

@@ -12,6 +12,8 @@ if (!defined('ABSPATH')) {
  */
 class UCP_PageSpeed_Browser_Scan {
     const OPTION_KEY = 'ucp_pagespeed_browser_scan_latest';
+    const OPTION_MAP_KEY = 'ucp_pagespeed_browser_scan_map';
+    const MAX_STORED_SCANS = 40;
 
     /**
      * Persist a sanitized browser scan payload.
@@ -47,6 +49,7 @@ class UCP_PageSpeed_Browser_Scan {
         );
 
         update_option(self::OPTION_KEY, $scan, false);
+        self::store_scan_map($scan);
 
         if (class_exists('UCP_CWV') && !empty($scan['lcp']['url'])) {
             UCP_CWV::store_lcp_hint(array(
@@ -234,12 +237,75 @@ class UCP_PageSpeed_Browser_Scan {
     }
 
     /**
+     * Return the best stored browser-rendered scan for the current URL/device.
+     * Falls back to the legacy latest scan only when it matches the request.
+     *
+     * @return array<string,mixed>
+     */
+    public static function scan_for_current_request() {
+        $current = self::current_url_without_query();
+        $key = self::url_match_key($current);
+        if ('' === $key) {
+            return array();
+        }
+
+        $map = get_option(self::OPTION_MAP_KEY, array());
+        $map = is_array($map) ? $map : array();
+        $device = self::current_device();
+        foreach (array($device, 'all', 'desktop', 'mobile') as $candidate_device) {
+            $map_key = $key . '|' . $candidate_device;
+            if (!empty($map[$map_key]) && is_array($map[$map_key])) {
+                return $map[$map_key];
+            }
+        }
+
+        foreach ($map as $scan) {
+            if (is_array($scan) && self::scan_matches_current_request($scan)) {
+                return $scan;
+            }
+        }
+
+        $latest = self::latest();
+        return self::scan_matches_current_request($latest) ? $latest : array();
+    }
+
+    /**
+     * Store a bounded per-URL/device scan map so LCP, CSS and JS hints are no longer global.
+     *
+     * @param array<string,mixed> $scan Sanitized scan payload.
+     * @return void
+     */
+    protected static function store_scan_map($scan) {
+        if (empty($scan['url'])) {
+            return;
+        }
+        $key = self::url_match_key((string) $scan['url']);
+        if ('' === $key) {
+            return;
+        }
+        $device = !empty($scan['viewport']['type']) ? sanitize_key((string) $scan['viewport']['type']) : 'all';
+        if (!in_array($device, array('mobile', 'desktop', 'all'), true)) {
+            $device = !empty($scan['viewport']['width']) && absint($scan['viewport']['width']) <= 767 ? 'mobile' : 'desktop';
+        }
+        $map = get_option(self::OPTION_MAP_KEY, array());
+        $map = is_array($map) ? $map : array();
+        $map[$key . '|' . $device] = $scan;
+        uasort($map, static function($a, $b) {
+            $at = is_array($a) && isset($a['timestamp']) ? absint($a['timestamp']) : 0;
+            $bt = is_array($b) && isset($b['timestamp']) ? absint($b['timestamp']) : 0;
+            return $bt <=> $at;
+        });
+        $map = array_slice($map, 0, self::MAX_STORED_SCANS, true);
+        update_option(self::OPTION_MAP_KEY, $map, false);
+    }
+
+    /**
      * Return the browser-rendered LCP hint if it matches the current request URL.
      *
      * @return array<string,mixed>
      */
     public static function lcp_hint_for_current_request() {
-        $scan = self::latest();
+        $scan = self::scan_for_current_request();
         if (empty($scan['lcp']['url']) || empty($scan['url'])) {
             return array();
         }
@@ -256,6 +322,8 @@ class UCP_PageSpeed_Browser_Scan {
             'url' => esc_url_raw($url),
             'background' => !empty($scan['lcp']['background']),
             'score' => isset($scan['lcp']['score']) ? absint($scan['lcp']['score']) : 0,
+            'srcset' => isset($scan['lcp']['srcset']) ? sanitize_textarea_field((string) $scan['lcp']['srcset']) : '',
+            'sizes' => isset($scan['lcp']['sizes']) ? substr(sanitize_text_field((string) $scan['lcp']['sizes']), 0, 240) : '',
             'source' => 'browser_scan',
         );
     }
@@ -288,8 +356,8 @@ class UCP_PageSpeed_Browser_Scan {
      * @return array<string,mixed>
      */
     public static function optimization_summary_for_current_request() {
-        $scan = self::latest();
-        if (!self::scan_matches_current_request($scan)) {
+        $scan = self::scan_for_current_request();
+        if (empty($scan)) {
             return array();
         }
         return array(
@@ -306,8 +374,8 @@ class UCP_PageSpeed_Browser_Scan {
     }
 
     protected static function resource_hint_urls_for_current_request($keys, $local_only) {
-        $scan = self::latest();
-        if (!self::scan_matches_current_request($scan)) {
+        $scan = self::scan_for_current_request();
+        if (empty($scan)) {
             return array();
         }
         $out = array();
@@ -358,6 +426,13 @@ class UCP_PageSpeed_Browser_Scan {
         $path = isset($parts['path']) && '' !== $parts['path'] ? (string) $parts['path'] : '/';
         $path = '/' . ltrim($path, '/');
         return $host . untrailingslashit($path);
+    }
+
+    protected static function current_device() {
+        if (function_exists('wp_is_mobile') && wp_is_mobile()) {
+            return 'mobile';
+        }
+        return 'desktop';
     }
 
     protected static function current_request_is_sensitive() {
@@ -437,6 +512,7 @@ class UCP_PageSpeed_Browser_Scan {
             'height' => isset($item['height']) ? absint($item['height']) : 0,
             'top' => isset($item['top']) ? (int) $item['top'] : 0,
             'srcset' => isset($item['srcset']) ? sanitize_text_field((string) $item['srcset']) : '',
+            'sizes' => isset($item['sizes']) ? substr(sanitize_text_field((string) $item['sizes']), 0, 240) : '',
         );
     }
 

@@ -466,9 +466,18 @@ trait UCP_Helpers_URL_Trait {
 
     public static function collect_preload_candidates() {
         $candidates = array();
-        foreach (self::normalize_multiline(UCP_Options::get('preload_fonts', '')) as $font_url) {
-            $font_url = esc_url_raw($font_url);
-            if ($font_url) {
+        $fonts = self::normalize_multiline(UCP_Options::get('preload_fonts', ''));
+        if (UCP_Options::get('enable_auto_font_preloads')) {
+            $auto_fonts = get_option('ucp_local_font_preload_candidates', array());
+            if (is_array($auto_fonts)) {
+                $fonts = array_merge($fonts, array_slice($auto_fonts, 0, 3));
+            }
+        }
+        $seen_fonts = array();
+        foreach ($fonts as $font_url) {
+            $font_url = esc_url_raw($font_url, array('http', 'https'));
+            if ($font_url && !isset($seen_fonts[$font_url]) && preg_match('/\.(woff2|woff)(\?|$)/i', $font_url) && (self::is_local_url($font_url) || wp_http_validate_url($font_url))) {
+                $seen_fonts[$font_url] = true;
                 $candidates[] = array('href' => $font_url, 'as' => 'font');
             }
         }

@@ -351,4 +351,97 @@ trait UCP_Options_Lifecycle_Trait {
     }
 
 
+    /**
+     * Upgrade PageSpeed Auto for full-page preload warming and delayed-script preloads.
+     * This keeps non-PageSpeed custom configurations untouched.
+     */
+    public static function maybe_upgrade_pagespeed_auto_v6() {
+        if ('2026-pagespeed-auto-v6' === get_option('ucp_performance_profile_version_v6', '')) {
+            return;
+        }
+
+        $settings = self::get_all();
+        $is_pagespeed = !empty($settings['autopilot_enabled']) || (isset($settings['active_preset']) && 'pagespeed_auto' === $settings['active_preset']);
+        if ($is_pagespeed) {
+            $settings['enable_light_preload_requests'] = 0;
+            $settings['enable_delay_js_preload_delayed_scripts'] = 1;
+            $scope = array_values(array_filter(array_map('trim', explode(',', isset($settings['preload_content_scope']) ? (string) $settings['preload_content_scope'] : ''))));
+            if (!in_array('posts', $scope, true)) {
+                array_unshift($scope, 'posts');
+            }
+            $settings['preload_content_scope'] = implode(',', array_values(array_unique($scope)));
+            self::update($settings);
+        }
+
+        update_option('ucp_performance_profile_version_v6', '2026-pagespeed-auto-v6', false);
+    }
+
+    /**
+     * Upgrade PageSpeed Auto LCP handling for measured background heroes and responsive image preloads.
+     * Does not force public RUM monitoring on; it only improves how existing browser/RUM hints are used.
+     */
+    public static function maybe_upgrade_pagespeed_auto_v7() {
+        if ('2026-pagespeed-auto-v7' === get_option('ucp_performance_profile_version_v7', '')) {
+            return;
+        }
+
+        $settings = self::get_all();
+        $is_pagespeed = !empty($settings['autopilot_enabled']) || (isset($settings['active_preset']) && 'pagespeed_auto' === $settings['active_preset']);
+        if ($is_pagespeed) {
+            $settings['enable_lazyload_background_images'] = 1;
+            $settings['preload_critical_images'] = max(2, absint(isset($settings['preload_critical_images']) ? $settings['preload_critical_images'] : 0));
+            $settings['lazyload_exclude_leading_images'] = max(2, absint(isset($settings['lazyload_exclude_leading_images']) ? $settings['lazyload_exclude_leading_images'] : 0));
+            self::update($settings);
+        }
+
+        update_option('ucp_performance_profile_version_v7', '2026-pagespeed-auto-v7', false);
+    }
+
+
+    /**
+     * Upgrade PageSpeed Auto asset intelligence defaults.
+     * Keeps destructive unload behaviour off; it only enables measurement/test infrastructure.
+     */
+    public static function maybe_upgrade_pagespeed_auto_v8() {
+        if ('2026-pagespeed-auto-v8' === get_option('ucp_performance_profile_version_v8', '')) {
+            return;
+        }
+
+        $settings = self::get_all();
+        $is_pagespeed = !empty($settings['autopilot_enabled']) || (isset($settings['active_preset']) && 'pagespeed_auto' === $settings['active_preset']);
+        if ($is_pagespeed) {
+            $settings['enable_asset_manager_snapshot'] = 1;
+            $settings['enable_asset_test_mode'] = 1;
+            $settings['enable_delay_js_preload_delayed_scripts'] = 1;
+            self::update($settings);
+        }
+
+        update_option('ucp_performance_profile_version_v8', '2026-pagespeed-auto-v8', false);
+    }
+
+
+    /**
+     * Upgrade PageSpeed Auto with conservative automatic browser resource hints.
+     * Uses only local measurements and small limits; it does not add aggressive third-party loading.
+     */
+    public static function maybe_upgrade_pagespeed_auto_v9() {
+        if ('2026-pagespeed-auto-v9' === get_option('ucp_performance_profile_version_v9', '')) {
+            return;
+        }
+
+        $settings = self::get_all();
+        $is_pagespeed = !empty($settings['autopilot_enabled']) || (isset($settings['active_preset']) && 'pagespeed_auto' === $settings['active_preset']);
+        if ($is_pagespeed) {
+            $settings['enable_auto_resource_hints'] = 1;
+            $settings['enable_auto_font_preloads'] = 1;
+            $settings['resource_hints_preconnect_limit'] = min(2, max(1, absint(isset($settings['resource_hints_preconnect_limit']) ? $settings['resource_hints_preconnect_limit'] : 2)));
+            $settings['resource_hints_dns_limit'] = min(8, max(4, absint(isset($settings['resource_hints_dns_limit']) ? $settings['resource_hints_dns_limit'] : 8)));
+            self::update($settings);
+        }
+
+        update_option('ucp_performance_profile_version_v9', '2026-pagespeed-auto-v9', false);
+    }
+
+
+
 }

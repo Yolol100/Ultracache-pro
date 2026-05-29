@@ -18,6 +18,8 @@ class UCP_Optimizer {
     private $ucp_preload_image_entries = array();
     private $ucp_background_preloaded = false;
     private $ucp_lcp_candidate_src = '';
+    private $ucp_lcp_candidate_srcset = '';
+    private $ucp_lcp_candidate_sizes = '';
     private $ucp_lcp_candidate_is_background = false;
     private $ucp_fetchpriority_high_assigned = false;
 
