@@ -58,6 +58,47 @@
         );
     }
 
+    function EngineQueue(props) {
+        var center = props.center || {};
+        var engines = center.engines || {};
+        var lifecycle = (center.lifecycle && center.lifecycle.features) || {};
+        var rows = [
+            ['preload', __('Preload', 'ultracache-pro'), lifecycle.preload],
+            ['usedCss', __('Used CSS', 'ultracache-pro'), lifecycle.usedCss || engines.usedCss],
+            ['criticalCss', __('Critical CSS', 'ultracache-pro'), lifecycle.criticalCss || engines.criticalCss],
+            ['delayJs', __('Delay JS', 'ultracache-pro'), lifecycle.delayJs || engines.delayJs],
+            ['imageOptimize', __('Images', 'ultracache-pro'), lifecycle.imageOptimize],
+            ['restCache', __('REST Cache', 'ultracache-pro'), lifecycle.restCache]
+        ];
+        return el('div', {style: {marginTop: '14px'}},
+            el('h3', {}, __('Queue Monitor per engine', 'ultracache-pro')),
+            el('div', {className: 'ucp-queue-status-grid'}, rows.map(function (row) {
+                var item = row[2] || {};
+                var state = item.state || item.status || (item.enabled ? 'active' : 'skipped');
+                var label = item.summary || state;
+                return el('div', {key: row[0], className: 'ucp-status-row'},
+                    el('span', {}, row[1]),
+                    el('strong', {}, el(Badge, {state: state, label: label}))
+                );
+            }))
+        );
+    }
+
+    function ScriptManagerSummary(props) {
+        var scriptManager = props.scriptManager || {};
+        var fields = scriptManager.fields || {};
+        var total = scriptManager.total || 0;
+        return el('div', {style: {marginTop: '14px'}},
+            el('h3', {}, __('Script Manager', 'ultracache-pro')),
+            total ? el('div', {className: 'ucp-queue-status-grid'},
+                el('div', {className: 'ucp-status-row'}, el('span', {}, __('Regels totaal', 'ultracache-pro')), el('strong', {}, String(total))),
+                el('div', {className: 'ucp-status-row'}, el('span', {}, __('Disabled styles', 'ultracache-pro')), el('strong', {}, String(fields.disabled_style_handles || 0))),
+                el('div', {className: 'ucp-status-row'}, el('span', {}, __('Disabled scripts', 'ultracache-pro')), el('strong', {}, String(fields.disabled_script_handles || 0))),
+                el('div', {className: 'ucp-status-row'}, el('span', {}, __('Advanced rules', 'ultracache-pro')), el('strong', {}, String(fields.advanced_asset_rules || 0)))
+            ) : el(Notice, {status: 'info', isDismissible: false}, __('Nog geen Script Manager regels actief.', 'ultracache-pro'))
+        );
+    }
+
     function ArtifactBrowser(props) {
         var artifacts = props.artifacts || {};
         var summary = artifacts.summary || {};
@@ -103,7 +144,9 @@
                 center.summary && center.summary.message ? el('p', {className: 'ucp-muted'}, center.summary.message) : null,
                 el(FeatureGrid, {features: features}),
                 el(QueueSummary, {queue: queue}),
-                el(ArtifactBrowser, {artifacts: center.artifacts || {}})
+                el(EngineQueue, {center: center}),
+                el(ArtifactBrowser, {artifacts: center.artifacts || {}}),
+                el(ScriptManagerSummary, {scriptManager: center.scriptManager || {}})
             )
         );
     }
