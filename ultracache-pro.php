@@ -86,6 +86,7 @@ UCP_Loader::load();
 require_once UCP_PATH . 'includes/bootstrap/class-ucp-plugin.php';
 require_once UCP_PATH . 'includes/core/class-ucp-optimization-intelligence.php';
 require_once UCP_PATH . 'includes/core/class-ucp-optimization-status.php';
+require_once UCP_PATH . 'includes/core/class-ucp-optimization-center.php';
 require_once UCP_PATH . 'includes/core/class-ucp-optimization-guards.php';
 require_once UCP_PATH . 'includes/core/class-ucp-testing-mode-runtime.php';
 if (is_admin()) {
@@ -93,6 +94,7 @@ if (is_admin()) {
 }
 
 UCP_Optimization_Guards::bootstrap();
+UCP_Optimization_Center::bootstrap();
 UCP_Plugin::instance();
 UCP_Testing_Mode_Runtime::bootstrap();
 if (is_admin() && class_exists('UCP_Optimization_Center_Notices')) {
