@@ -1,0 +1,90 @@
+(function (wp) {
+    'use strict';
+
+    if (!wp || !wp.element || !wp.components || !wp.apiFetch || !wp.i18n) {
+        return;
+    }
+
+    var el = wp.element.createElement;
+    var render = wp.element.render;
+    var __ = wp.i18n.__;
+    var apiFetch = wp.apiFetch;
+    var Card = wp.components.Card;
+    var CardHeader = wp.components.CardHeader;
+    var CardBody = wp.components.CardBody;
+    var Notice = wp.components.Notice;
+    var config = window.UCP_ADMIN_CONFIG || {};
+    var mountId = 'ucp-optimization-center-panel-root';
+
+    function request(path) {
+        var cleanPath = String(path || '').replace(/^\/+/, '');
+        var baseUrl = String(config.restUrl || '').replace(/\/?$/, '/');
+        return apiFetch(baseUrl ? {url: baseUrl + cleanPath} : {path: '/ultracache-pro/v1/' + cleanPath});
+    }
+
+    function badgeState(state) {
+        state = String(state || '').toLowerCase();
+        if (state === 'active') return 'good';
+        if (state === 'failed' || state === 'fallback') return 'warning';
+        return 'info';
+    }
+
+    function Badge(props) {
+        return el('span', {className: 'ucp-status-badge ucp-status-badge--' + badgeState(props.state)}, props.label || props.state || __('Status', 'ultracache-pro'));
+    }
+
+    function Panel(props) {
+        var center = props.center || {};
+        var lifecycle = center.lifecycle || {};
+        var features = lifecycle.features || {};
+        var queue = (center.summary && center.summary.queue) || lifecycle.queue || {};
+        var keys = Object.keys(features).slice(0, 9);
+
+        return el(Card, {className: 'ucp-card ucp-optimization-center-card'},
+            el(CardHeader, {},
+                el('h2', {}, __('Optimization Center', 'ultracache-pro')),
+                el(Badge, {state: center.summary && center.summary.testingMode ? 'pending' : 'active', label: center.summary && center.summary.testingMode ? __('Testmodus', 'ultracache-pro') : __('Actief', 'ultracache-pro')})
+            ),
+            el(CardBody, {},
+                center.summary && center.summary.message ? el('p', {className: 'ucp-muted'}, center.summary.message) : null,
+                keys.length ? el('div', {className: 'ucp-queue-status-grid ucp-optimization-center-grid'}, keys.map(function (key) {
+                    var item = features[key] || {};
+                    return el('div', {key: key, className: 'ucp-status-row'},
+                        el('span', {}, item.label || key),
+                        el('strong', {}, el(Badge, {state: item.state, label: item.summary || item.state}))
+                    );
+                })) : el(Notice, {status: 'info', isDismissible: false}, __('Nog geen Optimization Center status beschikbaar.', 'ultracache-pro')),
+                el('div', {className: 'ucp-queue-status-grid', style: {marginTop: '12px'}},
+                    el('div', {className: 'ucp-status-row'}, el('span', {}, __('Pending', 'ultracache-pro')), el('strong', {}, String(queue.pending || 0))),
+                    el('div', {className: 'ucp-status-row'}, el('span', {}, __('Running', 'ultracache-pro')), el('strong', {}, String(queue.running || 0))),
+                    el('div', {className: 'ucp-status-row'}, el('span', {}, __('Failed', 'ultracache-pro')), el('strong', {}, String(queue.failed || 0)))
+                )
+            )
+        );
+    }
+
+    function mountPanel() {
+        var dashboard = document.querySelector('.ucp-page--dashboard');
+        if (!dashboard || document.getElementById(mountId)) {
+            return;
+        }
+        var mount = document.createElement('div');
+        mount.id = mountId;
+        var hero = dashboard.querySelector('.ucp-dashboard-hero');
+        if (hero && hero.parentNode) {
+            hero.parentNode.insertBefore(mount, hero.nextSibling);
+        } else {
+            dashboard.insertBefore(mount, dashboard.firstChild);
+        }
+        request('optimization-center').then(function (response) {
+            render(el(Panel, {center: response && response.center ? response.center : {}}), mount);
+        }).catch(function () {
+            render(el(Card, {className: 'ucp-card'}, el(CardHeader, {}, el('h2', {}, __('Optimization Center', 'ultracache-pro'))), el(CardBody, {}, el(Notice, {status: 'warning', isDismissible: false}, __('Optimization Center kon niet geladen worden.', 'ultracache-pro')))), mount);
+        });
+    }
+
+    window.setTimeout(mountPanel, 700);
+    document.addEventListener('click', function () {
+        window.setTimeout(mountPanel, 300);
+    });
+})(window.wp);
