@@ -52,7 +52,12 @@ class UCP_Optimization_Status {
             'pageCache'     => self::feature(__('Pagina-cache', 'ultracache-pro'), !empty($settings['enable_cache']), $public_guard, __('Cache wordt geserveerd zodra de request veilig cachebaar is.', 'ultracache-pro')),
             'preload'       => self::queued_feature(__('Preload', 'ultracache-pro'), !empty($settings['enable_preload']), $queue, __('Wacht rustig op de achtergrondwachtrij.', 'ultracache-pro')),
             'cssDelivery'   => self::css_feature($settings, $public_guard),
-            'delayJs'       => self::feature(__('Delay JavaScript', 'ultracache-pro'), !empty($settings['enable_delay_js']), $public_guard, __('Scripts worden pas vertraagd wanneer de veiligheidsregels dit toestaan.', 'ultracache-pro')),
+            'usedCss'       => self::artifact_feature(__('Used CSS', 'ultracache-pro'), !empty($settings['enable_used_css']) || !empty($settings['enable_used_css_delivery']), $public_guard, 'used_css'),
+            'criticalCss'   => self::artifact_feature(__('Critical CSS', 'ultracache-pro'), !empty($settings['enable_critical_css']), $public_guard, 'critical_css'),
+            'delayJs'       => self::delay_js_feature($settings, $public_guard),
+            'jsCombine'     => self::combine_feature(__('JS combineren', 'ultracache-pro'), !empty($settings['enable_js_combine']), $settings, 'js'),
+            'cssCombine'    => self::combine_feature(__('CSS combineren', 'ultracache-pro'), !empty($settings['enable_css_combine']), $settings, 'css'),
+            'scriptManager' => self::script_manager_feature($settings, $public_guard),
             'assetManager'  => self::asset_feature($settings, $public_guard),
             'lazyMedia'     => self::feature(__('Lazy media', 'ultracache-pro'), !empty($settings['enable_lazy_images']) || !empty($settings['enable_lazy_iframes']) || !empty($settings['enable_lazy_youtube_preview']), $public_guard, __('Media-optimalisatie blijft uit op gevoelige of afgeschermde contexten.', 'ultracache-pro')),
             'restCache'     => self::feature(__('REST-cache', 'ultracache-pro'), !empty($settings['enable_rest_cache']), $public_guard, __('Alleen veilige GET-routes zonder persoonlijke context worden gecachet.', 'ultracache-pro')),
@@ -70,6 +75,13 @@ class UCP_Optimization_Status {
                     : __('Testmodus is uit: actieve optimalisaties gelden normaal voor de publieke site.', 'ultracache-pro'),
             ),
             'features' => apply_filters('ucp_optimization_lifecycle_features', $features, $settings, $queue),
+            'records' => array(
+                'usedCss' => self::artifact_records('used_css'),
+                'criticalCss' => self::artifact_records('critical_css'),
+                'delayJs' => self::delay_js_records(),
+                'scriptManager' => self::script_manager_records($settings),
+            ),
+            'queue' => self::queue_summary($queue),
         );
     }
 
@@ -108,19 +120,16 @@ class UCP_Optimization_Status {
             return self::item($label, self::SKIPPED, __('Uitgeschakeld', 'ultracache-pro'), __('Deze functie staat uit.', 'ultracache-pro'));
         }
 
-        $pending = isset($queue['pending']) ? absint($queue['pending']) : 0;
-        $running = isset($queue['running']) ? absint($queue['running']) : 0;
-        $failed = isset($queue['failed']) ? absint($queue['failed']) : 0;
-
-        if ($failed > 0) {
+        $summary = self::queue_summary($queue);
+        if ($summary['failed'] > 0) {
             return self::item($label, self::FALLBACK, __('Fallback actief', 'ultracache-pro'), __('Er staan mislukte jobs klaar om opnieuw te proberen. De site blijft ondertussen de veilige output gebruiken.', 'ultracache-pro'));
         }
 
-        if ($running > 0) {
+        if ($summary['running'] > 0) {
             return self::item($label, self::PROCESSING, __('Wordt verwerkt', 'ultracache-pro'), $detail);
         }
 
-        if ($pending > 0) {
+        if ($summary['pending'] > 0) {
             return self::item($label, self::PENDING, __('In wachtrij', 'ultracache-pro'), $detail);
         }
 
@@ -154,6 +163,51 @@ class UCP_Optimization_Status {
     }
 
     /**
+     * Delay JS status with combine guard explanation.
+     *
+     * @param array $settings Settings.
+     * @param bool  $public_guard Public guard state.
+     * @return array
+     */
+    protected static function delay_js_feature($settings, $public_guard) {
+        if (empty($settings['enable_delay_js'])) {
+            return self::item(__('Delay JavaScript', 'ultracache-pro'), self::SKIPPED, __('Uitgeschakeld', 'ultracache-pro'), __('Delay JS staat uit; scripts laden volgens de normale WordPress-volgorde.', 'ultracache-pro'));
+        }
+
+        if ($public_guard) {
+            return self::item(__('Delay JavaScript', 'ultracache-pro'), self::PENDING, __('Alleen zichtbaar in testmodus', 'ultracache-pro'), __('Beheerders kunnen vertraagde scripts testen; bezoekers zien de stabiele output.', 'ultracache-pro'));
+        }
+
+        return self::item(__('Delay JavaScript', 'ultracache-pro'), self::ACTIVE, __('Actief', 'ultracache-pro'), __('JS combineren blijft uit zodat Delay JS scriptvolgorde en afhankelijkheden kan bewaren.', 'ultracache-pro'));
+    }
+
+    /**
+     * Combine modes are advanced-only and lose to safer delivery models.
+     *
+     * @param string $label Label.
+     * @param bool   $enabled Enabled.
+     * @param array  $settings Settings.
+     * @param string $type css|js.
+     * @return array
+     */
+    protected static function combine_feature($label, $enabled, $settings, $type) {
+        if ('js' === $type && (!empty($settings['enable_delay_js']) || !empty($settings['enable_native_script_strategy']))) {
+            return self::item($label, self::SKIPPED, __('Automatisch uitgeschakeld', 'ultracache-pro'), __('Delay JS/native script strategy heeft losse scripts nodig om volgorde betrouwbaar te houden.', 'ultracache-pro'));
+        }
+
+        $css_mode = isset($settings['css_delivery_mode']) ? (string) $settings['css_delivery_mode'] : 'none';
+        if ('css' === $type && ('none' !== $css_mode || !empty($settings['enable_used_css']) || !empty($settings['enable_critical_css']))) {
+            return self::item($label, self::SKIPPED, __('Automatisch uitgeschakeld', 'ultracache-pro'), __('Used CSS/Critical CSS beheert CSS-delivery; combineren blijft uit om dubbele delivery te voorkomen.', 'ultracache-pro'));
+        }
+
+        if (empty($settings['show_advanced_options'])) {
+            return self::item($label, self::SKIPPED, __('Alleen geavanceerd', 'ultracache-pro'), __('Combine is verborgen in eenvoudige modus en blijft opt-in voor geavanceerde tests.', 'ultracache-pro'));
+        }
+
+        return self::feature($label, $enabled, false, __('Combine draait als geavanceerde optimalisatie met fallback naar originele bestanden.', 'ultracache-pro'));
+    }
+
+    /**
      * Asset Manager status uses the current unload rule surface.
      *
      * @param array $settings Settings.
@@ -164,6 +218,143 @@ class UCP_Optimization_Status {
         $enabled = !empty($settings['disabled_style_handles']) || !empty($settings['disabled_script_handles']) || !empty($settings['conditional_style_unloads']) || !empty($settings['conditional_script_unloads']) || !empty($settings['advanced_asset_rules']);
 
         return self::feature(__('Asset Manager', 'ultracache-pro'), $enabled, $public_guard, __('Assetregels worden alleen toegepast waar ze expliciet matchen.', 'ultracache-pro'));
+    }
+
+    /**
+     * Script Manager lifecycle surface.
+     *
+     * @param array $settings Settings.
+     * @param bool  $public_guard Public guard state.
+     * @return array
+     */
+    protected static function script_manager_feature($settings, $public_guard) {
+        $rules = self::script_manager_records($settings);
+        if (0 === $rules['total']) {
+            return self::item(__('Script Manager', 'ultracache-pro'), self::SKIPPED, __('Geen regels', 'ultracache-pro'), __('Er zijn nog geen per-pagina, post-type, device of regex assetregels ingesteld.', 'ultracache-pro'));
+        }
+
+        if ($public_guard) {
+            return self::item(__('Script Manager', 'ultracache-pro'), self::PENDING, __('Alleen zichtbaar in testmodus', 'ultracache-pro'), __('Assetregels kunnen door beheerders worden getest voordat ze publiek actief worden.', 'ultracache-pro'));
+        }
+
+        return self::item(__('Script Manager', 'ultracache-pro'), self::ACTIVE, __('Actief', 'ultracache-pro'), sprintf(
+            /* translators: %d: rule count. */
+            _n('%d assetregel is actief.', '%d assetregels zijn actief.', $rules['total'], 'ultracache-pro'),
+            $rules['total']
+        ));
+    }
+
+    /**
+     * Queue-backed artifact feature status.
+     *
+     * @param string $label Label.
+     * @param bool   $enabled Enabled.
+     * @param bool   $public_guard Public guard state.
+     * @param string $type Artifact type.
+     * @return array
+     */
+    protected static function artifact_feature($label, $enabled, $public_guard, $type) {
+        if (!$enabled) {
+            return self::item($label, self::SKIPPED, __('Uitgeschakeld', 'ultracache-pro'), __('Deze artifact-pipeline staat uit.', 'ultracache-pro'));
+        }
+        if ($public_guard) {
+            return self::item($label, self::PENDING, __('Alleen zichtbaar in testmodus', 'ultracache-pro'), __('Artifacts worden veilig voorbereid terwijl bezoekers normale output blijven zien.', 'ultracache-pro'));
+        }
+
+        $records = self::artifact_records($type);
+        if ($records['failed'] > 0) {
+            return self::item($label, self::FALLBACK, __('Fallback actief', 'ultracache-pro'), __('Een of meer artifacts konden niet worden opgebouwd; normale output blijft beschikbaar.', 'ultracache-pro'));
+        }
+        if ($records['processing'] > 0) {
+            return self::item($label, self::PROCESSING, __('Wordt opgebouwd', 'ultracache-pro'), __('Artifacts worden op de achtergrond verwerkt.', 'ultracache-pro'));
+        }
+        if ($records['pending'] > 0) {
+            return self::item($label, self::PENDING, __('In wachtrij', 'ultracache-pro'), __('Artifacts wachten op verwerking.', 'ultracache-pro'));
+        }
+
+        return self::item($label, self::ACTIVE, __('Actief', 'ultracache-pro'), __('Artifacts zijn klaar of worden via fallback veilig afgehandeld.', 'ultracache-pro'));
+    }
+
+    /**
+     * Pull artifact counters from options/jobs without requiring a schema change.
+     *
+     * @param string $type Artifact type.
+     * @return array
+     */
+    protected static function artifact_records($type) {
+        $defaults = array('total' => 0, 'pending' => 0, 'processing' => 0, 'active' => 0, 'fallback' => 0, 'failed' => 0, 'items' => array());
+        $option = get_option('ucp_' . sanitize_key($type) . '_lifecycle', array());
+        if (!is_array($option)) {
+            return $defaults;
+        }
+
+        $items = array_slice(array_values($option), 0, 25);
+        $out = $defaults;
+        $out['items'] = $items;
+        foreach ($items as $item) {
+            $state = is_array($item) && !empty($item['status']) ? sanitize_key($item['status']) : self::PENDING;
+            if (!isset($out[$state])) {
+                $state = self::PENDING;
+            }
+            $out[$state]++;
+            $out['total']++;
+        }
+        return $out;
+    }
+
+    /**
+     * Delay JS record surface for future engine instrumentation.
+     *
+     * @return array
+     */
+    protected static function delay_js_records() {
+        $records = get_option('ucp_delay_js_lifecycle', array());
+        return is_array($records) ? array_slice(array_values($records), 0, 50) : array();
+    }
+
+    /**
+     * Script Manager rule counters.
+     *
+     * @param array $settings Settings.
+     * @return array
+     */
+    protected static function script_manager_records($settings) {
+        $fields = array(
+            'disabled_style_handles',
+            'disabled_script_handles',
+            'conditional_style_unloads',
+            'conditional_script_unloads',
+            'advanced_asset_rules',
+        );
+        $counts = array('total' => 0, 'fields' => array());
+        foreach ($fields as $field) {
+            $raw = isset($settings[$field]) ? $settings[$field] : '';
+            $count = 0;
+            if (is_string($raw)) {
+                $count = count(array_filter(array_map('trim', preg_split('/\r\n|\r|\n/', $raw))));
+            } elseif (is_array($raw)) {
+                $count = count(array_filter($raw));
+            }
+            $counts['fields'][$field] = $count;
+            $counts['total'] += $count;
+        }
+        return $counts;
+    }
+
+    /**
+     * Normalize queue counts for UI.
+     *
+     * @param array $queue Raw queue summary.
+     * @return array
+     */
+    protected static function queue_summary($queue) {
+        return array(
+            'pending' => isset($queue['pending']) ? absint($queue['pending']) : 0,
+            'running' => isset($queue['running']) ? absint($queue['running']) : 0,
+            'failed' => isset($queue['failed']) ? absint($queue['failed']) : 0,
+            'completed' => isset($queue['completed']) ? absint($queue['completed']) : 0,
+            'retrying' => isset($queue['retrying']) ? absint($queue['retrying']) : 0,
+        );
     }
 
     /**
