@@ -109,6 +109,17 @@ trait UCP_REST_Diagnostics_Trait {
                 'disable_everywhere' => 'script|handle|disable|all|',
                 'disable_on_path' => 'script|handle|disable|path_contains|/voorbeeld/',
                 'keep_on_path' => 'script|handle|keep|path_contains|/voorbeeld/',
+                'disable_everywhere_except_path' => 'script|handle|disable|path_not_contains|/contact/',
+                'disable_by_post_type' => 'style|handle|disable|post_type|product',
+                'disable_by_device' => 'script|handle|disable|device|mobile',
+                'disable_only_logged_out' => 'script|handle|disable|logged_out|',
+            ),
+            'rule_syntax' => array(
+                'format' => 'kind|handle|action|scope|value',
+                'kind' => array('style', 'script'),
+                'action' => array('disable', 'keep'),
+                'scopes' => array('all', 'url_contains', 'path_contains', 'url_not_contains', 'path_not_contains', 'post_type', 'post_type_not', 'archive', 'device', 'device_not', 'logged_in', 'logged_out', 'regex', 'front_page', 'singular', '404'),
+                'safety' => __('Beschermde assets worden niet automatisch ge-unload; testmodus blijft aanbevolen voor nieuwe regels.', 'ultracache-pro'),
             ),
         ));
     }
@@ -230,6 +241,16 @@ trait UCP_REST_Diagnostics_Trait {
         });
 
         return array_slice($recommendations, 0, 20);
+    }
+
+
+    public static function quality_summary(WP_REST_Request $request) {
+        $summary = class_exists('UCP_Support_Report') ? UCP_Support_Report::quality_summary() : array();
+        return rest_ensure_response(array(
+            'success' => true,
+            'quality_summary' => $summary,
+            'timestamp' => time(),
+        ));
     }
 
 }

@@ -21,12 +21,12 @@ class UCP_Logger {
             return;
         }
         $clean_context = class_exists('UCP_Log_Package') ? UCP_Log_Package::redact(is_array($context) ? $context : array()) : (is_array($context) ? $context : array());
-        $request_url = esc_url_raw(UCP_Helpers::current_full_url());
+        $request_url = method_exists('UCP_Helpers', 'redact_log_url') ? UCP_Helpers::redact_log_url(UCP_Helpers::current_full_url()) : esc_url_raw(UCP_Helpers::current_full_url());
         self::$buffer[] = array(
             'level'       => sanitize_key($level),
             'component'   => sanitize_key($component),
             'event'       => sanitize_key($event),
-            'message'     => wp_strip_all_tags((string) $message),
+            'message'     => method_exists('UCP_Helpers', 'redact_log_text') ? UCP_Helpers::redact_log_text($message) : wp_strip_all_tags((string) $message),
             'context'     => $clean_context,
             'request_url' => $request_url,
             'created_at'  => current_time('mysql', true),
@@ -125,6 +125,7 @@ class UCP_Logger {
         $prepared_rows = $wpdb->prepare($rows_sql, $rows_params);
         // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter -- SQL is assembled from fixed fragments and prepared values above.
         $rows = $wpdb->get_results($prepared_rows, ARRAY_A);
+        $rows = self::redact_rows_for_admin($rows);
 
         return array(
             'rows'      => $rows,
@@ -134,4 +135,31 @@ class UCP_Logger {
             'max_pages' => max(1, (int) ceil($total / $per_page)),
         );
     }
+
+    protected static function redact_rows_for_admin($rows) {
+        if (!is_array($rows)) {
+            return array();
+        }
+        foreach ($rows as $index => $row) {
+            if (!is_array($row)) {
+                unset($rows[$index]);
+                continue;
+            }
+            if (isset($row['request_url']) && method_exists('UCP_Helpers', 'redact_log_url')) {
+                $row['request_url'] = UCP_Helpers::redact_log_url($row['request_url']);
+            }
+            if (isset($row['message']) && method_exists('UCP_Helpers', 'redact_log_text')) {
+                $row['message'] = UCP_Helpers::redact_log_text($row['message']);
+            }
+            if (isset($row['context'])) {
+                $decoded = is_string($row['context']) ? json_decode($row['context'], true) : $row['context'];
+                if (is_array($decoded) && class_exists('UCP_Log_Package')) {
+                    $row['context'] = wp_json_encode(UCP_Log_Package::redact($decoded));
+                }
+            }
+            $rows[$index] = $row;
+        }
+        return array_values($rows);
+    }
+
 }

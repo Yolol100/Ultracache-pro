@@ -16,10 +16,10 @@ trait UCP_Log_Package_Writer_Trait {
             'level'       => sanitize_key($level),
             'component'   => sanitize_key($component),
             'event'       => sanitize_key($event),
-            'message'     => wp_strip_all_tags((string) $message),
+            'message'     => method_exists('UCP_Helpers', 'redact_log_text') ? UCP_Helpers::redact_log_text($message) : wp_strip_all_tags((string) $message),
             'context'     => self::redact(is_array($context) ? $context : array()),
-            'request_url' => esc_url_raw($request_url ? $request_url : UCP_Helpers::current_full_url()),
-            'user_id'     => get_current_user_id(),
+            'request_url' => method_exists('UCP_Helpers', 'redact_log_url') ? UCP_Helpers::redact_log_url($request_url ? $request_url : UCP_Helpers::current_full_url()) : esc_url_raw($request_url ? $request_url : UCP_Helpers::current_full_url()),
+            'user_id'     => get_current_user_id() ? '[redacted]' : 0,
             'request'     => array(
                 'method' => isset($_SERVER['REQUEST_METHOD']) ? sanitize_key(wp_unslash($_SERVER['REQUEST_METHOD'])) : '',
                 'ajax'   => function_exists('wp_doing_ajax') && wp_doing_ajax(),
@@ -61,7 +61,7 @@ trait UCP_Log_Package_Writer_Trait {
         $dir = UCP_CACHE_DIR . 'logs/';
         wp_mkdir_p($dir);
         UCP_Helpers::write_placeholder_file($dir . 'index.html', '');
-        UCP_Helpers::write_placeholder_file($dir . '.htaccess', "Deny from all\n");
+        UCP_Helpers::write_placeholder_file($dir . '.htaccess', UCP_Helpers::private_dir_htaccess_rules());
         UCP_Helpers::write_placeholder_file($dir . 'web.config', "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<configuration><system.webServer><authorization><deny users=\"*\" /></authorization></system.webServer></configuration>\n");
     }
 

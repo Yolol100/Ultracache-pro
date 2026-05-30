@@ -58,6 +58,8 @@ class UCP_PageSpeed_Browser_Scan {
                 'lcp_url' => $scan['lcp']['url'],
                 'lcp_element_json' => wp_json_encode($scan['lcp']),
                 'lcp_imagesrcset' => isset($scan['lcp']['srcset']) ? $scan['lcp']['srcset'] : '',
+                'lcp_type' => !empty($scan['lcp']['type']) ? sanitize_key((string) $scan['lcp']['type']) : (!empty($scan['lcp']['background']) ? 'background-image' : 'image'),
+                'source' => 'browser_scan',
                 'value_ms' => isset($scan['lcp']['startTime']) ? (float) $scan['lcp']['startTime'] : 0,
             ));
         }
@@ -324,6 +326,7 @@ class UCP_PageSpeed_Browser_Scan {
             'score' => isset($scan['lcp']['score']) ? absint($scan['lcp']['score']) : 0,
             'srcset' => isset($scan['lcp']['srcset']) ? sanitize_textarea_field((string) $scan['lcp']['srcset']) : '',
             'sizes' => isset($scan['lcp']['sizes']) ? substr(sanitize_text_field((string) $scan['lcp']['sizes']), 0, 240) : '',
+            'type' => isset($scan['lcp']['type']) ? sanitize_key((string) $scan['lcp']['type']) : (!empty($scan['lcp']['background']) ? 'background-image' : 'image'),
             'source' => 'browser_scan',
         );
     }
@@ -513,6 +516,8 @@ class UCP_PageSpeed_Browser_Scan {
             'top' => isset($item['top']) ? (int) $item['top'] : 0,
             'srcset' => isset($item['srcset']) ? sanitize_text_field((string) $item['srcset']) : '',
             'sizes' => isset($item['sizes']) ? substr(sanitize_text_field((string) $item['sizes']), 0, 240) : '',
+            'type' => isset($item['type']) ? sanitize_key((string) $item['type']) : (!empty($item['background']) ? 'background-image' : ''),
+            'selector' => isset($item['selector']) ? substr(sanitize_text_field((string) $item['selector']), 0, 240) : '',
         );
     }
 

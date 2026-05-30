@@ -25,6 +25,22 @@ trait UCP_CSS_Delivery_Trait {
         }
 
         $url = UCP_Helpers::current_full_url();
+        if (class_exists('UCP_CSS_Profile') && UCP_CSS_Profile::is_sensitive_url($url)) {
+            if (class_exists('UCP_Diagnostics')) {
+                UCP_Diagnostics::record('css', 'Skipped CSS delivery optimization for a sensitive dynamic URL.', array('url' => esc_url_raw($url)));
+            }
+            return $html;
+        }
+        $css_profile = class_exists('UCP_CSS_Profile') ? UCP_CSS_Profile::profile_for_url($url) : array();
+        if (!empty($css_profile) && UCP_CSS_Profile::profile_is_stale($css_profile)) {
+            if (class_exists('UCP_Diagnostics')) {
+                UCP_Diagnostics::record('css', 'Skipped CSS delivery optimization because the URL CSS profile is stale.', array('url' => esc_url_raw($url), 'stale_reason' => isset($css_profile['stale_reason']) ? sanitize_key((string) $css_profile['stale_reason']) : 'expired'));
+            }
+            if (UCP_Options::get('enable_css_queue') && self::is_generation_candidate_url($url)) {
+                UCP_Jobs::enqueue_unique('generate_css', array('url' => $url), 5, 'css');
+            }
+            return $html;
+        }
         $scan_summary = class_exists('UCP_PageSpeed_Browser_Scan') ? UCP_PageSpeed_Browser_Scan::optimization_summary_for_current_request() : array();
         if (!empty($scan_summary) && class_exists('UCP_Diagnostics')) {
             UCP_Diagnostics::record('css', 'Browser scan CSS hints available.', array(
@@ -152,6 +168,9 @@ trait UCP_CSS_Delivery_Trait {
             return false;
         }
         $forced_by_browser_scan = self::stylesheet_is_browser_scan_candidate($href, $tag);
+        if (class_exists('UCP_CSS_Profile') && UCP_CSS_Profile::stylesheet_matches_protected($tag, $href)) {
+            return false;
+        }
         $exclusions = array_merge(
             apply_filters('ucp_css_exclusions', UCP_Helpers::normalize_multiline(UCP_Options::get('css_exclusions', ''))),
             apply_filters('ucp_used_css_safelist', UCP_Helpers::normalize_multiline(UCP_Options::get('used_css_safelist', '')))
@@ -196,6 +215,9 @@ trait UCP_CSS_Delivery_Trait {
         $html = (string) $html;
         $max = max(250, absint(UCP_Options::get('used_css_max_rules', 1200)));
         $safelist = apply_filters('ucp_used_css_safelist', UCP_Helpers::normalize_multiline(UCP_Options::get('used_css_safelist', '')));
+        if (class_exists('UCP_CSS_Profile')) {
+            $safelist = array_merge((array) $safelist, UCP_CSS_Profile::protected_fragments());
+        }
         $safelist = $this->prepare_used_css_safelist($safelist);
         $rules = $this->extract_used_css_rules($css, $html, $safelist, $max);
         $rules = array_values(array_unique(array_filter(array_map('trim', $rules))));

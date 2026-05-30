@@ -102,6 +102,15 @@ final class UCP_Plugin {
         if (method_exists('UCP_Options', 'maybe_upgrade_pagespeed_auto_v9')) {
             UCP_Options::maybe_upgrade_pagespeed_auto_v9();
         }
+        if (method_exists('UCP_Options', 'maybe_upgrade_pagespeed_auto_v10')) {
+            UCP_Options::maybe_upgrade_pagespeed_auto_v10();
+        }
+        if (method_exists('UCP_Options', 'maybe_upgrade_pagespeed_auto_v11')) {
+            UCP_Options::maybe_upgrade_pagespeed_auto_v11();
+        }
+        if (method_exists('UCP_Options', 'maybe_upgrade_pagespeed_auto_v12')) {
+            UCP_Options::maybe_upgrade_pagespeed_auto_v12();
+        }
         UCP_Installer::maybe_upgrade();
         UCP_Helpers::ensure_cache_dirs();
         if ($backend_context && class_exists('UCP_Log_Package')) {

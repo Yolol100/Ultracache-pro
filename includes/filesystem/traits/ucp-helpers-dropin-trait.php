@@ -148,7 +148,7 @@ trait UCP_Helpers_Dropin_Trait {
             wp_mkdir_p($backup_dir);
         }
         self::write_file($backup_dir . 'index.html', '');
-        self::write_file($backup_dir . '.htaccess', "Deny from all\n");
+        self::write_file($backup_dir . '.htaccess', self::private_dir_htaccess_rules());
         self::write_file($backup_dir . 'web.config', "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<configuration><system.webServer><authorization><deny users=\"*\" /></authorization></system.webServer></configuration>\n");
 
         $backup = $backup_dir . 'advanced-cache-' . gmdate('Ymd-His') . '-' . wp_hash($target) . '.php.txt';

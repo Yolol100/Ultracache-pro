@@ -62,6 +62,10 @@ trait UCP_Installer_Schema_Trait {
             lcp_element_json longtext NULL,
             lcp_url text NULL,
             lcp_imagesrcset longtext NULL,
+            lcp_type varchar(30) NOT NULL DEFAULT 'image',
+            lcp_selector text NULL,
+            confidence smallint(5) unsigned NOT NULL DEFAULT 0,
+            profile_status varchar(30) NOT NULL DEFAULT 'active',
             value_ms double NOT NULL DEFAULT 0,
             sample_count bigint(20) unsigned NOT NULL DEFAULT 0,
             last_measured datetime NOT NULL,
@@ -70,7 +74,8 @@ trait UCP_Installer_Schema_Trait {
             PRIMARY KEY  (id),
             UNIQUE KEY url_device (url_hash, device),
             KEY last_measured (last_measured),
-            KEY device_measured (device, last_measured)
+            KEY device_measured (device, last_measured),
+            KEY confidence_status (profile_status, confidence)
         ) $charset";
 
         $diagnostics = 'CREATE TABLE ' . ucp_table_name('diagnostics') . " (

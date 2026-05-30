@@ -90,6 +90,7 @@ class UCP_REST_Admin_Controller {
             'requests' => 'diagnostic_requests',
             'browser-scan' => 'browser_scan_latest',
             'asset-snapshot' => 'asset_manager_snapshot',
+            'quality-summary' => 'quality_summary',
         );
         foreach ($diagnostic_routes as $route => $method) {
             register_rest_route(self::REST_NAMESPACE, '/diagnostics/' . $route, array(

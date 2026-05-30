@@ -63,7 +63,7 @@ class UCP_Optimization_Intelligence {
 
     public static function css_exclusions($rules) {
         $rules = is_array($rules) ? $rules : array();
-        $extra = array('admin-bar', 'wp-block-library', 'wp-interactivity', 'woocommerce-layout', 'woocommerce-smallscreen', 'woocommerce-general', 'checkout', 'cart', 'elementor', 'elementor-pro', 'bricks', 'breakdance', 'et-core', 'fusion-', 'flatsome');
+        $extra = array('admin-bar', 'wp-block-library', 'wp-interactivity', 'woocommerce-layout', 'woocommerce-smallscreen', 'woocommerce-general', 'checkout', 'cart', 'account', 'order-pay', 'payment', 'elementor', 'elementor-pro', 'elementor-popup', 'elementor-nav-menu', 'e-con', 'bricks', 'breakdance', 'et-core', 'fusion-', 'flatsome', 'menu', 'nav-menu', 'popup', 'modal', 'slider', 'swiper', 'slick', 'sticky', 'hidden', 'mobile-', 'tablet-', 'desktop-', 'cookie', 'consent', 'captcha', 'form');
         return array_values(array_unique(array_filter(array_merge($rules, $extra), 'strlen')));
     }
 
@@ -92,6 +92,12 @@ class UCP_Optimization_Intelligence {
         update_option('ucp_css_artifact_status', array_slice($statuses, -200, null, true), false);
         if (class_exists('UCP_Jobs') && class_exists('UCP_Helpers')) {
             UCP_Jobs::enqueue_unique('generate_css', array('url' => home_url('/'), 'force' => true), 3, 'css');
+        }
+        if (class_exists('UCP_CSS_Profile')) {
+            UCP_CSS_Profile::mark_all_stale(is_scalar($reason) ? (string) $reason : 'site_change');
+        }
+        if (class_exists('UCP_CWV') && method_exists('UCP_CWV', 'mark_lcp_profiles_stale')) {
+            UCP_CWV::mark_lcp_profiles_stale(is_scalar($reason) ? (string) $reason : 'site_change');
         }
         if (class_exists('UCP_Diagnostics')) {
             UCP_Diagnostics::record('css', 'Marked CSS artifacts stale', array('reason' => is_scalar($reason) ? (string) $reason : 'site_change'));
@@ -222,6 +228,11 @@ class UCP_Optimization_Intelligence {
             'callback' => array(__CLASS__, 'rest_css_status'),
             'permission_callback' => array(__CLASS__, 'permissions_check'),
         ));
+        register_rest_route('ultracache-pro/v1', '/diagnostics/pagespeed-readiness', array(
+            'methods' => WP_REST_Server::READABLE,
+            'callback' => array(__CLASS__, 'rest_pagespeed_readiness'),
+            'permission_callback' => array(__CLASS__, 'permissions_check'),
+        ));
         register_rest_route('ultracache-pro/v1', '/diagnostics/url', array(
             'methods' => WP_REST_Server::READABLE,
             'callback' => array(__CLASS__, 'rest_url_diagnosis'),
@@ -251,6 +262,113 @@ class UCP_Optimization_Intelligence {
     public static function permissions_check($request = null) {
         return UCP_Helpers::rest_admin_permission_check($request);
     }
+
+
+
+    public static function pagespeed_readiness() {
+        $css = self::css_status_summary();
+        $css_profiles = class_exists('UCP_CSS_Profile') ? UCP_CSS_Profile::summary() : array();
+        $lcp = class_exists('UCP_CWV') && method_exists('UCP_CWV', 'lcp_profile_summary') ? UCP_CWV::lcp_profile_summary() : array();
+        $preload = class_exists('UCP_Preload') && method_exists('UCP_Preload', 'preload_status_summary') ? UCP_Preload::preload_status_summary(20) : array();
+        $conflicts = class_exists('UCP_Compat') ? UCP_Compat::conflict_report() : array();
+        $items = array();
+        $advanced_cache_file = trailingslashit(WP_CONTENT_DIR) . 'advanced-cache.php';
+        $items['cache_status'] = array(
+            'status' => UCP_Options::get('enable_cache') ? 'enabled' : 'disabled',
+            'impact' => array('TTFB'),
+            'risk' => 'client-safe',
+            'runtime_test_required' => true,
+            'recommended_action' => UCP_Options::get('enable_cache') ? __('Controleer cache headers en purge-flow na deployment.', 'ultracache-pro') : __('Schakel page cache alleen in na stagingtest.', 'ultracache-pro'),
+        );
+        $items['advanced_cache_status'] = array(
+            'status' => (defined('WP_CACHE') && WP_CACHE && is_readable($advanced_cache_file)) ? 'good' : 'warning',
+            'impact' => array('TTFB'),
+            'risk' => 'developer-only',
+            'runtime_test_required' => false,
+            'recommended_action' => __('Controleer WP_CACHE en of advanced-cache.php UltraCache-eigen is voordat productiecache wordt gebruikt.', 'ultracache-pro'),
+        );
+        $items['page_cache_writability'] = array(
+            'status' => (defined('UCP_CACHE_DIR') && wp_is_writable(UCP_CACHE_DIR)) ? 'good' : 'warning',
+            'impact' => array('TTFB'),
+            'risk' => 'developer-only',
+            'runtime_test_required' => false,
+            'recommended_action' => __('Controleer schrijfrechten voor de UltraCache cachemap op staging.', 'ultracache-pro'),
+        );
+        $items['lcp_profile_status'] = array(
+            'status' => !empty($lcp['high_confidence']) ? 'ready' : (!empty($lcp['active']) ? 'collecting' : 'missing'),
+            'impact' => array('LCP'),
+            'risk' => 'staging-first',
+            'recommended_action' => !empty($lcp['high_confidence']) ? __('High-confidence LCP-profielen zijn beschikbaar voor preload/fetchpriority.', 'ultracache-pro') : __('Voer een browser scan/RUM-validatie uit voordat LCP automatisch wordt gepreload.', 'ultracache-pro'),
+            'summary' => $lcp,
+        );
+        $items['css_optimization_status'] = array(
+            'status' => (!empty($css['success']) || !empty($css_profiles['fresh'])) ? 'ready' : 'needs_generation',
+            'impact' => array('LCP', 'CLS', 'TBT'),
+            'risk' => 'staging-first',
+            'recommended_action' => __('Gebruik per-URL CSS-profielen; checkout/cart/account/order-pay blijven uitgesloten van agressieve CSS-verwijdering.', 'ultracache-pro'),
+            'summary' => array('artifacts' => $css, 'profiles' => $css_profiles),
+        );
+        $items['js_delay_status'] = array(
+            'status' => UCP_Options::get('enable_delay_js') ? 'enabled' : 'disabled',
+            'impact' => array('INP', 'TBT'),
+            'risk' => 'staging-first',
+            'recommended_action' => UCP_Options::get('enable_delay_js') ? __('Controleer menu, formulieren, consent en checkout na delay-regels.', 'ultracache-pro') : __('Gebruik Delay JS alleen scoped/safe wanneer TBT of INP hoog blijft.', 'ultracache-pro'),
+        );
+        $items['resource_hints_status'] = array(
+            'status' => (UCP_Options::get('enable_auto_resource_hints') || UCP_Options::get('enable_auto_font_preloads')) ? 'enabled' : 'manual',
+            'impact' => array('LCP', 'TTFB'),
+            'risk' => 'client-safe',
+            'recommended_action' => __('Controleer dat preconnect/preload-lijsten kort blijven en geen privacygevoelige externe domeinen toevoegen.', 'ultracache-pro'),
+        );
+        $items['asset_unload_test_mode'] = array(
+            'status' => UCP_Options::get('enable_asset_test_mode') ? 'enabled' : 'disabled',
+            'impact' => array('INP', 'TBT'),
+            'risk' => 'staging-first',
+            'recommended_action' => UCP_Options::get('enable_asset_test_mode') ? __('Testmodus is actief; regels gelden alleen veilig voor beheerders.', 'ultracache-pro') : __('Zet testmodus aan voordat nieuwe asset-unload regels breed worden uitgerold.', 'ultracache-pro'),
+        );
+        $items['conflict_warnings'] = array(
+            'status' => empty($conflicts) ? 'clear' : 'review',
+            'impact' => array('LCP', 'INP', 'CLS', 'TTFB', 'TBT'),
+            'risk' => empty($conflicts) ? 'client-safe' : 'staging-first',
+            'recommended_action' => empty($conflicts) ? __('Geen bekende overlap gedetecteerd.', 'ultracache-pro') : __('Voorkom dubbele HTML-rewrites; kies één plugin per overlappende feature.', 'ultracache-pro'),
+            'conflicts' => $conflicts,
+        );
+        $items['preload_crawler_status'] = array(
+            'status' => UCP_Options::get('enable_preload') ? 'enabled' : 'disabled',
+            'impact' => array('TTFB'),
+            'risk' => 'client-safe',
+            'runtime_test_required' => true,
+            'recommended_action' => __('Controleer pending/failed/skipped URL-statussen en throttling voordat grote sites volledig worden gepreload.', 'ultracache-pro'),
+            'summary' => $preload,
+        );
+        $items['font_preload_status'] = array(
+            'status' => UCP_Options::get('enable_auto_font_preloads') ? 'enabled' : 'disabled',
+            'impact' => array('LCP', 'CLS'),
+            'risk' => 'client-safe',
+            'runtime_test_required' => true,
+            'recommended_action' => __('Controleer dat alleen lokale, kritieke fonts worden gepreload en dat font-display fallback intact blijft.', 'ultracache-pro'),
+        );
+        $items['woocommerce_safety_mode'] = array(
+            'status' => UCP_Options::get('woocommerce_safety_mode') ? 'good' : 'warning',
+            'impact' => array('LCP', 'INP', 'TTFB'),
+            'risk' => 'staging-first',
+            'runtime_test_required' => true,
+            'recommended_action' => __('Laat WooCommerce safety mode actief op cart, checkout, account, order-pay en payment flows.', 'ultracache-pro'),
+        );
+        $items['rest_admin_security_status'] = array(
+            'status' => 'reviewed',
+            'impact' => array('TTFB'),
+            'risk' => 'developer-only',
+            'runtime_test_required' => false,
+            'recommended_action' => __('REST/admin-acties blijven achter permission callbacks, capabilities en nonces; herhaal scan bij nieuwe routes.', 'ultracache-pro'),
+        );
+        return $items;
+    }
+
+    public static function rest_pagespeed_readiness() {
+        return rest_ensure_response(array('success' => true, 'readiness' => self::pagespeed_readiness()));
+    }
+
 
     public static function rest_css_status() {
         return rest_ensure_response(array(
@@ -306,6 +424,7 @@ class UCP_Optimization_Intelligence {
             'delay_js_extra_guards' => array('nowprocket', 'data-ucp-no-delay', 'noucpdelay', 'payment/forms/builders/consent/reviews/chat'),
             'compatibility_rules_version' => class_exists('UCP_Compat') && method_exists('UCP_Compat', 'compatibility_rules_version') ? UCP_Compat::compatibility_rules_version() : '',
             'dead_letter_queue' => UCP_Jobs::dead_letter_summary(5),
+            'pagespeed_readiness' => self::pagespeed_readiness(),
         );
         return $report;
     }

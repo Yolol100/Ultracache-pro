@@ -4,7 +4,7 @@ Tags: cache, performance, core web vitals, critical css, used css
 Requires at least: 6.3
 Tested up to: 6.9
 Requires PHP: 8.0
-Stable tag: 11.0.19
+Stable tag: 11.0.33
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -70,10 +70,73 @@ UltraCache Pro may store cache metadata, diagnostic records, Core Web Vitals sam
 
 == Changelog ==
 
-= 11.0.19 =
-* Added conservative automatic resource hints from the latest frontend asset snapshot.
-* Added safe local-font preload candidates for cached Google Fonts.
-* Added PageSpeed Auto v9 defaults for resource hints and font preload infrastructure.
+= 11.0.33 =
+* Tweak: Delay-JS safe-exclusion lijst uitgebreid met payment SDKs (Braintree, Razorpay, Square, Paddle, Authorize.Net).
+* Tweak: Delay-JS safe-exclusion lijst uitgebreid met consent managers (CookieYes/Cookie Law Info, Usercentrics, iubenda).
+* Note: pure data/allowlist-wijziging in `compat/delay-js-exclusions.json` (13 entries); strikt conservatief, vertraagt nooit méér scripts.
+* Note: geen PHP-logica, hooks, REST-namespace of option keys gewijzigd; geen migratie nodig.
+
+= 11.0.32 =
+* Fix: React admin `.min` CSS/JS assets zijn nu daadwerkelijk kleiner dan de debugvarianten.
+* Fix: ontbrekende 11.0.30 changelog-entry toegevoegd voor volledige releasehistorie.
+* Tweak: versie- en POT-metadata gelijkgetrokken naar 11.0.32.
+* Note: geen runtime- of businesslogica gewijzigd.
+
+= 11.0.30 =
+* Added admin-only diagnostics quality-summary endpoint.
+* Extended support report and log package with quality summary and runtime-test snapshots.
+* Added WP-CLI diagnostics and runtime-test commands with JSON output support.
+* Added Site Health runtime-test visibility and competitive feature matrix documentation.
+
+= 11.0.29 =
+* Hardened sensitive admin downloads with nosniff, noindex and no-store response headers.
+* Reduced public CWV beacon token window to daily buckets while keeping previous-bucket support for cached HTML.
+* Improved private cache directory protection rules and package hygiene.
+
+= 11.0.26 =
+* Bugfix: hardens log/support-package redaction for user identifiers and sensitive WooCommerce URL path segments.
+* Bugfix: redacts user identifiers in JSONL log exports and support packages.
+* Bugfix: protects order-pay, order-received, checkout, cart, account, payment, token, nonce and session path markers in logged URLs.
+
+
+= 11.0.25 =
+* Bugfix privacy hardening: plain-text helper logs and REST log rows now redact URL queries, emails, IPs and common secret/payment/order tokens before admin display or storage.
+* No cache, WooCommerce, asset, CSS, LCP or admin UI behavior changes.
+
+= 11.0.24 =
+* Runtime acceptance privacy hardening: diagnostics and log-package redaction now redact WooCommerce/order, customer, payment, cart, checkout and session-related context keys.
+* No feature behavior changes; staging runtime testing remains required for browser, WooCommerce and payment flows.
+
+= 11.0.23 =
+* Polished the React admin toward a WordPress-native Gutenberg/@wordpress/components style without changing cache behavior.
+* Added a compact native admin header with accessible tab semantics and clearer top-level status badges.
+* Added a DataViews-like PageSpeed Readiness card with expandable details for impact, risk and runtime-test status.
+* Improved Asset Manager copy, list semantics, button labels and protected/test-mode action wording.
+* Added scoped admin CSS polish for cards, tabs, readiness details, loading states, asset rows and responsive wp-admin layouts.
+
+= 11.0.22 =
+* Ultimate polish: CSS profile expiry metadata, renderer status and protected-wins enforcement for external Used CSS payloads.
+* Added optional allowed LCP CDN host support while keeping measured page URLs same-origin and text LCP out of auto-preload.
+* Asset Manager now fails closed on sensitive WooCommerce/account/payment requests unless an explicit manual override is enabled.
+* Preload crawler status reasons now distinguish sensitive URLs, dynamic nonce/query URLs, redirects and unsupported content types.
+* Expanded PageSpeed Readiness with advanced-cache, cache-writability, font preload, WooCommerce safety and REST/admin security status.
+* Added PageSpeed Auto v12 safelist/default migration without enabling aggressive CSS, JS or asset unload behavior.
+
+= 11.0.21 =
+* Polished CSS profile sanitization so external renderer output is bounded, typed and still fails closed on WooCommerce/account/payment-sensitive URLs.
+* Raised default LCP auto-preload confidence to 85 and restricted automatic LCP resource use to same-origin resource-like image URLs.
+* Added per-URL/device LCP stale rollback helper for bad or outdated measured profiles.
+* Cleaned Conflict Guard plugin detection, including Cloudflare and Cloudflare Super Page Cache labels without duplicate/malformed entries.
+* Added friendlier Asset Manager rule aliases for unload/protect, URL exceptions, post type, device and logged-in/logged-out scopes.
+* Hardened preload status metadata sanitization and added a PageSpeed Auto v11 safelist polish migration.
+
+= 11.0.20 =
+* Added conservative per-URL CSS profiles with separate critical, delayed, protected and renderer-ready safe-removal buckets.
+* Added high-confidence LCP profiles per URL/device, including image, background-image, text and video-poster metadata.
+* Added Preload Crawler v2 prioritization for homepage, purge URLs, menu URLs, recent content and sitemap URLs with status logging and throttling.
+* Expanded Asset Manager rule scopes and protected-asset warnings for safer URL, post type, device and logged-out unload workflows.
+* Expanded conflict diagnostics for WP Rocket, LiteSpeed Cache, FlyingPress, Autoptimize, Perfmatters, Asset CleanUp, SG Optimizer and Cloudflare/edge cache overlap.
+* Added PageSpeed Readiness diagnostics covering cache, LCP, CSS, JS delay, resource hints, Asset Test Mode, preload and conflicts.
 
 = 11.0.14 =
 * Removed the unused pre-React admin field-rendering layer (admin UI field helpers, field-logic schema/state and admin metrics helper) that the React admin no longer calls.

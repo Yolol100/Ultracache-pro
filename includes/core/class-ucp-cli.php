@@ -15,6 +15,8 @@ class UCP_CLI {
         \WP_CLI::add_command('ultracache conflicts', array(__CLASS__, 'conflicts'));
         \WP_CLI::add_command('ultracache settings export', array(__CLASS__, 'settings_export'));
         \WP_CLI::add_command('ultracache settings import', array(__CLASS__, 'settings_import'));
+        \WP_CLI::add_command('ultracache diagnostics', array(__CLASS__, 'diagnostics'));
+        \WP_CLI::add_command('ultracache runtime-tests', array(__CLASS__, 'runtime_tests'));
     }
 
     public static function status() {
@@ -67,6 +69,60 @@ class UCP_CLI {
         }
         UCP_Options::update($settings);
         \WP_CLI::success('UltraCache settings imported.');
+    }
+
+
+    public static function diagnostics($args = array(), $assoc_args = array()) {
+        if (class_exists('UCP_Health')) {
+            UCP_Health::run_checks();
+        }
+        $payload = array(
+            'health' => class_exists('UCP_Health') ? UCP_Health::latest() : array(),
+            'runtime_tests' => class_exists('UCP_Runtime_Tests') ? UCP_Runtime_Tests::latest() : array(),
+            'conflicts' => class_exists('UCP_Compat') ? UCP_Compat::detected_conflicts() : array(),
+            'quality_summary' => class_exists('UCP_Support_Report') ? UCP_Support_Report::quality_summary() : array(),
+        );
+        $format = isset($assoc_args['format']) ? sanitize_key((string) $assoc_args['format']) : 'table';
+        if ('json' === $format) {
+            \WP_CLI::line(wp_json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
+            return;
+        }
+        \WP_CLI::log('UltraCache diagnostics');
+        \WP_CLI::log('Score estimate: ' . (isset($payload['quality_summary']['score_estimate']) ? (int) $payload['quality_summary']['score_estimate'] : 0) . '/100');
+        \WP_CLI::log('Conflict count: ' . count((array) $payload['conflicts']));
+        \WP_CLI::log('Runtime tests: ' . (!empty($payload['runtime_tests']['generated_at']) ? $payload['runtime_tests']['generated_at'] : 'not run'));
+        if (!empty($payload['quality_summary']['gates'])) {
+            foreach ((array) $payload['quality_summary']['gates'] as $gate) {
+                \WP_CLI::warning(wp_strip_all_tags((string) $gate));
+            }
+        } else {
+            \WP_CLI::success('No UltraCache quality gates currently blocking the static diagnostic summary.');
+        }
+    }
+
+    public static function runtime_tests($args = array(), $assoc_args = array()) {
+        if (!class_exists('UCP_Runtime_Tests')) {
+            \WP_CLI::error('UltraCache runtime tests are unavailable.');
+        }
+        $results = UCP_Runtime_Tests::run_all();
+        $format = isset($assoc_args['format']) ? sanitize_key((string) $assoc_args['format']) : 'table';
+        if ('json' === $format) {
+            \WP_CLI::line(wp_json_encode($results, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
+            return;
+        }
+        foreach ($results as $key => $result) {
+            if (!is_array($result) || empty($result['status'])) {
+                continue;
+            }
+            $line = $key . ': ' . $result['status'];
+            if ('pass' === $result['status']) {
+                \WP_CLI::success($line);
+            } elseif ('warning' === $result['status']) {
+                \WP_CLI::warning($line);
+            } else {
+                \WP_CLI::log($line);
+            }
+        }
     }
 
     public static function conflicts() {

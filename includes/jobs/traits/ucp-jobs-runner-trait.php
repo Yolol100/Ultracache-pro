@@ -17,7 +17,11 @@ trait UCP_Jobs_Runner_Trait {
 
         $limit = max(1, absint(UCP_Options::get('job_batch_size', 5)));
         if (UCP_Options::get('enable_preload_queue')) {
-            $limit = max($limit, absint(UCP_Options::get('preload_batch_size', 15)));
+            $limit = max(1, absint(UCP_Options::get('preload_batch_size', 15)));
+            if (class_exists('UCP_Preload') && UCP_Preload::server_load_too_high()) {
+                UCP_Logger::log('warning', 'jobs', 'preload_queue_paused_high_load', 'Preload wachtrij gepauzeerd door hoge serverbelasting.', array('limit' => $limit));
+                return 0;
+            }
         }
         $token = wp_generate_password(16, false);
         $ttl = max(60, absint(UCP_Options::get('job_lock_ttl', 300)));
@@ -193,8 +197,14 @@ trait UCP_Jobs_Runner_Trait {
                 if (!$url || !wp_http_validate_url($url)) {
                     return false;
                 }
+                if (class_exists('UCP_Preload')) {
+                    UCP_Preload::mark_preload_status($url, 'processing', 'queue_request');
+                }
                 $safety_reason = class_exists('UCP_Quality_Suite') ? UCP_Quality_Suite::bypass_reason($url) : '';
                 if ('' !== $safety_reason || (class_exists('UCP_Preload') && UCP_Preload::is_safety_excluded_url($url))) {
+                    if (class_exists('UCP_Preload')) {
+                        UCP_Preload::mark_preload_status($url, 'skipped', $safety_reason ? $safety_reason : 'compatibility_preload_safety');
+                    }
                     UCP_Logger::log('info', 'jobs', 'preload_url_skipped_safety', 'Preload job overgeslagen door centrale safety layer.', array('url' => $url, 'reason' => $safety_reason ? $safety_reason : 'compatibility_preload_safety'));
                     return true;
                 }
@@ -206,12 +216,39 @@ trait UCP_Jobs_Runner_Trait {
                     'sslverify' => apply_filters('https_local_ssl_verify', true),
                     'headers' => UCP_Options::get('enable_light_preload_requests') ? array('Range' => 'bytes=0-0') : array(),
                 ));
+                $delay = min(2000, absint(apply_filters('ucp_preload_delay_ms', UCP_Options::get('preload_delay_ms', 500))));
+                if ($delay > 0) {
+                    usleep($delay * 1000);
+                }
                 if (is_wp_error($response)) {
+                    if (class_exists('UCP_Preload')) {
+                        UCP_Preload::mark_preload_status($url, 'failed', $response->get_error_message());
+                    }
                     return $response;
                 }
                 $code = (int) wp_remote_retrieve_response_code($response);
-                if ($code < 400) {
+                $content_type = strtolower((string) wp_remote_retrieve_header($response, 'content-type'));
+                $location = (string) wp_remote_retrieve_header($response, 'location');
+                if ($code >= 300 && $code < 400) {
+                    if (class_exists('UCP_Preload')) {
+                        UCP_Preload::mark_preload_status($url, 'skipped', 'redirected', array('http_status' => $code, 'location' => esc_url_raw($location)));
+                    }
                     return true;
+                }
+                if ($code >= 200 && $code < 300 && ('' === $content_type || false !== strpos($content_type, 'text/html'))) {
+                    if (class_exists('UCP_Preload')) {
+                        UCP_Preload::mark_preload_status($url, 'cached', 'http_ok', array('http_status' => $code));
+                    }
+                    return true;
+                }
+                if ($code >= 200 && $code < 300) {
+                    if (class_exists('UCP_Preload')) {
+                        UCP_Preload::mark_preload_status($url, 'skipped', 'unsupported_content_type', array('http_status' => $code, 'content_type' => $content_type));
+                    }
+                    return true;
+                }
+                if (class_exists('UCP_Preload')) {
+                    UCP_Preload::mark_preload_status($url, 'skipped', 'http_' . $code, array('http_status' => $code));
                 }
                 // Note: een preload mag de wachtrij niet blijven vervuilen wanneer de pagina zelf een HTTP-foutstatus teruggeeft.
                 UCP_Logger::log('warning', 'preload', 'preload_url_skipped_http_status', 'Preload overgeslagen door HTTP-foutstatus van de pagina.', array('url' => esc_url_raw($url), 'http_status' => $code));

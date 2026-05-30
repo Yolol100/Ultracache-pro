@@ -102,6 +102,7 @@ final class UCP_Loader {
             'ucp_assets_unload_trait' => 'includes/assets/traits/ucp-assets-unload-trait.php',
             'ucp_cli' => 'includes/core/class-ucp-cli.php',
             'ucp_css' => 'includes/css/class-ucp-css.php',
+            'ucp_css_profile' => 'includes/css/class-ucp-css-profile.php',
             'ucp_css_artifact_trait' => 'includes/css/traits/ucp-css-artifact-trait.php',
             'ucp_css_delivery_trait' => 'includes/css/traits/ucp-css-delivery-trait.php',
             'ucp_css_generation_trait' => 'includes/css/traits/ucp-css-generation-trait.php',

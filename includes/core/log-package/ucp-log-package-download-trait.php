@@ -54,7 +54,11 @@ trait UCP_Log_Package_Download_Trait {
         }
 
         nocache_headers();
+        header('X-Content-Type-Options: nosniff');
+        header('X-Robots-Tag: noindex, nofollow', true);
+        header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
         header('Content-Type: application/zip');
+        header('X-Download-Options: noopen');
         header('Content-Disposition: attachment; filename="ultracache-pro-logpakket-' . gmdate('Ymd-His') . '.zip"');
         header('Content-Length: ' . filesize($zip_path));
         // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- streaming a generated zip file; escaping would corrupt the binary response.
@@ -79,6 +83,8 @@ trait UCP_Log_Package_Download_Trait {
         self::add_json($zip, 'system-info.json', self::system_info());
         self::add_json($zip, 'settings-redacted.json', self::redact(UCP_Options::get_all()));
         self::add_json($zip, 'status.json', class_exists('UCP_REST_Admin_Controller') ? UCP_REST_Admin_Controller::build_status() : array());
+        self::add_json($zip, 'quality-summary.json', class_exists('UCP_Support_Report') ? UCP_Support_Report::quality_summary() : array());
+        self::add_json($zip, 'runtime-tests.json', class_exists('UCP_Runtime_Tests') ? UCP_Runtime_Tests::latest() : array());
         self::add_json($zip, 'queue-summary.json', self::queue_summary());
         if (class_exists('UCP_Quality_Suite')) {
             self::add_json($zip, 'runtime-cache-test.json', get_option(UCP_Quality_Suite::RUNTIME_OPTION, array()));

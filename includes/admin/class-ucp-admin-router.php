@@ -74,6 +74,7 @@ final class UCP_Admin_Router {
     public static function normalize_tab($tab) {
         $tab = sanitize_key((string) $tab);
         $map = array(
+            'dashboard'      => 'overview',
             'expert'         => 'advanced',
             'advanced'       => 'advanced',
             'advanced-rules' => 'advanced',

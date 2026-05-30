@@ -49,6 +49,11 @@ trait UCP_Helpers_Filesystem_Trait {
         return in_array($normalized, array_filter($exact_files), true);
     }
 
+
+    public static function private_dir_htaccess_rules() {
+        return "Options -Indexes\n<IfModule mod_authz_core.c>\nRequire all denied\n</IfModule>\n<IfModule !mod_authz_core.c>\nDeny from all\n</IfModule>\n";
+    }
+
     public static function ensure_cache_dirs() {
         $dirs = array(
             UCP_CACHE_DIR,
@@ -65,6 +70,12 @@ trait UCP_Helpers_Filesystem_Trait {
         foreach ($dirs as $dir) {
             wp_mkdir_p($dir);
             self::write_placeholder_file($dir . 'index.html', '');
+        }
+
+        // AI-PATCH: deny direct web access to diagnostic/meta/log internals while leaving public cache/assets directories readable.
+        foreach (array(UCP_CACHE_DIR . 'logs/', UCP_CACHE_DIR . 'diagnostics/', UCP_CACHE_DIR . 'meta/', UCP_CACHE_DIR . 'tag-index/') as $private_dir) {
+            self::write_placeholder_file($private_dir . '.htaccess', self::private_dir_htaccess_rules());
+            self::write_placeholder_file($private_dir . 'web.config', "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<configuration><system.webServer><authorization><deny users=\"*\" /></authorization></system.webServer></configuration>\n");
         }
     }
 

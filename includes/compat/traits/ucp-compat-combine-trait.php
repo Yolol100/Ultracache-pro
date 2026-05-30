@@ -82,6 +82,10 @@ trait UCP_Compat_Combine_Trait {
                 'used_css_delivery'    => __('ongebruikte CSS verwijderen', 'ultracache-pro'),
                 'critical_css'         => __('kritieke CSS laden', 'ultracache-pro'),
                 'object_cache_overlap' => __('object-cache overlap', 'ultracache-pro'),
+                'lazyload'             => __('lazyload', 'ultracache-pro'),
+                'font_optimization'    => __('fontoptimalisatie', 'ultracache-pro'),
+                'cdn_edge_cache'       => __('CDN/edge-cache', 'ultracache-pro'),
+                'css_js_rewrite'       => __('CSS/JS HTML-rewrite', 'ultracache-pro'),
             );
             return isset($labels[$feature]) ? $labels[$feature] : ucwords(str_replace('_', ' ', (string) $feature));
         }

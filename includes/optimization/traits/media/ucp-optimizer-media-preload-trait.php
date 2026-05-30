@@ -230,7 +230,7 @@ trait UCP_Optimizer_Media_Preload_Trait {
         if (class_exists('UCP_CWV')) {
             $current_url = $this->current_lcp_lookup_url();
             $device = $this->current_lcp_lookup_device();
-            $row = UCP_CWV::lcp_hint_for_url($current_url, $device);
+            $row = method_exists('UCP_CWV', 'lcp_profile_for_url') ? UCP_CWV::lcp_profile_for_url($current_url, $device, true) : array();
             if (!empty($row['lcp_url'])) {
                 $url = $this->normalize_lcp_image_candidate_url($row['lcp_url']);
                 if ($url) {
@@ -240,7 +240,7 @@ trait UCP_Optimizer_Media_Preload_Trait {
                     $this->ucp_lcp_candidate_sizes = is_array($element) && !empty($element['sizes']) ? substr(sanitize_text_field((string) $element['sizes']), 0, 240) : '';
                     $this->ucp_lcp_candidate_is_background = is_array($element) && !empty($element['background']);
                     if (class_exists('UCP_Diagnostics')) {
-                        UCP_Diagnostics::record('lcp', 'Selected measured per-URL LCP candidate.', array('url' => $this->ucp_lcp_candidate_src, 'device' => $device));
+                        UCP_Diagnostics::record('lcp', 'Selected high-confidence per-URL LCP profile.', array('url' => $this->ucp_lcp_candidate_src, 'device' => $device, 'confidence' => isset($row['confidence']) ? absint($row['confidence']) : 0, 'type' => isset($row['lcp_type']) ? sanitize_key((string) $row['lcp_type']) : 'image'));
                     }
                     return true;
                 }

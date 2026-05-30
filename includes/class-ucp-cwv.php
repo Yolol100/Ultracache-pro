@@ -13,7 +13,9 @@ class UCP_CWV {
     const MAX_DAILY_SAMPLES_PER_METRIC = 1000;
     const MAX_IP_SAMPLES_PER_MINUTE = 20;
     const MAX_SITE_SAMPLES_PER_MINUTE = 120;
-    const TOKEN_WINDOW_SECONDS = 604800;
+    const TOKEN_WINDOW_SECONDS = 86400;
+    const DEFAULT_PROFILE_MAX_AGE_DAYS = 21;
+    const MIN_PROFILE_CONFIDENCE = 85;
 
     public function __construct() {
         add_action('wp_footer', array($this, 'print_rum_script'), 99);
@@ -37,19 +39,27 @@ class UCP_CWV {
                     'validate_callback' => array($this, 'validate_metric_value'),
                 ),
                 'rating' => array(
+                    'type'              => 'string',
                     'required'          => false,
+                    'enum'              => array('good', 'needs-improvement', 'poor', 'info'),
                     'sanitize_callback' => 'sanitize_key',
                 ),
                 'url' => array(
+                    'type'              => 'string',
                     'required'          => false,
+                    'maxLength'         => 2048,
                     'sanitize_callback' => array($this, 'sanitize_local_url_param'),
                 ),
                 'device' => array(
+                    'type'              => 'string',
                     'required'          => false,
+                    'enum'              => array('mobile', 'desktop', 'all'),
                     'sanitize_callback' => 'sanitize_key',
                 ),
                 'lcp_url' => array(
+                    'type'              => 'string',
                     'required'          => false,
+                    'maxLength'         => 2048,
                     'sanitize_callback' => array($this, 'sanitize_local_url_param'),
                 ),
                 'lcp_element_json' => array(
@@ -59,12 +69,19 @@ class UCP_CWV {
                     'sanitize_callback' => array($this, 'sanitize_lcp_element_json'),
                 ),
                 'lcp_imagesrcset' => array(
+                    'type'              => 'string',
                     'required'          => false,
+                    'maxLength'         => 1200,
                     'sanitize_callback' => array($this, 'sanitize_lcp_srcset_param'),
                 ),
                 'token' => array(
+                    'type'              => 'string',
                     'required'          => true,
+                    'minLength'         => 64,
+                    'maxLength'         => 64,
+                    'pattern'           => '^[a-f0-9]{64}$',
                     'sanitize_callback' => 'sanitize_text_field',
+                    'validate_callback' => array($this, 'validate_beacon_token_shape'),
                 ),
             ),
         ));
@@ -92,6 +109,7 @@ class UCP_CWV {
         $referer = $request instanceof WP_REST_Request ? (string) $request->get_header('referer') : '';
 
         // Note: CWV beacons are sent from cacheable frontend HTML; a WordPress nonce in that HTML expires while the page cache can still be warm.
+        // AI-PATCH: keep the public beacon short-lived by accepting only the current/previous daily HMAC bucket.
         // Require at least one browser-supplied same-origin signal and keep the existing per-visitor and daily rate limits in record_metric().
         if ('' === trim($origin) && '' === trim($referer)) {
             return false;
@@ -116,6 +134,11 @@ class UCP_CWV {
         return true;
     }
 
+
+    public function validate_beacon_token_shape($token) {
+        return is_string($token) && 1 === preg_match('/^[a-f0-9]{64}$/', $token);
+    }
+
     private function cwv_token($bucket = null) {
         $bucket = null === $bucket ? (int) floor(time() / self::TOKEN_WINDOW_SECONDS) : (int) $bucket;
         return hash_hmac('sha256', 'ucp-cwv|' . home_url('/') . '|' . $bucket, wp_salt('nonce'));
@@ -123,7 +146,7 @@ class UCP_CWV {
 
     private function verify_beacon_token($token) {
         $token = sanitize_text_field((string) $token);
-        if ('' === $token || 64 !== strlen($token)) {
+        if (!$this->validate_beacon_token_shape($token)) {
             return false;
         }
 
@@ -156,7 +179,7 @@ class UCP_CWV {
         $endpoint = esc_url_raw(rest_url('ultracache-pro/v1/cwv'));
         $token = $this->cwv_token(); ?>
 <script id="ucp-cwv-monitor">
-(function(){if(!('PerformanceObserver' in window)||!navigator.sendBeacon){return;}var endpoint=<?php echo wp_json_encode($endpoint); ?>;var token=<?php echo wp_json_encode($token); ?>;var sampleRate=0.25;if(Math.random()>sampleRate){return;}function device(){try{return matchMedia('(max-width: 767px)').matches?'mobile':'desktop'}catch(e){return 'all'}}function local(u){try{var x=new URL(u,location.href);return x.origin===location.origin?x.href:''}catch(e){return ''}}function lcpMeta(e){var el=e&&e.element?e.element:null,out={};try{if(el){out.tag=(el.tagName||'').toLowerCase();out.id=el.id||'';out.class=(el.className&&typeof el.className==='string')?el.className.slice(0,240):'';out.selector=out.id?'#'+out.id:(out.tag+(out.class?'.'+out.class.trim().split(/\s+/).slice(0,3).join('.'):''));}if(e&&e.url){out.url=local(e.url);}if(el&&el.currentSrc){out.url=local(el.currentSrc);}if(el&&el.srcset){out.srcset=String(el.srcset).slice(0,1200);}if(el&&el.sizes){out.sizes=String(el.sizes).slice(0,240);}if(!out.url&&el){try{var bg=getComputedStyle(el).backgroundImage||'';var m=bg.match(/url\(["']?([^"')]+)["']?\)/);if(m&&m[1]){out.url=local(m[1]);out.background=1;}}catch(y){}}}catch(x){}return out}function send(name,value,rating,meta){try{var data=new FormData();data.append('metric',name);data.append('value',String(Math.round(value)));data.append('rating',rating||'');data.append('token',token);data.append('url',location.href.split('#')[0]);data.append('device',device());if(meta&&name==='LCP'){if(meta.url)data.append('lcp_url',meta.url);if(meta.srcset)data.append('lcp_imagesrcset',meta.srcset);data.append('lcp_element_json',JSON.stringify(meta));}navigator.sendBeacon(endpoint,data);}catch(e){}}try{new PerformanceObserver(function(list){list.getEntries().forEach(function(e){if(e.name==='first-contentful-paint'){send('FCP',e.startTime,'info');}});}).observe({type:'paint',buffered:true});}catch(e){}try{new PerformanceObserver(function(list){list.getEntries().forEach(function(e){var meta=lcpMeta(e);send('LCP',e.startTime,e.startTime<2500?'good':(e.startTime<4000?'needs-improvement':'poor'),meta);});}).observe({type:'largest-contentful-paint',buffered:true});}catch(e){}try{new PerformanceObserver(function(list){list.getEntries().forEach(function(e){if(!e.hadRecentInput){send('CLS',e.value*1000,e.value<0.1?'good':(e.value<0.25?'needs-improvement':'poor'));}});}).observe({type:'layout-shift',buffered:true});}catch(e){}try{new PerformanceObserver(function(list){list.getEntries().forEach(function(e){send('INP',e.duration||0,(e.duration||0)<200?'good':((e.duration||0)<500?'needs-improvement':'poor'));});}).observe({type:'event',buffered:true,durationThreshold:40});}catch(e){}})();
+(function(){if(!('PerformanceObserver' in window)||!navigator.sendBeacon){return;}var endpoint=<?php echo wp_json_encode($endpoint); ?>;var token=<?php echo wp_json_encode($token); ?>;var sampleRate=0.25;if(Math.random()>sampleRate){return;}function device(){try{return matchMedia('(max-width: 767px)').matches?'mobile':'desktop'}catch(e){return 'all'}}function local(u){try{var x=new URL(u,location.href);return x.origin===location.origin?x.href:''}catch(e){return ''}}function lcpMeta(e){var el=e&&e.element?e.element:null,out={};try{if(el){out.tag=(el.tagName||'').toLowerCase();out.id=el.id||'';out.class=(el.className&&typeof el.className==='string')?el.className.slice(0,240):'';out.selector=out.id?'#'+out.id:(out.tag+(out.class?'.'+out.class.trim().split(/\s+/).slice(0,3).join('.'):''));out.type=(out.tag==='video')?'video-poster':((out.tag==='img'||out.tag==='picture')?'image':'text');}if(e&&e.url){out.url=local(e.url);}if(el&&el.currentSrc){out.url=local(el.currentSrc);out.type='image';}if(el&&el.srcset){out.srcset=String(el.srcset).slice(0,1200);}if(el&&el.sizes){out.sizes=String(el.sizes).slice(0,240);}if(el&&el.poster){out.url=local(el.poster);out.type='video-poster';}if(!out.url&&el){try{var bg=getComputedStyle(el).backgroundImage||'';var m=bg.match(/url\(["']?([^"')]+)["']?\)/);if(m&&m[1]){out.url=local(m[1]);out.background=1;out.type='background-image';}}catch(y){}}}catch(x){}return out}function send(name,value,rating,meta){try{var data=new FormData();data.append('metric',name);data.append('value',String(Math.round(value)));data.append('rating',rating||'');data.append('token',token);data.append('url',location.href.split('#')[0]);data.append('device',device());if(meta&&name==='LCP'){if(meta.url)data.append('lcp_url',meta.url);if(meta.srcset)data.append('lcp_imagesrcset',meta.srcset);data.append('lcp_element_json',JSON.stringify(meta));}navigator.sendBeacon(endpoint,data);}catch(e){}}try{new PerformanceObserver(function(list){list.getEntries().forEach(function(e){if(e.name==='first-contentful-paint'){send('FCP',e.startTime,'info');}});}).observe({type:'paint',buffered:true});}catch(e){}try{new PerformanceObserver(function(list){list.getEntries().forEach(function(e){var meta=lcpMeta(e);send('LCP',e.startTime,e.startTime<2500?'good':(e.startTime<4000?'needs-improvement':'poor'),meta);});}).observe({type:'largest-contentful-paint',buffered:true});}catch(e){}try{new PerformanceObserver(function(list){list.getEntries().forEach(function(e){if(!e.hadRecentInput){send('CLS',e.value*1000,e.value<0.1?'good':(e.value<0.25?'needs-improvement':'poor'));}});}).observe({type:'layout-shift',buffered:true});}catch(e){}try{new PerformanceObserver(function(list){list.getEntries().forEach(function(e){send('INP',e.duration||0,(e.duration||0)<200?'good':((e.duration||0)<500?'needs-improvement':'poor'));});}).observe({type:'event',buffered:true,durationThreshold:40});}catch(e){}})();
 </script><?php
     }
 
@@ -277,7 +300,7 @@ class UCP_CWV {
         }
 
         $allowed = array();
-        foreach (array('tag', 'id', 'class', 'selector', 'sizes') as $key) {
+        foreach (array('tag', 'id', 'class', 'selector', 'sizes', 'type') as $key) {
             if (isset($decoded[$key])) {
                 $allowed[$key] = substr(sanitize_text_field((string) $decoded[$key]), 0, 240);
             }
@@ -318,10 +341,28 @@ class UCP_CWV {
             return '';
         }
 
-        if (!self::is_same_origin_url($absolute)) {
+        if (!self::is_lcp_resource_origin_allowed($absolute)) {
             return '';
         }
 
+        return $absolute;
+    }
+
+    /**
+     * Sanitize the measured page URL. Unlike LCP resources, pages must be same-origin.
+     *
+     * @param string $url Raw URL.
+     * @return string
+     */
+    private static function sanitize_lcp_local_page_url($url) {
+        $url = trim((string) $url);
+        if ('' === $url) {
+            return '';
+        }
+        $absolute = wp_parse_url($url, PHP_URL_HOST) ? esc_url_raw($url) : esc_url_raw(home_url('/' . ltrim($url, '/')));
+        if ('' === $absolute || !self::is_same_origin_url($absolute)) {
+            return '';
+        }
         return $absolute;
     }
 
@@ -353,6 +394,37 @@ class UCP_CWV {
             && $url_host === $home_host
             && $url_scheme === $home_scheme
             && $url_port === $home_port;
+    }
+
+    /**
+     * Allow same-origin LCP resources and explicitly configured CDN hostnames only.
+     * Page URLs still remain same-origin because they are sanitized before lookup/storage.
+     *
+     * @param string $url Absolute URL.
+     * @return bool
+     */
+    private static function is_lcp_resource_origin_allowed($url) {
+        if (self::is_same_origin_url($url)) {
+            return true;
+        }
+        $host = strtolower((string) wp_parse_url($url, PHP_URL_HOST));
+        if ('' === $host || preg_match('/[^a-z0-9\.\-]/i', $host)) {
+            return false;
+        }
+        $allowed = array();
+        if (class_exists('UCP_Options') && class_exists('UCP_Helpers')) {
+            $allowed = UCP_Helpers::normalize_multiline((string) UCP_Options::get('lcp_profile_allowed_hosts', ''));
+        }
+        $allowed = apply_filters('ucp_lcp_profile_allowed_resource_hosts', $allowed);
+        foreach ((array) $allowed as $allowed_host) {
+            $allowed_host = strtolower(trim((string) $allowed_host));
+            $allowed_host = preg_replace('#^https?://#', '', $allowed_host);
+            $allowed_host = preg_replace('#/.*$#', '', $allowed_host);
+            if ('' !== $allowed_host && $host === $allowed_host) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static function sanitize_lcp_srcset($srcset) {
@@ -398,9 +470,9 @@ class UCP_CWV {
         }
         $table_sql = UCP_Helpers::quote_table_name($table);
 
-        $url = isset($data['url']) ? self::sanitize_lcp_local_url((string) $data['url']) : '';
+        $url = isset($data['url']) ? self::sanitize_lcp_local_page_url((string) $data['url']) : '';
         $lcp_url = isset($data['lcp_url']) ? self::sanitize_lcp_local_url((string) $data['lcp_url']) : '';
-        if ('' === $url || '' === $lcp_url) {
+        if ('' === $url) {
             return false;
         }
 
@@ -415,7 +487,7 @@ class UCP_CWV {
             $element = array();
         }
         $safe_element = array();
-        foreach (array('tag', 'id', 'class', 'selector', 'sizes') as $key) {
+        foreach (array('tag', 'id', 'class', 'selector', 'sizes', 'type') as $key) {
             if (isset($element[$key])) {
                 $safe_element[$key] = substr(sanitize_text_field((string) $element[$key]), 0, 240);
             }
@@ -425,6 +497,14 @@ class UCP_CWV {
         }
         if (!empty($element['background'])) {
             $safe_element['background'] = 1;
+        }
+
+        $lcp_type = self::normalize_lcp_type(isset($data['lcp_type']) ? (string) $data['lcp_type'] : (isset($safe_element['type']) ? (string) $safe_element['type'] : ''));
+        if ('' === $lcp_type) {
+            $lcp_type = !empty($safe_element['background']) ? 'background-image' : ('' !== $lcp_url ? 'image' : 'text');
+        }
+        if ('' === $lcp_url && 'text' !== $lcp_type) {
+            return false;
         }
 
         $srcset = isset($data['lcp_imagesrcset']) ? self::sanitize_lcp_srcset((string) $data['lcp_imagesrcset']) : '';
@@ -442,24 +522,32 @@ class UCP_CWV {
             ARRAY_A
         );
 
+        $sample_count = is_array($existing) && isset($existing['sample_count']) ? absint($existing['sample_count']) + 1 : 1;
+        $selector = self::sanitize_lcp_selector(isset($data['lcp_selector']) ? (string) $data['lcp_selector'] : (isset($safe_element['selector']) ? (string) $safe_element['selector'] : ''));
+        $confidence = self::calculate_lcp_confidence($lcp_type, $lcp_url, $safe_element, $value_ms, $sample_count, isset($data['source']) ? sanitize_key((string) $data['source']) : 'rum');
+
         $payload = array(
             'url'              => $url,
             'lcp_element_json' => $safe_element ? wp_json_encode($safe_element) : '',
             'lcp_url'          => $lcp_url,
             'lcp_imagesrcset'  => $srcset,
+            'lcp_type'         => $lcp_type,
+            'lcp_selector'     => $selector,
+            'confidence'       => $confidence,
             'value_ms'         => $value_ms,
             'last_measured'    => $now,
             'updated_at'       => $now,
+            'profile_status'   => 'active',
         );
 
         if (is_array($existing) && !empty($existing['id'])) {
-            $payload['sample_count'] = absint($existing['sample_count']) + 1;
+            $payload['sample_count'] = $sample_count;
             // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- plugin-owned LCP table write.
             return false !== $wpdb->update(
                 $table,
                 $payload,
                 array('id' => absint($existing['id'])),
-                array('%s', '%s', '%s', '%s', '%f', '%s', '%s', '%d'),
+                array('%s', '%s', '%s', '%s', '%s', '%s', '%d', '%f', '%s', '%s', '%s', '%d'),
                 array('%d')
             );
         }
@@ -473,8 +561,255 @@ class UCP_CWV {
         return false !== $wpdb->insert(
             $table,
             $payload,
-            array('%s', '%s', '%s', '%s', '%f', '%s', '%s', '%s', '%s', '%d', '%s')
+            array('%s', '%s', '%s', '%s', '%s', '%s', '%d', '%f', '%s', '%s', '%s', '%s', '%s', '%d', '%s')
         );
+    }
+
+    /**
+     * Normalize LCP profile type.
+     *
+     * @param string $type Type.
+     * @return string
+     */
+    private static function normalize_lcp_type($type) {
+        $type = sanitize_key((string) $type);
+        if ('background' === $type) {
+            $type = 'background-image';
+        }
+        if ('video' === $type || 'poster' === $type) {
+            $type = 'video-poster';
+        }
+        return in_array($type, array('image', 'background-image', 'text', 'video-poster'), true) ? $type : '';
+    }
+
+    /**
+     * Sanitize a compact selector/element hint.
+     *
+     * @param string $selector Selector.
+     * @return string
+     */
+    private static function sanitize_lcp_selector($selector) {
+        $selector = substr(sanitize_text_field((string) $selector), 0, 240);
+        $selector = preg_replace('/\s+/', ' ', (string) $selector);
+        return trim((string) $selector);
+    }
+
+    /**
+     * Calculate a conservative confidence score for automatic preload/fetchpriority use.
+     *
+     * @param string $type         LCP type.
+     * @param string $lcp_url      Resource URL.
+     * @param array  $element      Element metadata.
+     * @param float  $value_ms     Measured LCP time.
+     * @param int    $sample_count Sample count.
+     * @param string $source       Source.
+     * @return int
+     */
+    private static function calculate_lcp_confidence($type, $lcp_url, $element, $value_ms, $sample_count, $source = 'rum') {
+        $score = 35;
+        if (in_array($type, array('image', 'background-image', 'video-poster'), true) && '' !== $lcp_url) {
+            $score += 25;
+        }
+        if (!empty($element['selector']) || !empty($element['id'])) {
+            $score += 15;
+        }
+        if (!empty($element['background']) && 'background-image' === $type) {
+            $score += 10;
+        }
+        if ((float) $value_ms > 0) {
+            $score += 5;
+        }
+        if (absint($sample_count) >= 3) {
+            $score += 10;
+        } elseif (absint($sample_count) >= 2) {
+            $score += 5;
+        }
+        if ('browser_scan' === sanitize_key((string) $source)) {
+            $score = max($score, 92);
+        }
+        if ('text' === $type) {
+            $score = min($score, 75);
+        }
+        return max(0, min(100, absint($score)));
+    }
+
+    /**
+     * Get an LCP profile safe enough for automatic preload/fetchpriority decisions.
+     *
+     * @param string $url                  URL to look up.
+     * @param string $device               Device bucket.
+     * @param bool   $high_confidence_only Require configured confidence threshold.
+     * @return array<string,mixed>
+     */
+    public static function lcp_profile_for_url($url, $device = 'all', $high_confidence_only = true) {
+        $row = self::lcp_hint_for_url($url, $device);
+        if (!is_array($row) || empty($row)) {
+            return array();
+        }
+        if (self::lcp_profile_is_stale($row)) {
+            return array();
+        }
+        if ($high_confidence_only) {
+            $min = class_exists('UCP_Options') ? absint(UCP_Options::get('lcp_profile_min_confidence', self::MIN_PROFILE_CONFIDENCE)) : self::MIN_PROFILE_CONFIDENCE;
+            if (absint($row['confidence'] ?? 0) < max(1, min(100, $min))) {
+                return array();
+            }
+        }
+        if (empty($row['lcp_url']) && 'text' !== ($row['lcp_type'] ?? '')) {
+            return array();
+        }
+        if (!empty($row['lcp_url']) && !self::is_lcp_resource_url_safe((string) $row['lcp_url'], isset($row['lcp_type']) ? (string) $row['lcp_type'] : 'image')) {
+            return array();
+        }
+        return $row;
+    }
+
+    /**
+     * Keep automatic LCP preloads restricted to resource-like same-origin URLs.
+     *
+     * @param string $url  Resource URL.
+     * @param string $type LCP type.
+     * @return bool
+     */
+    private static function is_lcp_resource_url_safe($url, $type = 'image') {
+        $url = self::sanitize_lcp_local_url($url);
+        if ('' === $url) {
+            return false;
+        }
+        $type = self::normalize_lcp_type($type);
+        if ('text' === $type) {
+            return false;
+        }
+        $path = strtolower((string) wp_parse_url($url, PHP_URL_PATH));
+        if ('' === $path) {
+            return false;
+        }
+        $allowed = apply_filters('ucp_lcp_profile_allowed_resource_extensions', array('avif', 'webp', 'jpg', 'jpeg', 'png', 'gif', 'svg'));
+        $extension = strtolower((string) pathinfo($path, PATHINFO_EXTENSION));
+        if ('' === $extension || !in_array($extension, array_map('strtolower', array_map('strval', (array) $allowed)), true)) {
+            return false;
+        }
+        return !preg_match('#/(?:wp-admin|wp-login\.php|wp-json|xmlrpc\.php)(?:/|$)#i', $path);
+    }
+
+    /**
+     * Mark one measured LCP profile stale for safe rollback after a bad hint.
+     *
+     * @param string $url    URL.
+     * @param string $device Device bucket.
+     * @param string $reason Stale reason.
+     * @return int|false
+     */
+    public static function mark_lcp_profile_stale_for_url($url, $device = 'all', $reason = 'manual_rollback') {
+        global $wpdb;
+        if (!function_exists('ucp_table_name') || !isset($wpdb) || !is_object($wpdb)) {
+            return false;
+        }
+        $table = ucp_table_name('lcp');
+        if ('' === $table || !class_exists('UCP_Helpers') || !UCP_Helpers::is_safe_table_name($table) || !self::lcp_table_exists($table)) {
+            return false;
+        }
+        $url = self::sanitize_lcp_local_url((string) $url);
+        if ('' === $url) {
+            return false;
+        }
+        $device = sanitize_key((string) $device);
+        if (!in_array($device, array('mobile', 'desktop', 'tablet', 'all'), true)) {
+            $device = 'all';
+        }
+        $where = array('url_hash' => hash('sha256', $url));
+        $where_format = array('%s');
+        if ('all' !== $device) {
+            $where['device'] = $device;
+            $where_format[] = '%s';
+        }
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- plugin-owned LCP rollback write.
+        return $wpdb->update(
+            $table,
+            array('profile_status' => 'stale', 'updated_at' => current_time('mysql')),
+            $where,
+            array('%s', '%s'),
+            $where_format
+        );
+    }
+
+    /**
+     * Check profile age/status.
+     *
+     * @param array $row LCP row.
+     * @return bool
+     */
+    public static function lcp_profile_is_stale($row) {
+        if (!is_array($row)) {
+            return true;
+        }
+        if (isset($row['profile_status']) && 'active' !== sanitize_key((string) $row['profile_status'])) {
+            return true;
+        }
+        $last = isset($row['last_measured']) ? strtotime((string) $row['last_measured']) : 0;
+        if ($last <= 0) {
+            return true;
+        }
+        $days = class_exists('UCP_Options') ? absint(UCP_Options::get('lcp_profile_max_age_days', self::DEFAULT_PROFILE_MAX_AGE_DAYS)) : self::DEFAULT_PROFILE_MAX_AGE_DAYS;
+        return ($last + (max(1, $days) * DAY_IN_SECONDS)) < time();
+    }
+
+    /**
+     * Mark all measured LCP profiles stale after layout/theme/global changes.
+     *
+     * @param string $reason Reason.
+     * @return int|false
+     */
+    public static function mark_lcp_profiles_stale($reason = 'global_change') {
+        global $wpdb;
+        if (!function_exists('ucp_table_name') || !isset($wpdb) || !is_object($wpdb)) {
+            return false;
+        }
+        $table = ucp_table_name('lcp');
+        if ('' === $table || !class_exists('UCP_Helpers') || !UCP_Helpers::is_safe_table_name($table) || !self::lcp_table_exists($table)) {
+            return false;
+        }
+        $now = current_time('mysql');
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- plugin-owned LCP table write.
+        return $wpdb->update(
+            $table,
+            array('profile_status' => 'stale', 'updated_at' => $now),
+            array('profile_status' => 'active'),
+            array('%s', '%s'),
+            array('%s')
+        );
+    }
+
+    /**
+     * Diagnostic profile summary.
+     *
+     * @return array<string,mixed>
+     */
+    public static function lcp_profile_summary() {
+        global $wpdb;
+        $out = array('total' => 0, 'active' => 0, 'high_confidence' => 0, 'stale' => 0, 'recent' => array());
+        if (!function_exists('ucp_table_name') || !isset($wpdb) || !is_object($wpdb)) {
+            return $out;
+        }
+        $table = ucp_table_name('lcp');
+        if ('' === $table || !class_exists('UCP_Helpers') || !UCP_Helpers::is_safe_table_name($table) || !self::lcp_table_exists($table)) {
+            return $out;
+        }
+        $table_sql = UCP_Helpers::quote_table_name($table);
+        $min = class_exists('UCP_Options') ? absint(UCP_Options::get('lcp_profile_min_confidence', self::MIN_PROFILE_CONFIDENCE)) : self::MIN_PROFILE_CONFIDENCE;
+        // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter -- plugin-owned diagnostics with validated table identifier.
+        $out['total'] = (int) $wpdb->get_var("SELECT COUNT(*) FROM {$table_sql}");
+        // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter -- plugin-owned diagnostics with validated table identifier.
+        $out['active'] = (int) $wpdb->get_var("SELECT COUNT(*) FROM {$table_sql} WHERE profile_status = 'active'");
+        // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter -- plugin-owned diagnostics with validated table identifier.
+        $out['high_confidence'] = (int) $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$table_sql} WHERE profile_status = 'active' AND confidence >= %d", $min));
+        // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter -- plugin-owned diagnostics with validated table identifier.
+        $out['stale'] = (int) $wpdb->get_var("SELECT COUNT(*) FROM {$table_sql} WHERE profile_status <> 'active'");
+        // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- plugin-owned diagnostics with validated table identifier.
+        $sql = $wpdb->prepare("SELECT url, device, lcp_type, lcp_url, lcp_selector, confidence, profile_status, last_measured FROM {$table_sql} ORDER BY last_measured DESC LIMIT %d", 20);
+        // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter -- $sql is prepared above.
+        $out['recent'] = $wpdb->get_results($sql, ARRAY_A);
+        return $out;
     }
 
     /**

@@ -150,8 +150,55 @@ trait UCP_Helpers_Minify_And_Log_Trait {
         return !empty($_SERVER['LITESPEED_CACHE']) || !empty($_SERVER['HTTP_X_LITE_SPEED_CACHE']) || !empty($_SERVER['HTTP_X_VARNISH']) || !empty($_SERVER['HTTP_X_CACHE']);
     }
 
+    /**
+     * Redact sensitive data before writing legacy plain-text logs.
+     *
+     * The event log is readable from the admin diagnostics surface and can be
+     * exported in support packages. Keep operational context, but do not store
+     * query strings, e-mail addresses, IPs, tokens or payment/order markers in
+     * the plain-text file.
+     */
+    public static function redact_log_text($message) {
+        $message = wp_strip_all_tags((string) $message);
+        $message = preg_replace('/[A-Z0-9._%+\-]+@[A-Z0-9.\-]+\.[A-Z]{2,}/i', '[redacted-email]', $message);
+        $message = preg_replace('/\b(?:\d{1,3}\.){3}\d{1,3}\b/', '[redacted-ip]', $message);
+        $message = preg_replace('/\b(?:bearer\s+[a-z0-9._\-]+|sk_live_[a-z0-9_]+|sk_test_[a-z0-9_]+)\b/i', '[redacted-secret]', $message);
+        $message = preg_replace('/\b(token|api[_-]?key|secret|password|passwd|pwd|nonce|user[_-]?id|session(?:[_-]?[a-z0-9_]+)?|payment(?:[_-]?[a-z0-9_]+)?|order(?:[_-]?[a-z0-9_]+)?|customer(?:[_-]?[a-z0-9_]+)?|cart(?:[_-]?[a-z0-9_]+)?|checkout(?:[_-]?[a-z0-9_]+)?)=([^\s&]+)/i', '$1=[redacted]', $message);
+        $message = preg_replace_callback('#https?://[^\s"\'<>]+#i', array(__CLASS__, 'redact_log_url_callback'), $message);
+        $message = sanitize_textarea_field((string) $message);
+        if (strlen($message) > 5000) {
+            $message = substr($message, 0, 5000) . '...[truncated]';
+        }
+        return $message;
+    }
+
+    public static function redact_log_url($url) {
+        $url = esc_url_raw((string) $url);
+        if ('' === $url) {
+            return '';
+        }
+        $parts = wp_parse_url($url);
+        if (empty($parts['scheme']) || empty($parts['host'])) {
+            return '';
+        }
+        $path = isset($parts['path']) ? $parts['path'] : '/';
+        if (self::is_sensitive_log_url_path($path)) {
+            $path = '/[redacted-path]';
+        }
+        return esc_url_raw($parts['scheme'] . '://' . $parts['host'] . $path . (!empty($parts['query']) ? '?[redacted-query]' : ''));
+    }
+
+    protected static function is_sensitive_log_url_path($path) {
+        return is_string($path) && (bool) preg_match('#/(order-pay|order-received|checkout|cart|my-account|account|payment|customer|session|token|nonce)(/|$)#i', $path);
+    }
+
+    protected static function redact_log_url_callback($matches) {
+        $url = isset($matches[0]) ? (string) $matches[0] : '';
+        return self::redact_log_url($url);
+    }
+
     public static function log($message) {
-        $line = '[' . gmdate('Y-m-d H:i:s') . '] ' . $message . "\n";
+        $line = '[' . gmdate('Y-m-d H:i:s') . '] ' . self::redact_log_text($message) . "\n";
         self::append_file(UCP_CACHE_DIR . 'logs/events.log', $line);
     }
 
@@ -173,6 +220,7 @@ trait UCP_Helpers_Minify_And_Log_Trait {
         if (!is_array($content)) {
             return array();
         }
-        return array_slice($content, -1 * absint($lines));
+        $tail = array_slice($content, -1 * absint($lines));
+        return array_map(array(__CLASS__, 'redact_log_text'), $tail);
     }
 }

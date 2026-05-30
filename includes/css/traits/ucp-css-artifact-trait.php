@@ -192,7 +192,7 @@ trait UCP_CSS_Artifact_Trait {
             wp_mkdir_p($backup_dir);
         }
         UCP_Helpers::write_file($backup_dir . 'index.html', '');
-        UCP_Helpers::write_file($backup_dir . '.htaccess', "Deny from all\n");
+        UCP_Helpers::write_file($backup_dir . '.htaccess', UCP_Helpers::private_dir_htaccess_rules());
         UCP_Helpers::write_file($backup_dir . 'web.config', "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<configuration><system.webServer><authorization><deny users=\"*\" /></authorization></system.webServer></configuration>\n");
         foreach (array('used' => $used_path, 'critical' => $critical_path) as $key => $path) {
             if (file_exists($path)) {

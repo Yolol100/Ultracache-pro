@@ -7,6 +7,14 @@
     var useEffect = wp.element.useEffect;
     var render = wp.element.render;
     var __ = wp.i18n.__;
+    var sprintf = wp.i18n.sprintf || function (format) {
+        var args = Array.prototype.slice.call(arguments, 1);
+        var index = 0;
+        return String(format || '').replace(/%\d/g, function () {
+            var value = args[index++];
+            return typeof value === 'undefined' ? '' : String(value);
+        });
+    };
     var apiFetch = wp.apiFetch;
     var c = wp.components;
     var Card = c.Card, CardHeader = c.CardHeader, CardBody = c.CardBody, CardFooter = c.CardFooter;
@@ -14,6 +22,7 @@
     var ToggleControl = c.ToggleControl, TextControl = c.TextControl, TextareaControl = c.TextareaControl;
     var SelectControl = c.SelectControl, Panel = c.Panel, PanelBody = c.PanelBody;
     var ExternalLink = c.ExternalLink;
+    var Dashicon = c.Dashicon || null;
     var NumberControl = c.__experimentalNumberControl || c.NumberControl || TextControl;
     var config = window.UCP_ADMIN_CONFIG || {};
 
@@ -32,6 +41,55 @@
         {key:'developer', label:__('Developer','ultracache-pro'), icon:'dashicons-editor-code'},
         {key:'tools', label:__('Tools','ultracache-pro'), icon:'dashicons-admin-tools'}
     ];
+
+    function normalizeTabKey(tab) {
+        var key = String(tab || '').toLowerCase().replace(/[^a-z0-9_-]/g, '');
+        var map = {
+            overview:'dashboard', dashboard:'dashboard',
+            diagnostics:'tools', toolbox:'tools', integrations:'tools', addons:'tools',
+            expert:'advanced', assets:'advanced', cdn:'advanced', 'advanced-rules':'advanced', advanced_rules:'advanced',
+            heartbeat:'developer',
+            'ultracache-pro':'dashboard',
+            'ultracache-pro-cache':'cache',
+            'ultracache-pro-file-optimization':'optimization',
+            'ultracache-pro-media':'media',
+            'ultracache-pro-preload':'preload',
+            'ultracache-pro-assets':'advanced',
+            'ultracache-pro-advanced-rules':'advanced',
+            'ultracache-pro-assets-manager':'advanced',
+            'ultracache-pro-asset-manager':'advanced',
+            'ultracache-pro-asset-cleanup':'advanced',
+            'ultracache-pro-database':'database',
+            'ultracache-pro-cdn':'advanced',
+            'ultracache-pro-heartbeat':'developer',
+            'ultracache-pro-developer':'developer',
+            'ultracache-pro-addons':'tools',
+            'ultracache-pro-tools':'tools',
+            'ultracache-pro-toolbox':'tools',
+            'ultracache-pro-integrations':'tools'
+        };
+        key = map[key] || key;
+        return tabs.some(function (tabMeta) { return tabMeta.key === key; }) ? key : 'dashboard';
+    }
+
+    function initialTabFromLocation() {
+        try {
+            var params = new URLSearchParams(window.location.search || '');
+            return normalizeTabKey(params.get('tab') || params.get('page') || 'dashboard');
+        } catch (e) {
+            return 'dashboard';
+        }
+    }
+
+    function updateTabInLocation(tab) {
+        try {
+            var normalized = normalizeTabKey(tab);
+            var url = new URL(window.location.href);
+            url.searchParams.set('page', 'ultracache-pro');
+            url.searchParams.set('tab', normalized === 'dashboard' ? 'overview' : normalized);
+            window.history.replaceState(null, '', url.toString());
+        } catch (e) {}
+    }
 
     function slugify(text) {
         return String(text || '')
@@ -180,6 +238,7 @@
     function getRequests(){ return request('diagnostics/requests'); }
     function getBrowserScan(){ return request('diagnostics/browser-scan'); }
     function getAssetSnapshot(){ return request('diagnostics/asset-snapshot'); }
+    function getPageSpeedReadiness(){ return request('diagnostics/pagespeed-readiness'); }
     function saveBrowserScan(payload){ return request('actions/browser-scan', {method:'POST', data:payload}); }
     function scanPreset(){ return request('scan-preset'); }
     function exportSettings(){ return request('settings/export'); }
@@ -198,8 +257,14 @@
     }
 
     function StatusBadge(props) {
-        var state = props.state || 'info';
-        return el('span', {className:'ucp-status-badge ucp-status-badge--' + state}, props.children || props.label);
+        var rawState = String(props.state || 'info');
+        var aliases = {success:'good', danger:'error', blocked:'error', enabled:'good', disabled:'info', ready:'good', clear:'good', review:'warning'};
+        var state = aliases[rawState] || rawState;
+        if (['good','warning','info','error'].indexOf(state) === -1) {
+            state = 'info';
+        }
+        var label = props.label || props.children || rawState;
+        return el('span', {className:'ucp-status-badge ucp-status-badge--' + state, 'aria-label':String(label)}, props.children || props.label);
     }
     function boolBadge(value, good, bad) {
         return value ? el(StatusBadge, {state:'good'}, good || __('Goed','ultracache-pro')) : el(StatusBadge, {state:'warning'}, bad || __('Check','ultracache-pro'));
@@ -217,25 +282,67 @@
     }
 
     function ProductHeader(props) {
-        return el('header', {className:'ucp-app-header ucp-app-header--native ucp-app-header--simple'},
+        var status = props.status || {};
+        var cache = status.cache || {};
+        var queue = status.queue || {};
+        var pending = (parseInt(queue.pending || 0, 10) || 0) + (parseInt(queue.retrying || 0, 10) || 0);
+        var titleId = 'ucp-admin-page-title';
+        return el('header', {className:'ucp-app-header ucp-app-header--native ucp-app-header--compact', 'aria-labelledby':titleId},
             el('div', {className:'ucp-app-header__main'},
                 el('p', {className:'ucp-eyebrow'}, __('WordPress performance','ultracache-pro')),
-                el('h1', {}, __('UltraCache Pro','ultracache-pro')),
-                el('p', {}, __('Rustig dashboard voor cache, optimalisatie, preload en websitecontrole.','ultracache-pro'))
+                el('h1', {id:titleId}, __('UltraCache Pro','ultracache-pro')),
+                el('p', {}, __('Native WordPress-beheer voor cache, optimalisatie, preload en websitecontrole.','ultracache-pro'))
+            ),
+            el('div', {className:'ucp-app-header__side', 'aria-label':__('Belangrijkste status','ultracache-pro')},
+                el('div', {className:'ucp-app-header__status'},
+                    cache.enabled ? el(StatusBadge,{state:'good', label:__('Cache actief','ultracache-pro')},__('Cache actief','ultracache-pro')) : el(StatusBadge,{state:'warning', label:__('Cache niet actief','ultracache-pro')},__('Cache niet actief','ultracache-pro')),
+                    pending ? el(StatusBadge,{state:'info', label:pending + ' ' + __('taken in wachtrij','ultracache-pro')}, pending + ' ' + __('taken','ultracache-pro')) : el(StatusBadge,{state:'good', label:__('Wachtrij rustig','ultracache-pro')},__('Wachtrij rustig','ultracache-pro')),
+                    cache.wooSafety ? el(StatusBadge,{state:'good', label:__('WooCommerce safety mode actief','ultracache-pro')},__('Woo safety','ultracache-pro')) : null
+                )
             )
         );
     }
 
     function AdminShell(props) {
-        return el('div', {className:'ucp-admin-app__shell ucp-admin-app__shell--no-header'},
-            el('nav', {className:'ucp-admin-nav', 'aria-label':__('UltraCache Pro onderdelen','ultracache-pro')}, tabs.map(function(tab){
-                var active = props.activeTab === tab.key;
+        var activeTab = props.activeTab || 'dashboard';
+        var activeMeta = tabs.filter(function(tab){ return tab.key === activeTab; })[0] || tabs[0];
+        function focusTab(key) {
+            window.setTimeout(function(){
+                var node = document.getElementById('ucp-admin-tab-' + key);
+                if (node && node.focus) node.focus();
+            }, 0);
+        }
+        function onTabKeyDown(event, tab) {
+            var key = event.key || '';
+            if (['ArrowLeft','ArrowUp','ArrowRight','ArrowDown','Home','End'].indexOf(key) === -1) return;
+            event.preventDefault();
+            var index = tabs.map(function(item){ return item.key; }).indexOf(tab.key);
+            if (index === -1) return;
+            var nextIndex = index;
+            if (key === 'Home') nextIndex = 0;
+            else if (key === 'End') nextIndex = tabs.length - 1;
+            else if (key === 'ArrowLeft' || key === 'ArrowUp') nextIndex = (index - 1 + tabs.length) % tabs.length;
+            else if (key === 'ArrowRight' || key === 'ArrowDown') nextIndex = (index + 1) % tabs.length;
+            var nextKey = tabs[nextIndex].key;
+            props.onTab(nextKey);
+            focusTab(nextKey);
+        }
+        return el('div', {className:'ucp-admin-app__shell'},
+            el(ProductHeader, {status:props.status || {}}),
+            el('nav', {className:'ucp-admin-nav', role:'tablist', 'aria-label':__('UltraCache Pro onderdelen','ultracache-pro')}, tabs.map(function(tab){
+                var active = activeTab === tab.key;
+                var tabId = 'ucp-admin-tab-' + tab.key;
                 return el('button', {
                     key:tab.key,
+                    id:tabId,
                     type:'button',
+                    role:'tab',
                     className:'ucp-admin-nav__item' + (active ? ' is-active' : ''),
-                    'aria-current':active ? 'page' : undefined,
-                    onClick:function(){props.onTab(tab.key);}
+                    'aria-selected':active ? 'true' : 'false',
+                    'aria-controls':'ucp-admin-panel',
+                    tabIndex:active ? 0 : -1,
+                    onClick:function(){props.onTab(tab.key);},
+                    onKeyDown:function(event){ onTabKeyDown(event, tab); }
                 },
                     el('span', {className:'dashicons ' + tab.icon, 'aria-hidden':'true'}),
                     el('span', {className:'ucp-admin-nav__text'},
@@ -243,7 +350,7 @@
                     )
                 );
             })),
-            props.children
+            el('section', {id:'ucp-admin-panel', className:'ucp-admin-panel', role:'tabpanel', 'aria-labelledby':'ucp-admin-tab-' + activeMeta.key}, props.children)
         );
     }
 
@@ -922,7 +1029,7 @@
             {title:'Varianten en purge', fields:[['cache_mobile_separately','Mobiele cache apart bewaren','toggle','Gebruik dit alleen wanneer mobiel en desktop duidelijk andere HTML krijgen.'],['enable_cache_tags','Gerelateerde pagina’s meeverversen','toggle','Handig voor blogs, categorieën en archieven.'],['cache_logged_in','Cache voor ingelogde gebruikers','toggle','Developer-only. Meestal uit laten, omdat accounts en builders persoonlijke content kunnen tonen.']]}
         ],
         advanced: [
-            {title:'Asset Manager', fields:[['enable_asset_test_mode','Asset Test Mode','toggle','Aanbevolen bij nieuwe unload-regels. Alleen beheerders zien de assetregels totdat je deze modus uitschakelt.'],['enable_asset_manager_snapshot','Frontend asset snapshot','toggle','Wanneer je als beheerder een frontendpagina bezoekt, bewaart UltraCache de geladen CSS/JS handles voor de Asset Manager.'],['asset_manager_panel','Asset Manager snapshot','asset_manager','Bekijk de laatst gemeten assets en maak veilige unload/keep-regels op basis van echte frontend handles.'],['advanced_asset_rules','Geavanceerde assetregels','textarea','Formaat: kind|handle|actie|scope|waarde. Voorbeeld: script|contact-form-7|disable|path_contains|/blog/. Gebruik keep-regels als uitzondering op brede disable-regels.']]},
+            {title:'Asset Manager', fields:[['enable_asset_test_mode','Asset Test Mode','toggle','Aanbevolen bij nieuwe unload-regels. Alleen beheerders zien de assetregels totdat je deze modus uitschakelt.'],['enable_asset_manager_snapshot','Frontend asset snapshot','toggle','Wanneer je als beheerder een frontendpagina bezoekt, bewaart UltraCache de geladen CSS/JS handles voor de Asset Manager.'],['asset_manager_panel','Asset Manager snapshot','asset_manager','Bekijk de laatst gemeten assets en maak veilige unload/keep-regels op basis van echte frontend handles.'],['advanced_asset_rules','Geavanceerde assetregels','textarea','Formaat: kind|handle|actie|scope|waarde. Voorbeelden: disable op deze URL via path_contains, overal behalve deze URL via path_not_contains, per post type, per device of alleen logged-out. Beschermde assets worden geblokkeerd; gebruik Asset Test Mode voor rollback.']]},
             {title:'Pagina’s', fields:[['exclude_urls','Nooit URL’s cachen','textarea','Eén pad of patroon per regel. Gebruik dit voor cart, checkout, account, zoekresultaten, filters of persoonlijke content.']]},
             {title:'Cookies / agents', fields:[['exclude_cookies','Nooit cachen bij cookies','textarea','Eén cookie of gedeeltelijke cookienaam per regel. Nuttig voor winkelwagens en gepersonaliseerde content.'],['exclude_user_agents','Nooit cachen voor user-agents','textarea','Eén user-agent fragment per regel. Laat leeg tenzij een apparaat, browser of bot afwijkende content krijgt.']]},
             {title:'Automatisch legen bij wijzigingen', fields:[['always_purge_urls','Altijd extra URL’s legen','textarea','Eén URL of patroon per regel. Gebruik voor pagina’s die mee moeten verversen wanneer content wijzigt, zoals homepage of archieven.']]},
@@ -1718,9 +1825,9 @@
                 el(TextControl, {label:__('Filter','ultracache-pro'), value:filter, onChange:setFilter, placeholder:__('handle, plugin, thema of URL','ultracache-pro')}),
                 el(SelectControl, {label:__('Type','ultracache-pro'), value:kindFilter, onChange:setKindFilter, options:[{value:'all', label:__('Alles','ultracache-pro')},{value:'style', label:'CSS'},{value:'script', label:'JS'}]})
             ),
-            !items.length ? el(Notice, {status:'info', isDismissible:false}, __('Geen assets gevonden in de laatste snapshot of filter.','ultracache-pro')) : el('div', {className:'ucp-asset-manager-list'}, items.map(function(item){
+            !items.length ? el(Notice, {status:'info', isDismissible:false}, __('Geen assets gevonden in de laatste snapshot of filter.','ultracache-pro')) : el('div', {className:'ucp-asset-manager-list', role:'list', 'aria-label':__('Gemeten frontend-assets','ultracache-pro')}, items.map(function(item){
                 var protectedLabel = item.protected ? el(StatusBadge, {state:'warning'}, __('Beschermd','ultracache-pro')) : null;
-                return el('div', {key:(item.kind || '') + ':' + item.handle, className:'ucp-asset-manager-item'},
+                return el('div', {key:(item.kind || '') + ':' + item.handle, className:'ucp-asset-manager-item', role:'listitem'},
                     el('div', {className:'ucp-asset-manager-item__meta'},
                         el('strong', {}, (item.kind === 'style' ? 'CSS: ' : 'JS: ') + item.handle),
                         protectedLabel,
@@ -1731,9 +1838,9 @@
                         item.dependents && item.dependents.length ? el('small', {}, __('Afhankelijkheden actief: ','ultracache-pro') + item.dependents.join(', ')) : null
                     ),
                     el('div', {className:'ucp-asset-manager-item__actions'},
-                        el(Button, {variant:'secondary', disabled:!!item.protected, onClick:function(){ appendRule(item, 'disable', 'path_contains'); }}, __('Uit op deze URL','ultracache-pro')),
-                        el(Button, {variant:'tertiary', disabled:!!item.protected, onClick:function(){ appendRule(item, 'disable', 'all'); }}, __('Uit overal','ultracache-pro')),
-                        el(Button, {variant:'tertiary', onClick:function(){ appendRule(item, 'keep', 'path_contains'); }}, __('Behouden op deze URL','ultracache-pro'))
+                        el(Button, {variant:'secondary', disabled:!!item.protected, 'aria-label':__('Test unload op deze URL voor asset','ultracache-pro') + ' ' + item.handle, onClick:function(){ appendRule(item, 'disable', 'path_contains'); }}, __('Test uit op deze URL','ultracache-pro')),
+                        el(Button, {variant:'tertiary', disabled:!!item.protected, isDestructive:true, 'aria-label':__('Test unload overal voor asset','ultracache-pro') + ' ' + item.handle, onClick:function(){ appendRule(item, 'disable', 'all'); }}, __('Test uit overal','ultracache-pro')),
+                        el(Button, {variant:'tertiary', 'aria-label':__('Bescherm asset op deze URL','ultracache-pro') + ' ' + item.handle, onClick:function(){ appendRule(item, 'keep', 'path_contains'); }}, __('Behouden op deze URL','ultracache-pro'))
                     )
                 );
             })),
@@ -1962,19 +2069,74 @@
         });
     }
 
+    function normalizeReadinessStatus(status) {
+        status = String(status || 'unknown').toLowerCase();
+        if (['good','ready','enabled','clear','reviewed'].indexOf(status) !== -1) return 'good';
+        if (['warning','blocked','needs_generation','missing','collecting','review'].indexOf(status) !== -1) return 'warning';
+        if (['error','failed'].indexOf(status) !== -1) return 'error';
+        return 'info';
+    }
+
+    function formatReadinessKey(key) {
+        return String(key || '')
+            .replace(/_/g, ' ')
+            .replace(/\b\w/g, function(letter){ return letter.toUpperCase(); });
+    }
+
+    function ReadinessCard(props) {
+        var readiness = props.readiness || {};
+        var keys = Object.keys(readiness);
+        var priority = ['cache_status','advanced_cache_status','page_cache_writability','lcp_profile_status','css_optimization_status','js_delay_status','resource_hints_status','font_preload_status','asset_unload_test_mode','conflict_warnings','preload_crawler_status','woocommerce_safety_mode','rest_admin_security_status'];
+        keys.sort(function(a, b){
+            var ai = priority.indexOf(a), bi = priority.indexOf(b);
+            ai = ai === -1 ? 999 : ai;
+            bi = bi === -1 ? 999 : bi;
+            return ai - bi;
+        });
+        return el(Card, {className:'ucp-card ucp-readiness-card'},
+            el(CardHeader, {},
+                el('h2', {}, __('PageSpeed Readiness','ultracache-pro')),
+                keys.length ? el(StatusBadge,{state:'info', label:keys.length + ' ' + __('checks','ultracache-pro')}, keys.length + ' ' + __('checks','ultracache-pro')) : null
+            ),
+            el(CardBody, {},
+                el('p', {className:'ucp-muted'}, __('Compacte WordPress-native samenvatting. Technische details blijven beschikbaar zonder het hoofdscherm te vervuilen.','ultracache-pro')),
+                !keys.length ? el(Notice, {status:'info', isDismissible:false}, __('Nog geen PageSpeed Readiness-data beschikbaar. Open Diagnostiek of voer een websitecontrole uit.','ultracache-pro')) :
+                    el('div', {className:'ucp-readiness-grid'}, keys.map(function(key){
+                        var item = readiness[key] || {};
+                        var impact = Array.isArray(item.impact) ? item.impact.join(' / ') : (item.impact || '—');
+                        var runtime = item.runtime_test_required ? __('Runtime-test nodig','ultracache-pro') : __('Statisch controlepunt','ultracache-pro');
+                        return el('details', {className:'ucp-readiness-item', key:key},
+                            el('summary', {},
+                                el('span', {className:'ucp-readiness-item__title'}, formatReadinessKey(key)),
+                                el(StatusBadge, {state:normalizeReadinessStatus(item.status), label:String(item.status || 'unknown')}, String(item.status || 'unknown'))
+                            ),
+                            el('dl', {className:'ucp-readiness-meta'},
+                                el('div', {}, el('dt', {}, __('Impact','ultracache-pro')), el('dd', {}, impact)),
+                                el('div', {}, el('dt', {}, __('Risico','ultracache-pro')), el('dd', {}, item.risk || '—')),
+                                el('div', {}, el('dt', {}, __('Test','ultracache-pro')), el('dd', {}, runtime))
+                            ),
+                            item.recommended_action ? el('p', {className:'ucp-muted'}, item.recommended_action) : null
+                        );
+                    }))
+            )
+        );
+    }
+
     function DiagnosticsPage(props) {
         var status = props.status || {};
         var queue = status.queue || {};
         var health = status.health || {};
         var runner = status.runner || {};
         var browserState = useState(null), browserScan = browserState[0], setBrowserScan = browserState[1];
+        var readinessState = useState(null), readiness = readinessState[0], setReadiness = readinessState[1];
         var scanUrlState = useState(config.homeUrl || window.location.origin + '/'), scanUrl = scanUrlState[0], setScanUrl = scanUrlState[1];
         var browserBusyState = useState(false), browserBusy = browserBusyState[0], setBrowserBusy = browserBusyState[1];
         var loadState = useState(false), loading = loadState[0], setLoading = loadState[1];
         function loadDiagnostics(){
             setLoading(true);
-            getBrowserScan().then(function(res){
-                setBrowserScan(res && res.scan ? res.scan : null);
+            Promise.all([getBrowserScan(), getPageSpeedReadiness()]).then(function(res){
+                setBrowserScan(res[0] && res[0].scan ? res[0].scan : null);
+                setReadiness(res[1] && res[1].readiness ? res[1].readiness : null);
             }).catch(function(err){
                 props.addNotice({status:'error', message:cleanErrorMessage(err, __('Websitecontrole kon niet geladen worden.','ultracache-pro'))});
             }).finally(function(){ setLoading(false); });
@@ -1994,6 +2156,7 @@
         }
         useEffect(function(){ loadDiagnostics(); }, []);
         return el('div', {className:'ucp-page'},
+            el(ReadinessCard, {readiness:readiness || {}}),
             el(Card, {className:'ucp-card'}, el(CardHeader, {}, el('h2', {}, __('Websitecontrole','ultracache-pro'))), el(CardBody, {},
                 el(StatusRow,{label:'Website status', value:health && typeof health === 'object' ? infoBadge('OK') : infoBadge('Nog niet gecontroleerd')}),
                 el(StatusRow,{label:'Open taken', value:queue.pending || 0}),
@@ -2067,7 +2230,7 @@
     }
 
     function LoadingScreen(){
-        return el('div', {className:'ucp-loading-screen', role:'status', 'aria-live':'polite'},
+        return el('div', {className:'ucp-loading-screen', role:'status', 'aria-live':'polite', 'aria-busy':'true'},
             el('div', {className:'ucp-loading-card'},
                 el('div', {className:'ucp-loading-mark', 'aria-hidden':'true'},
                     el('span', {className:'ucp-loading-ring'}),
@@ -2082,7 +2245,7 @@
     }
 
     function App(){
-        var tabState = useState('dashboard'), activeTab = tabState[0], setActiveTab = tabState[1];
+        var tabState = useState(initialTabFromLocation), activeTab = tabState[0], setActiveTab = tabState[1];
         var statusState = useState(null), status = statusState[0], setStatus = statusState[1];
         var settingsState = useState(null), settings = settingsState[0], setSettings = settingsState[1];
         var loadingState = useState(true), loading = loadingState[0], setLoading = loadingState[1];
@@ -2098,7 +2261,7 @@
         useEffect(function(){ refresh(); }, []);
         if (loading && !settings) return el(LoadingScreen, {});
         var shared = {settings:settings || {}, setSettings:setSettings, status:status || {}, setStatus:setStatus, addNotice:addNotice, onRefresh:refresh, loading:loading};
-        return el(AdminShell,{activeTab:activeTab,onTab:setActiveTab,onRefresh:refresh,loading:loading,onOpenWizard:function(){setWizardOpen(true);},status:status || {},addNotice:addNotice,setStatus:setStatus},
+        return el(AdminShell,{activeTab:activeTab,onTab:selectTab,onRefresh:refresh,loading:loading,onOpenWizard:function(){setWizardOpen(true);},status:status || {},addNotice:addNotice,setStatus:setStatus},
             el(NoticeArea,{notices:notices,onRemove:removeNotice}),
             wizardOpen ? el(SetupWizard,Object.assign({}, shared, {onClose:function(){setWizardOpen(false); saveSettings({onboarding_completed:1}).then(function(resp){ if(resp.settings) setSettings(resp.settings); });}})) : null,
             activeTab === 'dashboard' ? el(DashboardPage,Object.assign({}, shared, {status:status,onOpenWizard:function(){}})) : null,

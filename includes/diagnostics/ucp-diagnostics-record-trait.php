@@ -39,6 +39,15 @@ trait UCP_Diagnostics_Record_Trait {
         }
     }
 
+    /**
+     * Redact sensitive or order-related diagnostic context keys before storage.
+     * Keep operational messages useful without storing secrets, customer data,
+     * payment details, cart/session identifiers or concrete WooCommerce order IDs.
+     */
+    protected static function is_sensitive_context_key($key) {
+        return (bool) preg_match('/(password|passwd|pwd|token|secret|api[_-]?key|license|nonce|cookie|authorization|auth|session|order|customer|email|phone|address|payment|cart|checkout)/i', (string) $key);
+    }
+
     protected static function sanitize_context($context) {
         if (!is_array($context)) {
             return array();
@@ -46,6 +55,10 @@ trait UCP_Diagnostics_Record_Trait {
         $clean = array();
         foreach ($context as $key => $value) {
             $key = sanitize_key((string) $key);
+            if (self::is_sensitive_context_key($key)) {
+                $clean[$key] = '[redacted]';
+                continue;
+            }
             if (is_scalar($value) || null === $value) {
                 $clean[$key] = is_string($value) ? sanitize_text_field($value) : $value;
             } elseif (is_array($value)) {

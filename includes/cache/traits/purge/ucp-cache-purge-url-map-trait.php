@@ -83,6 +83,9 @@ trait UCP_Cache_Purge_Url_Map_Trait {
         }
         foreach ($urls as $url) {
             $this->delete_local_url_cache($url);
+            if (class_exists('UCP_Preload')) {
+                UCP_Preload::record_purge_url($url, 'cache_purge');
+            }
         }
         if (class_exists('UCP_Jobs') && UCP_Options::get('enable_cloudflare_apo_mode')) {
             UCP_Jobs::enqueue_unique('cloudflare_purge_urls', array('urls' => $urls), 1, 'cloudflare');

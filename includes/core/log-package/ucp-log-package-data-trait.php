@@ -13,7 +13,7 @@ trait UCP_Log_Package_Data_Trait {
             'plugin'       => 'UltraCache Pro',
             'version'      => defined('UCP_VERSION') ? UCP_VERSION : '',
             'format'       => 'jsonl-and-json',
-            'contents'     => array('system-info', 'settings-redacted', 'status', 'queue-summary', 'runtime-cache-test', 'conflicts', 'release-checklist', 'recent-jobs', 'recent-db-logs', 'recent-diagnostics', 'file-logs'),
+            'contents'     => array('system-info', 'settings-redacted', 'status', 'quality-summary', 'runtime-tests', 'queue-summary', 'runtime-cache-test', 'conflicts', 'release-checklist', 'recent-jobs', 'recent-db-logs', 'recent-diagnostics', 'file-logs'),
         );
     }
 

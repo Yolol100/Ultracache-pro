@@ -168,6 +168,9 @@ trait UCP_Compat_Detection_Trait {
                 'powered-cache/powered-cache.php' => 'Powered Cache',
                 'phastpress/phastpress.php' => 'PhastPress',
                 'debloat/debloat.php' => 'Debloat',
+                'cloudflare/cloudflare.php' => 'Cloudflare',
+                'wp-cloudflare-page-cache/wp-cloudflare-super-page-cache.php' => 'Cloudflare Super Page Cache',
+                'super-page-cache-for-cloudflare/wp-cloudflare-super-page-cache.php' => 'Cloudflare Super Page Cache',
             );
         }
 
@@ -276,12 +279,52 @@ trait UCP_Compat_Detection_Trait {
                 if (empty($conflict['severity'])) {
                     $conflict['severity'] = ('dropin' === $conflict['type'] || 'plugin' === $conflict['type']) ? 'high' : 'medium';
                 }
+                $conflict['features'] = self::feature_conflicts_for_slug(isset($conflict['slug']) ? $conflict['slug'] : '', isset($conflict['type']) ? $conflict['type'] : '');
+                $conflict['html_rewrite_risk'] = self::conflict_has_html_rewrite_risk($conflict['features']) ? 1 : 0;
                 $conflict['recommendation'] = self::recommendation_for_conflict($conflict);
                 $unique[$conflict['type'] . ':' . $conflict['slug']] = $conflict;
             }
             return array_values($unique);
         }
 
+
+
+        protected static function feature_conflicts_for_slug($slug, $type = 'plugin') {
+            $slug = (string) $slug;
+            $map = array(
+                'wp-rocket/wp-rocket.php' => array('page_cache', 'critical_css', 'delay_js', 'lazyload', 'font_optimization', 'cdn_edge_cache'),
+                'litespeed-cache/litespeed-cache.php' => array('page_cache', 'critical_css', 'delay_js', 'lazyload', 'font_optimization', 'cdn_edge_cache'),
+                'flying-press/flying-press.php' => array('page_cache', 'critical_css', 'delay_js', 'lazyload', 'font_optimization', 'cdn_edge_cache'),
+                'autoptimize/autoptimize.php' => array('critical_css', 'delay_js', 'lazyload', 'font_optimization'),
+                'perfmatters/perfmatters.php' => array('delay_js', 'lazyload', 'font_optimization', 'asset_unload'),
+                'asset-clean-up/asset-clean-up.php' => array('asset_unload'),
+                'wp-asset-clean-up/wpacu.php' => array('asset_unload'),
+                'sg-cachepress/sg-cachepress.php' => array('page_cache', 'critical_css', 'delay_js', 'lazyload', 'font_optimization', 'cdn_edge_cache'),
+                'cloudflare-cache' => array('cdn_edge_cache', 'page_cache'),
+                'cloudflare/cloudflare.php' => array('cdn_edge_cache', 'page_cache'),
+                'wp-cloudflare-page-cache/wp-cloudflare-super-page-cache.php' => array('cdn_edge_cache', 'page_cache'),
+                'super-page-cache-for-cloudflare/wp-cloudflare-super-page-cache.php' => array('cdn_edge_cache', 'page_cache'),
+                'litespeed-server-cache' => array('page_cache', 'cdn_edge_cache'),
+                'server-cache' => array('page_cache', 'cdn_edge_cache'),
+                'advanced-cache.php' => array('page_cache'),
+            );
+            if (isset($map[$slug])) {
+                return $map[$slug];
+            }
+            if ('dropin' === $type && 'object-cache.php' === $slug) {
+                return array('object_cache_overlap');
+            }
+            return in_array($slug, self::page_cache_plugin_slugs(), true) ? array('page_cache') : array('css_js_rewrite');
+        }
+
+        protected static function conflict_has_html_rewrite_risk($features) {
+            foreach ((array) $features as $feature) {
+                if (in_array($feature, array('critical_css', 'delay_js', 'lazyload', 'font_optimization', 'asset_unload', 'css_js_rewrite'), true)) {
+                    return true;
+                }
+            }
+            return false;
+        }
 
 
         protected static function recommendation_for_conflict($conflict) {
@@ -293,10 +336,10 @@ trait UCP_Compat_Detection_Trait {
                 return __('Laat Redis/Memcached object cache als aparte laag werken en voorkom dubbele object-cache drop-ins.', 'ultracache-pro');
             }
             if (in_array($slug, array('autoptimize/autoptimize.php', 'perfmatters/perfmatters.php', 'asset-clean-up/asset-clean-up.php', 'wp-asset-clean-up/wpacu.php', 'fast-velocity-minify/fvm.php', 'async-javascript/async-javascript.php', 'jetpack-boost/jetpack-boost.php', 'debloat/debloat.php'), true)) {
-                return __('Schakel overlappende CSS/JS combine, delay of asset-unload opties in één van beide plugins uit.', 'ultracache-pro');
+                return __('Voorkom dubbele HTML-rewrites: laat één plugin per feature CSS, Delay JS, lazyload of asset-unload beheren. UltraCache schakelt niets blind uit; test wijzigingen op staging.', 'ultracache-pro');
             }
-            if (in_array($slug, array('cloudflare-cache', 'litespeed-server-cache', 'server-cache'), true)) {
-                return __('Gebruik UltraCache als applicatielaag en purge de server/CDN-laag expliciet na wijzigingen.', 'ultracache-pro');
+            if (in_array($slug, array('cloudflare-cache', 'cloudflare/cloudflare.php', 'wp-cloudflare-page-cache/wp-cloudflare-super-page-cache.php', 'litespeed-server-cache', 'server-cache'), true)) {
+                return __('Gebruik UltraCache als applicatielaag, voorkom dubbele page-cache/edge-cache regels en purge de server/CDN-laag expliciet na wijzigingen.', 'ultracache-pro');
             }
             return __('Controleer overlap met page cache, minify, preload, CDN of cache legen voordat je ingrijpende opties inschakelt.', 'ultracache-pro');
         }
@@ -310,6 +353,9 @@ trait UCP_Compat_Detection_Trait {
                     'type' => isset($conflict['type']) ? $conflict['type'] : '',
                     'severity' => isset($conflict['severity']) ? $conflict['severity'] : 'medium',
                     'recommendation' => isset($conflict['recommendation']) ? $conflict['recommendation'] : '',
+                    'features' => isset($conflict['features']) && is_array($conflict['features']) ? array_values($conflict['features']) : array(),
+                    'html_rewrite_risk' => !empty($conflict['html_rewrite_risk']),
+                    'double_rewrite_guard' => !empty($conflict['html_rewrite_risk']) ? __('Laat maar één plugin HTML-rewrites uitvoeren voor CSS, JS delay, lazyload, fonts of asset unload.', 'ultracache-pro') : '',
                 );
             }
             return $report;
@@ -344,7 +390,9 @@ trait UCP_Compat_Detection_Trait {
                     'wp-optimize/wp-optimize.php',
                     'fast-velocity-minify/fvm.php',
                     'jetpack-boost/jetpack-boost.php',
-                    'async-javascript/async-javascript.php'
+                    'async-javascript/async-javascript.php',
+                    'asset-clean-up/asset-clean-up.php',
+                    'wp-asset-clean-up/wpacu.php'
                 ), true)) {
                     return true;
                 }

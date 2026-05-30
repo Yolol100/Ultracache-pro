@@ -444,4 +444,100 @@ trait UCP_Options_Lifecycle_Trait {
 
 
 
+    /**
+     * Upgrade PageSpeed Auto with CSS/LCP profile infrastructure and preload v2 safety defaults.
+     * Keeps aggressive CSS removal disabled unless the existing delivery mode already enables it.
+     */
+    public static function maybe_upgrade_pagespeed_auto_v10() {
+        if ('2026-pagespeed-auto-v10' === get_option('ucp_performance_profile_version_v10', '')) {
+            return;
+        }
+
+        $settings = self::get_all();
+        $is_pagespeed = !empty($settings['autopilot_enabled']) || (isset($settings['active_preset']) && 'pagespeed_auto' === $settings['active_preset']);
+        if ($is_pagespeed) {
+            $settings['enable_css_profiles'] = 1;
+            $settings['css_profile_max_age_days'] = isset($settings['css_profile_max_age_days']) ? max(7, absint($settings['css_profile_max_age_days'])) : 14;
+            $settings['lcp_profile_min_confidence'] = isset($settings['lcp_profile_min_confidence']) ? max(80, absint($settings['lcp_profile_min_confidence'])) : 80;
+            $settings['lcp_profile_max_age_days'] = isset($settings['lcp_profile_max_age_days']) ? max(14, absint($settings['lcp_profile_max_age_days'])) : 21;
+            $settings['preload_pause_on_high_load'] = 1;
+            $settings['preload_menu_urls_limit'] = isset($settings['preload_menu_urls_limit']) ? max(20, absint($settings['preload_menu_urls_limit'])) : 40;
+            $settings['preload_recent_purge_limit'] = isset($settings['preload_recent_purge_limit']) ? max(20, absint($settings['preload_recent_purge_limit'])) : 30;
+
+            $safe_css = UCP_Helpers::normalize_multiline(isset($settings['used_css_safelist']) ? $settings['used_css_safelist'] : '');
+            $safe_css = array_merge($safe_css, array('elementor-popup', 'elementor-nav-menu', 'woocommerce-checkout', 'woocommerce-cart', 'woocommerce-account', 'order-pay', 'mobile-menu', 'sticky-header', 'swiper', 'slick', 'splide', 'popup', 'modal', 'cookie', 'consent', 'captcha', 'hidden', 'is-active', 'is-visible'));
+            $settings['used_css_safelist'] = implode("\n", array_values(array_unique(array_filter($safe_css, 'strlen'))));
+            self::update($settings);
+        }
+
+        update_option('ucp_performance_profile_version_v10', '2026-pagespeed-auto-v10', false);
+    }
+
+
+    /**
+     * Polish PageSpeed Auto safety defaults after the CSS/LCP profile rollout.
+     * Extends safelists only; it does not enable aggressive unload or CSS removal.
+     */
+    public static function maybe_upgrade_pagespeed_auto_v11() {
+        if ('2026-pagespeed-auto-v11' === get_option('ucp_performance_profile_version_v11', '')) {
+            return;
+        }
+
+        $settings = self::get_all();
+        $is_pagespeed = !empty($settings['autopilot_enabled']) || (isset($settings['active_preset']) && 'pagespeed_auto' === $settings['active_preset']);
+        if ($is_pagespeed) {
+            $safe_css = UCP_Helpers::normalize_multiline(isset($settings['used_css_safelist']) ? $settings['used_css_safelist'] : '');
+            $safe_css = array_merge($safe_css, array(
+                'elementor-hidden-mobile', 'elementor-hidden-tablet', 'elementor-hidden-desktop', 'elementor-sticky', 'elementor-motion-effects',
+                'menu-item-has-children', 'current-menu-item', 'current-menu-parent', 'current-menu-ancestor', 'sub-menu', 'mega-menu',
+                'woocommerce-notices-wrapper', 'woocommerce-NoticeGroup', 'wc-block-cart', 'wc-block-checkout', 'wc-block-components', 'wc-block-components-notice-banner',
+                'is-sticky', 'is-open', 'is-active', 'is-visible', 'is-expanded', 'aria-expanded', 'hidden-mobile', 'hidden-tablet', 'hidden-desktop',
+                'cmplz-', 'cc-window', 'cookie-notice', 'grecaptcha-badge', 'h-captcha', 'cf-turnstile',
+                'splide__', 'swiper-', 'slick-', 'fancybox', 'pswp', 'mfp-', 'modal', 'popup'
+            ));
+            $settings['used_css_safelist'] = implode("
+", array_values(array_unique(array_filter($safe_css, 'strlen'))));
+            $settings['lcp_profile_min_confidence'] = isset($settings['lcp_profile_min_confidence']) ? max(85, absint($settings['lcp_profile_min_confidence'])) : 85;
+            $settings['preload_delay_ms'] = isset($settings['preload_delay_ms']) ? max(250, absint($settings['preload_delay_ms'])) : 500;
+            self::update($settings);
+        }
+
+        update_option('ucp_performance_profile_version_v11', '2026-pagespeed-auto-v11', false);
+    }
+
+
+    /**
+     * Ultimate polish defaults for 11.0.22.
+     * Keeps risky features opt-in while extending safety lists and renderer/LCP guardrails.
+     */
+    public static function maybe_upgrade_pagespeed_auto_v12() {
+        if ('2026-pagespeed-auto-v12' === get_option('ucp_performance_profile_version_v12', '')) {
+            return;
+        }
+
+        $settings = self::get_all();
+        $is_pagespeed = !empty($settings['autopilot_enabled']) || (isset($settings['active_preset']) && 'pagespeed_auto' === $settings['active_preset']);
+        if ($is_pagespeed) {
+            $safe_css = UCP_Helpers::normalize_multiline(isset($settings['used_css_safelist']) ? $settings['used_css_safelist'] : '');
+            $safe_css = array_merge($safe_css, array(
+                ':focus', ':focus-visible', '[aria-expanded]', '[aria-hidden]', '.screen-reader-text', '.sr-only', '.skip-link',
+                '.has-modal-open', '.modal-open', '.is-menu-open', '.is-nav-open', '.is-submenu-open', '.is-transitioning',
+                '.wc-block-components-form', '.wc-block-components-checkout-step', '.wc-block-components-payment-methods', '.wc-block-components-totals-wrapper',
+                '.woocommerce-form-login', '.woocommerce-form-register', '.woocommerce-order-pay', '.woocommerce-order-received',
+                '.elementor-nav-menu--dropdown', '.elementor-menu-toggle', '.elementor-popup-modal', '.elementor-lightbox',
+                '.swiper-slide-active', '.swiper-slide-visible', '.slick-active', '.splide__slide.is-active', '.mfp-ready', '.pswp--open',
+                '.wpcf7-not-valid-tip', '.wpcf7-response-output', '.gfield_error', '.wpforms-error', '.fluentform-error', '.ff-message-success'
+            ));
+            $settings['used_css_safelist'] = implode("\n", array_values(array_unique(array_filter($safe_css, 'strlen'))));
+            $settings['lcp_profile_min_confidence'] = isset($settings['lcp_profile_min_confidence']) ? max(85, absint($settings['lcp_profile_min_confidence'])) : 85;
+            $settings['css_profile_max_age_days'] = isset($settings['css_profile_max_age_days']) ? min(30, max(7, absint($settings['css_profile_max_age_days']))) : 14;
+            $settings['enable_sensitive_asset_unload_override'] = 0;
+            $settings['enable_asset_test_mode'] = !empty($settings['enable_asset_test_mode']) ? 1 : 0;
+            self::update($settings);
+        }
+
+        update_option('ucp_performance_profile_version_v12', '2026-pagespeed-auto-v12', false);
+    }
+
+
 }

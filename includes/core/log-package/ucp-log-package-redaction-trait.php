@@ -12,7 +12,7 @@ trait UCP_Log_Package_Redaction_Trait {
             $clean = array();
             foreach ($value as $key => $item) {
                 $key_string = (string) $key;
-                if (preg_match('/(password|passwd|pwd|token|secret|api[_-]?key|license|nonce|cookie|authorization|auth|session)/i', $key_string)) {
+                if (preg_match('/(password|passwd|pwd|token|secret|api[_-]?key|license|nonce|cookie|authorization|auth|session|user[_-]?id|order|customer|email|phone|address|payment|cart|checkout)/i', $key_string)) {
                     $clean[$key] = '[redacted]';
                 } else {
                     $clean[$key] = self::redact($item);
@@ -48,7 +48,14 @@ trait UCP_Log_Package_Redaction_Trait {
             return '[redacted-url]';
         }
         $path = isset($parts['path']) ? $parts['path'] : '/';
+        if (self::is_sensitive_log_url_path($path)) {
+            $path = '/[redacted-path]';
+        }
         return esc_url_raw($parts['scheme'] . '://' . $parts['host'] . $path . (isset($parts['query']) ? '?[redacted-query]' : ''));
+    }
+
+    protected static function is_sensitive_log_url_path($path) {
+        return is_string($path) && (bool) preg_match('#/(order-pay|order-received|checkout|cart|my-account|account|payment|customer|session|token|nonce)(/|$)#i', $path);
     }
 
     protected static function add_redacted_text_file($zip, $name, $file) {

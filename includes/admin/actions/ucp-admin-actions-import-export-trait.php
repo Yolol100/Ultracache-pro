@@ -12,8 +12,12 @@ trait UCP_Admin_Actions_Import_Export_Trait {
         }
         check_admin_referer('ucp_export_settings');
         nocache_headers();
+        header('X-Content-Type-Options: nosniff');
+        header('X-Robots-Tag: noindex, nofollow', true);
+        header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
         header('Content-Type: application/json; charset=utf-8');
-        header('Content-Disposition: attachment; filename=ultracache-settings.json');
+        header('X-Download-Options: noopen');
+        header('Content-Disposition: attachment; filename="ultracache-settings.json"');
         $settings = UCP_Options::settings_for_export();
         echo wp_json_encode($settings, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
         exit;
@@ -26,8 +30,12 @@ trait UCP_Admin_Actions_Import_Export_Trait {
         check_admin_referer('ucp_download_support_report');
         $report = class_exists('UCP_Support_Report') ? UCP_Support_Report::generate() : array();
         nocache_headers();
+        header('X-Content-Type-Options: nosniff');
+        header('X-Robots-Tag: noindex, nofollow', true);
+        header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
         header('Content-Type: application/json; charset=utf-8');
-        header('Content-Disposition: attachment; filename=ultracache-support-report.json');
+        header('X-Download-Options: noopen');
+        header('Content-Disposition: attachment; filename="ultracache-support-report.json"');
         echo wp_json_encode($report, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
         exit;
     }

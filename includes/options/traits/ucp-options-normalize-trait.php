@@ -265,6 +265,7 @@ trait UCP_Options_Normalize_Trait {
         $settings['enable_delay_js'] = !empty($settings['enable_delay_js']) ? 1 : 0;
         $settings['enable_native_script_strategy'] = !empty($settings['enable_native_script_strategy']) ? 1 : 0;
         $settings['enable_move_module_scripts_footer'] = !empty($settings['enable_move_module_scripts_footer']) ? 1 : 0;
+        $settings['enable_sensitive_asset_unload_override'] = !empty($settings['enable_sensitive_asset_unload_override']) ? 1 : 0;
         if (!empty($settings['enable_js_combine'])) {
             $settings['enable_js_minify'] = 1;
             $settings['allow_experimental_js_minify'] = 1;
@@ -402,6 +403,17 @@ trait UCP_Options_Normalize_Trait {
         $settings['enable_font_display_swap'] = !empty($settings['enable_font_display_swap']) ? 1 : 0;
         $settings['enable_remove_query_strings'] = !empty($settings['enable_remove_query_strings']) ? 1 : 0;
         $settings['enable_light_preload_requests'] = !empty($settings['enable_light_preload_requests']) ? 1 : 0;
+        $settings['preload_pause_on_high_load'] = !empty($settings['preload_pause_on_high_load']) ? 1 : 0;
+        $settings['preload_max_server_load'] = min(32, max(1, absint(isset($settings['preload_max_server_load']) ? $settings['preload_max_server_load'] : 4)));
+        $settings['preload_menu_urls_limit'] = min(100, max(1, absint(isset($settings['preload_menu_urls_limit']) ? $settings['preload_menu_urls_limit'] : 40)));
+        $settings['preload_recent_purge_limit'] = min(100, max(1, absint(isset($settings['preload_recent_purge_limit']) ? $settings['preload_recent_purge_limit'] : 30)));
+        $settings['enable_css_profiles'] = !empty($settings['enable_css_profiles']) ? 1 : 0;
+        $settings['css_profile_max_age_days'] = min(90, max(1, absint(isset($settings['css_profile_max_age_days']) ? $settings['css_profile_max_age_days'] : 14)));
+        $settings['lcp_profile_min_confidence'] = min(100, max(50, absint(isset($settings['lcp_profile_min_confidence']) ? $settings['lcp_profile_min_confidence'] : 85)));
+        $settings['lcp_profile_max_age_days'] = min(90, max(1, absint(isset($settings['lcp_profile_max_age_days']) ? $settings['lcp_profile_max_age_days'] : 21)));
+        $allowed_lcp_hosts = class_exists('UCP_Helpers') ? UCP_Helpers::normalize_multiline(isset($settings['lcp_profile_allowed_hosts']) ? $settings['lcp_profile_allowed_hosts'] : '') : array();
+        $settings['lcp_profile_allowed_hosts'] = implode("
+", array_values(array_unique(array_filter(array_map('sanitize_text_field', $allowed_lcp_hosts), 'strlen'))));
         $settings['enable_lazy_render'] = !empty($settings['enable_lazy_render']) ? 1 : 0;
         $settings['enable_self_host_third_party_assets'] = !empty($settings['enable_self_host_third_party_assets']) ? 1 : 0;
         $settings['enable_disable_dashicons'] = !empty($settings['enable_disable_dashicons']) ? 1 : 0;

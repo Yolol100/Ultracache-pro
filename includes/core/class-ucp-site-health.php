@@ -34,6 +34,10 @@ class UCP_Site_Health {
             'label' => __('UltraCache drop-in configuratie', 'ultracache-pro'),
             'test'  => array(__CLASS__, 'test_dropin_config'),
         );
+        $tests['direct']['ucp_runtime_tests'] = array(
+            'label' => __('UltraCache runtime-tests', 'ultracache-pro'),
+            'test'  => array(__CLASS__, 'test_runtime_tests'),
+        );
         return $tests;
     }
 
@@ -100,4 +104,49 @@ class UCP_Site_Health {
             'test'        => 'ucp_dropin_config',
         );
     }
+
+    public static function test_runtime_tests() {
+        $latest = class_exists('UCP_Runtime_Tests') ? UCP_Runtime_Tests::latest() : array();
+        $generated = isset($latest['generated_at']) ? (string) $latest['generated_at'] : '';
+        $warnings = array();
+        foreach ($latest as $key => $result) {
+            if (!is_array($result) || empty($result['status'])) {
+                continue;
+            }
+            if ('warning' === $result['status']) {
+                $warnings[] = sanitize_key((string) $key);
+            }
+        }
+
+        $has_results = !empty($generated);
+        $ok = $has_results && empty($warnings);
+        $parts = array();
+        if (!$has_results) {
+            $parts[] = __('Runtime-tests zijn nog niet uitgevoerd. Draai het controlepakket in UltraCache Tools of via WP-CLI.', 'ultracache-pro');
+        } elseif (!empty($warnings)) {
+            $parts[] = sprintf(
+                /* translators: %s: comma-separated runtime test keys. */
+                __('Runtime-tests vragen aandacht: %s.', 'ultracache-pro'),
+                implode(', ', $warnings)
+            );
+        } else {
+            $parts[] = __('De laatst opgeslagen UltraCache runtime-tests bevatten geen waarschuwingen.', 'ultracache-pro');
+        }
+        if ($generated) {
+            $parts[] = sprintf(
+                /* translators: %s: GMT datetime. */
+                __('Laatste run: %s GMT.', 'ultracache-pro'),
+                $generated
+            );
+        }
+
+        return array(
+            'label'       => $ok ? __('UltraCache runtime-tests zijn in orde', 'ultracache-pro') : __('UltraCache runtime-tests vragen aandacht', 'ultracache-pro'),
+            'status'      => $ok ? 'good' : 'recommended',
+            'badge'       => array('label' => __('Compatibiliteit', 'ultracache-pro'), 'color' => 'blue'),
+            'description' => '<p>' . esc_html(implode(' ', $parts)) . '</p>',
+            'test'        => 'ucp_runtime_tests',
+        );
+    }
+
 }

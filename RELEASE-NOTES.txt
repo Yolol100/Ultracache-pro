@@ -1,11 +1,93 @@
+UltraCache Pro 11.0.33
+- Delay-JS safe-exclusion lijst uitgebreid met gangbare payment SDKs: Braintree, Razorpay, Square, Paddle, Authorize.Net.
+- Delay-JS safe-exclusion lijst uitgebreid met consent managers: CookieYes/Cookie Law Info, Usercentrics, iubenda.
+- Pure data/allowlist-wijziging in compat/delay-js-exclusions.json (13 entries, idempotent additief samengevoegd).
+- Effect strikt conservatief: deze scripts worden niet langer vertraagd; kan nooit méér scripts vertragen. Inert op sites die ze niet laden.
+- Autopilot/PageSpeed-Auto pad ongewijzigd (eigen hardcoded lijst). Geen PHP-logica, hooks, REST-namespace of option keys gewijzigd.
+- Versie consistent bijgewerkt: header, UCP_VERSION, readme stable tag, RELEASE-NOTES.
 
-## 11.0.19 - Resource Hints and font priority
+UltraCache Pro 11.0.32
+- Echte kleinere productievarianten gemaakt voor React admin CSS/JS assets, zodat `.min` bestanden niet langer identiek zijn aan de debugbestanden.
+- Ontbrekende 11.0.30 releasehistorie toegevoegd voor betere traceability.
+- Versie- en vertaalmetadata gelijkgetrokken naar 11.0.32.
+- Geen runtime- of businesslogica gewijzigd; deze build is gericht op release-hygiëne.
 
-- Added automatic resource-hint recommendations from the latest frontend asset snapshot.
-- Added conservative auto preconnect and DNS-prefetch limits to avoid over-hinting.
-- Added safe local-font preload candidate storage for cached Google Fonts.
-- Included auto font preload candidates in HTML preload links and Early Hints candidates.
-- Added PageSpeed Auto v9 migration for the new hint infrastructure without forcing aggressive defaults.
+UltraCache Pro 11.0.31
+- React admin tab-deeplinking gerepareerd voor bestaande admin-links, redirects en tab-queryparameters.
+- Bulk-action JavaScript runtime fix toegevoegd: veilige sprintf-fallback.
+- Admin-router accepteert dashboard als compatibiliteitsalias voor overzicht.
+- POT/release metadata gelijkgetrokken.
+- Geen risicovolle cleanup uitgevoerd; dynamisch gebruikte WordPress-onderdelen behouden.
+
+UltraCache Pro 11.0.30
+- Added admin-only diagnostics quality-summary endpoint for release and support checks.
+- Extended support reports and log packages with quality summary and runtime-test snapshots.
+- Added WP-CLI diagnostics and runtime-test commands with JSON output support.
+- Added Site Health runtime-test visibility and competitive feature matrix documentation.
+
+UltraCache Pro 11.0.29
+- Hardened sensitive admin downloads with nosniff, noindex and no-store response headers.
+- Reduced public CWV beacon token window from weekly to daily buckets while keeping the previous bucket for cached frontend HTML.
+- Release package hygiene: development Composer/Scoper files are excluded from the fixed distribution zip.
+
+## 11.0.26 - Bugfix privacy URL and user-id log hardening
+- Redacts user identifiers in support-package JSONL log rows and context payloads.
+- Redacts sensitive WooCommerce/account/payment URL path markers in helper and support-package log URL redaction.
+- Keeps cache, CSS/LCP, preload, Asset Manager and admin UI behavior unchanged.
+
+## 11.0.25 - Bugfix privacy log hardening
+
+- Redacts plain-text helper log messages before writing events.log.
+- Redacts REST log query rows before returning them to the admin UI, including legacy rows stored before this build.
+- Redacts logger request URLs before database storage by stripping query strings.
+- No feature behavior changes; staging runtime testing remains required for browser, WooCommerce and payment flows.
+
+## 11.0.24 - Runtime acceptance privacy hardening
+
+- Hardened diagnostics/log redaction for WooCommerce/order, customer, payment, cart and session-related context keys.
+- Added release-candidate QA notes for static validation and staging runtime gates.
+
+## 11.0.23 - WordPress-native admin UI polish
+
+- Polished the React admin toward native WordPress/Gutenberg visual rhythm without changing cache or optimization behavior.
+- Added compact native admin header status, accessible tab semantics, a DataViews-like PageSpeed Readiness summary and clearer Asset Manager microcopy.
+- Improved scoped admin CSS for cards, badges, focus states, loading states, readiness details, asset rows and responsive wp-admin behavior.
+- Kept REST, nonce, capability and admin asset scope protections intact.
+
+## 11.0.22 - Ultimate polish, release hardening and fail-closed guards
+
+- Added CSS profile expiry metadata, renderer status and protected-wins enforcement so protected CSS cannot also be treated as delayed/removable.
+- Added optional LCP CDN host allowlist support while keeping measured page URLs same-origin and text LCP excluded from automatic preload/fetchpriority.
+- Asset Manager now skips all unload rules on WooCommerce/account/payment-sensitive requests unless an explicit manual override is enabled.
+- Improved preload crawler skip/status reasons for sensitive URLs, dynamic nonce/query URLs, redirects and unsupported content types.
+- Expanded Conflict Guard Cloudflare Super Page Cache detection and duplicate HTML rewrite guidance.
+- Expanded PageSpeed Readiness diagnostics with advanced-cache, writability, font preload, WooCommerce safety and REST/admin security status.
+- Added PageSpeed Auto v12 migration with extra Elementor/WooCommerce/forms/menu/accessibility safelists and safe defaults only.
+
+## 11.0.21 - Release polish and safety hardening
+
+- Hardened CSS profile storage: external renderer rows are sanitized, bounded and re-routed away from safe-removal on sensitive WooCommerce/account/payment URLs.
+- Raised PageSpeed Auto LCP confidence defaults from 80 to 85 for automatic preload/fetchpriority use.
+- Added LCP resource safety checks so automatic profile-based preloads only use same-origin image-like resources, not arbitrary local pages.
+- Added per-URL/device LCP stale rollback helper for bad measured profiles or layout changes.
+- Cleaned Conflict Guard plugin detection and added Cloudflare / Cloudflare Super Page Cache plugin-level edge-cache overlap reporting.
+- Added Asset Manager rule aliases for unload/protect, URL exceptions, post type, device and logged-in/logged-out scopes without changing existing rule syntax.
+- Hardened preload status metadata sanitization to avoid noisy nested-value casts in diagnostics.
+- Added PageSpeed Auto v11 safelist polish migration for Elementor responsive states, WooCommerce blocks/notices, menu states, consent/CAPTCHA widgets and common slider/modal states.
+
+
+## 11.0.20 - CSS/LCP profiles, Preload v2 and PageSpeed readiness
+
+- Added conservative per-URL CSS profile infrastructure with explicit buckets for critical CSS, delayed CSS, safely removable CSS and protected CSS.
+- Added dynamic CSS safelists for Elementor, WooCommerce, menus, popups, sliders, forms, sticky headers, responsive hidden states, consent/cookie banners and CAPTCHA assets.
+- Added high-confidence LCP profiles per URL and device, including resource URL, srcset/sizes, selector hint, confidence score, type and freshness status.
+- Automatic LCP preload/fetchpriority now uses only fresh, high-confidence profiles; stale profiles fail closed and are marked for regeneration.
+- Added Preload Crawler v2 priorities for homepage, recently purged URLs, menu URLs, recently modified content and sitemap URLs.
+- Added preload URL statuses: pending, processing, cached, skipped and failed, including skip reasons and throttling/high-load pause support.
+- Expanded Asset Manager rules with URL/path exception scopes, post type/device scopes and logged-out rules, while protected assets remain blocked.
+- Expanded Conflict Guard with feature-level overlap reporting for page cache, Critical CSS, Delay JS, lazyload, font optimization, CDN/edge cache and asset unload.
+- Added PageSpeed Readiness diagnostics for cache, LCP, CSS, JS delay, resource hints, asset unload test mode, preload and conflicts.
+- Added PageSpeed Auto v10 migration for safe defaults without forcing aggressive CSS/JS rewrites.
 
 ## 11.0.18 - Asset Intelligence and conflict guard
 - Adds Asset Intelligence to the Asset Manager snapshot: owner grouping, risk levels, reasons and safe unload recommendations.

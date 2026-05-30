@@ -19,6 +19,12 @@ trait UCP_CSS_Generation_Trait {
             return true;
         }
 
+        if (class_exists('UCP_CSS_Profile') && UCP_CSS_Profile::is_sensitive_url($url)) {
+            self::mark_artifact_status($url, 'skipped', 'Gevoelige dynamische URL; agressieve CSS-optimalisatie overgeslagen.');
+            UCP_Helpers::log('CSS-opbouw veilig overgeslagen voor gevoelige URL: ' . $url);
+            return true;
+        }
+
         $used_path = UCP_Helpers::get_used_css_path($url);
         $critical_path = UCP_Helpers::get_critical_css_path($url);
         $critical_required = UCP_Options::get('enable_critical_css') || UCP_Options::get('enable_local_critical_css') || 'async' === UCP_Options::get('css_delivery_mode', 'none');
@@ -67,6 +73,13 @@ trait UCP_CSS_Generation_Trait {
             self::mark_artifact_status($url, 'skipped', 'Geen stylesheet-links gevonden om te optimaliseren.');
             UCP_Helpers::log('CSS-opbouw overgeslagen omdat er geen stylesheet-links zijn gevonden voor ' . $url);
             return true;
+        }
+        $stylesheet_links = array();
+        foreach ((array) $matches[1] as $index => $href) {
+            $stylesheet_links[] = array(
+                'href' => $href,
+                'tag'  => isset($matches[0][$index]) ? $matches[0][$index] : '',
+            );
         }
 
         $css_blob = '';
@@ -137,10 +150,21 @@ trait UCP_CSS_Generation_Trait {
 
         self::cleanup_artifact_backups($backups);
 
-        self::mark_artifact_status($url, 'success', 'CSS-artifacts succesvol opgebouwd.', array(
+        $css_profile_summary = array();
+        if (class_exists('UCP_CSS_Profile')) {
+            $css_profile = UCP_CSS_Profile::build_from_html($url, $html, $stylesheet_links, $used_css, $critical);
+            UCP_CSS_Profile::store_profile($url, $css_profile);
+            $css_profile_summary = array(
+                'protected_css' => !empty($css_profile['protected_css']) && is_array($css_profile['protected_css']) ? count($css_profile['protected_css']) : 0,
+                'delayed_css' => !empty($css_profile['delayed_css']) && is_array($css_profile['delayed_css']) ? count($css_profile['delayed_css']) : 0,
+                'safe_removal_candidates' => !empty($css_profile['safely_removable_css']) && is_array($css_profile['safely_removable_css']) ? count($css_profile['safely_removable_css']) : 0,
+            );
+        }
+
+        self::mark_artifact_status($url, 'success', 'CSS-artifacts succesvol opgebouwd.', array_merge(array(
             'used_bytes' => strlen($used_css),
             'critical_bytes' => strlen($critical),
-        ));
+        ), $css_profile_summary));
         UCP_Helpers::log('Generated local CSS artifacts for ' . $url);
         return true;
     }

@@ -16,6 +16,13 @@ trait UCP_Assets_Unload_Trait {
             ));
             return;
         }
+        if ($this->asset_manager_request_is_sensitive() && !UCP_Options::get('enable_sensitive_asset_unload_override')) {
+            UCP_Diagnostics::record('assets', 'Skipped asset unloads on a sensitive checkout/account/payment request.', array(
+                'url' => class_exists('UCP_Helpers') ? esc_url_raw(UCP_Helpers::current_full_url()) : '',
+                'reason' => 'sensitive_request_fail_closed',
+            ));
+            return;
+        }
 
         $style_handles = UCP_Helpers::normalize_multiline(UCP_Options::get('disabled_style_handles', ''));
         $script_handles = UCP_Helpers::normalize_multiline(UCP_Options::get('disabled_script_handles', ''));
@@ -233,7 +240,7 @@ trait UCP_Assets_Unload_Trait {
         $haystack = strtolower($handle . ' ' . $src);
         $protected = array(
             'jquery', 'jquery-core', 'jquery-migrate', 'wp-i18n', 'wp-hooks', 'wp-element', 'wp-components', 'wp-api-fetch', 'wp-polyfill',
-            'wc-', 'woocommerce', 'cart-fragments', 'wc-cart-fragments', 'wc-checkout', 'checkout', 'cart', 'payment', 'stripe', 'paypal', 'mollie', 'klarna', 'adyen', 'ideal', 'apple-pay', 'google-pay',
+            'wc-', 'woocommerce', 'woocommerce-blocks', 'wc-block-', 'cart-fragments', 'wc-cart-fragments', 'wc-checkout', 'wc-cart', 'wc-add-to-cart', 'checkout', 'cart', 'order-pay', 'order-received', 'payment', 'stripe', 'paypal', 'mollie', 'klarna', 'adyen', 'ideal', 'apple-pay', 'google-pay',
             'recaptcha', 'grecaptcha', 'hcaptcha', 'turnstile', 'captcha',
             'contact-form-7', 'wpcf7', 'gravityforms', 'gform', 'wpforms', 'fluentform', 'ninja-forms', 'formidable',
             'complianz', 'cookiebot', 'cookieyes', 'borlabs', 'consent', 'cookie',
@@ -289,7 +296,7 @@ trait UCP_Assets_Unload_Trait {
             }
         }
         $url = class_exists('UCP_Helpers') ? UCP_Helpers::current_full_url() : '';
-        return (bool) preg_match('#/(cart|checkout|my-account|account|order-pay|add-payment-method|wp-login\.php|wp-admin)(/|$)#i', (string) $url);
+        return (bool) preg_match('#/(cart|checkout|my-account|account|order-pay|order-received|add-payment-method|customer-logout|wp-login\.php|wp-admin)(/|$)#i', (string) $url);
     }
 
     private function asset_owner_from_src($src) {
@@ -389,10 +396,34 @@ trait UCP_Assets_Unload_Trait {
         $scope = isset($parts[3]) ? sanitize_key($parts[3]) : 'all';
         $value = isset($parts[4]) ? trim((string) $parts[4]) : '';
 
+        $action_aliases = array(
+            'unload' => 'disable',
+            'disable' => 'disable',
+            'block' => 'disable',
+            'keep' => 'keep',
+            'protect' => 'keep',
+            'rollback' => 'keep',
+        );
+        $scope_aliases = array(
+            'this_url' => 'url_contains',
+            'on_this_url' => 'url_contains',
+            'except_this_url' => 'url_not_contains',
+            'except_url' => 'url_not_contains',
+            'except_path' => 'path_not_contains',
+            'by_post_type' => 'post_type',
+            'except_post_type' => 'post_type_not',
+            'by_device' => 'device',
+            'except_device' => 'device_not',
+            'only_logged_out' => 'logged_out',
+            'only_logged_in' => 'logged_in',
+        );
+        $action = isset($action_aliases[$action]) ? $action_aliases[$action] : $action;
+        $scope = isset($scope_aliases[$scope]) ? $scope_aliases[$scope] : $scope;
+
         if (!in_array($kind, array('style', 'script'), true) || '' === $handle || !in_array($action, array('disable', 'keep'), true)) {
             return array();
         }
-        if (!in_array($scope, array('all', 'url_contains', 'path_contains', 'post_type', 'archive', 'device', 'logged_in', 'logged_out', 'regex', 'front_page', 'singular', '404'), true)) {
+        if (!in_array($scope, array('all', 'url_contains', 'path_contains', 'url_not_contains', 'path_not_contains', 'post_type', 'post_type_not', 'archive', 'device', 'device_not', 'logged_in', 'logged_out', 'regex', 'front_page', 'singular', '404'), true)) {
             $scope = 'all';
         }
         return array(
@@ -417,8 +448,14 @@ trait UCP_Assets_Unload_Trait {
                 return '' !== $value && false !== stripos($url, $value);
             case 'path_contains':
                 return '' !== $value && false !== stripos($path, $value);
+            case 'url_not_contains':
+                return '' !== $value && false === stripos($url, $value);
+            case 'path_not_contains':
+                return '' !== $value && false === stripos($path, $value);
             case 'post_type':
                 return '' !== $value && is_singular($value);
+            case 'post_type_not':
+                return '' !== $value && !is_singular($value);
             case 'archive':
                 return is_archive() && ('' === $value || is_post_type_archive($value) || is_tax($value) || is_category($value) || is_tag($value));
             case 'device':
@@ -427,6 +464,14 @@ trait UCP_Assets_Unload_Trait {
                 }
                 if ('desktop' === strtolower($value)) {
                     return !wp_is_mobile();
+                }
+                return false;
+            case 'device_not':
+                if ('mobile' === strtolower($value)) {
+                    return !wp_is_mobile();
+                }
+                if ('desktop' === strtolower($value)) {
+                    return wp_is_mobile();
                 }
                 return false;
             case 'logged_in':
