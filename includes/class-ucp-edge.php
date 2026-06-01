@@ -172,7 +172,18 @@ class UCP_Edge {
     }
 
     protected static function request($path, $body) {
-        $zone_id = sanitize_text_field(UCP_Options::get('cloudflare_zone_id'));
+        $zone_id = strtolower(sanitize_text_field(UCP_Options::get('cloudflare_zone_id')));
+        if (1 !== preg_match('/^[a-f0-9]{32}$/', $zone_id)) {
+            UCP_Helpers::log('Cloudflare-aanvraag overgeslagen: ongeldige zone-id.');
+            return false;
+        }
+
+        $path = '/' . ltrim((string) $path, '/');
+        if (!in_array($path, array('/purge_cache'), true)) {
+            UCP_Helpers::log('Cloudflare-aanvraag overgeslagen: ongeldig endpoint-pad.');
+            return false;
+        }
+
         $token = (string) UCP_Options::get('cloudflare_api_token');
         // Strip newline characters and trim whitespace from the API token. If it becomes empty, abort.
         $token = trim(str_replace(array("\r", "\n"), '', $token));

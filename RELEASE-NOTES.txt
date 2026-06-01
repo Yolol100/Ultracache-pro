@@ -1,3 +1,10 @@
+Release 11.0.39 - second hardening pass
+
+- Synchronized plugin header, readme stable tag, translation template and UCP_VERSION constant.
+- Prevented automatic advanced-cache.php installation when allow_dropin_writes is disabled.
+- Added stricter Cloudflare API request validation for zone IDs and supported endpoint paths.
+- Kept explicit admin repair/quick-enable flows intact because those intentionally enable write permissions before installing the drop-in.
+
 Release 11.0.38 - static hardening pass
 - Security-first default: nieuwe installaties schrijven wp-config.php en drop-ins pas na expliciete adminactie in plaats van tijdens standaard activatie/import.
 - Import hardening: instellingenimport behandelt uploadmetadata veld-voor-veld en accepteert alleen gecontroleerde json/txt-extensies.

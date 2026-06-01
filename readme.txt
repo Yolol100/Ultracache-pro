@@ -4,7 +4,7 @@ Tags: cache, performance, core web vitals, critical css, used css
 Requires at least: 6.3
 Tested up to: 6.9
 Requires PHP: 8.0
-Stable tag: 11.0.38
+Stable tag: 11.0.39
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -69,6 +69,12 @@ UltraCache Pro may store cache metadata, diagnostic records, Core Web Vitals sam
 4. Diagnostics and Core Web Vitals overview.
 
 == Changelog ==
+
+= 11.0.39 =
+* Fixed internal UCP_VERSION mismatch so cache keys, migrations and asset versions match the release header.
+* Hardened automatic advanced-cache installation so drop-in writes remain disabled unless explicitly allowed by an admin action/setting.
+* Added stricter Cloudflare API request validation for zone IDs and supported endpoint paths.
+* Refreshed release metadata after the second static hardening pass.
 
 = 11.0.37 =
 * Tweak: LCP-detectie scant het document nog maar één keer — de aparte <img>- en alle-tags-passes in detect_lcp_image_candidate() zijn samengevoegd tot één tag-walk.

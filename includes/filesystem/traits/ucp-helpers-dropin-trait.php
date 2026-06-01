@@ -162,6 +162,23 @@ trait UCP_Helpers_Dropin_Trait {
 
     public static function install_own_advanced_cache_with_backup() {
         self::ensure_cache_dirs();
+
+        if (!UCP_Options::get('allow_dropin_writes')) {
+            self::log_throttled('advanced_cache_install_disabled', 'Skipped advanced-cache installation: allow_dropin_writes disabled.');
+            update_option('ucp_advanced_cache_auto_status', array(
+                'status'      => 'blocked_dropin_writes_disabled',
+                'detected_at' => current_time('mysql', true),
+            ), false);
+            return array(
+                'wp_cache'           => self::has_valid_wp_cache_constant(),
+                'installed'          => false,
+                'preserved_existing' => false,
+                'blocked'            => true,
+                'reason'             => 'dropin_writes_disabled',
+                'backup'             => '',
+            );
+        }
+
         self::write_dropin_config(true);
         $wp_cache_ok = self::ensure_wp_cache_constant();
         $target = WP_CONTENT_DIR . '/advanced-cache.php';
