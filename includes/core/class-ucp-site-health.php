@@ -38,7 +38,29 @@ class UCP_Site_Health {
             'label' => __('UltraCache runtime-tests', 'ultracache-pro'),
             'test'  => array(__CLASS__, 'test_runtime_tests'),
         );
+        $tests['direct']['ucp_dependency_status'] = array(
+            'label' => __('UltraCache Composer dependencies', 'ultracache-pro'),
+            'test'  => array(__CLASS__, 'test_dependency_status'),
+        );
         return $tests;
+    }
+
+    public static function test_dependency_status() {
+        $status = function_exists('ucp_dependency_status') ? ucp_dependency_status() : array();
+        $missing = array();
+        foreach ($status as $key => $available) {
+            if (!$available) {
+                $missing[] = sanitize_key((string) $key);
+            }
+        }
+        $ok = empty($missing);
+        return array(
+            'label'       => $ok ? __('UltraCache Composer dependencies zijn beschikbaar', 'ultracache-pro') : __('UltraCache gebruikt fallback-minifiers', 'ultracache-pro'),
+            'status'      => $ok ? 'good' : 'recommended',
+            'badge'       => array('label' => __('Release', 'ultracache-pro'), 'color' => 'blue'),
+            'description' => '<p>' . esc_html($ok ? __('De gebundelde CSS/JS parser- en minify-libraries zijn geladen.', 'ultracache-pro') : sprintf(__('Ontbrekende libraries: %s. UltraCache blijft werken met ingebouwde fallbacks, maar de release-build moet vendor-scoped/autoload.php of vendor/autoload.php bundelen voor volledige minify/parsing.', 'ultracache-pro'), implode(', ', $missing))) . '</p>',
+            'test'        => 'ucp_dependency_status',
+        );
     }
 
     public static function test_cache_dir() {

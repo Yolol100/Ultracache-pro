@@ -28,6 +28,7 @@ class UCP_Support_Report {
                 'wp_cache_constant' => defined('WP_CACHE') && WP_CACHE,
                 'advanced_cache_owned' => class_exists('UCP_Helpers') && file_exists(WP_CONTENT_DIR . '/advanced-cache.php') ? UCP_Helpers::is_own_advanced_cache(UCP_Helpers::read_file(WP_CONTENT_DIR . '/advanced-cache.php')) : false,
                 'object_cache_dropin' => file_exists(WP_CONTENT_DIR . '/object-cache.php'),
+                'dependency_status'  => function_exists('ucp_dependency_status') ? ucp_dependency_status() : array(),
             ),
             'active_plugins' => function_exists('get_option') ? (array) get_option('active_plugins', array()) : array(),
             'conflicts' => UCP_Compat::conflict_report(),

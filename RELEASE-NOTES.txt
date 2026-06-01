@@ -217,3 +217,5 @@ Validation before production:
 - Run in a clean WordPress staging install.
 - Run Plugin Check or wp plugin check ultracache-pro --format=json.
 - Test activation, deactivation, uninstall, cache purge, preload and WooCommerce cart/checkout/account/order-pay flows.
+11.0.39 file-by-file hardening follow-up
+- Added a Site Health/support-report dependency check for optional Composer parser/minifier libraries so fallback-only release builds are visible before production rollout.

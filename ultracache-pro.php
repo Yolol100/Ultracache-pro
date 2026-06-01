@@ -56,6 +56,24 @@ if (!function_exists('ucp_dependency_class')) {
         return class_exists($class) ? $class : '';
     }
 }
+if (!function_exists('ucp_dependency_status')) {
+    /**
+     * Report optional Composer dependency availability without causing frontend fatals.
+     *
+     * The plugin has native fallbacks for CSS/JS minification and used-CSS parsing,
+     * but release builds should still expose whether the stronger Composer libraries
+     * are actually bundled and loadable.
+     *
+     * @return array<string,bool>
+     */
+    function ucp_dependency_status() {
+        return array(
+            'sabberworm_css_parser' => '' !== ucp_dependency_class('Sabberworm\\CSS\\Parser'),
+            'matthias_css_minify'   => '' !== ucp_dependency_class('MatthiasMullie\\Minify\\CSS'),
+            'matthias_js_minify'    => '' !== ucp_dependency_class('MatthiasMullie\\Minify\\JS'),
+        );
+    }
+}
 if (!function_exists('ucp_table_name')) {
     /**
      * Return the plugin-owned table for the current blog prefix.
