@@ -68,30 +68,14 @@ trait UCP_CSS_Generation_Trait {
             return false;
         }
 
-        preg_match_all('#<link\b(?=[^>]*\brel=["\']stylesheet["\'])(?=[^>]*\bhref=["\']([^"\']+)["\'])[^>]*>#i', $html, $matches);
-        if (empty($matches[1])) {
+        $stylesheet_links = self::collect_stylesheet_links($html);
+        if (empty($stylesheet_links)) {
             self::mark_artifact_status($url, 'skipped', 'Geen stylesheet-links gevonden om te optimaliseren.');
             UCP_Helpers::log('CSS-opbouw overgeslagen omdat er geen stylesheet-links zijn gevonden voor ' . $url);
             return true;
         }
-        $stylesheet_links = array();
-        foreach ((array) $matches[1] as $index => $href) {
-            $stylesheet_links[] = array(
-                'href' => $href,
-                'tag'  => isset($matches[0][$index]) ? $matches[0][$index] : '',
-            );
-        }
 
-        $css_blob = '';
-        foreach ($matches[1] as $href) {
-            if (!UCP_Helpers::is_local_url($href)) {
-                continue;
-            }
-            $path = UCP_Helpers::local_path_from_url($href);
-            if ($path && is_file($path) && preg_match('~\.css$~i', $path)) {
-                $css_blob .= "\n" . (string) UCP_Helpers::read_file($path);
-            }
-        }
+        $css_blob = self::collect_local_stylesheet_css($stylesheet_links);
         if ('' === trim($css_blob)) {
             self::mark_artifact_status($url, 'skipped', 'Geen lokale CSS-inhoud gevonden om te optimaliseren.');
             UCP_Helpers::log('CSS-opbouw overgeslagen omdat er geen lokale CSS-inhoud is gevonden voor ' . $url);
@@ -167,6 +151,46 @@ trait UCP_CSS_Generation_Trait {
         ), $css_profile_summary));
         UCP_Helpers::log('Generated local CSS artifacts for ' . $url);
         return true;
+    }
+
+
+    /**
+     * Collect stylesheet link tags from fetched HTML while preserving href/tag pairs.
+     *
+     * @param string $html HTML source.
+     * @return array<int,array<string,string>>
+     */
+    private static function collect_stylesheet_links($html) {
+        preg_match_all('#<link\b(?=[^>]*\brel=["\']stylesheet["\'])(?=[^>]*\bhref=["\']([^"\']+)["\'])[^>]*>#i', (string) $html, $matches);
+        $links = array();
+        foreach ((array) ($matches[1] ?? array()) as $index => $href) {
+            $links[] = array(
+                'href' => $href,
+                'tag'  => isset($matches[0][$index]) ? $matches[0][$index] : '',
+            );
+        }
+        return $links;
+    }
+
+    /**
+     * Read same-origin CSS files referenced by stylesheet links.
+     *
+     * @param array $stylesheet_links Stylesheet link data.
+     * @return string
+     */
+    private static function collect_local_stylesheet_css($stylesheet_links) {
+        $css_blob = '';
+        foreach ((array) $stylesheet_links as $link) {
+            $href = isset($link['href']) ? (string) $link['href'] : '';
+            if (!UCP_Helpers::is_local_url($href)) {
+                continue;
+            }
+            $path = UCP_Helpers::local_path_from_url($href);
+            if ($path && is_file($path) && preg_match('~\.css$~i', $path)) {
+                $css_blob .= "\n" . (string) UCP_Helpers::read_file($path);
+            }
+        }
+        return $css_blob;
     }
 
 }

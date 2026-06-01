@@ -10,19 +10,17 @@
     var sprintf = wp.i18n.sprintf || function (format) {
         var args = Array.prototype.slice.call(arguments, 1);
         var index = 0;
-        return String(format || '').replace(/%\d/g, function () {
+        return String(format || '').replace(/%([0-9]+\$)?[sd]/g, function () {
             var value = args[index++];
             return typeof value === 'undefined' ? '' : String(value);
         });
     };
     var apiFetch = wp.apiFetch;
     var c = wp.components;
-    var Card = c.Card, CardHeader = c.CardHeader, CardBody = c.CardBody, CardFooter = c.CardFooter;
-    var Button = c.Button, Notice = c.Notice, Spinner = c.Spinner, Placeholder = c.Placeholder;
+    var Card = c.Card, CardHeader = c.CardHeader, CardBody = c.CardBody;
+    var Button = c.Button, Notice = c.Notice;
     var ToggleControl = c.ToggleControl, TextControl = c.TextControl, TextareaControl = c.TextareaControl;
-    var SelectControl = c.SelectControl, Panel = c.Panel, PanelBody = c.PanelBody;
-    var ExternalLink = c.ExternalLink;
-    var Dashicon = c.Dashicon || null;
+    var SelectControl = c.SelectControl;
     var NumberControl = c.__experimentalNumberControl || c.NumberControl || TextControl;
     var config = window.UCP_ADMIN_CONFIG || {};
 
@@ -79,16 +77,6 @@
         } catch (e) {
             return 'dashboard';
         }
-    }
-
-    function updateTabInLocation(tab) {
-        try {
-            var normalized = normalizeTabKey(tab);
-            var url = new URL(window.location.href);
-            url.searchParams.set('page', 'ultracache-pro');
-            url.searchParams.set('tab', normalized === 'dashboard' ? 'overview' : normalized);
-            window.history.replaceState(null, '', url.toString());
-        } catch (e) {}
     }
 
     function slugify(text) {
@@ -233,13 +221,7 @@
     function saveSettings(settings){ return request('settings', {method:'POST', data:settings}); }
     function saveBulk(settings){ return request('settings/bulk', {method:'POST', data:settings}); }
     function runAction(action){ return request('actions/' + action, {method:'POST'}); }
-    function getJobs(){ return request('diagnostics/jobs'); }
-    function getLogs(){ return request('diagnostics/logs'); }
-    function getRequests(){ return request('diagnostics/requests'); }
-    function getBrowserScan(){ return request('diagnostics/browser-scan'); }
     function getAssetSnapshot(){ return request('diagnostics/asset-snapshot'); }
-    function getPageSpeedReadiness(){ return request('diagnostics/pagespeed-readiness'); }
-    function saveBrowserScan(payload){ return request('actions/browser-scan', {method:'POST', data:payload}); }
     function scanPreset(){ return request('scan-preset'); }
     function exportSettings(){ return request('settings/export'); }
     function importSettings(payload){ return request('settings/import', {method:'POST', data:{settings:payload, confirmBackup:true}}); }
@@ -265,20 +247,6 @@
         }
         var label = props.label || props.children || rawState;
         return el('span', {className:'ucp-status-badge ucp-status-badge--' + state, 'aria-label':String(label)}, props.children || props.label);
-    }
-    function boolBadge(value, good, bad) {
-        return value ? el(StatusBadge, {state:'good'}, good || __('Goed','ultracache-pro')) : el(StatusBadge, {state:'warning'}, bad || __('Check','ultracache-pro'));
-    }
-    function infoBadge(text) { return el(StatusBadge, {state:'info'}, text); }
-
-    function MetricCard(props) {
-        return el(Card, {className:'ucp-card ucp-metric-card'},
-            el(CardBody, {},
-                el('div', {className:'ucp-metric-label'}, props.label),
-                el('div', {className:'ucp-metric-value'}, props.value),
-                props.help ? el('p', {className:'ucp-muted'}, props.help) : null
-            )
-        );
     }
 
     function ProductHeader(props) {
@@ -352,10 +320,6 @@
             })),
             el('section', {id:'ucp-admin-panel', className:'ucp-admin-panel', role:'tabpanel', 'aria-labelledby':'ucp-admin-tab-' + activeMeta.key}, props.children)
         );
-    }
-
-    function StatusRow(props) {
-        return el('div', {className:'ucp-status-row'}, el('span', {}, props.label), el('strong', {}, props.value));
     }
 
     function DashboardHero(props) {
@@ -777,8 +741,7 @@
             variant:props.variant || 'secondary',
             isBusy:busy,
             disabled:busy || !actions.length,
-            onClick:execute,
-            className:'ucp-bulk-action-button'
+            onClick:execute
         }, busy ? __('Bezig…','ultracache-pro') : props.label);
     }
 
@@ -989,7 +952,7 @@
                             el(Button, {variant:'secondary', isBusy:busy, disabled:busy, onClick:doExport}, __('Exporteren','ultracache-pro'))
                         )
                     ),
-                    el('section', {className:'ucp-import-export-box ucp-import-export-box--import'},
+                    el('section', {className:'ucp-import-export-box'},
                         el('div', {className:'ucp-import-export-head'},
                             el('span', {className:'ucp-import-export-eyebrow'}, __('Import','ultracache-pro')),
                             el('h3', {className:'ucp-import-export-title'}, __('Instellingen importeren','ultracache-pro')),
@@ -1029,7 +992,7 @@
             {title:'Varianten en purge', fields:[['cache_mobile_separately','Mobiele cache apart bewaren','toggle','Gebruik dit alleen wanneer mobiel en desktop duidelijk andere HTML krijgen.'],['enable_cache_tags','Gerelateerde pagina’s meeverversen','toggle','Handig voor blogs, categorieën en archieven.'],['cache_logged_in','Cache voor ingelogde gebruikers','toggle','Developer-only. Meestal uit laten, omdat accounts en builders persoonlijke content kunnen tonen.']]}
         ],
         advanced: [
-            {title:'Asset Manager', fields:[['enable_asset_test_mode','Asset Test Mode','toggle','Aanbevolen bij nieuwe unload-regels. Alleen beheerders zien de assetregels totdat je deze modus uitschakelt.'],['enable_asset_manager_snapshot','Frontend asset snapshot','toggle','Wanneer je als beheerder een frontendpagina bezoekt, bewaart UltraCache de geladen CSS/JS handles voor de Asset Manager.'],['asset_manager_panel','Asset Manager snapshot','asset_manager','Bekijk de laatst gemeten assets en maak veilige unload/keep-regels op basis van echte frontend handles.'],['advanced_asset_rules','Geavanceerde assetregels','textarea','Formaat: kind|handle|actie|scope|waarde. Voorbeelden: disable op deze URL via path_contains, overal behalve deze URL via path_not_contains, per post type, per device of alleen logged-out. Beschermde assets worden geblokkeerd; gebruik Asset Test Mode voor rollback.']]},
+            {title:'Asset Manager', fields:[['enable_asset_test_mode','Asset Test Mode','toggle','Aanbevolen bij nieuwe unload-regels. Alleen beheerders zien de assetregels totdat je deze modus uitschakelt.'],['enable_asset_manager_snapshot','Frontend asset snapshot','toggle','Wanneer je als beheerder een frontendpagina bezoekt, bewaart UltraCache de geladen CSS/JS handles voor de Asset Manager.'],['enable_script_manager','Script Manager (per pagina)','toggle','Voegt een UltraCache-paneel toe in de editor om afzonderlijke scripts/stijlen per pagina uit te schakelen, gegroepeerd per plugin/thema.'],['asset_manager_panel','Asset Manager snapshot','asset_manager','Bekijk de laatst gemeten assets en maak veilige unload/keep-regels op basis van echte frontend handles.'],['advanced_asset_rules','Geavanceerde assetregels','textarea','Formaat: kind|handle|actie|scope|waarde. Voorbeelden: disable op deze URL via path_contains, overal behalve deze URL via path_not_contains, per post type, per device of alleen logged-out. Beschermde assets worden geblokkeerd; gebruik Asset Test Mode voor rollback.']]},
             {title:'Pagina’s', fields:[['exclude_urls','Nooit URL’s cachen','textarea','Eén pad of patroon per regel. Gebruik dit voor cart, checkout, account, zoekresultaten, filters of persoonlijke content.']]},
             {title:'Cookies / agents', fields:[['exclude_cookies','Nooit cachen bij cookies','textarea','Eén cookie of gedeeltelijke cookienaam per regel. Nuttig voor winkelwagens en gepersonaliseerde content.'],['exclude_user_agents','Nooit cachen voor user-agents','textarea','Eén user-agent fragment per regel. Laat leeg tenzij een apparaat, browser of bot afwijkende content krijgt.']]},
             {title:'Automatisch legen bij wijzigingen', fields:[['always_purge_urls','Altijd extra URL’s legen','textarea','Eén URL of patroon per regel. Gebruik voor pagina’s die mee moeten verversen wanneer content wijzigt, zoals homepage of archieven.']]},
@@ -1040,7 +1003,7 @@
             {title:'Developer cache', fields:[['enable_fragment_cache','Fragment cache','toggle','Voor ontwikkelaars: cachet losse outputfragmenten. Alleen gebruiken als je weet welke fragments veilig zijn.'],['fragment_cache_ttl','Fragment cache TTL','number','Aantal seconden voordat fragment cache verloopt.'],['enable_rest_cache','REST cache','toggle','Cachet REST API responses. Gebruik dit alleen voor publieke GET-endpoints en test formulieren, zoekfuncties en externe koppelingen na inschakelen.'],['rest_cache_ttl','REST cache TTL','number','Aantal seconden voordat REST cache verloopt.'],['rest_cache_inclusions','REST inclusies','textarea','Eén endpoint per regel dat expliciet gecachet mag worden.'],['rest_cache_exclusions','REST uitsluitingen','textarea','Eén endpoint per regel dat nooit gecachet mag worden.']]},
             {title:'Compatibiliteit', fields:[['enable_object_cache_support','Object cache respecteren','toggle','Laat Redis, Memcached of APCu met rust wanneer die actief zijn.'],['enable_woocommerce_rules','WooCommerce regels automatisch toepassen','toggle','Beschermt winkelwagen, afrekenen, account en wc-ajax tegen caching en agressieve optimalisaties.']]},
             {title:'Heartbeat', fields:[['heartbeat_frontend_behavior','Frontend gedrag','select','Heartbeat op frontend. De interne hoofdschakelaar volgt automatisch.',[['keep','Ongewijzigd'],['reduce','Verminderen'],['disable','Uitschakelen']]],['heartbeat_editor_behavior','Editor gedrag','select','Heartbeat in editor. De interne hoofdschakelaar volgt automatisch.',[['keep','Ongewijzigd'],['reduce','Verminderen'],['disable','Uitschakelen']]],['heartbeat_backend_behavior','Backend gedrag','select','Heartbeat in dashboard. De interne hoofdschakelaar volgt automatisch.',[['keep','Ongewijzigd'],['reduce','Verminderen'],['disable','Uitschakelen']]],['heartbeat_interval_mode','Heartbeat interval bij verminderen','heartbeat_interval','Eén keuze vervangt de drie losse intervalvelden. Kies Aangepast voor verschillende waarden per locatie.',[['30','30 sec'],['60','60 sec'],['120','120 sec'],['custom','Aangepast per locatie']]]]},
-            {title:'Cloudflare / Edge', fields:[['enable_edge_cache_headers','Edge cache headers','toggle','Stuurt edge cache hints.'],['enable_cloudflare_apo_mode','Cloudflare APO modus','toggle','Alleen met correcte Cloudflare setup.'],['enable_early_hints_links','Preload Link headers','toggle','Experimenteel.'],['cloudflare_zone_id','Cloudflare zone ID','text','Alleen nodig voor purge/API.'],['cloudflare_api_token','Cloudflare API token','text','Bewaar veilig.']]},
+            {title:'Cloudflare / Edge', fields:[['enable_edge_cache_headers','Edge cache headers','toggle','Stuurt edge cache hints.'],['enable_cloudflare_apo_mode','Cloudflare APO modus','toggle','Alleen met correcte Cloudflare setup.'],['enable_early_hints_links','Preload Link headers','toggle','Experimenteel.'],['enable_edge_html_cache','Edge HTML cache','toggle','Cachet de volledige HTML op de CDN-edge via s-maxage en CDN-Cache-Control. Fail-closed: ingelogde, cart-, checkout- en accountpagina’s worden nooit gecachet. Test op staging.'],['edge_html_cache_ttl','Edge HTML TTL (sec)','number','Hoe lang de edge de HTML bewaart. Standaard 600.'],['edge_html_cache_stale','Edge stale-window (sec)','number','stale-while-revalidate / stale-if-error. 0 schakelt uit.'],['edge_html_cache_tags','Edge cache-tags meesturen','toggle','Stuurt Cache-Tag headers voor gerichte purge op Enterprise/Worker.'],['cloudflare_zone_id','Cloudflare zone ID','text','Alleen nodig voor purge/API.'],['cloudflare_api_token','Cloudflare API token','text','Bewaar veilig.']]},
             {title:'Veiligheidsmodus', fields:[['accessibility_mode','Accessibility mode','toggle','Vermindert risicovolle optimalisaties om interacties, focus en dynamische UI veiliger te houden.'],['disable_logged_in_optimizations','Optimalisaties uitschakelen voor ingelogde gebruikers','toggle','Aanbevolen voor builders en beheerwerk. Voorkomt dat frontend-optimalisaties de editor, previews of beheerflows raken.'],['clean_uninstall','Schone uninstall','toggle','Verwijdert plugininstellingen bij deïnstallatie. Alleen aanzetten als je zeker weet dat je de configuratie niet wilt bewaren.']]}
         ],
         database: [
@@ -1082,142 +1045,6 @@
         );
     }
 
-    function countLines(value) {
-        if (!value) return 0;
-        return String(value).split(/\r?\n/).map(function(line){ return line.trim(); }).filter(Boolean).length;
-    }
-
-
-    function DatabaseOverviewPanel(props) {
-        var settings = props.settings || {};
-        var autoOn = parseInt(settings.enable_db_cleanup || 0, 10);
-        var freq = settings.db_cleanup_frequency || 'off';
-        var postItems = ['db_cleanup_post_revisions','db_cleanup_auto_drafts','db_cleanup_trashed_posts'].filter(function(key){ return parseInt(settings[key] || 0, 10); }).length;
-        var commentItems = ['db_cleanup_spam_comments','db_cleanup_trashed_comments'].filter(function(key){ return parseInt(settings[key] || 0, 10); }).length;
-        var transientItems = ['db_cleanup_expired_transients','db_cleanup_all_transients'].filter(function(key){ return parseInt(settings[key] || 0, 10); }).length;
-        var riskyItems = ['db_cleanup_all_transients','db_cleanup_optimize_tables','db_cleanup_trashed_posts','db_cleanup_trashed_comments'].filter(function(key){ return parseInt(settings[key] || 0, 10); }).length;
-        return el('div', {className:'ucp-database-overview-grid'},
-            el(Card, {className:'ucp-card ucp-database-summary-card'},
-                el(CardHeader, {}, el('h2', {}, __('Veilige basis','ultracache-pro'))),
-                el(CardBody, {},
-                    el('p', {}, __('Start met verlopen transients. Zet revisies, prullenbak en alle transients alleen aan wanneer je zeker weet dat je die gegevens niet meer nodig hebt.','ultracache-pro')),
-                    el('div', {className:'ucp-preload-checks'},
-                        el('span', {}, boolBadge(parseInt(settings.db_cleanup_expired_transients || 0, 10), __('Verlopen transients aan','ultracache-pro'), __('Verlopen transients uit','ultracache-pro'))),
-                        el('span', {}, boolBadge(autoOn && freq !== 'off', __('Schema actief','ultracache-pro'), __('Geen schema','ultracache-pro')))
-                    )
-                )
-            ),
-            el(Card, {className:'ucp-card ucp-database-summary-card'},
-                el(CardHeader, {}, el('h2', {}, __('Selectie','ultracache-pro'))),
-                el(CardBody, {},
-                    el('p', {}, __('UltraCache ruimt alleen de onderdelen op die hieronder zijn ingeschakeld. Controleer de selectie voordat je opschoont.','ultracache-pro')),
-                    el('div', {className:'ucp-preload-stats'},
-                        el('div', {}, el('strong', {}, postItems), el('span', {}, __('Berichten','ultracache-pro'))),
-                        el('div', {}, el('strong', {}, commentItems), el('span', {}, __('Reacties','ultracache-pro'))),
-                        el('div', {}, el('strong', {}, transientItems), el('span', {}, __('Transients','ultracache-pro')))
-                    )
-                )
-            ),
-            el(Card, {className:'ucp-card ucp-database-summary-card ucp-database-danger-card'},
-                el(CardHeader, {}, el('h2', {}, __('Opschonen','ultracache-pro'))),
-                el(CardBody, {},
-                    el('p', {}, __('Maak eerst een database-backup. Database-acties kunnen niet ongedaan worden gemaakt.','ultracache-pro')),
-                    riskyItems ? el('p', {className:'ucp-db-risk-note'}, riskyItems + ' ' + __('risicovolle onderdelen geselecteerd.','ultracache-pro')) : el('p', {className:'ucp-muted'}, __('Geen extra risicovolle onderdelen geselecteerd.','ultracache-pro')),
-                    el(ActionButton, {compact:true, action:'database-cleanup', label:__('Geselecteerde onderdelen opschonen','ultracache-pro'), variant:'primary', destructive:true, confirm:true, addNotice:props.addNotice, setStatus:props.setStatus, onComplete:props.onRefresh})
-                )
-            )
-        );
-    }
-
-    function AdvancedRulesOverviewPanel(props) {
-        var settings = props.settings || {};
-        var excludeUrlCount = countLines(settings.exclude_urls);
-        var cookieCount = countLines(settings.exclude_cookies);
-        var agentCount = countLines(settings.exclude_user_agents);
-        var queryCount = countLines(settings.cache_query_string_inclusions);
-        return el('div', {className:'ucp-advanced-overview-grid'},
-            el(Card, {className:'ucp-card ucp-advanced-summary-card'},
-                el(CardHeader, {}, el('h2', {}, __('Veilige basis','ultracache-pro'))),
-                el(CardBody, {},
-                    el('p', {}, __('Voor de meeste sites hoef je alleen cachelevensduur en WooCommerce-uitsluitingen te controleren. Laat user-agents en query strings leeg tenzij er een duidelijke reden is.','ultracache-pro')),
-                    el('div', {className:'ucp-preload-limits'},
-                        el('span', {}, __('Cache','ultracache-pro') + ': ', el('strong', {}, (settings.cache_lifespan || 10) + ' uur')),
-                        el('span', {}, __('Stale cache','ultracache-pro') + ': ', el('strong', {}, parseInt(settings.enable_stale_cache || 0, 10) ? __('Aan','ultracache-pro') : __('Uit','ultracache-pro')))
-                    )
-                )
-            ),
-            el(Card, {className:'ucp-card ucp-advanced-summary-card'},
-                el(CardHeader, {}, el('h2', {}, __('Uitsluitingen','ultracache-pro'))),
-                el(CardBody, {},
-                    el('p', {}, __('Gebruik uitsluitingen voor dynamische of persoonlijke pagina’s, zoals cart, checkout, account, zoek- en filterpagina’s.','ultracache-pro')),
-                    el('div', {className:'ucp-preload-stats'},
-                        el('div', {}, el('strong', {}, excludeUrlCount), el('span', {}, __('URL-regels','ultracache-pro'))),
-                        el('div', {}, el('strong', {}, cookieCount), el('span', {}, __('Cookies','ultracache-pro'))),
-                        el('div', {}, el('strong', {}, agentCount), el('span', {}, __('User-agents','ultracache-pro')))
-                    )
-                )
-            ),
-            el(Card, {className:'ucp-card ucp-advanced-summary-card'},
-                el(CardHeader, {}, el('h2', {}, __('Query strings','ultracache-pro'))),
-                el(CardBody, {},
-                    el('p', {}, __('Standaard worden URL’s met query strings voorzichtig behandeld. Cache alleen bekende parameters die geen persoonlijke content veranderen.','ultracache-pro')),
-                    el('div', {className:'ucp-preload-limits'},
-                        el('span', {}, __('Status','ultracache-pro') + ': ', el('strong', {}, parseInt(settings.cache_query_strings || 0, 10) ? __('Aan','ultracache-pro') : __('Uit','ultracache-pro'))),
-                        el('span', {}, __('Parameters','ultracache-pro') + ': ', el('strong', {}, queryCount))
-                    )
-                )
-            )
-        );
-    }
-
-    function PreloadOverviewPanel(props) {
-        var settings = props.settings || {};
-        var status = props.status || {};
-        var queue = status.queue || {};
-        var runner = queue.runner || {};
-        var batch = settings.preload_batch_size || 15;
-        var delay = settings.preload_delay_ms || 500;
-        var maxUrls = settings.preload_max_urls || 250;
-        return el('div', {className:'ucp-preload-overview-grid'},
-            el(Card, {className:'ucp-card ucp-preload-summary-card'},
-                el(CardHeader, {}, el('h2', {}, __('Aanbevolen basis','ultracache-pro'))),
-                el(CardBody, {},
-                    el('p', {}, __('Voor de meeste sites is dit de veiligste preload-opzet: queue aan, sitemaps aan, homepage aan en een rustige batchgrootte.','ultracache-pro')),
-                    el('div', {className:'ucp-preload-checks'},
-                        el('span', {}, boolBadge(parseInt(settings.enable_preload || 0, 10), __('Preload aan','ultracache-pro'), __('Preload uit','ultracache-pro'))),
-                        el('span', {}, boolBadge(parseInt(settings.enable_preload_queue || 0, 10), __('Queue aan','ultracache-pro'), __('Queue uit','ultracache-pro'))),
-                        el('span', {}, boolBadge(parseInt(settings.preload_sitemaps || 0, 10), __('Sitemap aan','ultracache-pro'), __('Sitemap uit','ultracache-pro'))),
-                        el('span', {}, boolBadge(parseInt(settings.preload_homepage || 0, 10), __('Homepage aan','ultracache-pro'), __('Homepage uit','ultracache-pro')))
-                    )
-                )
-            ),
-            el(Card, {className:'ucp-card ucp-preload-summary-card'},
-                el(CardHeader, {}, el('h2', {}, __('Wachtrij','ultracache-pro'))),
-                el(CardBody, {},
-                    el('div', {className:'ucp-preload-stats'},
-                        el('div', {}, el('strong', {}, queue.pending || 0), el('span', {}, __('Open','ultracache-pro'))),
-                        el('div', {}, el('strong', {}, runner.due || 0), el('span', {}, __('Nu klaar','ultracache-pro'))),
-                        el('div', {}, el('strong', {}, queue.retrying || 0), el('span', {}, __('Opnieuw','ultracache-pro')))
-                    ),
-                    el('div', {className:'ucp-action-inline'},
-                        el(ActionButton, {compact:true, action:'preload', label:__('Preload starten','ultracache-pro'), addNotice:props.addNotice, setStatus:props.setStatus, onComplete:props.onRefresh}),
-                        el(ActionButton, {compact:true, action:'run-due-jobs', label:__('Verwerk nu','ultracache-pro'), variant:'primary', addNotice:props.addNotice, setStatus:props.setStatus, onComplete:props.onRefresh})
-                    )
-                )
-            ),
-            el(Card, {className:'ucp-card ucp-preload-summary-card'},
-                el(CardHeader, {}, el('h2', {}, __('Snelheid en belasting','ultracache-pro'))),
-                el(CardBody, {},
-                    el('p', {}, __('Gebruik lagere batches op shared hosting. Verhoog de pauze als taken opnieuw ingepland worden of hosting traag reageert.','ultracache-pro')),
-                    el('div', {className:'ucp-preload-limits'},
-                        el('span', {}, __('Batch','ultracache-pro') + ': ', el('strong', {}, batch)),
-                        el('span', {}, __('Pauze','ultracache-pro') + ': ', el('strong', {}, delay + ' ms')),
-                        el('span', {}, __('Max','ultracache-pro') + ': ', el('strong', {}, maxUrls))
-                    )
-                )
-            )
-        );
-    }
 
     function SettingsPage(props) {
         var rawGroups = settingsGroups[props.kind] || settingsGroups.optimization;
@@ -1657,9 +1484,9 @@
                     props.addNotice({status:'error', message:cleanErrorMessage(err, label + ' kon niet worden opgeslagen.')});
                 }).finally(function(){ setSaving(false); });
             }
-            control = el('div', {className:'ucp-lcp-image-control'},
+            control = el('div', {className:'ucp-setting-field-control'},
                 el(SelectControl,{label:label, help:help, value:currentValue || 'recommended', options:options.map(function(o){return {value:o[0], label:o[1]};}), disabled:saving, onChange:function(v){commit(v);}}),
-                currentValue === 'custom' ? el('div', {className:'ucp-lcp-image-custom'},
+                currentValue === 'custom' ? el('div', {className:'ucp-setting-field-custom'},
                     el(NumberControl,{label:__('Kritieke afbeeldingen preloaden','ultracache-pro'), help:__('Aantal zichtbare boven-de-vouw afbeeldingen. Maximaal 3.','ultracache-pro'), value:lcpDraft.preload, min:0, max:3, disabled:saving, onChange:function(v){setLcpDraft(Object.assign({}, lcpDraft, {preload:v})); setDirty(true);}}),
                     el(NumberControl,{label:__('Bovenste afbeeldingen niet lazyloaden','ultracache-pro'), help:__('Aantal eerste afbeeldingen dat niet lazyloadt. Maximaal 5.','ultracache-pro'), value:lcpDraft.protect, min:0, max:5, disabled:saving, onChange:function(v){setLcpDraft(Object.assign({}, lcpDraft, {protect:v})); setDirty(true);}}),
                     dirty ? el(Button,{variant:'secondary', isBusy:saving, disabled:saving, onClick:commitCustomLcp},__('Aangepaste LCP-instellingen opslaan','ultracache-pro')) : null
@@ -1688,9 +1515,9 @@
                     props.addNotice({status:'error', message:cleanErrorMessage(err, label + ' kon niet worden opgeslagen.')});
                 }).finally(function(){ setSaving(false); });
             }
-            control = el('div', {className:'ucp-heartbeat-interval-control'},
+            control = el('div', {className:'ucp-setting-field-control'},
                 el(SelectControl,{label:label, help:help, value:currentValue || 'custom', options:options.map(function(o){return {value:o[0], label:o[1]};}), disabled:saving, onChange:function(v){commit(v);}}),
-                currentValue === 'custom' ? el('div', {className:'ucp-heartbeat-interval-custom'},
+                currentValue === 'custom' ? el('div', {className:'ucp-setting-field-custom'},
                     el(NumberControl,{label:__('Frontend interval','ultracache-pro'), help:__('Seconden bij Verminderen.','ultracache-pro'), value:intervalDraft.frontend, min:15, max:300, disabled:saving, onChange:function(v){setIntervalDraft(Object.assign({}, intervalDraft, {frontend:v})); setDirty(true);}}),
                     el(NumberControl,{label:__('Editor interval','ultracache-pro'), help:__('Seconden bij Verminderen.','ultracache-pro'), value:intervalDraft.editor, min:15, max:300, disabled:saving, onChange:function(v){setIntervalDraft(Object.assign({}, intervalDraft, {editor:v})); setDirty(true);}}),
                     el(NumberControl,{label:__('Backend interval','ultracache-pro'), help:__('Seconden bij Verminderen.','ultracache-pro'), value:intervalDraft.backend, min:15, max:300, disabled:saving, onChange:function(v){setIntervalDraft(Object.assign({}, intervalDraft, {backend:v})); setDirty(true);}}),
@@ -1898,329 +1725,6 @@
         return '';
     }
 
-    function DataList(props) {
-        var rows = props.rows || [];
-        if (!rows.length) {
-            return el('p', {className:'ucp-muted'}, props.empty || __('Niets gevonden.','ultracache-pro'));
-        }
-        return el('div', {className:'ucp-data-list'}, rows.map(function(row, index){
-            return el('div', {className:'ucp-data-row', key:row.id || row.job_uuid || index},
-                el('strong', {}, props.primary(row)),
-                el('span', {}, props.secondary(row))
-            );
-        }));
-    }
-
-
-    function uniqueResourceList(items, limit) {
-        var seen = {}, out = [];
-        (items || []).forEach(function(item){
-            var url = typeof item === 'string' ? item : (item && item.url ? item.url : '');
-            var label = item && item.label ? item.label : '';
-            var key = url || label;
-            if (!key || seen[key]) return;
-            seen[key] = true;
-            out.push({url:url, label:label});
-        });
-        return out.slice(0, limit || 50);
-    }
-    function resourceDomain(url) {
-        try { return (new URL(url, window.location.href)).hostname; } catch(e) { return ''; }
-    }
-    function scoreVisualCandidate(item, viewportHeight) {
-        var score = Math.max(0, item.width || 0) * Math.max(0, item.height || 0) / 1000;
-        var top = Number(item.top || 0);
-        if (top >= 0 && top < viewportHeight) score += 800;
-        if (top >= 0 && top < Math.max(320, viewportHeight * 0.65)) score += 450;
-        var hay = String((item.className || '') + ' ' + (item.url || '')).toLowerCase();
-        ['hero','banner','cover','above-fold','elementor-top-section','swiper-slide-active','lcp'].forEach(function(n){ if (hay.indexOf(n) !== -1) score += 650; });
-        ['logo','icon','avatar','badge','placeholder','thumbnail','thumb','spinner','loader'].forEach(function(n){ if (hay.indexOf(n) !== -1) score -= 1400; });
-        if (/\.(svg|gif)(\?|$)/i.test(hay)) score -= 1400;
-        return Math.round(score);
-    }
-    function collectBrowserRenderedMetrics(doc, win, url) {
-        var viewport = {width:win.innerWidth || 0, height:win.innerHeight || 0, dpr:win.devicePixelRatio || 1, type:(win.innerWidth || 0) <= 782 ? 'mobile' : 'desktop'};
-        var originHost = resourceDomain(url || win.location.href);
-        var images = [];
-        Array.prototype.slice.call(doc.images || []).forEach(function(img){
-            var rect = img.getBoundingClientRect ? img.getBoundingClientRect() : {top:0,width:0,height:0};
-            var src = img.currentSrc || img.getAttribute('src') || '';
-            if (!src) return;
-            var item = {url:src, tag:'img', className:img.className || '', width:Math.round(rect.width || img.naturalWidth || 0), height:Math.round(rect.height || img.naturalHeight || 0), top:Math.round(rect.top || 0), background:0, srcset:img.getAttribute('srcset') || '', sizes:img.getAttribute('sizes') || ''};
-            item.score = scoreVisualCandidate(item, viewport.height);
-            images.push(item);
-        });
-        var backgrounds = [];
-        Array.prototype.slice.call(doc.querySelectorAll('body *')).slice(0, 700).forEach(function(node){
-            var rect = node.getBoundingClientRect ? node.getBoundingClientRect() : null;
-            if (!rect || rect.width < 80 || rect.height < 80 || rect.top > viewport.height * 1.4) return;
-            var bg = '';
-            try { bg = win.getComputedStyle(node).backgroundImage || ''; } catch(e) {}
-            if (!bg || bg === 'none' || bg.indexOf('url(') === -1) return;
-            var matches = bg.match(/url\(["']?([^"')]+)["']?\)/g) || [];
-            matches.forEach(function(raw){
-                var u = raw.replace(/^url\(["']?/, '').replace(/["']?\)$/, '');
-                if (!u || /^data:/i.test(u)) return;
-                try { u = (new URL(u, win.location.href)).href; } catch(e) {}
-                var item = {url:u, tag:(node.tagName || '').toLowerCase(), className:node.className || '', width:Math.round(rect.width || 0), height:Math.round(rect.height || 0), top:Math.round(rect.top || 0), background:1};
-                item.score = scoreVisualCandidate(item, viewport.height) + 250;
-                backgrounds.push(item);
-            });
-        });
-        var allCandidates = images.concat(backgrounds).filter(function(item){ return item.url && item.score > 0; }).sort(function(a,b){ return b.score - a.score; });
-        var resourceTiming = [];
-        try {
-            resourceTiming = (win.performance && win.performance.getEntriesByType) ? win.performance.getEntriesByType('resource').map(function(entry){
-                return {url:entry.name || '', initiator:entry.initiatorType || '', duration:Math.round(entry.duration || 0), transferSize:entry.transferSize || 0, renderBlocking: !!entry.renderBlockingStatus && entry.renderBlockingStatus === 'blocking'};
-            }) : [];
-        } catch(e) {}
-        function timingFor(urlValue){
-            if (!urlValue) return null;
-            for (var i=0;i<resourceTiming.length;i++) {
-                if (resourceTiming[i].url && resourceTiming[i].url === urlValue) return resourceTiming[i];
-            }
-            return null;
-        }
-        var stylesheets = uniqueResourceList(Array.prototype.slice.call(doc.querySelectorAll('link[rel~="stylesheet"],link[rel="preload"][as="style"]')).map(function(link){
-            var href = link.href || '';
-            var timing = timingFor(href) || {};
-            var isBlocking = link.rel === 'stylesheet' && !link.media && !link.disabled && !link.getAttribute('data-ucp-async');
-            return {url:href, label:link.getAttribute('id') || link.getAttribute('href') || '', kind:'stylesheet', blocking:isBlocking || !!timing.renderBlocking, duration:timing.duration || 0};
-        }), 100);
-        var scripts = uniqueResourceList(Array.prototype.slice.call(doc.scripts || []).map(function(script){
-            var src = script.src || '';
-            var timing = timingFor(src) || {};
-            var label = script.getAttribute('id') || script.getAttribute('type') || (src ? src.split('/').pop() : 'inline');
-            var asyncish = script.async || script.defer || script.type === 'module' || /ucpdelayed/i.test(script.type || '');
-            return {url:src, label:label, kind:'script', blocking:!!src && !asyncish, duration:timing.duration || 0};
-        }), 140);
-        var renderBlockingStylesheets = stylesheets.filter(function(item){ return item.blocking && item.url && resourceDomain(item.url) === originHost; });
-        var earlyScripts = scripts.filter(function(item){ return item.blocking && item.url; });
-        var delayNeedles = /(gtm|googletagmanager|gtag|analytics|facebook|fbevents|fbq|cookiebot|complianz|cookieyes|joinchat|whatsapp|elementor|frontend-modules|elements-handlers|jeg-|sticky|swiper|slick|paypal|stripe|mollie|klarna)/i;
-        var delayCandidates = scripts.filter(function(item){
-            if (!item.url) return false;
-            var hay = String(item.url + ' ' + item.label).toLowerCase();
-            if (/(jquery|recaptcha|wp-i18n|wp-hooks|wp-element|wp-api-fetch)/i.test(hay)) return false;
-            return item.blocking || delayNeedles.test(hay) || resourceDomain(item.url) !== originHost;
-        });
-        var cssCandidates = renderBlockingStylesheets.concat(stylesheets.filter(function(item){ return item.url && resourceDomain(item.url) === originHost && /(elementor|theme|style|frontend|woocommerce|jeg|global|post-)/i.test(item.url + ' ' + item.label); }));
-        var third = [];
-        scripts.concat(stylesheets).concat(images.slice(0, 20)).forEach(function(item){
-            var host = resourceDomain(item.url || '');
-            if (host && originHost && host !== originHost) third.push({url:item.url, label:host, kind:item.kind || ''});
-        });
-        var recommendations = {
-            lcp: allCandidates[0] && allCandidates[0].url ? allCandidates[0].url : '',
-            render_blocking_stylesheets: String(renderBlockingStylesheets.length),
-            delay_candidates: String(delayCandidates.length),
-            third_party: String(uniqueResourceList(third, 50).length)
-        };
-        return {url:url || win.location.href, viewport:viewport, lcp:allCandidates[0] || {}, images:images.sort(function(a,b){return b.score-a.score;}).slice(0,25), backgrounds:backgrounds.sort(function(a,b){return b.score-a.score;}).slice(0,25), stylesheets:stylesheets, scripts:scripts, thirdParty:uniqueResourceList(third, 80), renderBlockingStylesheets:uniqueResourceList(renderBlockingStylesheets, 80), earlyScripts:uniqueResourceList(earlyScripts, 120), delayCandidates:uniqueResourceList(delayCandidates, 120), cssCandidates:uniqueResourceList(cssCandidates, 80), resourceTiming:resourceTiming.slice(0,160), recommendations:recommendations};
-    }
-    function normalizeLocalScanUrl(value) {
-        var base = config.homeUrl || window.location.origin + '/';
-        try {
-            var target = new URL(value || base, base);
-            var home = new URL(base, window.location.href);
-            if (target.origin !== home.origin) {
-                throw new Error(__('Gebruik een URL binnen deze website.', 'ultracache-pro'));
-            }
-            target.hash = '';
-            return target.href;
-        } catch (e) {
-            throw new Error(e && e.message ? e.message : __('Ongeldige scan-URL.', 'ultracache-pro'));
-        }
-    }
-
-    function runBrowserRenderedScan(targetUrl) {
-        targetUrl = normalizeLocalScanUrl(targetUrl || config.homeUrl || window.location.origin + '/');
-        return new Promise(function(resolve, reject){
-            var frame = document.createElement('iframe');
-            var done = false;
-            frame.setAttribute('aria-hidden', 'true');
-            frame.style.cssText = 'position:absolute;left:-99999px;top:0;width:390px;height:844px;border:0;opacity:0;pointer-events:none;';
-            var timeout = window.setTimeout(function(){
-                if (done) return;
-                done = true;
-                try { frame.remove(); } catch(e) {}
-                reject(new Error('Browser scan timeout. Controleer of de homepage in een iframe mag laden.'));
-            }, 15000);
-            frame.onload = function(){
-                window.setTimeout(function(){
-                    if (done) return;
-                    try {
-                        var doc = frame.contentDocument || (frame.contentWindow && frame.contentWindow.document);
-                        if (!doc) throw new Error('Geen toegang tot iframe-document.');
-                        var metrics = collectBrowserRenderedMetrics(doc, frame.contentWindow, targetUrl);
-                        done = true;
-                        window.clearTimeout(timeout);
-                        try { frame.remove(); } catch(e) {}
-                        resolve(metrics);
-                    } catch(e) {
-                        done = true;
-                        window.clearTimeout(timeout);
-                        try { frame.remove(); } catch(removeErr) {}
-                        reject(e);
-                    }
-                }, 1800);
-            };
-            frame.src = targetUrl + (targetUrl.indexOf('?') === -1 ? '?' : '&') + 'ucp-browser-scan=' + Date.now();
-            document.body.appendChild(frame);
-        });
-    }
-
-    function normalizeReadinessStatus(status) {
-        status = String(status || 'unknown').toLowerCase();
-        if (['good','ready','enabled','clear','reviewed'].indexOf(status) !== -1) return 'good';
-        if (['warning','blocked','needs_generation','missing','collecting','review'].indexOf(status) !== -1) return 'warning';
-        if (['error','failed'].indexOf(status) !== -1) return 'error';
-        return 'info';
-    }
-
-    function formatReadinessKey(key) {
-        return String(key || '')
-            .replace(/_/g, ' ')
-            .replace(/\b\w/g, function(letter){ return letter.toUpperCase(); });
-    }
-
-    function ReadinessCard(props) {
-        var readiness = props.readiness || {};
-        var keys = Object.keys(readiness);
-        var priority = ['cache_status','advanced_cache_status','page_cache_writability','lcp_profile_status','css_optimization_status','js_delay_status','resource_hints_status','font_preload_status','asset_unload_test_mode','conflict_warnings','preload_crawler_status','woocommerce_safety_mode','rest_admin_security_status'];
-        keys.sort(function(a, b){
-            var ai = priority.indexOf(a), bi = priority.indexOf(b);
-            ai = ai === -1 ? 999 : ai;
-            bi = bi === -1 ? 999 : bi;
-            return ai - bi;
-        });
-        return el(Card, {className:'ucp-card ucp-readiness-card'},
-            el(CardHeader, {},
-                el('h2', {}, __('PageSpeed Readiness','ultracache-pro')),
-                keys.length ? el(StatusBadge,{state:'info', label:keys.length + ' ' + __('checks','ultracache-pro')}, keys.length + ' ' + __('checks','ultracache-pro')) : null
-            ),
-            el(CardBody, {},
-                el('p', {className:'ucp-muted'}, __('Compacte WordPress-native samenvatting. Technische details blijven beschikbaar zonder het hoofdscherm te vervuilen.','ultracache-pro')),
-                !keys.length ? el(Notice, {status:'info', isDismissible:false}, __('Nog geen PageSpeed Readiness-data beschikbaar. Open Diagnostiek of voer een websitecontrole uit.','ultracache-pro')) :
-                    el('div', {className:'ucp-readiness-grid'}, keys.map(function(key){
-                        var item = readiness[key] || {};
-                        var impact = Array.isArray(item.impact) ? item.impact.join(' / ') : (item.impact || '—');
-                        var runtime = item.runtime_test_required ? __('Runtime-test nodig','ultracache-pro') : __('Statisch controlepunt','ultracache-pro');
-                        return el('details', {className:'ucp-readiness-item', key:key},
-                            el('summary', {},
-                                el('span', {className:'ucp-readiness-item__title'}, formatReadinessKey(key)),
-                                el(StatusBadge, {state:normalizeReadinessStatus(item.status), label:String(item.status || 'unknown')}, String(item.status || 'unknown'))
-                            ),
-                            el('dl', {className:'ucp-readiness-meta'},
-                                el('div', {}, el('dt', {}, __('Impact','ultracache-pro')), el('dd', {}, impact)),
-                                el('div', {}, el('dt', {}, __('Risico','ultracache-pro')), el('dd', {}, item.risk || '—')),
-                                el('div', {}, el('dt', {}, __('Test','ultracache-pro')), el('dd', {}, runtime))
-                            ),
-                            item.recommended_action ? el('p', {className:'ucp-muted'}, item.recommended_action) : null
-                        );
-                    }))
-            )
-        );
-    }
-
-    function DiagnosticsPage(props) {
-        var status = props.status || {};
-        var queue = status.queue || {};
-        var health = status.health || {};
-        var runner = status.runner || {};
-        var browserState = useState(null), browserScan = browserState[0], setBrowserScan = browserState[1];
-        var readinessState = useState(null), readiness = readinessState[0], setReadiness = readinessState[1];
-        var scanUrlState = useState(config.homeUrl || window.location.origin + '/'), scanUrl = scanUrlState[0], setScanUrl = scanUrlState[1];
-        var browserBusyState = useState(false), browserBusy = browserBusyState[0], setBrowserBusy = browserBusyState[1];
-        var loadState = useState(false), loading = loadState[0], setLoading = loadState[1];
-        function loadDiagnostics(){
-            setLoading(true);
-            Promise.all([getBrowserScan(), getPageSpeedReadiness()]).then(function(res){
-                setBrowserScan(res[0] && res[0].scan ? res[0].scan : null);
-                setReadiness(res[1] && res[1].readiness ? res[1].readiness : null);
-            }).catch(function(err){
-                props.addNotice({status:'error', message:cleanErrorMessage(err, __('Websitecontrole kon niet geladen worden.','ultracache-pro'))});
-            }).finally(function(){ setLoading(false); });
-        }
-        function runPageSpeedBrowserScan(){
-            setBrowserBusy(true);
-            runBrowserRenderedScan(scanUrl || config.homeUrl).then(function(metrics){
-                return saveBrowserScan(metrics);
-            }).then(function(res){
-                setBrowserScan(res && res.scan ? res.scan : null);
-                props.addNotice({status:'success', message:(res && res.scan && res.scan.auto_applied && res.scan.auto_applied.length) ? __('Snelheidsscan opgeslagen en optimalisaties toegepast.','ultracache-pro') : __('Snelheidsscan opgeslagen.','ultracache-pro')});
-                if (props.onRefresh) props.onRefresh();
-                loadDiagnostics();
-            }).catch(function(err){
-                props.addNotice({status:'error', message:cleanErrorMessage(err, __('Snelheidsscan mislukt.','ultracache-pro'))});
-            }).finally(function(){ setBrowserBusy(false); });
-        }
-        useEffect(function(){ loadDiagnostics(); }, []);
-        return el('div', {className:'ucp-page'},
-            el(ReadinessCard, {readiness:readiness || {}}),
-            el(Card, {className:'ucp-card'}, el(CardHeader, {}, el('h2', {}, __('Websitecontrole','ultracache-pro'))), el(CardBody, {},
-                el(StatusRow,{label:'Website status', value:health && typeof health === 'object' ? infoBadge('OK') : infoBadge('Nog niet gecontroleerd')}),
-                el(StatusRow,{label:'Open taken', value:queue.pending || 0}),
-                el(StatusRow,{label:'Bezig', value:queue.running || 0}),
-                el(StatusRow,{label:'Opnieuw proberen', value:queue.retrying || 0}),
-                el(StatusRow,{label:'Mislukt', value:queue.failed || 0}),
-                el(StatusRow,{label:'Nu uitvoerbaar', value:runner.due || 0}),
-                el(StatusRow,{label:'WP-Cron', value:runner.cronDisabled ? el(StatusBadge,{state:'warning'},'Uitgeschakeld') : el(StatusBadge,{state:'good'},'Beschikbaar')}),
-                el(StatusRow,{label:'Volgende runner', value:runner.nextCron || '—'}),
-                queue.failed > 0 ? el('div', {className:'ucp-callout ucp-callout--warning ucp-callout--compact'},
-                    el('strong', {}, __('Controle nodig','ultracache-pro')),
-                    el('p', {}, __('Er zijn achtergrondtaken vastgelopen. Gebruik hieronder de herstelopties of neem contact op met je beheerder.','ultracache-pro'))
-                ) : null,
-                el('div', {className:'ucp-action-inline ucp-action-inline--cards'},
-                    el('div', {className:'ucp-action-row ucp-action-row--static'},
-                        el('div', {className:'ucp-action-copy'},
-                            el('strong', {}, __('Status opnieuw laden','ultracache-pro')),
-                            el('p', {}, __('Laadt de actuele websitestatus opnieuw in.','ultracache-pro'))
-                        ),
-                        el('div', {className:'ucp-action-button'},
-                            el(Button, {variant:'secondary', isBusy:loading, disabled:loading, onClick:loadDiagnostics}, __('Opnieuw laden','ultracache-pro'))
-                        )
-                    ),
-                    el(ActionButton, {action:'run-due-jobs', label:__('Open taken verwerken','ultracache-pro'), help:__('Verwerkt de eerstvolgende achtergrondtaken direct.','ultracache-pro'), variant:'primary', addNotice:props.addNotice, setStatus:props.setStatus, onComplete:function(){ loadDiagnostics(); if (props.onRefresh) props.onRefresh(); }}),
-                    queue.failed > 0 ? el(ActionButton, {action:'retry-failed-jobs', label:__('Mislukte taken opnieuw proberen','ultracache-pro'), help:__('Zet vastgelopen taken terug in de wachtrij en probeert ze opnieuw.','ultracache-pro'), confirm:true, addNotice:props.addNotice, setStatus:props.setStatus, onComplete:function(){ loadDiagnostics(); if (props.onRefresh) props.onRefresh(); }}) : null,
-                    el(ActionButton, {action:'health-check', label:__('Websitecontrole uitvoeren','ultracache-pro'), help:__('Controleert of de website en cache goed werken.','ultracache-pro'), addNotice:props.addNotice, setStatus:props.setStatus, onComplete:loadDiagnostics}),
-                    el(ActionButton, {action:'runtime-cache-test', label:__('Cachetest uitvoeren','ultracache-pro'), help:__('Controleert of de cache actief is en pagina’s correct worden overgeslagen waar dat nodig is.','ultracache-pro'), variant:'primary', addNotice:props.addNotice, setStatus:props.setStatus, onComplete:function(){ loadDiagnostics(); if (props.onRefresh) props.onRefresh(); }}),
-                    el('div', {className:'ucp-action-row ucp-action-row--static'},
-                        el('div', {className:'ucp-action-copy'},
-                            el('strong', {}, __('Snelheidsscan uitvoeren','ultracache-pro')),
-                            el('p', {}, __('Controleert een publieke pagina en past LCP-, CSS- en Delay JS-hints per URL toe. Gebruik eerst homepage, belangrijke landingspagina’s en productpagina’s.','ultracache-pro')),
-                            el(TextControl, {label:__('Te scannen URL','ultracache-pro'), value:scanUrl, disabled:browserBusy, onChange:function(value){ setScanUrl(value); }})
-                        ),
-                        el('div', {className:'ucp-action-button'},
-                            el(Button, {variant:'primary', isBusy:browserBusy, disabled:browserBusy, onClick:runPageSpeedBrowserScan}, __('Snelheidsscan uitvoeren','ultracache-pro'))
-                        )
-                    ),
-                    browserScan && browserScan.lcp && browserScan.lcp.url ? el('div', {className:'ucp-callout ucp-callout--info ucp-callout--compact'},
-                        el('strong', {}, __('Laatste snelheidsscan','ultracache-pro')),
-                        el('p', {}, (browserScan.created_at || '') + ' · LCP: ' + browserScan.lcp.url),
-                        el('p', {className:'ucp-muted'}, __('CSS/JS hints:', 'ultracache-pro') + ' ' +
-                            __('render-blocking CSS', 'ultracache-pro') + ' ' + ((browserScan.render_blocking_stylesheets || []).length || 0) + ' · ' +
-                            __('delay-kandidaten', 'ultracache-pro') + ' ' + ((browserScan.delay_candidates || []).length || 0) + ' · ' +
-                            __('third-party', 'ultracache-pro') + ' ' + ((browserScan.third_party || []).length || 0)
-                        )
-                    ) : null,
-                    el(ActionButton, {action:'repair-cache-files', label:__('Cachebestanden herstellen','ultracache-pro'), help:__('Herstelt belangrijke cachebestanden veilig met een back-up.','ultracache-pro'), confirm:true, addNotice:props.addNotice, setStatus:props.setStatus, onComplete:function(){ loadDiagnostics(); if (props.onRefresh) props.onRefresh(); }}),
-                    el(ActionButton, {action:'detect-conflicts', label:__('Conflicten scannen','ultracache-pro'), help:__('Controleert actieve cache-, optimalisatie-, WooCommerce- en builderplugins op mogelijke overlap.','ultracache-pro'), addNotice:props.addNotice, setStatus:props.setStatus, onComplete:loadDiagnostics}),
-                    el(ActionButton, {action:'enable-debug-mode', label:__('Testmodus 30 min','ultracache-pro'), help:__('Zet tijdelijke testinformatie aan zodat problemen makkelijker te controleren zijn.','ultracache-pro'), addNotice:props.addNotice, setStatus:props.setStatus, onComplete:loadDiagnostics}),
-                    el(ActionButton, {action:'release-checklist', label:__('Controlelijst ophalen','ultracache-pro'), help:__('Toont de belangrijkste controles voor cache, runtime en WooCommerce-transacties.','ultracache-pro'), addNotice:props.addNotice, setStatus:props.setStatus, onComplete:loadDiagnostics}),
-                    el('div', {className:'ucp-action-row ucp-action-row--static'},
-                        el('div', {className:'ucp-action-copy'},
-                            el('strong', {}, __('Logpakket downloaden','ultracache-pro')),
-                            el('p', {}, __('Download een technisch pakket voor support of beheer. Controleer het pakket voordat je het extern deelt.','ultracache-pro'))
-                        ),
-                        el('div', {className:'ucp-action-button'},
-                            el(Button, {variant:'secondary', onClick:function(){ if (config.logDownloadUrl) { window.location.href = config.logDownloadUrl; } else { props.addNotice({status:'error', message:__('Logdownload is niet beschikbaar.','ultracache-pro')}); } }}, __('Logpakket downloaden','ultracache-pro'))
-                        )
-                    )
-                )
-            ))
-        );
-    }
-
 
     function ToolsPage(props) {
         return el(Fragment, {},
@@ -2257,6 +1761,16 @@
             window.setTimeout(function(){ removeNotice(notice.id); }, notice.status === 'error' ? 6500 : 4500);
         }
         function removeNotice(id){ setNotices(function(cur){ return cur.filter(function(n){return n.id !== id;}); }); }
+        function selectTab(tab){
+            var normalized = normalizeTabKey(tab);
+            setActiveTab(normalized);
+            try {
+                var url = new URL(window.location.href);
+                url.searchParams.set('page', 'ultracache-pro');
+                url.searchParams.set('tab', normalized === 'dashboard' ? 'overview' : normalized);
+                window.history.replaceState(null, '', url.toString());
+            } catch (e) {}
+        }
         function refresh(){ setLoading(true); Promise.all([getStatus(), getSettings()]).then(function(res){ setStatus(res[0].status); setSettings(res[1].settings); }).catch(function(err){ addNotice({status:'error', message:cleanErrorMessage(err, 'UltraCache data kon niet geladen worden.')}); }).finally(function(){ setLoading(false); }); }
         useEffect(function(){ refresh(); }, []);
         if (loading && !settings) return el(LoadingScreen, {});

@@ -10,10 +10,28 @@ trait UCP_Helpers_Minify_And_Log_Trait {
         if ('' === trim($content)) {
             return '';
         }
+        $parser_class = function_exists('ucp_dependency_class') ? ucp_dependency_class('Sabberworm\\CSS\\Parser') : '';
+        $can_use_vendor_css_minifier = true;
+        if ('' !== $parser_class) {
+            try {
+                $parser = new $parser_class($content);
+                $parser->parse();
+            } catch (Throwable $e) {
+                $can_use_vendor_css_minifier = false;
+                if (class_exists('UCP_Diagnostics')) {
+                    UCP_Diagnostics::record('assets', 'CSS parser library failed; using built-in fallback.', array('error' => $e->getMessage()));
+                }
+            }
+        }
+
         $minifier_class = function_exists('ucp_dependency_class') ? ucp_dependency_class('MatthiasMullie\\Minify\\CSS') : '';
-        if ('' !== $minifier_class) {
+        if ($can_use_vendor_css_minifier && '' !== $minifier_class) {
             try {
                 $minifier = new $minifier_class($content);
+                if (method_exists($minifier, 'setMaxImportSize')) {
+                    // Avoid inlining external or local assets into CSS during normal WordPress asset optimization.
+                    $minifier->setMaxImportSize(0);
+                }
                 $minified = $minifier->minify();
                 if (is_string($minified) && '' !== trim($minified)) {
                     return trim($minified);
@@ -24,6 +42,7 @@ trait UCP_Helpers_Minify_And_Log_Trait {
                 }
             }
         }
+
         $content = preg_replace('!/\*[^*]*\*+(?:[^/*][^*]*\*+)*/!s', '', $content);
         $content = preg_replace('/\s+/', ' ', $content);
         $content = preg_replace('/\s*([{}:;,>+~])\s*/', '$1', $content);

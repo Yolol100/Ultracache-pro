@@ -2,7 +2,7 @@
 # This file is distributed under the GPLv2 or later.
 msgid ""
 msgstr ""
-"Project-Id-Version: UltraCache Pro 11.0.32\n"
+"Project-Id-Version: UltraCache Pro 11.0.37\n"
 "Report-Msgid-Bugs-To: https://webactueel.nl\n"
 "POT-Creation-Date: 2026-05-26 00:00+0000\n"
 "MIME-Version: 1.0\n"
@@ -451,7 +451,7 @@ msgstr ""
 
 #: assets/admin/react/js/app/ucp-react-admin.js:257
 #: assets/admin/react/js/app/ucp-react-admin.js:961
-#: includes/admin/traits/ucp-admin-routing-trait.php:54
+#: includes/admin/class-ucp-admin.php:54
 msgid "Overzicht"
 msgstr ""
 
@@ -474,13 +474,13 @@ msgstr ""
 #: includes/admin/views/tabs/overview.php:27
 #: includes/admin/views/tabs/overview.php:73
 #: includes/admin/views/tabs/overview.php:103
-#: includes/integrations/traits/ucp-integrations-status-trait.php:19
+#: includes/integrations/class-ucp-integrations.php:19
 msgid "Actief"
 msgstr ""
 
 #: assets/admin/react/js/app/ucp-react-admin.js:266
 #: assets/admin/react/js/app/ucp-react-admin.js:1028
-#: includes/integrations/traits/ucp-integrations-status-trait.php:17
+#: includes/integrations/class-ucp-integrations.php:17
 msgid "Cache"
 msgstr ""
 
@@ -515,7 +515,7 @@ msgstr ""
 
 #: assets/admin/react/js/app/ucp-react-admin.js:269
 #: includes/admin/views/tabs/media.php:132
-#: includes/integrations/traits/ucp-integrations-status-trait.php:24
+#: includes/integrations/class-ucp-integrations.php:24
 msgid "Standaard"
 msgstr ""
 
@@ -533,7 +533,7 @@ msgstr ""
 #: includes/admin/class-ucp-admin-config.php:13
 #: includes/admin/class-ucp-admin-config.php:38
 #: includes/admin/views/tabs/overview.php:129
-#: includes/integrations/traits/ucp-integrations-status-trait.php:27
+#: includes/integrations/class-ucp-integrations.php:27
 msgid "Media"
 msgstr ""
 
@@ -618,7 +618,7 @@ msgstr ""
 #: includes/admin/views/tabs/media.php:104
 #: includes/admin/views/tabs/media.php:105
 #: includes/admin/views/tabs/media.php:146
-#: includes/integrations/traits/ucp-integrations-status-trait.php:34
+#: includes/integrations/class-ucp-integrations.php:34
 msgid "Uit"
 msgstr ""
 
@@ -1155,7 +1155,7 @@ msgstr ""
 
 #: assets/admin/react/js/app/ucp-react-admin.js:949
 #: includes/admin/views/tabs/developer.php:22
-#: includes/integrations/traits/ucp-integrations-status-trait.php:47
+#: includes/integrations/class-ucp-integrations.php:47
 #: includes/core/class-ucp-site-health.php:74
 #: includes/core/class-ucp-site-health.php:97
 msgid "Compatibiliteit"
@@ -1534,8 +1534,8 @@ msgstr ""
 
 #: includes/admin/class-ucp-admin-react-app.php:65
 #: includes/admin/class-ucp-admin-config.php:30
-#: includes/admin/traits/ucp-admin-routing-trait.php:53
-#: includes/admin/traits/ucp-admin-routing-trait.php:54
+#: includes/admin/class-ucp-admin.php:53
+#: includes/admin/class-ucp-admin.php:54
 #: includes/admin/views/shell/start.php:7
 #: includes/admin/views/shell/start.php:10
 #: includes/filesystem/traits/ucp-helpers-dropin-trait.php:94
@@ -1947,19 +1947,19 @@ msgstr ""
 #: includes/admin/actions/ucp-admin-actions-presets-trait.php:169
 #: includes/admin/actions/ucp-admin-actions-presets-trait.php:188
 #: includes/database/cleanup/ucp-db-cleanup-runner-trait.php:11
-#: includes/jobs/traits/ucp-jobs-admin-actions-trait.php:36
-#: includes/jobs/traits/ucp-jobs-admin-actions-trait.php:46
+#: includes/jobs/class-ucp-jobs.php:36
+#: includes/jobs/class-ucp-jobs.php:46
 #: includes/cache/traits/ucp-cache-admin-bar-trait.php:94
 #: includes/cache/traits/ucp-cache-admin-bar-trait.php:104
 #: includes/cache/traits/ucp-cache-admin-bar-trait.php:115
-#: includes/preload/traits/ucp-preload-admin-trait.php:9
+#: includes/preload/class-ucp-preload.php:9
 #: includes/cloud/class-ucp-cloud.php:27
 #: includes/core/class-ucp-runtime-tests.php:38
 #: includes/core/maintenance/ucp-maintenance-cleanup-trait.php:78
 msgid "Geen toegang."
 msgstr ""
 
-#: includes/admin/traits/ucp-admin-routing-trait.php:53
+#: includes/admin/class-ucp-admin.php:53
 msgid "UltraCache"
 msgstr ""
 
@@ -4746,11 +4746,11 @@ msgstr[1] ""
 msgid "Actieve plugin gevonden: %s. Controleer overlappende cache/optimalisatie-instellingen."
 msgstr ""
 
-#: includes/core/quality/ucp-quality-suite-release-logs-trait.php:26
+#: includes/core/class-ucp-quality-suite.php:26
 msgid "Logs opgehaald."
 msgstr ""
 
-#: includes/core/quality/ucp-quality-suite-release-logs-trait.php:8
+#: includes/core/class-ucp-quality-suite.php:8
 msgid "Release checklist opgehaald."
 msgstr ""
 
@@ -4843,69 +4843,69 @@ msgstr ""
 msgid "YouTube, Wistia, Typekit, Google Maps en vergelijkbaar."
 msgstr ""
 
-#: includes/integrations/traits/ucp-integrations-status-trait.php:19
+#: includes/integrations/class-ucp-integrations.php:19
 msgid "Afgezwakt door conflict"
 msgstr ""
 
-#: includes/integrations/traits/ucp-integrations-status-trait.php:22
+#: includes/integrations/class-ucp-integrations.php:22
 msgid "Bestanden"
 msgstr ""
 
-#: includes/integrations/traits/ucp-integrations-status-trait.php:24
+#: includes/integrations/class-ucp-integrations.php:24
 msgid "Minify-instellingen actief"
 msgstr ""
 
-#: includes/integrations/traits/ucp-integrations-status-trait.php:29
+#: includes/integrations/class-ucp-integrations.php:29
 msgid "Later laden actief"
 msgstr ""
 
-#: includes/integrations/traits/ucp-integrations-status-trait.php:29
+#: includes/integrations/class-ucp-integrations.php:29
 msgid "Niet aangepast"
 msgstr ""
 
-#: includes/integrations/traits/ucp-integrations-status-trait.php:32
+#: includes/integrations/class-ucp-integrations.php:32
 msgid "Autopilot"
 msgstr ""
 
-#: includes/integrations/traits/ucp-integrations-status-trait.php:34
+#: includes/integrations/class-ucp-integrations.php:34
 msgid "Slimme detectie actief"
 msgstr ""
 
-#: includes/integrations/traits/ucp-integrations-status-trait.php:40
+#: includes/integrations/class-ucp-integrations.php:40
 msgid "Conflictbewaking"
 msgstr ""
 
-#: includes/integrations/traits/ucp-integrations-status-trait.php:43
+#: includes/integrations/class-ucp-integrations.php:43
 msgid "%d overlap gevonden"
 msgid_plural "%d overlaps gevonden"
 msgstr[0] ""
 msgstr[1] ""
 
-#: includes/integrations/traits/ucp-integrations-status-trait.php:49
+#: includes/integrations/class-ucp-integrations.php:49
 msgid "Exclusions automatisch aangevuld"
 msgstr ""
 
-#: includes/integrations/traits/ucp-integrations-status-trait.php:61
+#: includes/integrations/class-ucp-integrations.php:61
 msgid "Winkelwagen, afrekenen en account zijn automatisch uitgesloten van zware optimalisatie."
 msgstr ""
 
-#: includes/integrations/traits/ucp-integrations-status-trait.php:64
+#: includes/integrations/class-ucp-integrations.php:64
 msgid "Builder scripts staan nu in de veilige uitzonderingen en samenvoegen blijft uit."
 msgstr ""
 
-#: includes/integrations/traits/ucp-integrations-status-trait.php:67
+#: includes/integrations/class-ucp-integrations.php:67
 msgid "Taal- en valuta-cookies zijn toegevoegd aan de cache-uitzonderingen."
 msgstr ""
 
-#: includes/integrations/traits/ucp-integrations-status-trait.php:70
+#: includes/integrations/class-ucp-integrations.php:70
 msgid "Tracking-, consent- en SEO-scripts zijn toegevoegd aan de JS-uitzonderingen."
 msgstr ""
 
-#: includes/integrations/traits/ucp-integrations-status-trait.php:73
+#: includes/integrations/class-ucp-integrations.php:73
 msgid "Formulier-scripts zijn beschermd tegen Delay JS en ingrijpende optimalisatie."
 msgstr ""
 
-#: includes/integrations/traits/ucp-integrations-status-trait.php:76
+#: includes/integrations/class-ucp-integrations.php:76
 msgid "Dubbele optimalisatie wordt afgezwakt door combine, delay en HTML-minify uit te houden."
 msgstr ""
 
@@ -4930,11 +4930,11 @@ msgstr ""
 msgid "Feeds zijn uitgeschakeld."
 msgstr ""
 
-#: includes/preload/traits/ucp-preload-schedule-trait.php:11
+#: includes/preload/class-ucp-preload.php:11
 msgid "Every 2 hours"
 msgstr ""
 
-#: includes/preload/traits/ucp-preload-schedule-trait.php:17
+#: includes/preload/class-ucp-preload.php:17
 msgid "Weekly"
 msgstr ""
 

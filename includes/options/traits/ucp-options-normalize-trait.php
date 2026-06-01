@@ -106,149 +106,7 @@ trait UCP_Options_Normalize_Trait {
         $current = wp_parse_args((array) $current, $defaults);
         $settings = wp_parse_args((array) $settings, $current);
 
-        if (array_key_exists('html_optimization_mode', $settings)) {
-            $html_mode = sanitize_key((string) $settings['html_optimization_mode']);
-            if ('minify' === $html_mode) {
-                $settings['remove_html_comments'] = 1;
-                $settings['enable_html_minify'] = 1;
-            } elseif ('comments' === $html_mode) {
-                $settings['remove_html_comments'] = 1;
-                $settings['enable_html_minify'] = 0;
-            } elseif ('off' === $html_mode) {
-                $settings['remove_html_comments'] = 0;
-                $settings['enable_html_minify'] = 0;
-            }
-            unset($settings['html_optimization_mode']);
-        }
-
-        if (array_key_exists('image_optimization_mode', $settings)) {
-            $image_mode = sanitize_key((string) $settings['image_optimization_mode']);
-            if ('webp_avif' === $image_mode) {
-                $settings['enable_image_optimization'] = 1;
-                $settings['enable_webp_generation'] = 1;
-                $settings['enable_avif_generation'] = 1;
-            } elseif ('webp' === $image_mode) {
-                $settings['enable_image_optimization'] = 1;
-                $settings['enable_webp_generation'] = 1;
-                $settings['enable_avif_generation'] = 0;
-            } elseif ('optimize' === $image_mode) {
-                $settings['enable_image_optimization'] = 1;
-                $settings['enable_webp_generation'] = 0;
-                $settings['enable_avif_generation'] = 0;
-            } elseif ('off' === $image_mode) {
-                $settings['enable_image_optimization'] = 0;
-                $settings['enable_webp_generation'] = 0;
-                $settings['enable_avif_generation'] = 0;
-            }
-            unset($settings['image_optimization_mode']);
-        }
-
-
-        if (array_key_exists('delay_js_control', $settings)) {
-            $delay_mode_combined = sanitize_key((string) $settings['delay_js_control']);
-            if ('off' === $delay_mode_combined) {
-                $settings['enable_delay_js'] = 0;
-            } elseif ('specified' === $delay_mode_combined) {
-                $settings['enable_delay_js'] = 1;
-                $settings['delay_js_mode'] = 'specified';
-                $settings['delay_js_safe_mode'] = 0;
-            } elseif ('all' === $delay_mode_combined) {
-                $settings['enable_delay_js'] = 1;
-                $settings['delay_js_mode'] = 'all';
-                $settings['delay_js_safe_mode'] = 0;
-            } elseif ('safe' === $delay_mode_combined) {
-                $settings['enable_delay_js'] = 1;
-                $settings['delay_js_mode'] = 'all';
-                $settings['delay_js_safe_mode'] = 1;
-                $settings['delay_js_disable_click_delay'] = 1;
-            }
-            unset($settings['delay_js_control']);
-        }
-
-        if (array_key_exists('media_lazyload_mode', $settings)) {
-            $media_mode = sanitize_key((string) $settings['media_lazyload_mode']);
-            $settings['enable_lazy_images'] = in_array($media_mode, array('images','iframes','youtube'), true) ? 1 : 0;
-            $settings['enable_lazy_iframes'] = in_array($media_mode, array('iframes','youtube'), true) ? 1 : 0;
-            $settings['enable_lazy_youtube_preview'] = 'youtube' === $media_mode ? 1 : 0;
-            unset($settings['media_lazyload_mode']);
-        }
-
-        if (array_key_exists('lcp_image_mode', $settings)) {
-            $lcp_mode = sanitize_key((string) $settings['lcp_image_mode']);
-            if ('off' === $lcp_mode) {
-                $settings['preload_critical_images'] = 0;
-                $settings['lazyload_exclude_leading_images'] = 0;
-            } elseif ('protect_hero' === $lcp_mode) {
-                $settings['preload_critical_images'] = 0;
-                $settings['lazyload_exclude_leading_images'] = 1;
-            } elseif ('preload_hero' === $lcp_mode) {
-                $settings['preload_critical_images'] = 1;
-                $settings['lazyload_exclude_leading_images'] = 1;
-            } elseif ('recommended' === $lcp_mode) {
-                $settings['preload_critical_images'] = 2;
-                $settings['lazyload_exclude_leading_images'] = 4;
-            }
-            unset($settings['lcp_image_mode']);
-        }
-
-        if (array_key_exists('google_fonts_mode', $settings)) {
-            $fonts_mode = sanitize_key((string) $settings['google_fonts_mode']);
-            $settings['enable_disable_google_fonts'] = 'disable' === $fonts_mode ? 1 : 0;
-            $settings['enable_local_google_fonts'] = 'local' === $fonts_mode ? 1 : 0;
-            $settings['enable_font_display_swap'] = in_array($fonts_mode, array('swap','local'), true) ? 1 : 0;
-            unset($settings['google_fonts_mode']);
-        }
-
-        if (array_key_exists('preload_mode', $settings)) {
-            $preload_mode = sanitize_key((string) $settings['preload_mode']);
-            if ('off' === $preload_mode) {
-                $settings['enable_preload'] = 0;
-                $settings['enable_preload_queue'] = 0;
-                $settings['preload_sitemaps'] = 0;
-                $settings['preload_homepage'] = 0;
-            } elseif ('recommended' === $preload_mode) {
-                $settings['enable_preload'] = 1;
-                $settings['enable_preload_queue'] = 1;
-                $settings['preload_sitemaps'] = 1;
-                $settings['preload_homepage'] = 1;
-            } elseif ('homepage' === $preload_mode) {
-                $settings['enable_preload'] = 1;
-                $settings['enable_preload_queue'] = 1;
-                $settings['preload_sitemaps'] = 0;
-                $settings['preload_homepage'] = 1;
-            } elseif ('manual' === $preload_mode) {
-                $settings['enable_preload'] = 1;
-            }
-            unset($settings['preload_mode']);
-        }
-
-        if (array_key_exists('stale_cache_mode', $settings)) {
-            $stale_mode = sanitize_key((string) $settings['stale_cache_mode']);
-            if ('off' === $stale_mode) {
-                $settings['enable_stale_cache'] = 0;
-            } elseif (in_array($stale_mode, array('6','12','24','48'), true)) {
-                $settings['enable_stale_cache'] = 1;
-                $settings['stale_cache_lifespan'] = absint($stale_mode);
-            }
-            unset($settings['stale_cache_mode']);
-        }
-
-        if (array_key_exists('heartbeat_interval_mode', $settings)) {
-            $heartbeat_interval_mode = sanitize_key((string) $settings['heartbeat_interval_mode']);
-            if ('custom' === $heartbeat_interval_mode) {
-                $settings['heartbeat_frontend_frequency'] = 60;
-                $settings['heartbeat_editor_frequency'] = 30;
-                $settings['heartbeat_backend_frequency'] = 60;
-                $settings['heartbeat_frequency'] = 60;
-            } elseif (in_array($heartbeat_interval_mode, array('30','60','120'), true)) {
-                $heartbeat_interval = absint($heartbeat_interval_mode);
-                $settings['heartbeat_frontend_frequency'] = $heartbeat_interval;
-                $settings['heartbeat_editor_frequency'] = $heartbeat_interval;
-                $settings['heartbeat_backend_frequency'] = $heartbeat_interval;
-                $settings['heartbeat_frequency'] = $heartbeat_interval;
-            }
-            unset($settings['heartbeat_interval_mode']);
-        }
+        $settings = UCP_Settings_Combined_Controls::apply($settings, true, true);
 
         $settings['defer_all_js'] = !empty($settings['defer_all_js']) ? 1 : 0;
         $settings['enable_defer_js_fallback'] = !empty($settings['enable_defer_js_fallback']) ? 1 : 0;
@@ -415,6 +273,11 @@ trait UCP_Options_Normalize_Trait {
         $settings['lcp_profile_allowed_hosts'] = implode("
 ", array_values(array_unique(array_filter(array_map('sanitize_text_field', $allowed_lcp_hosts), 'strlen'))));
         $settings['enable_lazy_render'] = !empty($settings['enable_lazy_render']) ? 1 : 0;
+        $settings['enable_edge_html_cache'] = !empty($settings['enable_edge_html_cache']) ? 1 : 0;
+        $settings['edge_html_cache_tags'] = !empty($settings['edge_html_cache_tags']) ? 1 : 0;
+        $settings['edge_html_cache_ttl'] = min(86400, max(60, absint(isset($settings['edge_html_cache_ttl']) ? $settings['edge_html_cache_ttl'] : 600)));
+        $settings['edge_html_cache_stale'] = min(604800, max(0, absint(isset($settings['edge_html_cache_stale']) ? $settings['edge_html_cache_stale'] : 86400)));
+        $settings['enable_script_manager'] = !empty($settings['enable_script_manager']) ? 1 : 0;
         $settings['enable_self_host_third_party_assets'] = !empty($settings['enable_self_host_third_party_assets']) ? 1 : 0;
         $settings['enable_disable_dashicons'] = !empty($settings['enable_disable_dashicons']) ? 1 : 0;
         $settings['enable_disable_jquery_migrate'] = !empty($settings['enable_disable_jquery_migrate']) ? 1 : 0;

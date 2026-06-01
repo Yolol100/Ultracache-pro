@@ -137,6 +137,8 @@ class UCP_CSS_Profile {
      * @return array<string,mixed>
      */
     public static function build_from_html($url, $html, $stylesheet_links, $used_css, $critical_css) {
+        $is_sensitive_url = self::is_sensitive_url($url);
+
         $profile = array(
             'critical_css'         => array(
                 'bytes' => strlen((string) $critical_css),
@@ -154,7 +156,7 @@ class UCP_CSS_Profile {
             'notes'                => array(),
         );
 
-        if (self::is_sensitive_url($url)) {
+        if ($is_sensitive_url) {
             $profile['notes'][] = 'sensitive_url_no_aggressive_css_removal';
         }
 
@@ -173,9 +175,9 @@ class UCP_CSS_Profile {
                 'reason' => 'render_blocking_stylesheet_candidate',
             );
 
-            if (self::stylesheet_matches_protected($tag, $href) || self::is_sensitive_url($url)) {
+            if (self::stylesheet_matches_protected($tag, $href) || $is_sensitive_url) {
                 $item['classification'] = 'protected_css';
-                $item['reason'] = self::is_sensitive_url($url) ? 'sensitive_url_protection' : 'protected_fragment_match';
+                $item['reason'] = $is_sensitive_url ? 'sensitive_url_protection' : 'protected_fragment_match';
                 $profile['protected_css'][] = $item;
             } else {
                 $profile['delayed_css'][] = $item;
@@ -187,23 +189,7 @@ class UCP_CSS_Profile {
         // Only a trusted renderer is allowed to populate safely_removable_css. A static parser may
         // be useful for critical CSS but is not reliable enough to remove entire stylesheet assets.
         $external = apply_filters('ucp_css_profile_external_result', array(), $url, $html, $profile, $used_css, $critical_css);
-        if (is_array($external) && !empty($external)) {
-            if (!empty($external['critical_css']) && is_array($external['critical_css'])) {
-                $profile['critical_css'] = array_merge($profile['critical_css'], $external['critical_css']);
-            }
-            if (!empty($external['delayed_css']) && is_array($external['delayed_css'])) {
-                $profile['delayed_css'] = array_values(array_merge($profile['delayed_css'], $external['delayed_css']));
-            }
-            if (!empty($external['protected_css']) && is_array($external['protected_css'])) {
-                $profile['protected_css'] = array_values(array_merge($profile['protected_css'], $external['protected_css']));
-            }
-            $external_ready = !empty($external['renderer_ready']) || (isset($external['renderer_status']) && 'ready' === sanitize_key((string) $external['renderer_status']));
-            if (!empty($external['safely_removable_css']) && is_array($external['safely_removable_css']) && !self::is_sensitive_url($url) && $external_ready) {
-                $profile['safely_removable_css'] = array_values($external['safely_removable_css']);
-            }
-            $profile['renderer'] = !empty($external['renderer']) ? sanitize_text_field((string) $external['renderer']) : 'external_renderer';
-            $profile['renderer_status'] = $external_ready ? 'ready' : 'renderer_untrusted_no_safe_removal';
-        }
+        $profile = self::merge_external_renderer_result($profile, $external, $is_sensitive_url);
 
         if (empty($profile['safely_removable_css'])) {
             $profile['notes'][] = 'no_browser_renderer_attached_no_safe_removal_candidates';
@@ -211,6 +197,43 @@ class UCP_CSS_Profile {
 
         return $profile;
     }
+
+    /**
+     * Merge trusted external renderer output into the local CSS profile.
+     *
+     * The local static parser may delay stylesheets, but only a ready external/browser renderer
+     * may propose safely removable CSS and never for sensitive URLs.
+     *
+     * @param array $profile          Local profile.
+     * @param mixed $external         External renderer result from filter.
+     * @param bool  $is_sensitive_url Whether the source URL is protected.
+     * @return array<string,mixed>
+     */
+    private static function merge_external_renderer_result($profile, $external, $is_sensitive_url) {
+        if (!is_array($external) || empty($external)) {
+            return $profile;
+        }
+
+        if (!empty($external['critical_css']) && is_array($external['critical_css'])) {
+            $profile['critical_css'] = array_merge($profile['critical_css'], $external['critical_css']);
+        }
+        if (!empty($external['delayed_css']) && is_array($external['delayed_css'])) {
+            $profile['delayed_css'] = array_values(array_merge($profile['delayed_css'], $external['delayed_css']));
+        }
+        if (!empty($external['protected_css']) && is_array($external['protected_css'])) {
+            $profile['protected_css'] = array_values(array_merge($profile['protected_css'], $external['protected_css']));
+        }
+
+        $external_ready = !empty($external['renderer_ready']) || (isset($external['renderer_status']) && 'ready' === sanitize_key((string) $external['renderer_status']));
+        if (!empty($external['safely_removable_css']) && is_array($external['safely_removable_css']) && !$is_sensitive_url && $external_ready) {
+            $profile['safely_removable_css'] = array_values($external['safely_removable_css']);
+        }
+        $profile['renderer'] = !empty($external['renderer']) ? sanitize_text_field((string) $external['renderer']) : 'external_renderer';
+        $profile['renderer_status'] = $external_ready ? 'ready' : 'renderer_untrusted_no_safe_removal';
+
+        return $profile;
+    }
+
 
     /**
      * Return a profile for the URL, if available.

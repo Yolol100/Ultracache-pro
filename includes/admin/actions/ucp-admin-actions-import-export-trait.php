@@ -54,7 +54,7 @@ trait UCP_Admin_Actions_Import_Export_Trait {
             wp_safe_redirect($this->admin->tab_url_public('tools', array('import' => 0)));
             exit;
         }
-        $file = wp_unslash($_FILES['ucp_import_file']);
+        $file = isset($_FILES['ucp_import_file']) && is_array($_FILES['ucp_import_file']) ? $_FILES['ucp_import_file'] : array();
         if (!isset($file['error']) || UPLOAD_ERR_OK !== (int) $file['error']) {
             wp_safe_redirect($this->admin->tab_url_public('tools', array('import' => 0)));
             exit;
@@ -72,7 +72,7 @@ trait UCP_Admin_Actions_Import_Export_Trait {
             'json' => 'application/json',
             'txt'  => 'text/plain',
         ));
-        if (empty($checked['ext'])) {
+        if (empty($checked['ext']) || !in_array($checked['ext'], array('json', 'txt'), true)) {
             wp_safe_redirect($this->admin->tab_url_public('tools', array('import' => 0)));
             exit;
         }

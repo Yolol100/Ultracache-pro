@@ -1,0 +1,15 @@
+{
+    "name": "ultracache-pro/ultracache-pro",
+    "description": "UltraCache Pro runtime dependencies for CSS parsing and CSS/JS minification.",
+    "type": "wordpress-plugin",
+    "license": "GPL-2.0-or-later",
+    "require": {
+        "php": ">=8.0",
+        "matthiasmullie/minify": "^1.3",
+        "sabberworm/php-css-parser": "^9.0"
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "sort-packages": true
+    }
+}

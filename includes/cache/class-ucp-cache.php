@@ -5,6 +5,15 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+// Lightweight internal traits consolidated here to avoid one-purpose micro-files while preserving the public UCP_* symbols.
+trait UCP_Cache_Purge_Trait {
+    use UCP_Cache_Purge_Url_Map_Trait;
+    use UCP_Cache_Purge_Content_Events_Trait;
+    use UCP_Cache_Purge_Lifecycle_Trait;
+    use UCP_Cache_Purge_Actions_Trait;
+}
+
+
 class UCP_Cache {
     use UCP_Cache_Request_Policy_Trait;
     use UCP_Cache_Storage_Trait;

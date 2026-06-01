@@ -68,6 +68,8 @@ class UCP_Edge {
         $protocol = isset($_SERVER['SERVER_PROTOCOL']) ? preg_replace('/[^A-Z0-9\.\/]/', '', sanitize_text_field(wp_unslash($_SERVER['SERVER_PROTOCOL']))) : 'HTTP/1.1';
         header($protocol . ' 103 Early Hints', true, 103);
         $sent = 0;
+        // Define allowed preload types for 'as' attribute. Unknown types default to 'script'.
+        $allowed_as = array('script', 'style', 'font', 'image', 'fetch', 'document');
         foreach ((array) $candidates as $candidate) {
             if ($sent >= 3) {
                 break;
@@ -75,11 +77,20 @@ class UCP_Edge {
 
             $href = !empty($candidate['href']) ? esc_url_raw($candidate['href'], array('http', 'https')) : '';
             $as = !empty($candidate['as']) ? sanitize_key($candidate['as']) : 'script';
-            if (!$href || !UCP_Helpers::is_local_url($href)) {
+            // Skip invalid or foreign URLs, as well as URLs containing CR/LF characters.
+            if (!$href || preg_match('/[\r\n]/', $href) || !UCP_Helpers::is_local_url($href)) {
                 continue;
             }
-
-            header('Link: <' . $href . '>; rel=preload; as=' . $as, false);
+            // Restrict the 'as' value to a safe list of preload types.
+            if (!in_array($as, $allowed_as, true)) {
+                $as = 'script';
+            }
+            $header = 'Link: <' . $href . '>; rel=preload; as=' . $as;
+            // Fonts require crossorigin set on preload headers.
+            if ('font' === $as) {
+                $header .= '; crossorigin';
+            }
+            header($header, false);
             $sent++;
         }
 
@@ -136,9 +147,38 @@ class UCP_Edge {
         return $ok;
     }
 
+    public static function cloudflare_purge_tags($tags) {
+        if (!self::cloudflare_api_configured()) {
+            return false;
+        }
+        $clean = array();
+        foreach ((array) $tags as $tag) {
+            $tag = preg_replace('/[^A-Za-z0-9_\-]/', '', (string) $tag);
+            $tag = substr((string) $tag, 0, 60);
+            if ('' !== $tag) {
+                $clean[] = $tag;
+            }
+        }
+        $clean = array_values(array_unique($clean));
+        if (empty($clean)) {
+            return false;
+        }
+        $ok = true;
+        // Cloudflare accepts up to 30 tags per purge call.
+        foreach (array_chunk($clean, 30) as $chunk) {
+            $ok = self::request('/purge_cache', array('tags' => $chunk)) && $ok;
+        }
+        return $ok;
+    }
+
     protected static function request($path, $body) {
         $zone_id = sanitize_text_field(UCP_Options::get('cloudflare_zone_id'));
         $token = (string) UCP_Options::get('cloudflare_api_token');
+        // Strip newline characters and trim whitespace from the API token. If it becomes empty, abort.
+        $token = trim(str_replace(array("\r", "\n"), '', $token));
+        if ('' === $token) {
+            return false;
+        }
         $endpoint = 'https://api.cloudflare.com/client/v4/zones/' . rawurlencode($zone_id) . $path;
         $response = wp_remote_post($endpoint, array(
             'timeout' => 20,

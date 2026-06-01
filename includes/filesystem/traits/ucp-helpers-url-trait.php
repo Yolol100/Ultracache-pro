@@ -352,8 +352,14 @@ trait UCP_Helpers_URL_Trait {
 
     public static function is_local_url($url) {
         $url = self::normalize_url_syntax($url);
+        // Reject URLs that specify a non-HTTP/HTTPS scheme. Relative URLs have no scheme and are allowed.
+        $scheme = wp_parse_url($url, PHP_URL_SCHEME);
+        if ($scheme && !in_array(strtolower((string) $scheme), array('http', 'https'), true)) {
+            return false;
+        }
         $host = wp_parse_url($url, PHP_URL_HOST);
         $home = wp_parse_url(home_url(), PHP_URL_HOST);
+        // An empty host means the URL is relative; otherwise require that the host matches the site's host.
         return !$host || strtolower((string) $host) === strtolower((string) $home);
     }
 

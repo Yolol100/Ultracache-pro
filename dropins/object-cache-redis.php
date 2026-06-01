@@ -428,8 +428,21 @@ if (!function_exists('wp_cache_incr')) {
         // Re-store as a plain integer string and use atomic INCRBY to avoid lost updates.
         try {
             $redis = ucp_redis_connection();
+            // Temporarily disable the serializer to ensure numeric operations use plain strings.
+            $prev_serializer = null;
+            if (method_exists($redis, 'getOption') && defined('Redis::OPT_SERIALIZER')) {
+                $prev_serializer = $redis->getOption(Redis::OPT_SERIALIZER);
+                // Use Redis::SERIALIZER_NONE when available; fall back to 0.
+                $none = defined('Redis::SERIALIZER_NONE') ? Redis::SERIALIZER_NONE : 0;
+                $redis->setOption(Redis::OPT_SERIALIZER, $none);
+            }
+            // Set the current value as a plain integer then perform the atomic increment.
             $redis->set($cache_key, (int) $current);
             $value = (int) $redis->incrBy($cache_key, $offset);
+            // Restore the previous serializer if it was changed.
+            if (null !== $prev_serializer && defined('Redis::OPT_SERIALIZER')) {
+                $redis->setOption(Redis::OPT_SERIALIZER, $prev_serializer);
+            }
             $GLOBALS['ucp_redis_cache_runtime'][$cache_key] = $value;
             return $value;
         } catch (Throwable $e) {
@@ -456,11 +469,22 @@ if (!function_exists('wp_cache_decr')) {
 
         try {
             $redis = ucp_redis_connection();
+            // Temporarily disable the serializer to ensure numeric operations use plain strings.
+            $prev_serializer = null;
+            if (method_exists($redis, 'getOption') && defined('Redis::OPT_SERIALIZER')) {
+                $prev_serializer = $redis->getOption(Redis::OPT_SERIALIZER);
+                $none = defined('Redis::SERIALIZER_NONE') ? Redis::SERIALIZER_NONE : 0;
+                $redis->setOption(Redis::OPT_SERIALIZER, $none);
+            }
             $redis->set($cache_key, (int) $current);
             $value = (int) $redis->decrBy($cache_key, $offset);
             if ($value < 0) {
                 $value = 0;
                 $redis->set($cache_key, 0);
+            }
+            // Restore the previous serializer if it was changed.
+            if (null !== $prev_serializer && defined('Redis::OPT_SERIALIZER')) {
+                $redis->setOption(Redis::OPT_SERIALIZER, $prev_serializer);
             }
             $GLOBALS['ucp_redis_cache_runtime'][$cache_key] = $value;
             return $value;

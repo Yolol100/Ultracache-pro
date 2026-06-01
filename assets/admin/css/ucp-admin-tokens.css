@@ -7,16 +7,21 @@
  * shadows across both UI surfaces.
  */
 :root {
-  /* Brand & focus */
-  --ucp-color-primary: #155bd5;
-  --ucp-color-primary-hover: #0f48ad;
-  --ucp-color-primary-active: #0b347f;
-  --ucp-color-primary-soft: #eaf1ff;
-  --ucp-color-primary-border: #b9ccff;
-  --ucp-color-premium-ink: #08111f;
-  --ucp-color-premium-purple: #6d5dfc;
-  --ucp-color-accent: #10b981;
-  --ucp-color-accent-soft: #e9fbf4;
+  /* Brand & focus.
+   * Primary is derived from the active WordPress admin colour scheme so every
+   * UltraCache surface (focus rings, badges, toasts, nav, primary buttons)
+   * matches the adjacent native @wordpress/components and follows the colour
+   * scheme the user picked in their profile. Fallbacks are the core "Fresh"
+   * scheme values for the rare case the variable is not present. */
+  --ucp-color-primary: var(--wp-admin-theme-color, #2271b1);
+  --ucp-color-primary-hover: var(--wp-admin-theme-color-darker-10, #135e96);
+  --ucp-color-primary-active: var(--wp-admin-theme-color-darker-20, #0a4b78);
+  --ucp-color-primary-soft: #f0f6fc;
+  --ucp-color-primary-border: #72aee6;
+  --ucp-color-premium-ink: #1d2327;
+  --ucp-color-premium-purple: var(--wp-admin-theme-color, #2271b1);
+  --ucp-color-accent: #00a32a;
+  --ucp-color-accent-soft: #edfaef;
 
   /* Neutrals */
   --ucp-color-bg: #f0f0f1;
@@ -26,17 +31,15 @@
   --ucp-color-text: #1d2327;
   --ucp-color-heading: #1d2327;
   --ucp-color-muted: #50575e;
-  --ucp-color-muted-soft: #7a8da3;
   --ucp-color-border: #c3c4c7;
-  --ucp-color-border-strong: #b9ccff;
 
-  /* Semantic */
-  --ucp-color-success: #10b981;
-  --ucp-color-success-soft: #eaf8f0;
-  --ucp-color-warning: #b7791f;
-  --ucp-color-warning-soft: #fff6e4;
-  --ucp-color-danger: #b42318;
-  --ucp-color-danger-soft: #fff0ee;
+  /* Semantic — WordPress admin notice palette */
+  --ucp-color-success: #00a32a;
+  --ucp-color-success-soft: #edfaef;
+  --ucp-color-warning: #dba617;
+  --ucp-color-warning-soft: #fcf9e8;
+  --ucp-color-danger: #d63638;
+  --ucp-color-danger-soft: #fcf0f1;
 
   /* Spacing scale */
   --ucp-space-1: 4px;
@@ -63,8 +66,8 @@
   --ucp-transition: 160ms ease;
 
   /* Focus ring (used by .ucp-wrap a:focus etc. via var() fallback) */
-  --ucp-focus-ring: #155bd5;
-  --ucp-ds-focus-ring: 0 0 0 2px #ffffff, 0 0 0 4px #155bd5;
+  --ucp-focus-ring: var(--ucp-color-primary);
+  --ucp-ds-focus-ring: 0 0 0 2px #ffffff, 0 0 0 4px var(--ucp-color-primary);
 
   /* System font stack */
   --ucp-ds-font-admin: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;

@@ -70,49 +70,53 @@ final class UCP_Plugin {
         return false;
     }
 
-    public function bootstrap() {
-        $backend_context = is_admin() || (function_exists('wp_doing_cron') && wp_doing_cron()) || (defined('WP_CLI') && WP_CLI);
-        UCP_Options::maybe_init_defaults();
+    /**
+     * Determine whether modules that are admin/cron/CLI sensitive should be booted.
+     *
+     * @return bool
+     */
+    private static function is_backend_context() {
+        return is_admin() || (function_exists('wp_doing_cron') && wp_doing_cron()) || (defined('WP_CLI') && WP_CLI);
+    }
+
+    /**
+     * Run option migrations in a single ordered place before modules read settings.
+     *
+     * @return void
+     */
+    private static function run_option_migrations() {
         UCP_Options::maybe_apply_runtime_write_and_log_migration();
         UCP_Options::maybe_apply_preload_safety_migration();
-        if (method_exists('UCP_Options', 'maybe_apply_queue_repair_migration')) {
-            UCP_Options::maybe_apply_queue_repair_migration();
+
+        $optional_migrations = array(
+            'maybe_apply_queue_repair_migration',
+            'maybe_upgrade_pagespeed_auto_v2',
+            'maybe_upgrade_pagespeed_auto_v3',
+            'maybe_upgrade_pagespeed_auto_v4',
+            'maybe_upgrade_pagespeed_auto_v5',
+            'maybe_upgrade_pagespeed_auto_v6',
+            'maybe_upgrade_pagespeed_auto_v7',
+            'maybe_upgrade_pagespeed_auto_v8',
+            'maybe_upgrade_pagespeed_auto_v9',
+            'maybe_upgrade_pagespeed_auto_v10',
+            'maybe_upgrade_pagespeed_auto_v11',
+            'maybe_upgrade_pagespeed_auto_v12',
+        );
+
+        foreach ($optional_migrations as $migration) {
+            if (method_exists('UCP_Options', $migration)) {
+                UCP_Options::$migration();
+            }
         }
-        if (method_exists('UCP_Options', 'maybe_upgrade_pagespeed_auto_v2')) {
-            UCP_Options::maybe_upgrade_pagespeed_auto_v2();
-        }
-        if (method_exists('UCP_Options', 'maybe_upgrade_pagespeed_auto_v3')) {
-            UCP_Options::maybe_upgrade_pagespeed_auto_v3();
-        }
-        if (method_exists('UCP_Options', 'maybe_upgrade_pagespeed_auto_v4')) {
-            UCP_Options::maybe_upgrade_pagespeed_auto_v4();
-        }
-        if (method_exists('UCP_Options', 'maybe_upgrade_pagespeed_auto_v5')) {
-            UCP_Options::maybe_upgrade_pagespeed_auto_v5();
-        }
-        if (method_exists('UCP_Options', 'maybe_upgrade_pagespeed_auto_v6')) {
-            UCP_Options::maybe_upgrade_pagespeed_auto_v6();
-        }
-        if (method_exists('UCP_Options', 'maybe_upgrade_pagespeed_auto_v7')) {
-            UCP_Options::maybe_upgrade_pagespeed_auto_v7();
-        }
-        if (method_exists('UCP_Options', 'maybe_upgrade_pagespeed_auto_v8')) {
-            UCP_Options::maybe_upgrade_pagespeed_auto_v8();
-        }
-        if (method_exists('UCP_Options', 'maybe_upgrade_pagespeed_auto_v9')) {
-            UCP_Options::maybe_upgrade_pagespeed_auto_v9();
-        }
-        if (method_exists('UCP_Options', 'maybe_upgrade_pagespeed_auto_v10')) {
-            UCP_Options::maybe_upgrade_pagespeed_auto_v10();
-        }
-        if (method_exists('UCP_Options', 'maybe_upgrade_pagespeed_auto_v11')) {
-            UCP_Options::maybe_upgrade_pagespeed_auto_v11();
-        }
-        if (method_exists('UCP_Options', 'maybe_upgrade_pagespeed_auto_v12')) {
-            UCP_Options::maybe_upgrade_pagespeed_auto_v12();
-        }
-        UCP_Installer::maybe_upgrade();
-        UCP_Helpers::ensure_cache_dirs();
+    }
+
+    /**
+     * Bootstrap services that should be available before feature modules are instantiated.
+     *
+     * @param bool $backend_context Whether this is an admin/cron/CLI request.
+     * @return void
+     */
+    private static function bootstrap_core_services($backend_context) {
         if ($backend_context && class_exists('UCP_Log_Package')) {
             UCP_Log_Package::bootstrap();
         }
@@ -128,17 +132,35 @@ final class UCP_Plugin {
         }
         UCP_Optimization_Intelligence::bootstrap();
         UCP_REST_Admin_Controller::init();
+    }
 
-        if ($backend_context) {
-            UCP_Integrations::bootstrap();
-            UCP_Runtime_Tests::bootstrap();
-            UCP_Maintenance::bootstrap();
-            UCP_Site_Health::bootstrap();
-            if (class_exists('UCP_Quality_Suite')) {
-                UCP_Quality_Suite::bootstrap();
-            }
+    /**
+     * Bootstrap backend-only tooling and maintenance services.
+     *
+     * @param bool $backend_context Whether this is an admin/cron/CLI request.
+     * @return void
+     */
+    private static function bootstrap_backend_services($backend_context) {
+        if (!$backend_context) {
+            return;
         }
 
+        UCP_Integrations::bootstrap();
+        UCP_Runtime_Tests::bootstrap();
+        UCP_Maintenance::bootstrap();
+        UCP_Site_Health::bootstrap();
+        if (class_exists('UCP_Quality_Suite')) {
+            UCP_Quality_Suite::bootstrap();
+        }
+    }
+
+    /**
+     * Instantiate runtime modules using the same conditions as the legacy bootstrap method.
+     *
+     * @param bool $backend_context Whether this is an admin/cron/CLI request.
+     * @return void
+     */
+    private static function bootstrap_runtime_modules($backend_context) {
         new UCP_Compat();
 
         if ($backend_context || UCP_Options::get('enable_cache')) {
@@ -186,6 +208,12 @@ final class UCP_Plugin {
         ))) {
             new UCP_Edge();
         }
+        if ($backend_context || UCP_Options::get('enable_edge_html_cache')) {
+            new UCP_Edge_HTML();
+        }
+        if (class_exists('UCP_Script_Manager')) {
+            UCP_Script_Manager::bootstrap();
+        }
         if ($backend_context || self::any_option_enabled(array(
             'enable_delay_js', 'enable_used_css', 'enable_critical_css',
         ))) {
@@ -218,10 +246,33 @@ final class UCP_Plugin {
         if ($backend_context || UCP_Options::get('enable_local_google_fonts')) {
             new UCP_Fonts();
         }
+    }
 
-        if (is_admin()) {
-            new UCP_Admin();
-            new UCP_Admin_Object_Cache_Page();
+    /**
+     * Bootstrap admin UI classes only on admin requests.
+     *
+     * @return void
+     */
+    private static function bootstrap_admin_ui() {
+        if (!is_admin()) {
+            return;
         }
+
+        new UCP_Admin();
+        new UCP_Admin_Object_Cache_Page();
+    }
+
+    public function bootstrap() {
+        $backend_context = self::is_backend_context();
+
+        UCP_Options::maybe_init_defaults();
+        self::run_option_migrations();
+        UCP_Installer::maybe_upgrade();
+        UCP_Helpers::ensure_cache_dirs();
+
+        self::bootstrap_core_services($backend_context);
+        self::bootstrap_backend_services($backend_context);
+        self::bootstrap_runtime_modules($backend_context);
+        self::bootstrap_admin_ui();
     }
 }

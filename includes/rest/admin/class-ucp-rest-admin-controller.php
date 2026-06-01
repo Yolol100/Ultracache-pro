@@ -17,6 +17,19 @@ class UCP_REST_Admin_Controller {
     }
 
     public static function register_routes() {
+        self::register_status_routes();
+        self::register_settings_routes();
+        self::register_preset_routes();
+        self::register_diagnostic_routes();
+        self::register_action_routes();
+    }
+
+    /**
+     * Register read-only status and lifecycle routes.
+     *
+     * @return void
+     */
+    private static function register_status_routes() {
         register_rest_route(self::REST_NAMESPACE, '/status', array(
             'methods'             => WP_REST_Server::READABLE,
             'callback'            => array(__CLASS__, 'get_status'),
@@ -27,6 +40,14 @@ class UCP_REST_Admin_Controller {
             'callback'            => array(__CLASS__, 'get_optimization_lifecycle'),
             'permission_callback' => array(__CLASS__, 'permissions_check'),
         ));
+    }
+
+    /**
+     * Register settings CRUD, import/export, snapshot and preset routes.
+     *
+     * @return void
+     */
+    private static function register_settings_routes() {
         register_rest_route(self::REST_NAMESPACE, '/settings', array(
             array(
                 'methods'             => WP_REST_Server::READABLE,
@@ -54,7 +75,6 @@ class UCP_REST_Admin_Controller {
             'callback'            => array(__CLASS__, 'import_settings'),
             'permission_callback' => array(__CLASS__, 'permissions_check'),
         ));
-
         register_rest_route(self::REST_NAMESPACE, '/settings/snapshots', array(
             array(
                 'methods'             => WP_REST_Server::READABLE,
@@ -77,30 +97,42 @@ class UCP_REST_Admin_Controller {
             'callback'            => array(__CLASS__, 'save_custom_preset'),
             'permission_callback' => array(__CLASS__, 'permissions_check'),
         ));
+    }
 
+    /**
+     * Register preset-scanning routes.
+     *
+     * @return void
+     */
+    private static function register_preset_routes() {
         register_rest_route(self::REST_NAMESPACE, '/scan-preset', array(
             'methods'             => WP_REST_Server::READABLE,
             'callback'            => array(__CLASS__, 'scan_preset'),
             'permission_callback' => array(__CLASS__, 'permissions_check'),
         ));
+    }
 
+    /**
+     * Register diagnostics and support report routes.
+     *
+     * @return void
+     */
+    private static function register_diagnostic_routes() {
         $diagnostic_routes = array(
-            'jobs'     => 'diagnostic_jobs',
-            'logs'     => 'diagnostic_logs',
-            'requests' => 'diagnostic_requests',
-            'browser-scan' => 'browser_scan_latest',
-            'asset-snapshot' => 'asset_manager_snapshot',
+            'jobs'            => 'diagnostic_jobs',
+            'logs'            => 'diagnostic_logs',
+            'requests'        => 'diagnostic_requests',
+            'browser-scan'    => 'browser_scan_latest',
+            'asset-snapshot'  => 'asset_manager_snapshot',
             'quality-summary' => 'quality_summary',
         );
+
         foreach ($diagnostic_routes as $route => $method) {
             register_rest_route(self::REST_NAMESPACE, '/diagnostics/' . $route, array(
                 'methods'             => WP_REST_Server::READABLE,
                 'callback'            => array(__CLASS__, $method),
                 'permission_callback' => array(__CLASS__, 'permissions_check'),
-                'args'                => array(
-                    'per_page' => array('type' => 'integer', 'minimum' => 1, 'maximum' => 50, 'default' => 20),
-                    'paged'    => array('type' => 'integer', 'minimum' => 1, 'default' => 1),
-                ),
+                'args'                => self::pagination_args(),
             ));
         }
 
@@ -109,7 +141,14 @@ class UCP_REST_Admin_Controller {
             'callback'            => array(__CLASS__, 'support_report'),
             'permission_callback' => array(__CLASS__, 'permissions_check'),
         ));
+    }
 
+    /**
+     * Register state-changing maintenance/action routes.
+     *
+     * @return void
+     */
+    private static function register_action_routes() {
         $actions = array(
             'purge-all'          => 'purge_all',
             'purge-page-cache'   => 'purge_page_cache',
@@ -126,27 +165,52 @@ class UCP_REST_Admin_Controller {
             'enable-debug-mode'  => 'enable_debug_mode',
             'release-checklist'  => 'release_checklist',
             'repair-cache-files' => 'repair_cache_files',
-            'retry-failed-jobs' => 'retry_failed_jobs',
-            'run-due-jobs'      => 'run_due_jobs',
-            'browser-scan'      => 'browser_scan_save',
+            'retry-failed-jobs'  => 'retry_failed_jobs',
+            'run-due-jobs'       => 'run_due_jobs',
+            'browser-scan'       => 'browser_scan_save',
         );
+
         foreach ($actions as $route => $method) {
-            $args = array();
-            if ('purge-url' === $route) {
-                $args['url'] = array(
-                    'type'              => 'string',
-                    'required'          => false,
-                    'sanitize_callback' => 'esc_url_raw',
-                    'validate_callback' => array('UCP_Helpers', 'validate_local_url_arg'),
-                );
-            }
             register_rest_route(self::REST_NAMESPACE, '/actions/' . $route, array(
                 'methods'             => WP_REST_Server::CREATABLE,
                 'callback'            => array(__CLASS__, $method),
                 'permission_callback' => array(__CLASS__, 'permissions_check'),
-                'args'                => $args,
+                'args'                => self::action_args($route),
             ));
         }
+    }
+
+    /**
+     * Shared pagination arguments for diagnostics routes.
+     *
+     * @return array<string,array<string,mixed>>
+     */
+    private static function pagination_args() {
+        return array(
+            'per_page' => array('type' => 'integer', 'minimum' => 1, 'maximum' => 50, 'default' => 20),
+            'paged'    => array('type' => 'integer', 'minimum' => 1, 'default' => 1),
+        );
+    }
+
+    /**
+     * Arguments for action routes.
+     *
+     * @param string $route Action route slug.
+     * @return array<string,array<string,mixed>>
+     */
+    private static function action_args($route) {
+        if ('purge-url' !== $route) {
+            return array();
+        }
+
+        return array(
+            'url' => array(
+                'type'              => 'string',
+                'required'          => false,
+                'sanitize_callback' => 'esc_url_raw',
+                'validate_callback' => array('UCP_Helpers', 'validate_local_url_arg'),
+            ),
+        );
     }
 
     public static function get_optimization_lifecycle() {

@@ -236,14 +236,18 @@ hubspot",
             'enable_edge_cache_headers'      => 0,
             'enable_cloudflare_apo_mode'     => 0,
             'enable_early_hints_links'       => 0,
+            'enable_edge_html_cache'         => 0,
+            'edge_html_cache_ttl'            => 600,
+            'edge_html_cache_stale'          => 86400,
+            'edge_html_cache_tags'           => 1,
+            'enable_script_manager'          => 0,
             'cloudflare_zone_id'             => '',
             'cloudflare_api_token'           => '',
-            // H1: enable automatic drop-in management out of the box. Writing wp-content/advanced-cache.php
-            // and the WP_CACHE constant is standard behaviour for a page-cache plugin; the installer
-            // backs up and preserves any third-party drop-in and only ever takes over its own.
-            // Both remain filter/UI overridable and degrade gracefully when the files are not writable.
-            'allow_wp_config_write'          => 1,
-            'allow_dropin_writes'            => 1,
+            // Security-first default: do not write wp-config.php or drop-ins until an admin
+            // explicitly runs Quick Enable / Server Cache Fix or enables these controls. This keeps
+            // fresh installs reversible and avoids surprising filesystem changes during activation/import.
+            'allow_wp_config_write'          => 0,
+            'allow_dropin_writes'            => 0,
             'allow_dropin_takeover'          => 0,
             'allow_browser_cache_rule_writes'=> 0,
             'enable_disable_xmlrpc'          => 0,

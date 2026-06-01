@@ -4,7 +4,7 @@ Tags: cache, performance, core web vitals, critical css, used css
 Requires at least: 6.3
 Tested up to: 6.9
 Requires PHP: 8.0
-Stable tag: 11.0.33
+Stable tag: 11.0.38
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -69,6 +69,30 @@ UltraCache Pro may store cache metadata, diagnostic records, Core Web Vitals sam
 4. Diagnostics and Core Web Vitals overview.
 
 == Changelog ==
+
+= 11.0.37 =
+* Tweak: LCP-detectie scant het document nog maar één keer — de aparte <img>- en alle-tags-passes in detect_lcp_image_candidate() zijn samengevoegd tot één tag-walk.
+* Note: gedrag 1-op-1 behouden (images eerst gescoord, daarna backgrounds; identieke tie-breaking); geen hooks/REST/options/output gewijzigd. De cross-pass lazyload/LCP-samenvoeging is bewust niet aangeraakt.
+
+= 11.0.36 =
+* Nieuw (default-off): Edge HTML cache — echte shared-cache directives (s-maxage, CDN-Cache-Control, Cloudflare-CDN-Cache-Control, stale-while-revalidate/stale-if-error) plus Cache-Tag headers, fail-closed voor ingelogde/cart/checkout/account/preview.
+* Nieuw: meegeleverde Cloudflare Worker en docs voor volledige edge-HTML-caching op elk Cloudflare-plan; UCP_Edge::cloudflare_purge_tags() voor tag-purge.
+* Nieuw (default-off): per-pagina Script Manager — native Gutenberg-documentpaneel om afzonderlijke scripts/stijlen per pagina uit te schakelen, gegroepeerd per plugin/thema, met read-only inventory-endpoint.
+* Tweak: native toggles toegevoegd aan de React-admin (Cloudflare/Edge + Asset Manager); editorpaneel op @wordpress/components.
+* Note: beide features zijn opt-in; geen gedragswijziging op bestaande installs. Inclusief de classmap-opschoning uit 11.0.35.
+
+= 11.0.35 =
+* Tweak: autoloader-classmap opgeschoond — 27 redundante trait-entries verwijderd die nooit vuurden omdat de trait in zijn eigen composing class-bestand staat (van 143 naar 116 entries).
+* Tweak: de co-located-trait-conventie expliciet in de loader gedocumenteerd zodat de map niet opnieuw uit sync loopt.
+* Note: puur release-hygiene — geen runtime-, hook-, REST-, option- of gedragswijziging; geen migratie nodig.
+
+= 11.0.34 =
+* Tweak: React admin volgt nu het WordPress-beheerkleurenschema — primair, focusringen, badges, toasts en navigatie zijn afgeleid van `--wp-admin-theme-color` in plaats van een vaste merkkleur, zodat ze overeenkomen met de aangrenzende native @wordpress/components.
+* Tweak: semantische statuskleuren afgestemd op het WordPress admin notice-palet (success #00a32a, warning #dba617, error #d63638).
+* Tweak: verouderde "premium" decoratielaag platgeslagen naar native stijl (4px radii, geen slagschaduwen, geen gradient-headerbalk).
+* Fix: tab-navigatie in de React admin werkte niet door een ontbrekende `selectTab`-handler (ReferenceError bij klikken); tab wisselt nu correct en synchroniseert de URL.
+* Tweak: dode code verwijderd uit de React admin (~490 regels JS): niet-gemounte DiagnosticsPage en hulpfuncties, ongebruikte overzichtspanelen, MetricCard/DataList en wees-API-helpers, plus bijbehorende ongebruikte CSS.
+* Note: geen PHP-logica, REST-namespace of option keys gewijzigd; geen migratie nodig.
 
 = 11.0.33 =
 * Tweak: Delay-JS safe-exclusion lijst uitgebreid met payment SDKs (Braintree, Razorpay, Square, Paddle, Authorize.Net).

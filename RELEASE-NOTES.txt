@@ -1,3 +1,31 @@
+Release 11.0.38 - static hardening pass
+- Security-first default: nieuwe installaties schrijven wp-config.php en drop-ins pas na expliciete adminactie in plaats van tijdens standaard activatie/import.
+- Import hardening: instellingenimport behandelt uploadmetadata veld-voor-veld en accepteert alleen gecontroleerde json/txt-extensies.
+- Packaging: versie verhoogd voor de gerepareerde distributiebuild.
+
+UltraCache Pro 11.0.37
+- LCP-detectie: de twee losse full-document scans in detect_lcp_image_candidate() (één over <img>, één over alle tags) zijn samengevoegd tot één tag-walk die partitioneert in <img>- en overige tags.
+- Gedrag bewust 1-op-1 behouden: images worden nog steeds als eerste gescoord en backgrounds daarna, zodat de strikte >-vergelijking exact dezelfde kandidaat kiest bij gelijke scores. Alleen het aantal document-brede regex-passes daalt van 2 naar 1.
+- De riskante cross-pass samenvoeging (lazyload herschrijft <img> vóór de LCP-scan; verschillende HTML-staat) is bewust NIET aangeraakt; bestaande memoization via reset_media_scan_state() + early-returns blijft de bron van waarheid.
+- Geen hooks, REST-namespaces, option keys of output gewijzigd. Staging-runtime-tests (incl. LCP/preload op key-templates) blijven aanbevolen.
+- Bevat ook de features uit 11.0.36 (Edge HTML cache, per-pagina Script Manager) en de classmap-opschoning uit 11.0.35.
+
+UltraCache Pro 11.0.36
+- Nieuw (default-off): Edge HTML cache. Stuurt op publieke, anonieme GET-pagina's echte shared-cache directives (s-maxage, CDN-Cache-Control, Cloudflare-CDN-Cache-Control + stale-while-revalidate/stale-if-error) en Cache-Tag headers voor gerichte purge. Fail-closed: ingelogde, cart-, checkout-, account-, wachtwoord- en builder/preview-requests krijgen altijd private, no-store.
+- Nieuw: UCP_Edge::cloudflare_purge_tags() voor tag-purge op Enterprise/Worker; bestaande Cloudflare URL-purge blijft edge-invalidatie afhandelen.
+- Nieuw: meegeleverde Cloudflare Worker (dropins/edge/ultracache-worker.js) voor volledige edge-HTML-caching op elk CF-plan, met cookie-bypass en stale-if-error. Plus docs/EDGE-HTML-CACHE.md met deploy- en veiligheidsuitleg.
+- Nieuw (default-off): per-pagina Script Manager. Native Gutenberg-documentpaneel dat de werkelijk geladen scripts/stijlen toont, gegroepeerd per plugin/thema, en per pagina laat uitschakelen. Opslag via post-meta (_ucp_sm_disabled); enforcement dequeue't laat op de frontend; inventory wordt gemeten wanneer een beheerder de pagina bezoekt. Read-only inventory-endpoint onder ultracache-pro/v1/script-manager/<id> (capability edit_post).
+- Native UI: nieuwe toggles toegevoegd aan de bestaande React-admin (Cloudflare/Edge + Asset Manager) en het editorpaneel op @wordpress/components, zodat alles oogt als onderdeel van WordPress.
+- Wiring volgt bestaande conventies: options-defaults/normalize/sanitizer, lazy-loader classmap, conditionele bootstrap. Beide features zijn opt-in; bestaande installs wijzigen niet tot je ze aanzet. Staging-runtime-tests (inclusief WooCommerce) blijven vereist vóór productie.
+- Bevat ook de classmap-opschoning uit 11.0.35 (27 redundante trait-entries verwijderd).
+
+UltraCache Pro 11.0.35
+- Autoloader-classmap opgeschoond: 27 redundante trait-entries verwijderd (van 143 naar 116). Het betrof traits die in hun eigen composing class-bestand staan (bv. UCP_Admin_Render_Trait in class-ucp-admin.php); dat bestand was al geladen via de class-entry voordat de trait ooit werd opgevraagd, dus die map-entries vuurden nooit.
+- Conventie expliciet gedocumenteerd in de loader: alleen symbolen in een eigen bestand krijgen een entry; co-located traits worden bewust weggelaten.
+- Puur release-hygiene: geen runtime-, hook-, REST-, option- of gedragswijziging. UCP_Loader::files() levert dezelfde bestandenlijst op (class-entries blijven de bron). Geen risicovolle cleanup.
+- Geverifieerd dat geen los trait-bestand zijn mapping verloor en geen symbool onbereikbaar werd; hard-required bootstrap-classes (optimization-*, testing-mode-runtime) ongewijzigd.
+- Versie- en vertaalmetadata gelijkgetrokken naar 11.0.35.
+
 UltraCache Pro 11.0.33
 - Delay-JS safe-exclusion lijst uitgebreid met gangbare payment SDKs: Braintree, Razorpay, Square, Paddle, Authorize.Net.
 - Delay-JS safe-exclusion lijst uitgebreid met consent managers: CookieYes/Cookie Law Info, Usercentrics, iubenda.

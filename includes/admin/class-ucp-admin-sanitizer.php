@@ -77,125 +77,7 @@ class UCP_Admin_Sanitizer {
 
         // UX-only combined controls. These are not stored as separate runtime flags; they map back
         // to the existing stable options before the normal sanitizer runs.
-        if (array_key_exists('html_optimization_mode', $input)) {
-            $html_mode = sanitize_key((string) $input['html_optimization_mode']);
-            if ('minify' === $html_mode) {
-                $input['remove_html_comments'] = 1;
-                $input['enable_html_minify'] = 1;
-            } elseif ('comments' === $html_mode) {
-                $input['remove_html_comments'] = 1;
-                $input['enable_html_minify'] = 0;
-            } else {
-                $input['remove_html_comments'] = 0;
-                $input['enable_html_minify'] = 0;
-            }
-        }
-
-        if (array_key_exists('image_optimization_mode', $input)) {
-            $image_mode = sanitize_key((string) $input['image_optimization_mode']);
-            if ('webp_avif' === $image_mode) {
-                $input['enable_image_optimization'] = 1;
-                $input['enable_webp_generation'] = 1;
-                $input['enable_avif_generation'] = 1;
-            } elseif ('webp' === $image_mode) {
-                $input['enable_image_optimization'] = 1;
-                $input['enable_webp_generation'] = 1;
-                $input['enable_avif_generation'] = 0;
-            } elseif ('optimize' === $image_mode) {
-                $input['enable_image_optimization'] = 1;
-                $input['enable_webp_generation'] = 0;
-                $input['enable_avif_generation'] = 0;
-            } else {
-                $input['enable_image_optimization'] = 0;
-                $input['enable_webp_generation'] = 0;
-                $input['enable_avif_generation'] = 0;
-            }
-        }
-
-
-        if (array_key_exists('delay_js_control', $input)) {
-            $delay_mode_combined = sanitize_key((string) $input['delay_js_control']);
-            if ('off' === $delay_mode_combined) {
-                $input['enable_delay_js'] = 0;
-            } elseif ('specified' === $delay_mode_combined) {
-                $input['enable_delay_js'] = 1;
-                $input['delay_js_mode'] = 'specified';
-                $input['delay_js_safe_mode'] = 0;
-            } elseif ('all' === $delay_mode_combined) {
-                $input['enable_delay_js'] = 1;
-                $input['delay_js_mode'] = 'all';
-                $input['delay_js_safe_mode'] = 0;
-            } elseif ('safe' === $delay_mode_combined) {
-                $input['enable_delay_js'] = 1;
-                $input['delay_js_mode'] = 'all';
-                $input['delay_js_safe_mode'] = 1;
-                $input['delay_js_disable_click_delay'] = 1;
-            }
-        }
-
-        if (array_key_exists('media_lazyload_mode', $input)) {
-            $media_mode = sanitize_key((string) $input['media_lazyload_mode']);
-            $input['enable_lazy_images'] = in_array($media_mode, array('images','iframes','youtube'), true) ? 1 : 0;
-            $input['enable_lazy_iframes'] = in_array($media_mode, array('iframes','youtube'), true) ? 1 : 0;
-            $input['enable_lazy_youtube_preview'] = 'youtube' === $media_mode ? 1 : 0;
-        }
-
-        if (array_key_exists('lcp_image_mode', $input)) {
-            $lcp_mode = sanitize_key((string) $input['lcp_image_mode']);
-            if ('off' === $lcp_mode) {
-                $input['preload_critical_images'] = 0;
-                $input['lazyload_exclude_leading_images'] = 0;
-            } elseif ('protect_hero' === $lcp_mode) {
-                $input['preload_critical_images'] = 0;
-                $input['lazyload_exclude_leading_images'] = 1;
-            } elseif ('preload_hero' === $lcp_mode) {
-                $input['preload_critical_images'] = 1;
-                $input['lazyload_exclude_leading_images'] = 1;
-            } elseif ('recommended' === $lcp_mode) {
-                $input['preload_critical_images'] = 2;
-                $input['lazyload_exclude_leading_images'] = 4;
-            }
-        }
-
-        if (array_key_exists('google_fonts_mode', $input)) {
-            $fonts_mode = sanitize_key((string) $input['google_fonts_mode']);
-            $input['enable_disable_google_fonts'] = 'disable' === $fonts_mode ? 1 : 0;
-            $input['enable_local_google_fonts'] = 'local' === $fonts_mode ? 1 : 0;
-            $input['enable_font_display_swap'] = in_array($fonts_mode, array('swap','local'), true) ? 1 : 0;
-        }
-
-        if (array_key_exists('preload_mode', $input)) {
-            $preload_mode = sanitize_key((string) $input['preload_mode']);
-            if ('off' === $preload_mode) {
-                $input['enable_preload'] = 0;
-                $input['enable_preload_queue'] = 0;
-                $input['preload_sitemaps'] = 0;
-                $input['preload_homepage'] = 0;
-            } elseif ('recommended' === $preload_mode) {
-                $input['enable_preload'] = 1;
-                $input['enable_preload_queue'] = 1;
-                $input['preload_sitemaps'] = 1;
-                $input['preload_homepage'] = 1;
-            } elseif ('homepage' === $preload_mode) {
-                $input['enable_preload'] = 1;
-                $input['enable_preload_queue'] = 1;
-                $input['preload_sitemaps'] = 0;
-                $input['preload_homepage'] = 1;
-            } elseif ('manual' === $preload_mode) {
-                $input['enable_preload'] = 1;
-            }
-        }
-
-        if (array_key_exists('stale_cache_mode', $input)) {
-            $stale_mode = sanitize_key((string) $input['stale_cache_mode']);
-            if ('off' === $stale_mode) {
-                $input['enable_stale_cache'] = 0;
-            } elseif (in_array($stale_mode, array('6','12','24','48'), true)) {
-                $input['enable_stale_cache'] = 1;
-                $input['stale_cache_lifespan'] = absint($stale_mode);
-            }
-        }
-
+        $input = UCP_Settings_Combined_Controls::apply($input, false, false);
 
         if (array_key_exists('query_string_cache_mode', $input)) {
             $query_mode = sanitize_key((string) $input['query_string_cache_mode']);
@@ -273,7 +155,7 @@ class UCP_Admin_Sanitizer {
             'enable_heartbeat_control', 'enable_db_cleanup', 'db_cleanup_post_revisions', 'db_cleanup_auto_drafts', 'db_cleanup_expired_transients', 'db_cleanup_all_transients',
             'db_cleanup_spam_comments', 'db_cleanup_trashed_comments', 'db_cleanup_trashed_posts', 'db_cleanup_optimize_tables',
             'db_cleanup_wc_sessions', 'enable_cloud', 'cloud_pull_used_css', 'cloud_pull_critical_css', 'enable_edge_cache_headers',
-            'enable_cloudflare_apo_mode', 'enable_early_hints_links', 'enable_admin_bar', 'enable_asset_test_mode', 'enable_asset_manager_snapshot', 'purge_on_post_update', 'purge_on_comment',
+            'enable_cloudflare_apo_mode', 'enable_early_hints_links', 'enable_edge_html_cache', 'edge_html_cache_tags', 'enable_script_manager', 'enable_admin_bar', 'enable_asset_test_mode', 'enable_asset_manager_snapshot', 'purge_on_post_update', 'purge_on_comment',
             'purge_on_theme_switch', 'purge_on_extension_change', 'purge_on_core_update', 'purge_on_global_change', 'enable_cache_tags', 'enable_object_cache_support', 'object_cache_fail_safe', 'enable_diagnostics', 'enable_logs', 'enable_dynamic_compatibility_rules', 'enable_runtime_debug_headers', 'enable_health_checks', 'enable_admin_queue_runner', 'autopilot_enabled', 'onboarding_completed',
             'enable_local_critical_css', 'enable_brotli_precompression', 'enable_gzip_precompression', 'enable_cls_iframe_reservation', 'enable_expand_missing_srcset', 'enable_worker_lazyload', 'enable_apcu_object_cache', 'enable_redis_object_cache', 'db_allow_myisam_innodb_convert', 'allow_wp_config_write', 'allow_dropin_writes', 'allow_browser_cache_rule_writes', 'enable_preload_queue', 'enable_targeted_purge', 'enable_light_preload_requests', 'enable_lazy_render', 'enable_self_host_third_party_assets', 'enable_disable_dashicons', 'enable_disable_jquery_migrate', 'enable_move_module_scripts_footer', 'safe_settings_export', 'enable_disable_xmlrpc', 'enable_hide_wp_version', 'enable_remove_rsd_link', 'enable_remove_shortlink', 'enable_disable_rss_feeds', 'enable_remove_rss_feed_links', 'enable_disable_self_pingbacks', 'enable_disable_rest_api', 'enable_remove_rest_api_links', 'enable_disable_google_maps', 'enable_disable_password_strength_meter', 'allow_dropin_takeover', 'enable_disable_comments', 'enable_remove_comment_links', 'enable_blank_favicon', 'enable_remove_global_styles', 'enable_separate_block_styles', 'enable_disable_google_fonts', 'enable_hide_toolbar_menu', 'enable_lazyload_fade_in', 'enable_lazyload_background_images', 'enable_auto_resource_hints', 'enable_auto_font_preloads', 'enable_css_profiles', 'preload_pause_on_high_load', 'enable_sensitive_asset_unload_override'
         );
@@ -281,7 +163,7 @@ class UCP_Admin_Sanitizer {
         $number_fields = array(
             'cache_lifespan', 'stale_cache_lifespan', 'preload_delay_ms', 'delay_js_timeout', 'lazyload_exclude_leading_images', 'preload_critical_images', 'used_css_max_rules', 'critical_css_max_bytes', 'css_artifact_min_bytes', 'css_artifact_retry_limit',
             'cache_control_max_age', 'heartbeat_frequency', 'heartbeat_frontend_frequency', 'heartbeat_editor_frequency', 'heartbeat_backend_frequency', 'db_keep_post_revisions', 'job_batch_size', 'job_max_attempts', 'job_lock_ttl', 'log_retention_days', 'diagnostics_retention_days', 'job_retention_days',
-            'preload_batch_size', 'preload_max_urls', 'preload_max_server_load', 'preload_menu_urls_limit', 'preload_recent_purge_limit', 'css_profile_max_age_days', 'lcp_profile_min_confidence', 'lcp_profile_max_age_days', 'image_quality', 'fragment_cache_ttl', 'rest_cache_ttl', 'autosave_interval', 'lazyload_threshold', 'resource_hints_preconnect_limit', 'resource_hints_dns_limit'
+            'preload_batch_size', 'preload_max_urls', 'preload_max_server_load', 'preload_menu_urls_limit', 'preload_recent_purge_limit', 'css_profile_max_age_days', 'lcp_profile_min_confidence', 'lcp_profile_max_age_days', 'image_quality', 'fragment_cache_ttl', 'rest_cache_ttl', 'autosave_interval', 'lazyload_threshold', 'resource_hints_preconnect_limit', 'resource_hints_dns_limit', 'edge_html_cache_ttl', 'edge_html_cache_stale'
         );
 
         $textarea_modes = array(

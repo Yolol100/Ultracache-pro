@@ -4,6 +4,14 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+// Lightweight internal traits consolidated here to avoid one-purpose micro-files while preserving the public UCP_* symbols.
+trait UCP_Optimizer_Media_Trait {
+    use UCP_Optimizer_Media_Preload_Trait;
+    use UCP_Optimizer_Media_Image_Trait;
+    use UCP_Optimizer_Media_Iframe_Trait;
+}
+
+
 class UCP_Optimizer {
     use UCP_Optimizer_Core_Bloat_Trait;
     use UCP_Optimizer_HTML_Trait;

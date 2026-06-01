@@ -113,61 +113,75 @@ trait UCP_Optimizer_Media_Preload_Trait {
         $scan = substr($html, 0, 220000);
         $best = array('score' => 0, 'url' => '', 'background' => false);
 
-        if (preg_match_all('/<img\b([^>]*)>/i', $scan, $img_matches, PREG_OFFSET_CAPTURE)) {
-            foreach ($img_matches[1] as $img) {
-                $attrs = (string) $img[0];
-                $offset = (int) $img[1];
-                if (!preg_match('/\bsrc=["\']([^"\']+)["\']/i', $attrs, $src_match)) {
-                    continue;
-                }
-                $raw_candidate_src = $src_match[1];
-                if (preg_match('/\bsrcset=["\']([^"\']+)["\']/i', $attrs, $srcset_match)) {
-                    $srcset_candidate = $this->best_lcp_srcset_candidate($srcset_match[1]);
-                    if ('' !== $srcset_candidate) {
-                        $raw_candidate_src = $srcset_candidate;
-                    }
-                }
-                $url = $this->normalize_lcp_image_candidate_url($raw_candidate_src);
-                if (!$url || $this->lcp_candidate_is_low_value($url, $attrs)) {
-                    continue;
-                }
-                $score = $this->score_lcp_candidate($url, $attrs, $offset, false);
-                if ($score > $best['score']) {
-                    $best = array('score' => $score, 'url' => $url, 'background' => false);
+        // Single document tag-walk. Partition into <img> and other tags, then score
+        // images first and backgrounds second so the strict > tie-breaking order is
+        // identical to the previous two-pass scan, but the document is scanned only once.
+        $img_entries = array();
+        $bg_entries = array();
+        if (preg_match_all('/<([a-z0-9]+)\b([^>]*)>/i', $scan, $tag_matches, PREG_OFFSET_CAPTURE)) {
+            foreach ($tag_matches[1] as $ucp_i => $ucp_name) {
+                $ucp_tag = strtolower((string) $ucp_name[0]);
+                $ucp_attrs = isset($tag_matches[2][$ucp_i][0]) ? (string) $tag_matches[2][$ucp_i][0] : '';
+                $ucp_offset = isset($tag_matches[2][$ucp_i][1]) ? (int) $tag_matches[2][$ucp_i][1] : 0;
+                if ('img' === $ucp_tag) {
+                    $img_entries[] = array($ucp_attrs, $ucp_offset);
+                } else {
+                    $bg_entries[] = array($ucp_attrs, $ucp_offset);
                 }
             }
         }
 
-        if (preg_match_all('/<([a-z0-9]+)\b([^>]*)>/i', $scan, $tag_matches, PREG_OFFSET_CAPTURE)) {
-            foreach ($tag_matches[2] as $tag) {
-                $attrs = (string) $tag[0];
-                $offset = (int) $tag[1];
-                if (false === stripos($attrs, 'background') && false === stripos($attrs, 'url(') && false === stripos($attrs, 'data-settings')) {
+        foreach ($img_entries as $ucp_entry) {
+            $attrs = $ucp_entry[0];
+            $offset = $ucp_entry[1];
+            if (!preg_match('/\bsrc=["\']([^"\']+)["\']/i', $attrs, $src_match)) {
+                continue;
+            }
+            $raw_candidate_src = $src_match[1];
+            if (preg_match('/\bsrcset=["\']([^"\']+)["\']/i', $attrs, $srcset_match)) {
+                $srcset_candidate = $this->best_lcp_srcset_candidate($srcset_match[1]);
+                if ('' !== $srcset_candidate) {
+                    $raw_candidate_src = $srcset_candidate;
+                }
+            }
+            $url = $this->normalize_lcp_image_candidate_url($raw_candidate_src);
+            if (!$url || $this->lcp_candidate_is_low_value($url, $attrs)) {
+                continue;
+            }
+            $score = $this->score_lcp_candidate($url, $attrs, $offset, false);
+            if ($score > $best['score']) {
+                $best = array('score' => $score, 'url' => $url, 'background' => false);
+            }
+        }
+
+        foreach ($bg_entries as $ucp_entry) {
+            $attrs = $ucp_entry[0];
+            $offset = $ucp_entry[1];
+            if (false === stripos($attrs, 'background') && false === stripos($attrs, 'url(') && false === stripos($attrs, 'data-settings')) {
+                continue;
+            }
+            $urls = array();
+            if (preg_match_all('/url\(([^)]+)\)/i', $attrs, $bg_matches)) {
+                $urls = array_merge($urls, $bg_matches[1]);
+            }
+            if (preg_match('/\bdata-settings=["\']([^"\']+)["\']/i', $attrs, $settings_match)) {
+                $decoded = html_entity_decode($settings_match[1], ENT_QUOTES);
+                $decoded = str_replace('\\/', '/', $decoded);
+                if (preg_match_all('#https?://[^"\'\s<>]+\.(?:jpe?g|png|webp|avif)(?:\?[^"\'\s<>]*)?#i', $decoded, $url_matches)) {
+                    $urls = array_merge($urls, $url_matches[0]);
+                }
+                if (preg_match_all('#\/[^"\'\s<>]+\.(?:jpe?g|png|webp|avif)(?:\?[^"\'\s<>]*)?#i', $decoded, $local_matches)) {
+                    $urls = array_merge($urls, $local_matches[0]);
+                }
+            }
+            foreach ($urls as $raw_url) {
+                $url = $this->normalize_lcp_image_candidate_url($raw_url);
+                if (!$url || $this->lcp_candidate_is_low_value($url, $attrs)) {
                     continue;
                 }
-                $urls = array();
-                if (preg_match_all('/url\(([^)]+)\)/i', $attrs, $bg_matches)) {
-                    $urls = array_merge($urls, $bg_matches[1]);
-                }
-                if (preg_match('/\bdata-settings=["\']([^"\']+)["\']/i', $attrs, $settings_match)) {
-                    $decoded = html_entity_decode($settings_match[1], ENT_QUOTES);
-                    $decoded = str_replace('\\/', '/', $decoded);
-                    if (preg_match_all('#https?://[^"\'\s<>]+\.(?:jpe?g|png|webp|avif)(?:\?[^"\'\s<>]*)?#i', $decoded, $url_matches)) {
-                        $urls = array_merge($urls, $url_matches[0]);
-                    }
-                    if (preg_match_all('#\/[^"\'\s<>]+\.(?:jpe?g|png|webp|avif)(?:\?[^"\'\s<>]*)?#i', $decoded, $local_matches)) {
-                        $urls = array_merge($urls, $local_matches[0]);
-                    }
-                }
-                foreach ($urls as $raw_url) {
-                    $url = $this->normalize_lcp_image_candidate_url($raw_url);
-                    if (!$url || $this->lcp_candidate_is_low_value($url, $attrs)) {
-                        continue;
-                    }
-                    $score = $this->score_lcp_candidate($url, $attrs, $offset, true);
-                    if ($score > $best['score']) {
-                        $best = array('score' => $score, 'url' => $url, 'background' => true);
-                    }
+                $score = $this->score_lcp_candidate($url, $attrs, $offset, true);
+                if ($score > $best['score']) {
+                    $best = array('score' => $score, 'url' => $url, 'background' => true);
                 }
             }
         }
