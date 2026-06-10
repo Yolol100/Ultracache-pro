@@ -35,7 +35,7 @@ trait UCP_Quality_Suite_Runtime_Trait {
         $report['home']['second'] = self::probe_url($home);
         $report['home']['result'] = self::classify_cache_result($report['home']['first'], $report['home']['second']);
 
-        // Guard against drop-in / PHP cache-key drift (the class of bug behind K3 + H2).
+        // Guard against drift between the drop-in and PHP cache-key logic.
         $report['key_consistency'] = self::check_key_consistency();
 
         $tests = array('winkelwagen' => home_url('/winkelwagen/'), 'afrekenen' => home_url('/afrekenen/'), 'mijn_account' => home_url('/mijn-account/'));
@@ -92,15 +92,20 @@ trait UCP_Quality_Suite_Runtime_Trait {
     }
 
     /**
-     * Mirror of the advanced-cache.php key recipe for verification only (guest user, no query).
-     * Kept deliberately close to the drop-in so divergence shows up as a failing check.
+     * Mirror the advanced-cache.php key recipe for verification only.
+     * Keep this close to the drop-in so key changes are caught during testing.
      */
     protected static function dropin_style_key($url) {
         $parts = wp_parse_url($url);
         $path_only = isset($parts['path']) && '' !== $parts['path'] ? $parts['path'] : '/';
-        $path = rtrim($path_only, '/');
-        $raw_path = '' === $path ? '/' : $path;
-        $path = '' === $path ? 'home' : trim(str_replace('/', '-', $path), '-');
+        $raw_path = '' === rtrim($path_only, '/') ? '/' : rtrim($path_only, '/');
+        // Independently re-implement the advanced-cache.php slug recipe (do NOT call the shared
+        // helper here) so this check still fails if the drop-in and PHP helper drift.
+        $slug = str_replace('/', '-', rtrim($path_only, '/'));
+        $slug = preg_replace('/[^A-Za-z0-9_.-]/', '-', $slug);
+        $slug = preg_replace('/-+/', '-', (string) $slug);
+        $slug = trim((string) $slug, '-');
+        $path = '' === $slug ? 'home' : $slug;
         $path_hash = substr(md5($raw_path), 0, 8);
         $query = isset($parts['query']) ? UCP_Helpers::normalized_cache_query($parts['query']) : '';
         $query_key = '' !== $query ? md5($query) : 'noq';
@@ -108,7 +113,7 @@ trait UCP_Quality_Suite_Runtime_Trait {
         $host_key = $host ? md5($host) : 'nohost';
         $is_mobile = UCP_Options::get('cache_mobile_separately') && UCP_Helpers::is_mobile_request();
         $suffix = 'guest' . ($is_mobile ? '-mobile' : '');
-        return preg_replace('/[^A-Za-z0-9_.-]/', '-', $host_key . '-' . $path . '-' . $path_hash . '-' . $suffix . '-' . $query_key);
+        return $host_key . '-' . $path . '-' . $path_hash . '-' . $suffix . '-' . $query_key;
     }
 
     protected static function probe_url($url) {

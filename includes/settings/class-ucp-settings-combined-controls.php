@@ -164,6 +164,26 @@ final class UCP_Settings_Combined_Controls {
             self::remove_control($settings, 'heartbeat_interval_mode', $remove_controls);
         }
 
+        if (array_key_exists('bloat_removal_mode', $settings)) {
+            $bloat_mode = sanitize_key((string) $settings['bloat_removal_mode']);
+            $safe_keys = array('enable_disable_dashicons', 'enable_hide_wp_version', 'enable_remove_rsd_link', 'enable_remove_shortlink', 'enable_remove_rss_feed_links', 'enable_remove_rest_api_links', 'enable_disable_self_pingbacks');
+            $aggressive_keys = array('enable_disable_jquery_migrate', 'enable_disable_xmlrpc', 'enable_disable_rss_feeds', 'enable_remove_global_styles', 'enable_remove_query_strings');
+            if ('off' === $bloat_mode || !$strict_values) {
+                foreach (array_merge($safe_keys, $aggressive_keys) as $key) {
+                    $settings[$key] = 0;
+                }
+            }
+            if ('safe' === $bloat_mode || 'aggressive' === $bloat_mode) {
+                foreach ($safe_keys as $key) {
+                    $settings[$key] = 1;
+                }
+                foreach ($aggressive_keys as $key) {
+                    $settings[$key] = 'aggressive' === $bloat_mode ? 1 : 0;
+                }
+            }
+            self::remove_control($settings, 'bloat_removal_mode', $remove_controls);
+        }
+
         return $settings;
     }
 

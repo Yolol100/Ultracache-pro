@@ -29,7 +29,7 @@ trait UCP_Cache_Admin_Bar_Trait {
                 'id' => 'ucp-purge-preload',
                 'parent' => 'ucp-parent',
                 'title' => __('Cache legen en opwarmen', 'ultracache-pro'),
-                'href' => wp_nonce_url(admin_url('admin-post.php?action=ucp_purge_and_preload'), 'ucp_purge_and_preload'),
+                'href' => admin_url('admin.php?page=ultracache-pro&tab=tools'),
             ));
         }
 
@@ -38,7 +38,7 @@ trait UCP_Cache_Admin_Bar_Trait {
                 'id' => 'ucp-clear-used-css',
                 'parent' => 'ucp-parent',
                 'title' => __('Gebruikte CSS legen', 'ultracache-pro'),
-                'href' => wp_nonce_url(admin_url('admin-post.php?action=ucp_clear_used_css'), 'ucp_clear_used_css'),
+                'href' => admin_url('admin.php?page=ultracache-pro&tab=tools'),
             ));
         }
 
@@ -47,7 +47,7 @@ trait UCP_Cache_Admin_Bar_Trait {
                 'id' => 'ucp-clear-priority-elements',
                 'parent' => 'ucp-parent',
                 'title' => __('Priority elements legen', 'ultracache-pro'),
-                'href' => wp_nonce_url(admin_url('admin-post.php?action=ucp_clear_priority_elements'), 'ucp_clear_priority_elements'),
+                'href' => admin_url('admin.php?page=ultracache-pro&tab=tools'),
             ));
         }
 
@@ -56,7 +56,7 @@ trait UCP_Cache_Admin_Bar_Trait {
                 'id' => 'ucp-purge-url',
                 'parent' => 'ucp-parent',
                 'title' => __('Deze pagina legen', 'ultracache-pro'),
-                'href' => wp_nonce_url(admin_url('admin-post.php?action=ucp_purge_url&url=' . rawurlencode(UCP_Helpers::current_full_url())), 'ucp_purge_url'),
+                'href' => admin_url('admin.php?page=ultracache-pro&tab=tools'),
             ));
         }
 
@@ -90,21 +90,26 @@ trait UCP_Cache_Admin_Bar_Trait {
             . '</style>';
     }
 
-    public function handle_purge_all() {
+    protected function require_post_admin_action($nonce) {
         if (!current_user_can('manage_options')) {
             wp_die(esc_html__('Geen toegang.', 'ultracache-pro'), '', array('response' => 403));
         }
-        check_admin_referer('ucp_purge_all');
+        if (!isset($_SERVER['REQUEST_METHOD']) || 'POST' !== strtoupper((string) $_SERVER['REQUEST_METHOD'])) {
+            wp_safe_redirect(admin_url('admin.php?page=ultracache-pro&tab=tools&post_required=1'));
+            exit;
+        }
+        check_admin_referer($nonce);
+    }
+
+    public function handle_purge_all() {
+        $this->require_post_admin_action('ucp_purge_all');
         $this->purge_all();
         wp_safe_redirect(admin_url('admin.php?page=ultracache-pro&tab=tools&purged=1'));
         exit;
     }
 
     public function handle_purge_and_preload() {
-        if (!current_user_can('manage_options')) {
-            wp_die(esc_html__('Geen toegang.', 'ultracache-pro'), '', array('response' => 403));
-        }
-        check_admin_referer('ucp_purge_and_preload');
+        $this->require_post_admin_action('ucp_purge_and_preload');
         $this->purge_all();
         do_action('ucp_preload_event');
         wp_safe_redirect(admin_url('admin.php?page=ultracache-pro&tab=tools&purged=1&preloaded=1'));
@@ -112,11 +117,8 @@ trait UCP_Cache_Admin_Bar_Trait {
     }
 
     public function handle_purge_url() {
-        if (!current_user_can('manage_options')) {
-            wp_die(esc_html__('Geen toegang.', 'ultracache-pro'), '', array('response' => 403));
-        }
-        check_admin_referer('ucp_purge_url');
-        $url = isset($_GET['url']) ? esc_url_raw(wp_unslash($_GET['url'])) : home_url('/');
+        $this->require_post_admin_action('ucp_purge_url');
+        $url = isset($_POST['url']) ? esc_url_raw(wp_unslash($_POST['url'])) : home_url('/');
         $url = UCP_Helpers::strict_local_url($url, home_url('/'));
         if (!$url) {
             $url = home_url('/');

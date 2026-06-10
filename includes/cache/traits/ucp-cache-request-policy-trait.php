@@ -319,6 +319,61 @@ trait UCP_Cache_Request_Policy_Trait {
         }
     }
 
+    protected function request_matches_excluded_cookie_rules($settings) {
+        $cookies = apply_filters('ucp_excluded_cookie_fragments', UCP_Helpers::normalize_multiline($settings['exclude_cookies']));
+        foreach ((array) array_keys($_COOKIE) as $cookie_name) {
+            $cookie_name = sanitize_key((string) $cookie_name);
+            foreach ($cookies as $cookie_fragment) {
+                if ('' !== $cookie_fragment && false !== strpos($cookie_name, sanitize_key((string) $cookie_fragment))) {
+                    UCP_Diagnostics::record('cache', 'Bypassed cache for cookie rule', array(
+                        'cookie' => $cookie_name,
+                        'fragment' => trim($cookie_fragment),
+                    ));
+                    return 'cookie';
+                }
+            }
+            $block_unknown = !empty($settings['block_unknown_request_cookies']);
+            $block_unknown = (bool) apply_filters('ucp_block_unknown_request_cookies', $block_unknown, $cookie_name);
+            if (!$this->request_cookie_is_cache_safe($cookie_name) && $block_unknown) {
+                UCP_Diagnostics::record('cache', 'Bypassed cache for unknown request cookie', array('cookie' => $cookie_name));
+                return 'unknown_cookie';
+            }
+        }
+        return '';
+    }
+
+    protected function request_matches_excluded_url_rules($settings) {
+        $path = UCP_Helpers::current_url_path();
+        $excluded = apply_filters('ucp_excluded_url_fragments', UCP_Helpers::normalize_multiline($settings['exclude_urls']));
+        foreach ($excluded as $fragment) {
+            if (UCP_Helpers::wildcard_match($path . '?' . (isset($_SERVER['QUERY_STRING']) ? sanitize_text_field(wp_unslash($_SERVER['QUERY_STRING'])) : ''), $fragment)) {
+                return 'excluded_url';
+            }
+        }
+        return '';
+    }
+
+    protected function request_matches_uri_optimization_exclusion($path) {
+        $uri_rules = apply_filters('ucp_uri_optimization_exclusions', array());
+        $request_uri = isset($_SERVER['REQUEST_URI']) ? esc_url_raw(wp_unslash($_SERVER['REQUEST_URI'])) : $path;
+        foreach ((array) $uri_rules as $rule) {
+            $rule = trim((string) $rule);
+            if ('' === $rule) {
+                continue;
+            }
+            if ('^' === substr($rule, 0, 1)) {
+                if (UCP_Helpers::safe_regex_match($rule, $request_uri)) {
+                    return 'uri_rule';
+                }
+                continue;
+            }
+            if (false !== stripos($request_uri, $rule)) {
+                return 'uri_rule';
+            }
+        }
+        return '';
+    }
+
     public function can_cache_request() {
         $settings = UCP_Options::get_all();
 
@@ -342,8 +397,8 @@ trait UCP_Cache_Request_Policy_Trait {
             return $this->bypass_cache('context');
         }
         $method = isset($_SERVER['REQUEST_METHOD']) ? sanitize_text_field(wp_unslash($_SERVER['REQUEST_METHOD'])) : 'GET';
-        if ('GET' !== strtoupper($method)) {
-            UCP_Diagnostics::record('cache', 'Bypassed cache for non-GET request');
+        if (!in_array(strtoupper($method), array('GET', 'HEAD'), true)) {
+            UCP_Diagnostics::record('cache', 'Bypassed cache for non-GET/HEAD request');
             return $this->bypass_cache('method');
         }
         if ($this->request_has_auth_headers()) {
@@ -375,51 +430,20 @@ trait UCP_Cache_Request_Policy_Trait {
             return $this->bypass_cache('user_agent');
         }
 
-        $cookies = apply_filters('ucp_excluded_cookie_fragments', UCP_Helpers::normalize_multiline($settings['exclude_cookies']));
-        foreach ((array) array_keys($_COOKIE) as $cookie_name) {
-            $cookie_name = sanitize_key((string) $cookie_name);
-            foreach ($cookies as $cookie_fragment) {
-                if ('' !== $cookie_fragment && false !== strpos($cookie_name, sanitize_key((string) $cookie_fragment))) {
-                    UCP_Diagnostics::record('cache', 'Bypassed cache for cookie rule', array(
-                        'cookie' => $cookie_name,
-                        'fragment' => trim($cookie_fragment),
-                    ));
-                    return $this->bypass_cache('cookie');
-                }
-            }
-            // Note: unknown request cookies are common on real sites (analytics, A/B, chat, payment, consent).
-            // Blocking on them collapses the cache hit-rate, so the default is now permissive: only bypass when
-            // a cookie matches the explicit sensitive list above. Strict mode remains available via the filter.
-            if (!$this->request_cookie_is_cache_safe($cookie_name) && (bool) apply_filters('ucp_block_unknown_request_cookies', false, $cookie_name)) {
-                UCP_Diagnostics::record('cache', 'Bypassed cache for unknown request cookie', array('cookie' => $cookie_name));
-                return $this->bypass_cache('unknown_cookie');
-            }
+        $cookie_bypass_reason = $this->request_matches_excluded_cookie_rules($settings);
+        if ('' !== $cookie_bypass_reason) {
+            return $this->bypass_cache($cookie_bypass_reason);
+        }
+
+        $url_bypass_reason = $this->request_matches_excluded_url_rules($settings);
+        if ('' !== $url_bypass_reason) {
+            return $this->bypass_cache($url_bypass_reason);
         }
 
         $path = UCP_Helpers::current_url_path();
-        $excluded = apply_filters('ucp_excluded_url_fragments', UCP_Helpers::normalize_multiline($settings['exclude_urls']));
-        foreach ($excluded as $fragment) {
-            if (UCP_Helpers::wildcard_match($path . '?' . (isset($_SERVER['QUERY_STRING']) ? sanitize_text_field(wp_unslash($_SERVER['QUERY_STRING'])) : ''), $fragment)) {
-                return $this->bypass_cache('excluded_url');
-            }
-        }
-
-        $uri_rules = apply_filters('ucp_uri_optimization_exclusions', array());
-        $request_uri = isset($_SERVER['REQUEST_URI']) ? esc_url_raw(wp_unslash($_SERVER['REQUEST_URI'])) : $path;
-        foreach ((array) $uri_rules as $rule) {
-            $rule = trim((string) $rule);
-            if ('' === $rule) {
-                continue;
-            }
-            if ('^' === substr($rule, 0, 1)) {
-                if (UCP_Helpers::safe_regex_match($rule, $request_uri)) {
-                    return $this->bypass_cache('uri_rule');
-                }
-                continue;
-            }
-            if (false !== stripos($request_uri, $rule)) {
-                return $this->bypass_cache('uri_rule');
-            }
+        $uri_bypass_reason = $this->request_matches_uri_optimization_exclusion($path);
+        if ('' !== $uri_bypass_reason) {
+            return $this->bypass_cache($uri_bypass_reason);
         }
 
         if (UCP_Rule_Engine::has_action('disable_cache')) {

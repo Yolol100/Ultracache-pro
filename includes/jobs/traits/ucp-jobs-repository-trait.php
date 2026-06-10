@@ -414,12 +414,19 @@ trait UCP_Jobs_Repository_Trait {
 
     public static function get_runner_status() {
         $next = wp_next_scheduled(self::CRON_HOOK);
+        $last = get_option('ucp_jobs_last_run_summary', array());
+        $last = is_array($last) ? $last : array();
         return array(
             'due'          => self::count_due_jobs(),
             'nextCron'     => $next ? gmdate('Y-m-d H:i:s', (int) $next) : '',
             'cronDisabled' => defined('DISABLE_WP_CRON') && DISABLE_WP_CRON,
             'hook'         => self::CRON_HOOK,
             'schedule'     => $next ? 'ucp_one_minute' : '',
+            'lastRun'      => isset($last['ended_at']) ? sanitize_text_field((string) $last['ended_at']) : '',
+            'lastDuration' => isset($last['duration']) ? absint($last['duration']) : 0,
+            'lastProcessed'=> isset($last['processed']) ? absint($last['processed']) : 0,
+            'batchSize'    => isset($last['batch_size']) ? absint($last['batch_size']) : max(1, absint(UCP_Options::get('job_batch_size', 5))),
+            'emptyStreak'  => isset($last['empty_streak']) ? absint($last['empty_streak']) : absint(get_option('ucp_jobs_empty_run_streak', 0)),
         );
     }
 

@@ -9,7 +9,7 @@ trait UCP_Installer_Lifecycle_Trait {
         $installed = (string) get_option('ucp_db_version', '');
         if ($installed !== UCP_VERSION) {
             self::create_tables();
-            UCP_Helpers::ensure_cache_dirs();
+            UCP_Helpers::ensure_cache_dirs(true);
             self::cleanup_previous_version_artifacts();
             UCP_Helpers::write_dropin_config();
             UCP_Helpers::write_advanced_cache_stub();
@@ -46,7 +46,7 @@ trait UCP_Installer_Lifecycle_Trait {
         if ($created_defaults) {
             UCP_Options::maybe_apply_install_profile(true);
         }
-        UCP_Helpers::ensure_cache_dirs();
+        UCP_Helpers::ensure_cache_dirs(true);
         self::cleanup_previous_version_artifacts();
         self::detect_duplicate_plugin_copies();
         UCP_Helpers::maybe_install_own_advanced_cache_automatically();
@@ -89,7 +89,14 @@ trait UCP_Installer_Lifecycle_Trait {
         if (class_exists('UCP_DB_Cleanup')) {
             wp_clear_scheduled_hook(UCP_DB_Cleanup::CRON_HOOK);
         }
+        if (class_exists('UCP_Compat_Updater')) {
+            wp_clear_scheduled_hook(UCP_Compat_Updater::FETCH_HOOK);
+            wp_clear_scheduled_hook(UCP_Compat_Updater::REGEN_HOOK);
+        }
         UCP_Helpers::remove_browser_cache_rules();
+        if (method_exists('UCP_Helpers', 'remove_direct_cache_rules')) {
+            UCP_Helpers::remove_direct_cache_rules();
+        }
         UCP_Helpers::remove_own_advanced_cache_stub(true);
         UCP_Maintenance::unschedule();
     }
@@ -99,7 +106,7 @@ trait UCP_Installer_Lifecycle_Trait {
      * UltraCache-owned drop-in without touching third-party cache plugins.
      */
     protected static function cleanup_previous_version_artifacts() {
-        UCP_Helpers::ensure_cache_dirs();
+        UCP_Helpers::ensure_cache_dirs(true);
 
         $patterns = array(
             UCP_CACHE_DIR . 'pages/*.html',

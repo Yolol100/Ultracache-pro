@@ -12,10 +12,10 @@ class UCP_Image_Optimizer {
         add_filter('wp_generate_attachment_metadata', array($this, 'generate_variants_on_upload'), 20, 2);
         add_action('admin_post_ucp_optimize_missing_images', array($this, 'optimize_missing_images'));
         add_filter('wp_get_attachment_image_src', array($this, 'maybe_serve_modern_variant'), 20, 4);
-        // Cache-safe delivery: rewrite <img> into <picture> with modern <source> sets inside the
-        // front-end HTML buffer. Unlike Accept-negotiated URL swapping, <picture> lets each browser
-        // pick the format it supports, so the SAME cached HTML is correct for every visitor (no Vary needed).
-        add_filter('ucp_process_html', array($this, 'rewrite_images_to_picture'), 5);
+        // Cache-safe delivery: a SINGLE media pass over the front-end HTML buffer wraps eligible
+        // <img> tags in <picture> with modern <source> sets AND (when enabled) rewrites every URL —
+        // including the created <source> URLs — through the image CDN, so origins stay consistent.
+        add_filter('ucp_process_html', array($this, 'rewrite_media_buffer'), 5);
     }
 
     public static function server_support() {
@@ -30,6 +30,12 @@ class UCP_Image_Optimizer {
         if (empty(UCP_Options::get('enable_image_optimization')) && empty(UCP_Options::get('enable_webp_generation')) && empty(UCP_Options::get('enable_avif_generation'))) {
             return $metadata;
         }
+        // Offload to the background queue when async optimisation is enabled, so the upload request
+        // is not blocked by GD/Imagick encoding. Falls back to synchronous generation otherwise.
+        if (class_exists('UCP_Image_Queue') && UCP_Image_Queue::async_enabled()) {
+            UCP_Image_Queue::enqueue_attachment((int) $attachment_id);
+            return $metadata;
+        }
         $this->optimize_attachment((int) $attachment_id);
         return $metadata;
     }
@@ -39,7 +45,7 @@ class UCP_Image_Optimizer {
             return $image;
         }
         // Note: negotiated image URLs are unsafe in cached HTML unless the page cache also varies by Accept.
-        // Keep generated variants available, but avoid rewriting attachment URLs when UltraCache page cache is active.
+        // Keep image variants available, but avoid rewriting attachment URLs when UltraCache page cache is active.
         if (!empty(UCP_Options::get('enable_cache'))) {
             return $image;
         }
@@ -163,11 +169,7 @@ class UCP_Image_Optimizer {
     }
 
     protected function path_to_url($path) {
-        $uploads = wp_upload_dir();
-        if (!empty($uploads['basedir']) && !empty($uploads['baseurl']) && 0 === strpos($path, $uploads['basedir'])) {
-            return str_replace($uploads['basedir'], $uploads['baseurl'], $path);
-        }
-        return '';
+        return UCP_Helpers::uploads_path_to_url($path);
     }
 
     /**
@@ -175,57 +177,34 @@ class UCP_Image_Optimizer {
      * Returns '' for anything outside uploads or with a traversal attempt.
      */
     protected function uploads_path_from_url($url) {
-        $url = (string) $url;
-        if ('' === $url) {
-            return '';
-        }
-        $uploads = wp_upload_dir();
-        if (empty($uploads['baseurl']) || empty($uploads['basedir'])) {
-            return '';
-        }
-        $baseurl = preg_replace('#^https?:#i', '', (string) $uploads['baseurl']);
-        $candidate = preg_replace('#^https?:#i', '', $url);
-        if (0 !== strpos($candidate, $baseurl)) {
-            return '';
-        }
-        $relative = ltrim(substr($candidate, strlen($baseurl)), '/');
-        if (false !== strpos($relative, '..')) {
-            return '';
-        }
-        $path = trailingslashit($uploads['basedir']) . $relative;
-        $real = realpath($path);
-        $base_real = realpath($uploads['basedir']);
-        if (!$real || !$base_real || 0 !== strpos($real, $base_real)) {
-            return '';
-        }
-        return $real;
+        return UCP_Helpers::uploads_url_to_path($url);
     }
 
     /**
-     * Wrap eligible <img> tags in <picture> with avif/webp <source> elements when the
-     * generated variants exist on disk. Safe inside cached HTML: the browser negotiates.
+     * Single front-end media pass. For each eligible <img>:
+     *   - builds AVIF/WebP <source> elements when on-disk variants exist (browser negotiates),
+     *   - rewrites the <img> src/srcset and every created <source> URL through the image CDN
+     *     when CDN delivery is active, so all media references share one origin.
+     * Safe inside cached HTML (format negotiation via <picture>, plain URL swap for the CDN).
      *
      * @param string $html
      * @return string
      */
-    public function rewrite_images_to_picture($html) {
-        if (!is_string($html) || '' === trim($html)) {
+    public function rewrite_media_buffer($html) {
+        if (!is_string($html) || '' === trim($html) || false === stripos($html, '<img')) {
             return $html;
         }
-        if (empty(UCP_Options::get('enable_webp_generation')) && empty(UCP_Options::get('enable_avif_generation'))) {
-            return $html;
-        }
-        if (false === stripos($html, '<img')) {
+        $want_picture = !empty(UCP_Options::get('enable_avif_generation')) || !empty(UCP_Options::get('enable_webp_generation'));
+        $want_cdn     = class_exists('UCP_Image_Queue') && UCP_Image_Queue::cdn_active();
+        if (!$want_picture && !$want_cdn) {
             return $html;
         }
 
-        $rewritten = preg_replace_callback('#<img\b[^>]*>#i', function ($matches) {
+        $rewritten = preg_replace_callback('#<img\b[^>]*>#i', function ($matches) use ($want_picture, $want_cdn) {
             $tag = $matches[0];
-            // Skip tags we should not touch.
-            if (false !== stripos($tag, 'data-ucp-no-picture') || false !== stripos($tag, 'data-no-optimize')) {
+            if (false !== stripos($tag, 'data-no-optimize')) {
                 return $tag;
             }
-            // Only operate on a real, parseable src.
             if (!preg_match('/\ssrc=("|\')(.*?)\1/i', $tag, $src_match)) {
                 return $tag;
             }
@@ -233,25 +212,32 @@ class UCP_Image_Optimizer {
             if ('' === $src || preg_match('#^data:#i', $src)) {
                 return $tag;
             }
-            $base_path = $this->uploads_path_from_url($src);
-            if ('' === $base_path) {
-                return $tag;
+
+            // Build <picture> sources from on-disk variants (skippable per-tag).
+            $sources = '';
+            if ($want_picture && false === stripos($tag, 'data-ucp-no-picture')) {
+                $base_path = $this->uploads_path_from_url($src);
+                if ('' !== $base_path) {
+                    if (!empty(UCP_Options::get('enable_avif_generation'))) {
+                        $avif = $this->sibling_variant_url($base_path, 'avif');
+                        if ('' !== $avif) {
+                            $sources .= '<source srcset="' . esc_url($this->maybe_cdn($avif, $want_cdn, $tag)) . '" type="image/avif">';
+                        }
+                    }
+                    if (!empty(UCP_Options::get('enable_webp_generation'))) {
+                        $webp = $this->sibling_variant_url($base_path, 'webp');
+                        if ('' !== $webp) {
+                            $sources .= '<source srcset="' . esc_url($this->maybe_cdn($webp, $want_cdn, $tag)) . '" type="image/webp">';
+                        }
+                    }
+                }
             }
 
-            $sources = '';
-            // AVIF first (best compression), then WebP.
-            if (!empty(UCP_Options::get('enable_avif_generation'))) {
-                $avif = $this->sibling_variant_url($base_path, 'avif');
-                if ('' !== $avif) {
-                    $sources .= '<source srcset="' . esc_url($avif) . '" type="image/avif">';
-                }
+            // Rewrite the <img> src/srcset through the CDN (skippable per-tag).
+            if ($want_cdn && false === stripos($tag, 'data-ucp-no-cdn')) {
+                $tag = $this->cdn_rewrite_img_tag($tag);
             }
-            if (!empty(UCP_Options::get('enable_webp_generation'))) {
-                $webp = $this->sibling_variant_url($base_path, 'webp');
-                if ('' !== $webp) {
-                    $sources .= '<source srcset="' . esc_url($webp) . '" type="image/webp">';
-                }
-            }
+
             if ('' === $sources) {
                 return $tag;
             }
@@ -260,6 +246,42 @@ class UCP_Image_Optimizer {
         }, $html);
 
         return is_string($rewritten) ? $rewritten : $html;
+    }
+
+    /**
+     * Map a single URL through the image CDN when active, else return it unchanged.
+     * Respects a per-tag data-ucp-no-cdn opt-out.
+     */
+    protected function maybe_cdn($url, $want_cdn, $tag) {
+        if (!$want_cdn || false !== stripos($tag, 'data-ucp-no-cdn')) {
+            return $url;
+        }
+        return UCP_Image_Queue::cdn_url($url);
+    }
+
+    /**
+     * Rewrite src + srcset attributes of an <img> tag through the image CDN.
+     */
+    protected function cdn_rewrite_img_tag($tag) {
+        return preg_replace_callback('/\s(src|srcset)=("|\')(.*?)\2/i', function ($a) {
+            $attr  = strtolower($a[1]);
+            $value = $a[3];
+            if ('src' === $attr) {
+                $new = UCP_Image_Queue::cdn_url($value);
+                return $new === $value ? $a[0] : ' src=' . $a[2] . esc_url($new) . $a[2];
+            }
+            $parts = array_map('trim', explode(',', $value));
+            foreach ($parts as &$part) {
+                if ('' === $part) {
+                    continue;
+                }
+                $bits   = preg_split('/\s+/', $part, 2);
+                $mapped = UCP_Image_Queue::cdn_url($bits[0]);
+                $part   = esc_url($mapped) . (isset($bits[1]) ? ' ' . $bits[1] : '');
+            }
+            unset($part);
+            return ' srcset=' . $a[2] . implode(', ', $parts) . $a[2];
+        }, $tag);
     }
 
     /**

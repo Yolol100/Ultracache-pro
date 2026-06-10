@@ -1,6 +1,6 @@
-# Edge HTML cache & per-page Script Manager (11.0.36)
+# Edge HTML cache (11.0.36)
 
-Two opt-in features. Both ship **default-off**: nothing changes on existing installs until you enable them. Both still fall under the standard UltraCache release gates — test on staging, with WooCommerce flows, before production.
+This opt-in feature ships **default-off**: nothing changes on existing installs until you enable it. It still falls under the standard UltraCache release gates — test on staging, with WooCommerce flows, before production.
 
 ## Edge HTML cache
 
@@ -33,14 +33,3 @@ UltraCache's existing Cloudflare purge already issues URL purges on content chan
 | `edge_html_cache_tags` | 1 | toggle |
 
 Filters: `ucp_edge_html_cacheable` (bool), `ucp_edge_html_cache_tags` (array).
-
-## Per-page Script Manager
-
-Enable under **Asset Manager → Script Manager (per pagina)**. Adds a native Gutenberg document panel ("UltraCache — Scripts") listing the scripts and styles actually loaded on the page, grouped by their source plugin/theme. Toggling a handle off disables it **for that page only**.
-
-- Selection is stored as post meta (`_ucp_sm_disabled`) and saved on normal post save.
-- Enforcement dequeues + deregisters the chosen handles late on the front end (`wp_enqueue_scripts`, priority `PHP_INT_MAX`), only on the singular page.
-- The handle inventory is captured when an **administrator** views the page on the front end, then shown in the panel. Visit a page once as admin to populate its list.
-- Read-only inventory endpoint: `GET /wp-json/ultracache-pro/v1/script-manager/<id>` (capability: `edit_post`).
-
-The panel is built on `@wordpress/components` (ToggleControl, PanelBody) so it matches the surrounding editor UI.

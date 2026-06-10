@@ -348,6 +348,136 @@ trait UCP_REST_Status_Trait {
             ));
         }
 
+
+
+        protected static function build_renderer_readiness($settings, $queue, $headless_status) {
+            $enabled = !empty($settings['enable_headless_renderer']);
+            $endpoint = trim((string) (isset($settings['headless_renderer_endpoint']) ? $settings['headless_renderer_endpoint'] : ''));
+            $token_set = !empty($settings['headless_renderer_token']);
+            $queue_failed = isset($queue['failed']) ? absint($queue['failed']) : 0;
+            $state = 'off';
+            if ($enabled && $endpoint) {
+                $state = $queue_failed > 0 ? 'warning' : 'ready';
+            } elseif ($enabled) {
+                $state = 'needs_setup';
+            }
+
+            return array(
+                'state' => $state,
+                'enabled' => (bool) $enabled,
+                'endpointSet' => '' !== $endpoint,
+                'tokenSet' => (bool) $token_set,
+                'queueFailed' => $queue_failed,
+                'status' => is_array($headless_status) ? $headless_status : array(),
+                'checklist' => array(
+                    array('key' => 'enabled', 'label' => __('Renderer ingeschakeld', 'ultracache-pro'), 'ok' => (bool) $enabled),
+                    array('key' => 'endpoint', 'label' => __('Endpoint ingesteld', 'ultracache-pro'), 'ok' => '' !== $endpoint),
+                    array('key' => 'token', 'label' => __('Token ingesteld indien vereist', 'ultracache-pro'), 'ok' => (bool) $token_set),
+                    array('key' => 'queue', 'label' => __('Geen mislukte wachtrijtaken', 'ultracache-pro'), 'ok' => 0 === $queue_failed),
+                ),
+            );
+        }
+
+        protected static function build_image_pipeline_status($settings, $queue) {
+            $mode = 'off';
+            if (!empty($settings['enable_avif_generation'])) {
+                $mode = 'webp_avif';
+            } elseif (!empty($settings['enable_webp_generation'])) {
+                $mode = 'webp';
+            } elseif (!empty($settings['enable_image_optimization'])) {
+                $mode = 'optimize';
+            }
+
+            return array(
+                'mode' => $mode,
+                'optimization' => !empty($settings['enable_image_optimization']),
+                'webp' => !empty($settings['enable_webp_generation']),
+                'avif' => !empty($settings['enable_avif_generation']),
+                'async' => !empty($settings['enable_async_image_optimization']),
+                'imageCdn' => !empty($settings['enable_image_cdn']),
+                'lqip' => !empty($settings['enable_lqip']),
+                'quality' => isset($settings['image_quality']) ? absint($settings['image_quality']) : 82,
+                'queue' => array(
+                    'pending' => isset($queue['pending']) ? absint($queue['pending']) : 0,
+                    'retrying' => isset($queue['retrying']) ? absint($queue['retrying']) : 0,
+                    'failed' => isset($queue['failed']) ? absint($queue['failed']) : 0,
+                ),
+            );
+        }
+
+        protected static function build_conflict_guard($settings) {
+            $plugins = self::scan_active_plugins();
+            $patterns = array(
+                'wp rocket' => array('label' => 'WP Rocket', 'features' => array('page cache', 'minify', 'delay js', 'lazyload', 'preload')),
+                'litespeed cache' => array('label' => 'LiteSpeed Cache', 'features' => array('page cache', 'object cache', 'esi', 'css/js optimalisatie', 'image optimization')),
+                'autoptimize' => array('label' => 'Autoptimize', 'features' => array('css/js optimalisatie', 'lazyload')),
+                'perfmatters' => array('label' => 'Perfmatters', 'features' => array('delay js', 'lazyload', 'asset unloading')),
+                'flyingpress' => array('label' => 'FlyingPress', 'features' => array('page cache', 'delay js', 'css optimalisatie', 'lazyload')),
+                'nitropack' => array('label' => 'NitroPack', 'features' => array('page cache', 'cdn', 'css/js optimalisatie', 'image optimization')),
+                'w3 total cache' => array('label' => 'W3 Total Cache', 'features' => array('page cache', 'object cache', 'minify', 'cdn')),
+                'wp super cache' => array('label' => 'WP Super Cache', 'features' => array('page cache')),
+                'sg optimizer' => array('label' => 'SiteGround Optimizer', 'features' => array('page cache', 'minify', 'image optimization')),
+                'asset cleanup' => array('label' => 'Asset CleanUp', 'features' => array('asset unloading', 'css/js control')),
+            );
+            $matches = array();
+            foreach ($plugins as $plugin) {
+                $text = strtolower((string) $plugin['name'] . ' ' . (string) $plugin['file']);
+                foreach ($patterns as $needle => $meta) {
+                    if (false !== strpos($text, $needle)) {
+                        $matches[] = array(
+                            'plugin' => $meta['label'],
+                            'file' => $plugin['file'],
+                            'overlap' => $meta['features'],
+                            'advice' => __('Voorkom dubbele cache-, minify-, Delay JS-, lazyload- of image-optimalisatie. Kies per feature één eigenaar.', 'ultracache-pro'),
+                        );
+                        break;
+                    }
+                }
+            }
+
+            $active_features = array();
+            foreach (array('enable_cache' => 'page cache', 'enable_css_minify' => 'css minify', 'enable_js_minify' => 'js minify', 'enable_delay_js' => 'delay js', 'enable_lazy_images' => 'lazyload', 'enable_image_optimization' => 'image optimization', 'enable_cdn' => 'cdn') as $key => $label) {
+                if (!empty($settings[$key])) {
+                    $active_features[] = $label;
+                }
+            }
+
+            return array(
+                'state' => empty($matches) ? 'clear' : 'review',
+                'matches' => $matches,
+                'activeFeatures' => $active_features,
+                'summary' => empty($matches) ? __('Geen bekende performance-plugin overlap gevonden.', 'ultracache-pro') : __('Bekende performance-plugin overlap gevonden. Controleer dat elke optimalisatie maar door één plugin wordt uitgevoerd.', 'ultracache-pro'),
+            );
+        }
+
+        protected static function build_proof_dashboard($settings, $cache_stats, $page_stats, $rum_summary, $renderer_readiness, $image_pipeline, $conflict_guard) {
+            return array(
+                'cache' => array(
+                    'enabled' => !empty($settings['enable_cache']),
+                    'cachedPages' => (int) $page_stats['files'],
+                    'size' => self::format_bytes($cache_stats['bytes']) . (!empty($cache_stats['partial']) ? ' +' : ''),
+                ),
+                'fieldData' => array(
+                    'enabled' => !empty($settings['enable_cwv_monitoring']),
+                    'hasSamples' => !empty($rum_summary),
+                ),
+                'cssArtifacts' => array(
+                    'usedCss' => !empty($settings['enable_used_css']),
+                    'criticalCss' => !empty($settings['enable_critical_css']),
+                    'rendererState' => isset($renderer_readiness['state']) ? $renderer_readiness['state'] : 'off',
+                ),
+                'images' => array(
+                    'mode' => isset($image_pipeline['mode']) ? $image_pipeline['mode'] : 'off',
+                    'queueFailed' => isset($image_pipeline['queue']['failed']) ? absint($image_pipeline['queue']['failed']) : 0,
+                ),
+                'conflicts' => array(
+                    'state' => isset($conflict_guard['state']) ? $conflict_guard['state'] : 'clear',
+                    'count' => isset($conflict_guard['matches']) ? count($conflict_guard['matches']) : 0,
+                ),
+            );
+        }
+
+
         public static function build_status() {
             $settings = UCP_Options::get_all();
             $cache_stats = self::dir_stats(UCP_CACHE_DIR);
@@ -363,6 +493,21 @@ trait UCP_REST_Status_Trait {
             $health = class_exists('UCP_Health') ? UCP_Health::latest() : array();
             $queue  = UCP_Jobs::get_summary();
             $queue['runner'] = UCP_Jobs::get_runner_status();
+            $rum_sample_rate = min(100, max(1, absint(isset($settings['rum_sample_rate']) ? $settings['rum_sample_rate'] : 10)));
+            $headless_active = !empty($settings['enable_headless_renderer']) && !empty($settings['headless_renderer_endpoint']);
+            $headless_status = class_exists('UCP_Render_Bridge') ? UCP_Render_Bridge::status() : array();
+            $renderer_readiness = self::build_renderer_readiness($settings, $queue, $headless_status);
+            $image_pipeline = self::build_image_pipeline_status($settings, $queue);
+            $conflict_guard = self::build_conflict_guard($settings);
+            $rum_summary = class_exists('UCP_CWV') && method_exists('UCP_CWV', 'get_summary') ? UCP_CWV::get_summary() : array();
+            $direct_cache_status = array(
+                'htaccessOptIn' => !empty($settings['enable_direct_cache_htaccess']),
+                'nginxRulesExport' => file_exists(UCP_CACHE_DIR . 'server-rules-nginx.conf'),
+                'apacheRulesExport' => file_exists(UCP_CACHE_DIR . 'server-rules-apache.txt'),
+                'mirrorDir' => is_dir(UCP_CACHE_DIR . 'pages-direct/'),
+            );
+            $vpi_summary = class_exists('UCP_Viewport_Images') && method_exists('UCP_Viewport_Images', 'get_summary') ? UCP_Viewport_Images::get_summary() : array('profiles' => 0, 'images' => 0, 'latest' => '');
+            $speculation_policy = isset($settings['speculative_loading_mode']) && in_array($settings['speculative_loading_mode'], array('core', 'enhanced', 'prerender', 'off'), true) ? $settings['speculative_loading_mode'] : 'core';
 
             return array(
                 'system' => array(
@@ -391,6 +536,7 @@ trait UCP_REST_Status_Trait {
                     'lastPurge'      => get_option('ucp_last_purge_at', ''),
                     'cachedPages'    => (int) $page_stats['files'],
                     'cacheSize'      => self::format_bytes($cache_stats['bytes']) . (!empty($cache_stats['partial']) ? ' +' : ''),
+                    'directCache'    => $direct_cache_status,
                 ),
                 'optimization' => array(
                     'cssMinify'      => !empty($settings['enable_css_minify']),
@@ -403,7 +549,37 @@ trait UCP_REST_Status_Trait {
                     'disableFonts'   => !empty($settings['enable_disable_google_fonts']),
                     'usedCss'        => !empty($settings['enable_used_css']),
                     'criticalCss'    => !empty($settings['enable_critical_css']),
+                    'headlessRenderer' => $headless_active,
+                    'headlessRendererStatus' => $headless_status,
+                    'rendererReadiness' => $renderer_readiness,
+                    'imagePipeline' => $image_pipeline,
+                    'viewportImages' => !empty($settings['enable_viewport_images']),
+                    'lqip'           => !empty($settings['enable_lqip']),
+                    'imageCdn'       => !empty($settings['enable_image_cdn']),
+                    'speculativeLoading' => array(
+                        'policy' => $speculation_policy,
+                        'enhancedByUltraCache' => !empty($settings['enable_speculative_loading']) && in_array($speculation_policy, array('enhanced', 'prerender'), true),
+                        'coreAware' => version_compare((string) get_bloginfo('version'), '6.8', '>='),
+                    ),
                 ),
+                'rum' => array(
+                    'enabled'    => !empty($settings['enable_cwv_monitoring']),
+                    'sampleRate' => $rum_sample_rate,
+                    'summary'    => $rum_summary,
+                ),
+                'vpi' => array(
+                    'enabled'           => !empty($settings['enable_viewport_images']),
+                    'headlessRenderer'  => $headless_active,
+                    'preciseDetection'  => !empty($settings['enable_viewport_images']) && $headless_active,
+                    'summary'           => $vpi_summary,
+                ),
+                'proof' => self::build_proof_dashboard($settings, $cache_stats, $page_stats, $rum_summary, $renderer_readiness, $image_pipeline, $conflict_guard),
+                'autopilot' => array(
+                    'safeMode' => !empty($settings['compatibility_mode']) && !empty($settings['woocommerce_safety_mode']),
+                    'stagingRecommended' => !empty($conflict_guard['matches']) || !empty($settings['enable_delay_js']) || !empty($settings['enable_used_css']) || !empty($settings['enable_critical_css']),
+                    'nextStep' => __('Gebruik Scan & advies en test daarna CSS/JS, renderer en checkout op staging voordat je agressieve optimalisaties live zet.', 'ultracache-pro'),
+                ),
+                'conflictGuard' => $conflict_guard,
                 'queue'  => $queue,
                 'health' => $health,
                 'quality' => array(

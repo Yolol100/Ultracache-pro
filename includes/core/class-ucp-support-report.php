@@ -130,7 +130,10 @@ class UCP_Support_Report {
                 $summary[$key] = $settings[$key];
             }
         }
-        foreach (array('cloud_api_key','cloudflare_api_token','secret_cache_key','css_cache_key','js_cache_key') as $secret) {
+        $secret_keys = class_exists('UCP_Options') && method_exists('UCP_Options', 'sensitive_keys')
+            ? UCP_Options::sensitive_keys()
+            : array('cloud_api_key','cloudflare_api_token','secret_cache_key','css_cache_key','js_cache_key','headless_renderer_token','bunny_api_key','cdn_purge_webhook_token');
+        foreach ($secret_keys as $secret) {
             if (!empty($settings[$secret])) {
                 $summary[$secret] = self::mask_secret($settings[$secret]);
             }

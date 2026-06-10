@@ -137,7 +137,9 @@ trait UCP_Optimizer_Scripts_Trait {
         $timeout = max(1, absint(UCP_Options::get('delay_js_timeout', 4)) * 1000);
         $loader = $this->inline_script_tag($this->delay_loader_script($timeout, (bool) UCP_Options::get('delay_js_disable_click_delay')), array('id' => 'ucp-delay-loader'));
         $count = 0;
-        $html = preg_replace('#</body>#i', $loader . '</body>', $html, 1, $count);
+        $html = preg_replace_callback('#</body>#i', static function () use ($loader) {
+            return $loader . '</body>';
+        }, $html, 1, $count);
         if (!$count) {
             $html .= $loader;
         }
@@ -173,7 +175,9 @@ trait UCP_Optimizer_Scripts_Trait {
             return $html;
         }
         $count = 0;
-        $html = preg_replace('#</head>#i', $links . '</head>', (string) $html, 1, $count);
+        $html = preg_replace_callback('#</head>#i', static function () use ($links) {
+            return $links . '</head>';
+        }, (string) $html, 1, $count);
         if (!$count) {
             $html = $links . (string) $html;
         }

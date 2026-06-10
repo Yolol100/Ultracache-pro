@@ -61,7 +61,7 @@ class UCP_Presets {
 
     public static function pagespeed_auto_overrides() {
         return array(
-            'ui_mode'                         => 'advanced',
+            'ui_mode'                         => 'simple',
             'active_preset'                   => 'pagespeed_auto',
             'wp_rocket_style_defaults'        => 1,
             'compatibility_mode'              => 1,
@@ -71,17 +71,50 @@ class UCP_Presets {
             'cache_logged_in'                 => 0,
             'cache_mobile_separately'         => 1,
             'cache_query_strings'             => 0,
-            'cache_query_string_inclusions'   => "lang\ncurrency\norderby\nmin_price\nmax_price\nrating_filter\nfilter_*\nquery_type_*\n_paged\nproduct-page\nproduct-page-*",
+            'cache_query_string_inclusions'   => "lang\ncurrency\nv\norderby\nmin_price\nmax_price\nrating_filter\nfilter_*\nquery_type_*\n_paged\nproduct-page\nproduct-page-*",
             'enable_stale_cache'              => 1,
             'stale_cache_lifespan'            => 24,
             'enable_woocommerce_rules'        => 1,
-            'exclude_urls'                    => "cart\ncheckout\nwinkelwagen\nafrekenen\nmy-account\nmijn-account\naccount\norder-pay\norder-received\nadd-payment-method\ncustomer-logout\nwc-api\nwc-ajax\nadd-to-cart",
-            'exclude_cookies'                 => "wordpress_logged_in_\nwordpress_sec_\nwp-postpass_\nwoocommerce_items_in_cart\nwp_woocommerce_session_\nwoocommerce_cart_hash\nwoocommerce_checkout_\ncomment_author_\naelia_cs_selected_currency\naelia_customer_country\naelia_customer_state\naelia_tax_exempt\nswitch_to_olduser_",
+            'optimize_cart_fragments'         => 1,
+            'limit_cart_fragments_to_woo'     => 0,
+            'exclude_urls'                    => "cart\ncheckout\nwinkelwagen\nafrekenen\nmy-account\nmijn-account\naccount\norder-pay\norder-received\nadd-payment-method\ncustomer-logout\nwc-api\nwc-ajax\nadd-to-cart\nwp-json\n/wp-json/\n/wc/",
+            'exclude_cookies'                => "wordpress_logged_in_
+wordpress_sec_
+wp-postpass_
+wp-resetpass_
+woocommerce_items_in_cart
+wp_woocommerce_session_
+woocommerce_cart_hash
+woocommerce_recently_viewed
+woocommerce_checkout_
+woocommerce_pay_
+edd_items_in_cart
+comment_author_
+pll_language
+_icl_current_language
+wp-wpml_current_language
+wpml_browser_redirect_test
+trp_language
+wp_lang
+wcml_client_currency
+woocommerce_multicurrency_forced_currency
+aelia_cs_selected_currency
+aelia_customer_country
+aelia_customer_state
+aelia_tax_exempt
+switch_to_olduser_
+wordpress_test_cookie
+cookie_notice_
+cmplz_
+complianz_
+cookieyes
+cky-
+borlabs",
             'enable_preload'                  => 1,
             'enable_preload_queue'            => 1,
             'preload_homepage'                => 1,
             'preload_sitemaps'                => 1,
-            'preload_exclude_urls'            => "/author/(.*)\ncart\ncheckout\nwinkelwagen\nafrekenen\nmy-account\nmijn-account\naccount\norder-pay\norder-received\nadd-payment-method\ncustomer-logout\nwc-ajax\nwc-api\nadd-to-cart\n/wp-content/(.*)\n/uploads/(.*)\n/feed/(.*)\nfeed=\nattachment_id=\n-zip/\n.zip\n?attachment_id=\n/search/(.*)\n?s=",
+            'preload_exclude_urls'            => "/author/(.*)\ncart\ncheckout\nwinkelwagen\nafrekenen\nmy-account\nmijn-account\naccount\norder-pay\norder-received\nadd-payment-method\ncustomer-logout\nwc-ajax\nwc-api\nadd-to-cart\nwp-json\n/wp-json/\n/wc/\n/wp-content/(.*)\n/uploads/(.*)\n/feed/(.*)\nfeed=\nattachment_id=\n-zip/\n.zip\n?attachment_id=\n/search/(.*)\n?s=",
             'preload_delay_ms'                => 500,
             'preload_batch_size'              => 10,
             'preload_max_urls'                => 350,
@@ -92,6 +125,9 @@ class UCP_Presets {
             'html_exclude_templates'          => "template-elementor-canvas.php\nfl-theme-builder-layout.php\nbricks-template.php\nblank-template.php",
             'enable_css_minify'               => 1,
             'enable_css_combine'              => 0,
+            'enable_gzip_precompression'      => 1,
+            'enable_brotli_precompression'    => 1,
+            'enable_auto_font_preloads'       => 1,
             'enable_js_minify'                => 0,
             'enable_js_combine'               => 0,
             'css_exclusions'                  => "admin-bar\nwp-block-library\nwp-interactivity\nelementor-icons\nwoocommerce-layout",
@@ -186,10 +222,6 @@ class UCP_Presets {
             'enable_edge_cache_headers'       => 0,
             'enable_cloudflare_apo_mode'      => 0,
             'enable_early_hints_links'        => 0,
-            'allow_wp_config_write'           => 0,
-            'allow_dropin_writes'             => 0,
-            'allow_dropin_takeover'           => 0,
-            'allow_browser_cache_rule_writes' => 0,
             'enable_disable_xmlrpc'           => 0,
             'enable_hide_wp_version'          => 1,
             'enable_remove_rsd_link'          => 1,
@@ -215,6 +247,10 @@ class UCP_Presets {
             'enable_rest_cache'               => 0,
             'enable_cwv_monitoring'           => 0,
             'enable_local_google_fonts'       => 1,
+            'allow_wp_config_write'           => 0,
+            'allow_dropin_writes'             => 0,
+            'allow_dropin_takeover'           => 0,
+            'allow_browser_cache_rule_writes' => 0,
             'purge_on_comment'                => 1,
             'purge_on_theme_switch'           => 1,
             'enable_diagnostics'              => 1,

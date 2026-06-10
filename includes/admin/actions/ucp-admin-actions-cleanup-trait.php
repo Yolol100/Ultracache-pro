@@ -55,6 +55,7 @@ trait UCP_Admin_Actions_Cleanup_Trait {
         $this->assert_tool_action('ucp_clear_used_css');
         // Match the actual artifact directories used by UCP_Helpers::get_used_css_path() and get_critical_css_path().
         $this->delete_glob(UCP_CACHE_DIR . 'used-css/*.css');
+        $this->delete_glob(UCP_CACHE_DIR . 'used-css-served/*.css');
         $this->delete_glob(UCP_CACHE_DIR . 'critical-css/*.css');
         $this->delete_glob(UCP_CACHE_DIR . 'css/status-*.json');
         UCP_Logger::log('info', 'admin', 'used_css_artifacts_cleared', 'Used CSS and critical CSS artifacts cleared.');
@@ -120,7 +121,7 @@ trait UCP_Admin_Actions_Cleanup_Trait {
     public function plugin_links($links) {
         $new = array(
             '<a href="' . esc_url(admin_url('admin.php?page=ultracache-pro')) . '">' . esc_html__('Instellingen', 'ultracache-pro') . '</a>',
-            '<a href="' . esc_url(wp_nonce_url(admin_url('admin-post.php?action=ucp_purge_all'), 'ucp_purge_all')) . '">' . esc_html__('Cache legen', 'ultracache-pro') . '</a>',
+            '<a href="' . esc_url(admin_url('admin.php?page=ultracache-pro&tab=tools')) . '">' . esc_html__('Cache legen', 'ultracache-pro') . '</a>',
             '<a href="' . esc_url(admin_url('admin.php?page=ultracache-pro&tab=tools')) . '">' . esc_html__('Tools', 'ultracache-pro') . '</a>',
         );
         return array_merge($new, $links);

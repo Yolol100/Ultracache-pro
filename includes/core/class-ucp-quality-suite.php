@@ -10,7 +10,7 @@ require_once __DIR__ . '/quality/ucp-quality-suite-runtime-trait.php';
  * Quality suite additions for runtime verification, safer presets,
  * conflict reporting, log viewing and WordPress-native cache file management.
  */
-// Lightweight internal traits consolidated here to avoid one-purpose micro-files while preserving the public UCP_* symbols.
+// Internal traits are kept in this file to preserve the public UCP_* symbols.
 trait UCP_Quality_Suite_Routing_Trait {
     public static function bootstrap() {
         add_action('rest_api_init', array(__CLASS__, 'register_routes'));
@@ -147,7 +147,6 @@ trait UCP_Quality_Suite_Site_Health_Trait {
 }
 
 
-// Consolidated from includes/core/quality/ucp-quality-suite-url-safety-trait.php to reduce one-purpose micro-files while preserving the public UCP_* symbol.
 trait UCP_Quality_Suite_Url_Safety_Trait {
     public static function transactional_patterns() {
         return array('cart','checkout','winkelwagen','afrekenen','my-account','mijn-account','account','order-pay','order-received','add-payment-method','customer-logout','wc-ajax','wc-api','add-to-cart','apply_coupon','remove_item','update_cart','_wpnonce','preview=');
@@ -223,7 +222,6 @@ trait UCP_Quality_Suite_Url_Safety_Trait {
     }
 }
 
-// Consolidated from includes/core/quality/ucp-quality-suite-release-logs-trait.php to reduce one-purpose micro-files while preserving the public UCP_* symbol.
 trait UCP_Quality_Suite_Release_Logs_Trait {
     public static function rest_release_checklist() {
         return self::action_success(__('Release checklist opgehaald.', 'ultracache-pro'), array('checklist' => self::release_checklist()));

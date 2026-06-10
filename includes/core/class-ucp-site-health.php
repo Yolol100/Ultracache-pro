@@ -55,10 +55,10 @@ class UCP_Site_Health {
         }
         $ok = empty($missing);
         return array(
-            'label'       => $ok ? __('UltraCache Composer dependencies zijn beschikbaar', 'ultracache-pro') : __('UltraCache gebruikt fallback-minifiers', 'ultracache-pro'),
-            'status'      => $ok ? 'good' : 'recommended',
+            'label'       => $ok ? __('UltraCache Composer dependencies zijn beschikbaar', 'ultracache-pro') : __('UltraCache gebruikt native fallback-minifiers', 'ultracache-pro'),
+            'status'      => 'good',
             'badge'       => array('label' => __('Release', 'ultracache-pro'), 'color' => 'blue'),
-            'description' => '<p>' . esc_html($ok ? __('De gebundelde CSS/JS parser- en minify-libraries zijn geladen.', 'ultracache-pro') : sprintf(__('Ontbrekende libraries: %s. UltraCache blijft werken met ingebouwde fallbacks, maar de release-build moet vendor-scoped/autoload.php of vendor/autoload.php bundelen voor volledige minify/parsing.', 'ultracache-pro'), implode(', ', $missing))) . '</p>',
+            'description' => '<p>' . esc_html($ok ? __('De gebundelde CSS/JS parser- en minify-libraries zijn geladen.', 'ultracache-pro') : sprintf(__('Optionele libraries niet geladen: %s. Dit pakket gebruikt de ingebouwde fallback-minifiers en parser; bundel vendor-scoped/autoload.php alleen voor een private build met Composer-dependencies.', 'ultracache-pro'), implode(', ', $missing))) . '</p>',
             'test'        => 'ucp_dependency_status',
         );
     }

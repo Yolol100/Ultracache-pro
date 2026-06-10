@@ -127,7 +127,9 @@ trait UCP_Optimizer_CDN_Hints_Trait {
         if ('' === $host || $host === UCP_Helpers::normalize_domain_host((string) wp_parse_url(home_url('/'), PHP_URL_HOST))) {
             return '';
         }
-        return esc_url_raw((is_ssl() ? 'https://' : 'https://') . $host);
+        // Cross-origin resource hints always advertise https; the dead ternary that used to be
+        // here selected the same scheme on both branches.
+        return esc_url_raw('https://' . $host);
     }
 
     private function dedupe_resource_hints($items) {
@@ -323,23 +325,8 @@ trait UCP_Optimizer_CDN_Hints_Trait {
     }
 
     private function host_resolves_to_private_network($host) {
-        $host = trim((string) $host);
-        if ('' === $host || 'localhost' === $host) {
-            return true;
-        }
-        if (filter_var($host, FILTER_VALIDATE_IP)) {
-            return !filter_var($host, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE);
-        }
-        $records = function_exists('gethostbynamel') ? gethostbynamel($host) : array(gethostbyname($host));
-        if (!is_array($records) || empty($records)) {
-            return true;
-        }
-        foreach ($records as $ip) {
-            if (!$ip || !filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
-                return true;
-            }
-        }
-        return false;
+        // Inverse of the shared public-IP resolver (single source of truth; also covers IPv6).
+        return !UCP_Helpers::host_resolves_to_public_ip($host);
     }
 
     private function inject_lazy_render_runtime($html) {
@@ -347,7 +334,11 @@ trait UCP_Optimizer_CDN_Hints_Trait {
             return $html;
         }
         $selectors = array();
-        foreach ((array) apply_filters('ucp_lazy_render_selectors', UCP_Helpers::normalize_multiline(UCP_Options::get('lazy_render_selectors', ''))) as $selector) {
+        $lazy_render_selectors = UCP_Helpers::normalize_multiline(UCP_Options::get('lazy_render_selectors', ''));
+        if (class_exists('UCP_PageSpeed_Browser_Scan')) {
+            $lazy_render_selectors = array_merge($lazy_render_selectors, UCP_PageSpeed_Browser_Scan::lazy_render_selectors_for_current_request());
+        }
+        foreach ((array) apply_filters('ucp_lazy_render_selectors', $lazy_render_selectors) as $selector) {
             $selector = $this->sanitize_lazy_render_selector($selector);
             if ('' !== $selector && !$this->lazy_render_selector_is_critical($selector)) {
                 $selectors[] = $selector;
@@ -361,7 +352,9 @@ trait UCP_Optimizer_CDN_Hints_Trait {
         $js = "(function(){if(!('IntersectionObserver'in window)||!('contentVisibility'in document.documentElement.style))return;var qs=" . $selector_json . ";function c(e){e.style.contentVisibility='visible';e.style.containIntrinsicSize='auto';e.setAttribute('data-ucp-lazy-render-done','1');e.removeAttribute('data-ucp-lazy-render');e.classList&&e.classList.remove('ucp-lazy-render')}function safe(q){try{return document.querySelectorAll(q)}catch(x){return []}}function r(){qs.concat(['[data-ucp-lazy-render]','.ucp-lazy-render']).forEach(function(q){safe(q).forEach(function(e){if(e.__ucplr||e.getAttribute('data-ucp-lazy-render-done'))return;e.__ucplr=1;e.setAttribute('data-ucp-lazy-render','1');o.observe(e)})})}var o=new IntersectionObserver(function(es){es.forEach(function(x){if(x.isIntersecting||x.intersectionRatio>0){c(x.target);o.unobserve(x.target)}})},{rootMargin:'300px 0px'});if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',r,{once:true});else r();window.addEventListener('pageshow',r);})();";
         $tag = $this->inline_script_tag($js, array('id' => 'ucp-lazy-render-runtime'));
         $count = 0;
-        $html = preg_replace('#</body>#i', $tag . '</body>', $html, 1, $count);
+        $html = preg_replace_callback('#</body>#i', static function () use ($tag) {
+            return $tag . '</body>';
+        }, $html, 1, $count);
         return $count ? $html : $html . $tag;
     }
 
@@ -377,6 +370,9 @@ trait UCP_Optimizer_CDN_Hints_Trait {
             return;
         }
         $selectors = UCP_Helpers::normalize_multiline(UCP_Options::get('lazy_render_selectors', ''));
+        if (class_exists('UCP_PageSpeed_Browser_Scan')) {
+            $selectors = array_merge($selectors, UCP_PageSpeed_Browser_Scan::lazy_render_selectors_for_current_request());
+        }
         $selectors = apply_filters('ucp_lazy_render_selectors', $selectors);
         $clean = array();
         foreach ((array) $selectors as $selector) {
@@ -431,11 +427,12 @@ trait UCP_Optimizer_CDN_Hints_Trait {
     }
 
     public function output_preload_fonts() {
-        $fonts = UCP_Helpers::normalize_multiline(UCP_Options::get('preload_fonts', ''));
+        $manual_fonts = UCP_Helpers::normalize_multiline(UCP_Options::get('preload_fonts', ''));
+        $fonts = $manual_fonts;
         if (UCP_Options::get('enable_auto_font_preloads')) {
             $auto = get_option('ucp_local_font_preload_candidates', array());
             if (is_array($auto)) {
-                $fonts = array_merge($fonts, array_slice($auto, 0, 3));
+                $fonts = array_merge($fonts, array_slice($auto, 0, $this->auto_font_preload_cap()));
             }
         }
 
@@ -457,6 +454,17 @@ trait UCP_Optimizer_CDN_Hints_Trait {
         }
     }
 
+    private function auto_font_preload_cap() {
+        $cap = 1;
+        if (class_exists('UCP_PageSpeed_Browser_Scan')) {
+            $hint = UCP_PageSpeed_Browser_Scan::lcp_hint_for_current_request();
+            if (!empty($hint['type']) && 'text' === $hint['type']) {
+                $cap = 2;
+            }
+        }
+        return max(0, min(3, absint(apply_filters('ucp_auto_font_preload_cap', $cap))));
+    }
+
     public function output_link_prefetch_script() {
         if (is_admin() || is_user_logged_in() || !UCP_Options::get('enable_prefetch_links')) {
             return;
@@ -465,17 +473,16 @@ trait UCP_Optimizer_CDN_Hints_Trait {
     }
 
     public function output_speculation_rules() {
-        if (is_admin() || is_user_logged_in() || $this->html_context_is_sensitive() || !UCP_Options::get('enable_speculative_loading') || $this->asset_manager_flag('disable_speculation')) {
+        if (is_admin() || is_user_logged_in() || $this->html_context_is_sensitive() || $this->asset_manager_flag('disable_speculation') || !$this->speculation_should_enhance()) {
             return;
         }
-        $mode = sanitize_key(UCP_Options::get('speculation_mode', 'prefetch'));
-        if (!in_array($mode, array('prefetch', 'prerender'), true)) {
-            $mode = 'prefetch';
+        // WordPress 6.8+ ships Core Speculative Loading. Use Core filters there and
+        // keep this manual script only as the fallback for older WordPress versions.
+        if ($this->core_speculation_available()) {
+            return;
         }
-        $eagerness = sanitize_key(UCP_Options::get('speculation_eagerness', 'moderate'));
-        if (!in_array($eagerness, array('conservative', 'moderate', 'eager'), true)) {
-            $eagerness = 'moderate';
-        }
+        $mode = $this->speculation_mode();
+        $eagerness = $this->speculation_eagerness();
 
         $conditions = array(
             array('href_matches' => '/*'),
@@ -510,6 +517,82 @@ trait UCP_Optimizer_CDN_Hints_Trait {
         );
         echo $this->inline_script_tag(wp_json_encode($payload), array('type' => 'speculationrules')); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- generated via wp_get_inline_script_tag or escaped fallback.
         UCP_Diagnostics::record('speculation', 'Speculation rules emitted', array('mode' => $mode, 'eagerness' => $eagerness));
+    }
+
+
+    public function core_speculation_configuration($configuration) {
+        if ($this->asset_manager_flag('disable_speculation') || $this->speculation_policy_is_disabled()) {
+            return null;
+        }
+
+        // On WordPress 6.8+, the default policy is Core-controlled. UltraCache only
+        // changes Core's configuration in the explicit enhanced/prerender modes.
+        if (!$this->speculation_should_enhance()) {
+            return $configuration;
+        }
+
+        if (null === $configuration) {
+            return $configuration;
+        }
+        if (!is_array($configuration)) {
+            $configuration = array();
+        }
+        $configuration['mode'] = $this->speculation_mode();
+        $configuration['eagerness'] = $this->speculation_eagerness();
+        return $configuration;
+    }
+
+    public function core_speculation_exclude_paths($paths) {
+        if (!is_array($paths)) {
+            $paths = array();
+        }
+        foreach (array('/wp-admin/*', '/wp-login.php*', '/*?*_wpnonce=*', '/*?*nonce=*', '/*?*add-to-cart=*', '/*?*wc-ajax=*', '/*?*preview=*', '/*?*customize_changeset_uuid=*', '/*logout*') as $path) {
+            $paths[] = $path;
+        }
+        foreach (UCP_Helpers::normalize_multiline(UCP_Options::get('speculation_exclusions', '')) as $fragment) {
+            $fragment = trim((string) $fragment);
+            if ('' !== $fragment) {
+                $paths[] = '*' . $fragment . '*';
+            }
+        }
+        return array_values(array_unique($paths));
+    }
+
+    private function core_speculation_available() {
+        return function_exists('get_bloginfo') && version_compare((string) get_bloginfo('version'), '6.8', '>=');
+    }
+
+    private function speculation_policy() {
+        $policy = sanitize_key(UCP_Options::get('speculative_loading_mode', 'core'));
+        if (in_array($policy, array('core', 'enhanced', 'prerender', 'off'), true)) {
+            return $policy;
+        }
+
+        if (!UCP_Options::get('enable_speculative_loading')) {
+            return 'core';
+        }
+        return 'prerender' === UCP_Options::get('speculation_mode') ? 'prerender' : 'enhanced';
+    }
+
+    private function speculation_policy_is_disabled() {
+        return 'off' === $this->speculation_policy();
+    }
+
+    private function speculation_should_enhance() {
+        return in_array($this->speculation_policy(), array('enhanced', 'prerender'), true) && UCP_Options::get('enable_speculative_loading');
+    }
+
+    private function speculation_mode() {
+        if ('prerender' === $this->speculation_policy()) {
+            return 'prerender';
+        }
+        $mode = sanitize_key(UCP_Options::get('speculation_mode', 'prefetch'));
+        return in_array($mode, array('prefetch', 'prerender'), true) ? $mode : 'prefetch';
+    }
+
+    private function speculation_eagerness() {
+        $eagerness = sanitize_key(UCP_Options::get('speculation_eagerness', 'moderate'));
+        return in_array($eagerness, array('conservative', 'moderate', 'eager'), true) ? $eagerness : 'moderate';
     }
 
     private function inline_script_tag($javascript, $attributes = array()) {

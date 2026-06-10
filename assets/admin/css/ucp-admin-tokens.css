@@ -62,6 +62,8 @@
   --ucp-shadow-md: none;
   --ucp-shadow-lg: none;
 
+  --ucp-toast-shadow: 0 14px 34px rgba(16, 24, 40, .16), 0 2px 8px rgba(16, 24, 40, .08);
+
   /* Motion */
   --ucp-transition: 160ms ease;
 

@@ -8,7 +8,7 @@ trait UCP_Compat_Filters_Trait {
 
         public function excluded_urls($items) {
             if (class_exists('WooCommerce') && UCP_Options::get('enable_woocommerce_rules')) {
-                $items = array_merge($items, array('cart', 'checkout', 'my-account', 'account', 'order-pay', 'order-received', 'add-payment-method', 'customer-logout', 'add-to-cart=', 'wc-api=', 'wc-ajax='));
+                $items = array_merge($items, array('cart', 'checkout', 'my-account', 'account', 'order-pay', 'order-received', 'add-payment-method', 'customer-logout', 'add-to-cart=', 'wc-api=', 'wc-ajax=', 'wp-json', '/wp-json/', '/wc/'));
             }
             if (defined('EDD_VERSION')) {
                 $items[] = 'checkout';
@@ -122,7 +122,7 @@ trait UCP_Compat_Filters_Trait {
         public function uri_optimization_exclusions($items) {
             $items = array_merge((array) $items, self::compat_list('uri-optimization-exclusions'), self::compatibility_rules_bucket('uri_optimization_exclusions'));
             if (class_exists('WooCommerce') && UCP_Options::get('enable_woocommerce_rules')) {
-                $items = array_merge($items, array('cart', 'checkout', 'my-account', 'order-pay', 'order-received', 'add-payment-method', 'wc-api', 'wc-ajax', 'add-to-cart'));
+                $items = array_merge($items, array('cart', 'checkout', 'my-account', 'order-pay', 'order-received', 'add-payment-method', 'wc-api', 'wc-ajax', 'add-to-cart', 'wp-json', '/wp-json/', '/wc/'));
             }
             return array_values(array_unique(array_filter($items)));
         }

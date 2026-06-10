@@ -6,7 +6,6 @@ if (!defined('ABSPATH')) {
 
 // phpcs:disable WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Log package exports plugin-owned diagnostic tables with fixed SQL and sanitized output.
 
-// Consolidated from includes/core/log-package/ucp-log-package-writer-trait.php to reduce one-purpose micro-files while preserving the public UCP_* symbol.
 // phpcs:disable WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Log package exports plugin-owned diagnostic tables with fixed SQL and sanitized output.
 
 trait UCP_Log_Package_Writer_Trait {
@@ -79,7 +78,6 @@ trait UCP_Log_Package_Writer_Trait {
     }
 }
 
-// Consolidated from includes/core/log-package/ucp-log-package-redaction-trait.php to reduce one-purpose micro-files while preserving the public UCP_* symbol.
 // phpcs:disable WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Log package exports plugin-owned diagnostic tables with fixed SQL and sanitized output.
 
 trait UCP_Log_Package_Redaction_Trait {
@@ -160,7 +158,6 @@ trait UCP_Log_Package_Redaction_Trait {
     }
 }
 
-// Consolidated from includes/core/log-package/ucp-log-package-data-trait.php to reduce one-purpose micro-files while preserving the public UCP_* symbol.
 // phpcs:disable WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Log package exports plugin-owned diagnostic tables with fixed SQL and sanitized output.
 
 trait UCP_Log_Package_Data_Trait {

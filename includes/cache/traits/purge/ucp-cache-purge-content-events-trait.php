@@ -329,6 +329,25 @@ trait UCP_Cache_Purge_Content_Events_Trait {
         }
     }
 
+    /**
+     * Purge product cache for WooCommerce CRUD/import callbacks that pass a product object.
+     *
+     * @param object|int $product Product object or ID.
+     * @param mixed      $context Optional callback context.
+     * @return void
+     */
+    public function purge_on_woocommerce_product_object($product, $context = null) {
+        if (is_object($product) && method_exists($product, 'get_parent_id') && $product->get_parent_id()) {
+            $this->purge_on_woocommerce_product($product->get_parent_id());
+            return;
+        }
+        if (is_object($product) && method_exists($product, 'get_id')) {
+            $this->purge_on_woocommerce_product($product->get_id());
+            return;
+        }
+        $this->purge_on_woocommerce_product($product);
+    }
+
     public function purge_on_woocommerce_stock_change($product) {
         if (!UCP_Options::get('enable_woocommerce_rules')) {
             return;

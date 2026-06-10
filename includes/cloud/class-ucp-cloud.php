@@ -131,73 +131,9 @@ trait UCP_Cloud_Endpoint_Trait {
     }
 
     protected static function get_validated_endpoint() {
-        $endpoint = esc_url_raw(UCP_Options::get('cloud_endpoint', ''));
-        if (!$endpoint || !wp_http_validate_url($endpoint)) {
-            return false;
-        }
-        $parts = wp_parse_url($endpoint);
-        if (!is_array($parts)) {
-            return false;
-        }
-        $scheme = isset($parts['scheme']) ? strtolower((string) $parts['scheme']) : '';
-        $host = isset($parts['host']) ? strtolower((string) $parts['host']) : '';
-        if ('https' !== $scheme || '' === $host) {
-            return false;
-        }
-        if (!empty($parts['user']) || !empty($parts['pass'])) {
-            return false;
-        }
-        foreach (array('.local', '.test', '.invalid') as $suffix) {
-            if ($host === ltrim($suffix, '.') || str_ends_with($host, $suffix)) {
-                return false;
-            }
-        }
-        if (in_array($host, array('localhost', '127.0.0.1', '::1'), true)) {
-            return false;
-        }
-        if (filter_var($host, FILTER_VALIDATE_IP)) {
-            if (false === filter_var($host, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
-                return false;
-            }
-        } elseif (!self::host_resolves_to_public_ip($host)) {
-            return false;
-        }
-        return $endpoint;
-    }
-
-    protected static function host_resolves_to_public_ip($host) {
-        $host = strtolower(trim((string) $host));
-        if ('' === $host) {
-            return false;
-        }
-
-        // validate DNS results to reduce SSRF risk for hostnames that resolve to private/reserved networks.
-        $records = function_exists('dns_get_record') ? dns_get_record($host, DNS_A + DNS_AAAA) : false;
-        if (empty($records) || !is_array($records)) {
-            $ip = gethostbyname($host);
-            $records = ($ip && $ip !== $host) ? array(array('ip' => $ip)) : array();
-        }
-
-        if (empty($records)) {
-            return false;
-        }
-
-        foreach ($records as $record) {
-            $ip = '';
-            if (!empty($record['ip'])) {
-                $ip = (string) $record['ip'];
-            } elseif (!empty($record['ipv6'])) {
-                $ip = (string) $record['ipv6'];
-            }
-            if ('' === $ip || !filter_var($ip, FILTER_VALIDATE_IP)) {
-                continue;
-            }
-            if (false === filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
-                return false;
-            }
-        }
-
-        return true;
+        // Single source of truth for SSRF-safe outbound URLs (incl. DNS resolution).
+        $endpoint = UCP_Helpers::validate_public_https_url(UCP_Options::get('cloud_endpoint', ''));
+        return '' !== $endpoint ? $endpoint : false;
     }
 }
 
@@ -216,18 +152,16 @@ trait UCP_Cloud_HTTP_Trait {
             return false;
         }
 
-        $response = wp_remote_post($endpoint, array(
-            'timeout' => 25,
-            'redirection' => 0,
-            'reject_unsafe_urls' => true,
-            'user-agent' => 'UltraCache Cloud/' . UCP_VERSION,
+        $response = wp_remote_post($endpoint, UCP_Helpers::default_remote_args(array(
+            'timeout'             => 25,
+            'user-agent'          => 'UltraCache Cloud/' . UCP_VERSION,
             'limit_response_size' => 1048576,
-            'headers' => array(
+            'headers'             => array(
                 'Authorization' => 'Bearer ' . $api_key,
-                'Content-Type' => 'application/json',
+                'Content-Type'  => 'application/json',
             ),
-            'body' => wp_json_encode($payload),
-        ));
+            'body'                => wp_json_encode($payload),
+        )));
         if (is_wp_error($response)) {
             UCP_Helpers::log('Cloud-aanvraag mislukt: ' . $response->get_error_message());
             return false;

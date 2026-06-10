@@ -3,8 +3,9 @@
  */
 #ucp_page_overrides .ucp-page-override-option {
   display: block;
-  margin: 8px 0;
+  margin: var(--ucp-space-2, 8px) 0;
 }
+
 #ucp_page_overrides .ucp-page-override-option input {
-  margin-right: 4px;
+  margin-right: var(--ucp-space-1, 4px);
 }

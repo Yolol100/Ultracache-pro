@@ -17,6 +17,8 @@ class UCP_CLI {
         \WP_CLI::add_command('ultracache settings import', array(__CLASS__, 'settings_import'));
         \WP_CLI::add_command('ultracache diagnostics', array(__CLASS__, 'diagnostics'));
         \WP_CLI::add_command('ultracache runtime-tests', array(__CLASS__, 'runtime_tests'));
+        \WP_CLI::add_command('ultracache server-rules', array(__CLASS__, 'server_rules'));
+        \WP_CLI::add_command('ultracache renderer-test', array(__CLASS__, 'renderer_test'));
     }
 
     public static function status() {
@@ -121,6 +123,48 @@ class UCP_CLI {
                 \WP_CLI::warning($line);
             } else {
                 \WP_CLI::log($line);
+            }
+        }
+    }
+
+    public static function server_rules($args = array(), $assoc_args = array()) {
+        $server = isset($args[0]) ? sanitize_key((string) $args[0]) : 'nginx';
+        if (!in_array($server, array('nginx', 'apache', 'htaccess'), true)) {
+            \WP_CLI::error('Use nginx or apache.');
+        }
+        if (method_exists('UCP_Helpers', 'write_direct_cache_server_rule_exports')) {
+            UCP_Helpers::write_direct_cache_server_rule_exports();
+        }
+        $rules = method_exists('UCP_Helpers', 'direct_cache_server_rules') ? UCP_Helpers::direct_cache_server_rules($server) : array();
+        if (empty($rules)) {
+            \WP_CLI::error('Direct-cache server rules are unavailable.');
+        }
+        \WP_CLI::line(implode("\n", $rules));
+        if ('nginx' === $server) {
+            \WP_CLI::warning('Nginx config must be placed in the server{} block before the PHP location and reloaded by a server admin. UltraCache cannot safely edit nginx automatically.');
+        } elseif (!UCP_Options::get('enable_direct_cache_htaccess')) {
+            \WP_CLI::warning('Apache .htaccess auto-write is available but disabled. Enable enable_direct_cache_htaccess after staging verification.');
+        }
+    }
+
+    public static function renderer_test($args = array(), $assoc_args = array()) {
+        if (!class_exists('UCP_Render_Bridge')) {
+            \WP_CLI::error('Headless renderer bridge is unavailable.');
+        }
+        $url = isset($args[0]) ? (string) $args[0] : home_url('/');
+        $result = UCP_Render_Bridge::test_endpoint($url);
+        if (is_wp_error($result)) {
+            \WP_CLI::error($result->get_error_message());
+        }
+        $format = isset($assoc_args['format']) ? sanitize_key((string) $assoc_args['format']) : 'table';
+        if ('json' === $format) {
+            \WP_CLI::line(wp_json_encode($result, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
+            return;
+        }
+        \WP_CLI::success(isset($result['message']) ? (string) $result['message'] : 'Renderer test passed.');
+        foreach ((array) $result as $key => $value) {
+            if (is_scalar($value)) {
+                \WP_CLI::log($key . ': ' . (is_bool($value) ? ($value ? 'yes' : 'no') : (string) $value));
             }
         }
     }

@@ -18,7 +18,7 @@ class UCP_CWV {
     const MIN_PROFILE_CONFIDENCE = 85;
 
     public function __construct() {
-        add_action('wp_footer', array($this, 'print_rum_script'), 99);
+        add_action('wp_enqueue_scripts', array($this, 'enqueue_rum_script'));
         add_action('rest_api_init', array($this, 'register_routes'));
     }
 
@@ -109,7 +109,7 @@ class UCP_CWV {
         $referer = $request instanceof WP_REST_Request ? (string) $request->get_header('referer') : '';
 
         // Note: CWV beacons are sent from cacheable frontend HTML; a WordPress nonce in that HTML expires while the page cache can still be warm.
-        // AI-PATCH: keep the public beacon short-lived by accepting only the current/previous daily HMAC bucket.
+        // keep the public beacon short-lived by accepting only the current/previous daily HMAC bucket.
         // Require at least one browser-supplied same-origin signal and keep the existing per-visitor and daily rate limits in record_metric().
         if ('' === trim($origin) && '' === trim($referer)) {
             return false;
@@ -162,16 +162,34 @@ class UCP_CWV {
         return UCP_CWV_LCP_Sanitizer::default_port_for_scheme($scheme);
     }
 
-    public function print_rum_script() {
+    public function enqueue_rum_script() {
         if (is_admin() || empty(UCP_Options::get('enable_cwv_monitoring'))) {
             return;
         }
 
-        $endpoint = esc_url_raw(rest_url('ultracache-pro/v1/cwv'));
-        $token = $this->cwv_token(); ?>
-<script id="ucp-cwv-monitor">
-(function(){if(!('PerformanceObserver' in window)||!navigator.sendBeacon){return;}var endpoint=<?php echo wp_json_encode($endpoint); ?>;var token=<?php echo wp_json_encode($token); ?>;var sampleRate=0.25;if(Math.random()>sampleRate){return;}function device(){try{return matchMedia('(max-width: 767px)').matches?'mobile':'desktop'}catch(e){return 'all'}}function local(u){try{var x=new URL(u,location.href);return x.origin===location.origin?x.href:''}catch(e){return ''}}function lcpMeta(e){var el=e&&e.element?e.element:null,out={};try{if(el){out.tag=(el.tagName||'').toLowerCase();out.id=el.id||'';out.class=(el.className&&typeof el.className==='string')?el.className.slice(0,240):'';out.selector=out.id?'#'+out.id:(out.tag+(out.class?'.'+out.class.trim().split(/\s+/).slice(0,3).join('.'):''));out.type=(out.tag==='video')?'video-poster':((out.tag==='img'||out.tag==='picture')?'image':'text');}if(e&&e.url){out.url=local(e.url);}if(el&&el.currentSrc){out.url=local(el.currentSrc);out.type='image';}if(el&&el.srcset){out.srcset=String(el.srcset).slice(0,1200);}if(el&&el.sizes){out.sizes=String(el.sizes).slice(0,240);}if(el&&el.poster){out.url=local(el.poster);out.type='video-poster';}if(!out.url&&el){try{var bg=getComputedStyle(el).backgroundImage||'';var m=bg.match(/url\(["']?([^"')]+)["']?\)/);if(m&&m[1]){out.url=local(m[1]);out.background=1;out.type='background-image';}}catch(y){}}}catch(x){}return out}function send(name,value,rating,meta){try{var data=new FormData();data.append('metric',name);data.append('value',String(Math.round(value)));data.append('rating',rating||'');data.append('token',token);data.append('url',location.href.split('#')[0]);data.append('device',device());if(meta&&name==='LCP'){if(meta.url)data.append('lcp_url',meta.url);if(meta.srcset)data.append('lcp_imagesrcset',meta.srcset);data.append('lcp_element_json',JSON.stringify(meta));}navigator.sendBeacon(endpoint,data);}catch(e){}}try{new PerformanceObserver(function(list){list.getEntries().forEach(function(e){if(e.name==='first-contentful-paint'){send('FCP',e.startTime,'info');}});}).observe({type:'paint',buffered:true});}catch(e){}try{new PerformanceObserver(function(list){list.getEntries().forEach(function(e){var meta=lcpMeta(e);send('LCP',e.startTime,e.startTime<2500?'good':(e.startTime<4000?'needs-improvement':'poor'),meta);});}).observe({type:'largest-contentful-paint',buffered:true});}catch(e){}try{new PerformanceObserver(function(list){list.getEntries().forEach(function(e){if(!e.hadRecentInput){send('CLS',e.value*1000,e.value<0.1?'good':(e.value<0.25?'needs-improvement':'poor'));}});}).observe({type:'layout-shift',buffered:true});}catch(e){}try{new PerformanceObserver(function(list){list.getEntries().forEach(function(e){send('INP',e.duration||0,(e.duration||0)<200?'good':((e.duration||0)<500?'needs-improvement':'poor'));});}).observe({type:'event',buffered:true,durationThreshold:40});}catch(e){}})();
-</script><?php
+        $asset = UCP_Helpers::frontend_asset_with_min_fallback('assets/frontend/js/ucp-cwv-monitor');
+        if ('' === $asset['url']) {
+            return;
+        }
+
+        $endpoint    = esc_url_raw(rest_url('ultracache-pro/v1/cwv'));
+        $sample_rate = min(100, max(1, absint(UCP_Options::get('rum_sample_rate', 10)))) / 100;
+
+        wp_register_script('ucp-cwv-monitor', $asset['url'], array(), $asset['version'], true);
+        wp_add_inline_script(
+            'ucp-cwv-monitor',
+            'window.ucpCwvMonitor=' . wp_json_encode(array(
+                'endpoint' => $endpoint,
+                'token' => $this->cwv_token(),
+                'sampleRate' => $sample_rate,
+            )) . ';',
+            'before'
+        );
+        wp_enqueue_script('ucp-cwv-monitor');
+    }
+
+    public function print_rum_script() {
+        $this->enqueue_rum_script();
     }
 
     public function record_metric($request) {
@@ -190,7 +208,8 @@ class UCP_CWV {
             return $rate_limit_response;
         }
 
-        self::record_metric_summary($metric, $value);
+        $device = sanitize_key((string) $request->get_param('device'));
+        self::record_metric_summary($metric, $value, $device);
 
         if ('LCP' === $metric) {
             self::store_lcp_hint(array(
@@ -225,8 +244,8 @@ class UCP_CWV {
      * @param float  $value  Metric value.
      * @return void
      */
-    private static function record_metric_summary($metric, $value) {
-        UCP_CWV_Metric_Summary::record($metric, $value);
+    private static function record_metric_summary($metric, $value, $device = 'all') {
+        UCP_CWV_Metric_Summary::record($metric, $value, $device, UCP_Options::get('rum_sample_rate', 10));
     }
 
     /**
@@ -464,5 +483,13 @@ class UCP_CWV {
 
     public static function summary() {
         return get_option(self::OPTION_KEY, array());
+    }
+
+    public static function get_summary() {
+        return UCP_CWV_Metric_Summary::get_summary();
+    }
+
+    public static function reset_summary() {
+        UCP_CWV_Metric_Summary::reset();
     }
 }

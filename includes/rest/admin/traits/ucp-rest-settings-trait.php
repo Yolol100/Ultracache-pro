@@ -38,6 +38,9 @@ trait UCP_REST_Settings_Trait {
             $merged  = array_merge($current, $params);
             $clean   = self::sanitize_settings_payload($merged);
             UCP_Options::update($clean);
+            if (class_exists('UCP_Helpers')) {
+                UCP_Helpers::invalidate_cache_dirs_check();
+            }
 
             return rest_ensure_response(array(
                 'success'   => true,
@@ -86,6 +89,9 @@ trait UCP_REST_Settings_Trait {
         try {
             $clean = self::sanitize_settings_payload(array_merge(UCP_Options::get_all(), $settings));
             UCP_Options::update($clean);
+            if (class_exists('UCP_Helpers')) {
+                UCP_Helpers::invalidate_cache_dirs_check();
+            }
 
             if (class_exists('UCP_Logger')) {
                 UCP_Logger::log('info', 'admin', 'settings_imported_rest', 'Settings imported through React admin.', array('keys' => array_keys($settings)));

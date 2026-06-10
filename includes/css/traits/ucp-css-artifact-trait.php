@@ -126,19 +126,149 @@ trait UCP_CSS_Artifact_Trait {
         if (strlen($css) <= $max_bytes) {
             return $css;
         }
-        preg_match_all('/[^{}]+\{[^{}]+\}/', $css, $matches);
+
+        $rules = self::split_top_level_css_rules($css);
+        if (empty($rules)) {
+            return substr($css, 0, $max_bytes);
+        }
+
+        // Foundational rules (CSS custom properties, :root/html/body/* base resets,
+        // @font-face and @keyframes) are kept first regardless of their position in the
+        // stylesheet. Dropping them — which the previous byte-ordered slice did whenever
+        // they appeared past the budget — is the most common cause of broken theming and
+        // missing fonts in critical CSS. Remaining rules then fill the leftover budget in
+        // document order. Rules are never split, so the output stays valid CSS.
+        $must = array();
+        $rest = array();
+        foreach ($rules as $rule) {
+            if (self::critical_rule_is_foundational($rule)) {
+                $must[] = $rule;
+            } else {
+                $rest[] = $rule;
+            }
+        }
+
         $out = '';
-        foreach (!empty($matches[0]) ? $matches[0] : array() as $rule) {
-            $rule = trim($rule);
-            if ('' === $rule) {
+        foreach ($must as $rule) {
+            if (strlen($out) + strlen($rule) > $max_bytes) {
                 continue;
             }
-            if (strlen($out . $rule) > $max_bytes) {
+            $out .= $rule;
+        }
+        foreach ($rest as $rule) {
+            if (strlen($out) + strlen($rule) > $max_bytes) {
                 break;
             }
             $out .= $rule;
         }
+
         return '' !== $out ? $out : substr($css, 0, $max_bytes);
+    }
+
+    /**
+     * Split CSS into complete top-level rules using brace-depth matching so nested
+     * at-rules (@media, @supports, @container, @keyframes, @font-face) stay intact.
+     * The previous regex (/[^{}]+\{[^{}]+\}/) could not span nested braces: it stripped
+     * the @media/@supports wrapper (leaking conditional rules to every viewport) and
+     * shattered @keyframes into orphaned step blocks. Quotes and escapes are respected so
+     * braces inside url()/content strings do not desynchronise the parser.
+     *
+     * @param string $css CSS source.
+     * @return array<int,string> Complete rule strings in document order.
+     */
+    private static function split_top_level_css_rules($css) {
+        $css = (string) $css;
+        $len = strlen($css);
+        $rules = array();
+        $start = 0;
+        $depth = 0;
+        $quote = '';
+        $escape = false;
+        for ($i = 0; $i < $len; $i++) {
+            $ch = $css[$i];
+            if ('' !== $quote) {
+                if ($escape) {
+                    $escape = false;
+                    continue;
+                }
+                if ('\\' === $ch) {
+                    $escape = true;
+                    continue;
+                }
+                if ($ch === $quote) {
+                    $quote = '';
+                }
+                continue;
+            }
+            if ('"' === $ch || "'" === $ch) {
+                $quote = $ch;
+                continue;
+            }
+            if ('{' === $ch) {
+                $depth++;
+            } elseif ('}' === $ch) {
+                if ($depth > 0) {
+                    $depth--;
+                }
+                if (0 === $depth) {
+                    $rule = trim(substr($css, $start, $i - $start + 1));
+                    if ('' !== $rule) {
+                        $rules[] = $rule;
+                    }
+                    $start = $i + 1;
+                }
+            }
+        }
+        return $rules;
+    }
+
+    /**
+     * A rule is "foundational" when the whole page depends on it irrespective of where it
+     * sits relative to the fold: CSS custom properties, :root/html/body/* base resets,
+     * web fonts and keyframes. These are prioritised when trimming critical CSS so the
+     * byte budget can never silently discard them.
+     *
+     * @param string $rule Complete CSS rule.
+     * @return bool
+     */
+    private static function critical_rule_is_foundational($rule) {
+        $rule = ltrim((string) $rule);
+        if ('' === $rule) {
+            return false;
+        }
+        if (preg_match('/^@(?:font-face|keyframes|-webkit-keyframes)\b/i', $rule)) {
+            return true;
+        }
+        $brace = strpos($rule, '{');
+        if (false === $brace) {
+            return false;
+        }
+        $body = substr($rule, $brace);
+        if (preg_match('/(?:^|[;{\s])--[A-Za-z0-9_-]+\s*:/', $body)) {
+            return true;
+        }
+        $prelude = strtolower(trim(substr($rule, 0, $brace)));
+        if ('' === $prelude || 0 === strpos($prelude, '@')) {
+            return false;
+        }
+        foreach (explode(',', $prelude) as $selector) {
+            $selector = trim($selector);
+            if ('' === $selector) {
+                continue;
+            }
+            foreach (array(':root', 'html', 'body', '*') as $root) {
+                if ($selector === $root) {
+                    return true;
+                }
+                if (0 === strpos($selector, $root)) {
+                    $next = isset($selector[strlen($root)]) ? $selector[strlen($root)] : '';
+                    if (in_array($next, array(' ', '.', '#', '[', ':', '>', '~', '+'), true)) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
     }
 
     protected static function critical_css_style_tag($css) {

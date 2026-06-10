@@ -112,6 +112,8 @@ final class UCP_Loader {
             'ucp_cwv_rate_limiter' => 'includes/cwv/class-ucp-cwv-rate-limiter.php',
             'ucp_cwv_metric_summary' => 'includes/cwv/class-ucp-cwv-metric-summary.php',
             'ucp_cache' => 'includes/cache/class-ucp-cache.php',
+            'ucp_litespeed_cache' => 'includes/cache/class-ucp-litespeed-cache.php',
+            'ucp_cache_policy' => 'includes/cache/class-ucp-cache-policy.php',
             'ucp_cache_admin_bar_trait' => 'includes/cache/traits/ucp-cache-admin-bar-trait.php',
             'ucp_cache_purge_actions_trait' => 'includes/cache/traits/purge/ucp-cache-purge-actions-trait.php',
             'ucp_cache_purge_content_events_trait' => 'includes/cache/traits/purge/ucp-cache-purge-content-events-trait.php',
@@ -119,13 +121,23 @@ final class UCP_Loader {
             'ucp_cache_purge_url_map_trait' => 'includes/cache/traits/purge/ucp-cache-purge-url-map-trait.php',
             'ucp_cache_request_policy_trait' => 'includes/cache/traits/ucp-cache-request-policy-trait.php',
             'ucp_cache_storage_trait' => 'includes/cache/traits/ucp-cache-storage-trait.php',
+            'ucp_shopper_cache' => 'includes/cache/class-ucp-shopper-cache.php',
             'ucp_cache_tags' => 'includes/cache/tags/class-ucp-cache-tags.php',
             'ucp_cache_tags_resolver_trait' => 'includes/cache/tags/traits/ucp-cache-tags-resolver-trait.php',
             'ucp_cache_tags_storage_trait' => 'includes/cache/tags/traits/ucp-cache-tags-storage-trait.php',
             'ucp_cloud' => 'includes/cloud/class-ucp-cloud.php',
-            // UCP_Cloud_Routes_Trait, UCP_Cloud_CSS_Trait, UCP_Cloud_Endpoint_Trait,
-            // UCP_Cloud_HTTP_Trait are defined inside class-ucp-cloud.php and only
-            // composed by UCP_Cloud itself; they are never autoloaded separately.
+            'ucp_cdn' => 'includes/cloud/class-ucp-cdn.php',
+            'ucp_host_cache' => 'includes/cloud/class-ucp-host-cache.php',
+            'ucp_render_bridge' => 'includes/css/class-ucp-render-bridge.php',
+            'ucp_image_queue' => 'includes/class-ucp-image-queue.php',
+            'ucp_esi' => 'includes/cache/class-ucp-esi.php',
+            'ucp_compat_updater' => 'includes/compat/class-ucp-compat-updater.php',
+            'ucp_safe_autopilot' => 'includes/core/class-ucp-safe-autopilot.php',
+            'ucp_lqip' => 'includes/class-ucp-lqip.php',
+            'ucp_viewport_images' => 'includes/css/class-ucp-viewport-images.php',
+            'ucp_self_host_media' => 'includes/optimization/class-ucp-self-host-media.php',
+            'ucp_asset_inspector' => 'includes/assets/class-ucp-asset-inspector.php',
+            // Cloud traits are defined inside class-ucp-cloud.php and are loaded with UCP_Cloud.
             'ucp_compat' => 'includes/compat/class-ucp-compat.php',
             'ucp_compat_combine_trait' => 'includes/compat/traits/ucp-compat-combine-trait.php',
             'ucp_compat_detection_trait' => 'includes/compat/traits/ucp-compat-detection-trait.php',
@@ -145,7 +157,6 @@ final class UCP_Loader {
             'ucp_helpers_minify_and_log_trait' => 'includes/filesystem/traits/ucp-helpers-minify-and-log-trait.php',
             'ucp_helpers_url_trait' => 'includes/filesystem/traits/ucp-helpers-url-trait.php',
             'ucp_image_optimizer' => 'includes/class-ucp-image-optimizer.php',
-            'ucp_script_manager' => 'includes/admin/script-manager/class-ucp-script-manager.php',
             'ucp_installer' => 'includes/core/installer/class-ucp-installer.php',
             'ucp_installer_lifecycle_trait' => 'includes/core/installer/ucp-installer-lifecycle-trait.php',
             // UCP_Installer_Schedule_Trait is defined inside class-ucp-installer.php and only
@@ -167,8 +178,7 @@ final class UCP_Loader {
             'ucp_maintenance' => 'includes/core/class-ucp-maintenance.php',
             'ucp_maintenance_cleanup_trait' => 'includes/core/maintenance/ucp-maintenance-cleanup-trait.php',
             'ucp_maintenance_privacy_trait' => 'includes/core/maintenance/ucp-maintenance-privacy-trait.php',
-            // UCP_Maintenance_Schedule_Trait is defined inside ucp-maintenance-cleanup-trait.php
-            // and only composed by UCP_Maintenance; never autoloaded separately.
+            // UCP_Maintenance_Schedule_Trait is loaded with UCP_Maintenance.
             'ucp_modules' => 'includes/class-ucp-modules.php',
             'ucp_pagespeed_browser_scan' => 'includes/core/class-ucp-pagespeed-browser-scan.php',
             'ucp_pagespeed_browser_scan_optimizer' => 'includes/core/pagespeed/class-ucp-pagespeed-browser-scan-optimizer.php',
@@ -176,6 +186,7 @@ final class UCP_Loader {
             'ucp_page_overrides' => 'includes/core/class-ucp-page-overrides.php',
             'ucp_object_cache' => 'includes/class-ucp-object-cache.php',
             'ucp_optimization_intelligence' => 'includes/core/class-ucp-optimization-intelligence.php',
+            'ucp_html_parser' => 'includes/optimization/class-ucp-html-parser.php',
             'ucp_optimizer' => 'includes/optimization/class-ucp-optimizer.php',
             'ucp_optimizer_cdn_hints_trait' => 'includes/optimization/traits/ucp-optimizer-cdn-hints-trait.php',
             'ucp_optimizer_core_bloat_trait' => 'includes/optimization/traits/ucp-optimizer-core-bloat-trait.php',

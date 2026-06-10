@@ -168,6 +168,10 @@ class UCP_REST_Admin_Controller {
             'retry-failed-jobs'  => 'retry_failed_jobs',
             'run-due-jobs'       => 'run_due_jobs',
             'browser-scan'       => 'browser_scan_save',
+            'renderer-test'      => 'renderer_test',
+            'clear-cwv-fielddata' => 'clear_cwv_fielddata',
+            // Backward-compatible alias for the 11.2.2/11.2.3 admin button.
+            'clear-rum'          => 'clear_cwv_fielddata',
         );
 
         foreach ($actions as $route => $method) {
@@ -199,7 +203,18 @@ class UCP_REST_Admin_Controller {
      * @return array<string,array<string,mixed>>
      */
     private static function action_args($route) {
-        if ('purge-url' !== $route) {
+        if ('database-cleanup' === $route) {
+            return array(
+                'confirmBackup' => array(
+                    'type'              => 'boolean',
+                    'required'          => true,
+                    'sanitize_callback' => 'rest_sanitize_boolean',
+                    'validate_callback' => 'rest_validate_request_arg',
+                ),
+            );
+        }
+
+        if (!in_array($route, array('purge-url', 'renderer-test'), true)) {
             return array();
         }
 

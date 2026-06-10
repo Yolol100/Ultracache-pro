@@ -14,14 +14,49 @@
  * No configuration required. Remove the route to disable.
  */
 
-const BYPASS_COOKIE_MARKERS = [
-	'wordpress_logged_in',
-	'wp-postpass',
-	'comment_author',
+// Keep this list aligned with the PHP/drop-in excluded + vary cookie fragments.
+// The Worker cannot vary its Cache API key by arbitrary WooCommerce/language cookies,
+// so edge HTML caching must fail closed and bypass when these cookies are present.
+const BYPASS_COOKIE_PREFIXES = [
+	// WordPress authentication, password-protected content and comments.
+	'wordpress_logged_in_',
+	'wordpress_sec_',
+	'wp-postpass_',
+	'wp-resetpass_',
+	'comment_author_',
+	'switch_to_olduser_',
+	'wordpress_test_cookie',
+
+	// WooCommerce, Easy Digital Downloads and payment/session state.
 	'woocommerce_items_in_cart',
 	'woocommerce_cart_hash',
-	'wp_woocommerce_session',
+	'wp_woocommerce_session_',
+	'woocommerce_recently_viewed',
+	'woocommerce_checkout_',
+	'woocommerce_pay_',
 	'edd_items_in_cart',
+
+	// Multilingual and multicurrency cookies that vary page HTML.
+	'pll_language',
+	'_icl_current_language',
+	'wp-wpml_current_language',
+	'wpml_browser_redirect_test',
+	'trp_language',
+	'wp_lang',
+	'wcml_client_currency',
+	'woocommerce_multicurrency_forced_currency',
+	'aelia_cs_selected_currency',
+	'aelia_customer_country',
+	'aelia_customer_state',
+	'aelia_tax_exempt',
+
+	// Consent plugins can alter visible HTML, scripts and banners per visitor.
+	'cookie_notice_',
+	'cmplz_',
+	'complianz_',
+	'cookieyes',
+	'cky-',
+	'borlabs',
 ];
 
 addEventListener('fetch', (event) => {
@@ -29,12 +64,19 @@ addEventListener('fetch', (event) => {
 });
 
 function requestHasBypassCookie(request) {
-	const cookie = request.headers.get('Cookie') || '';
-	if (!cookie) {
+	const cookieHeader = request.headers.get('Cookie') || '';
+	if (!cookieHeader) {
 		return false;
 	}
-	const lower = cookie.toLowerCase();
-	return BYPASS_COOKIE_MARKERS.some((marker) => lower.indexOf(marker) !== -1);
+
+	const cookieNames = cookieHeader
+		.split(';')
+		.map((part) => part.split('=')[0].trim().toLowerCase())
+		.filter(Boolean);
+
+	return cookieNames.some((cookieName) =>
+		BYPASS_COOKIE_PREFIXES.some((prefix) => cookieName.indexOf(prefix) === 0)
+	);
 }
 
 function parseMaxAge(response) {

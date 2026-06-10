@@ -1,6 +1,7 @@
 [
   "lang",
   "currency",
+  "v",
   "orderby",
   "min_price",
   "max_price",

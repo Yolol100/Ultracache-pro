@@ -90,6 +90,7 @@ trait UCP_Cache_Purge_Url_Map_Trait {
         if (class_exists('UCP_Jobs') && UCP_Options::get('enable_cloudflare_apo_mode')) {
             UCP_Jobs::enqueue_unique('cloudflare_purge_urls', array('urls' => $urls), 1, 'cloudflare');
         }
+        do_action('ucp_cache_purged_urls', $urls);
         self::queue_cache_toast(__('Cache is geleegd.', 'ultracache-pro'));
     }
 
@@ -103,7 +104,14 @@ trait UCP_Cache_Purge_Url_Map_Trait {
         // Also remove the pre-compressed variants so a stale .gz/.br can never be served after purge.
         UCP_Helpers::safe_delete_file($page_cache_file . '.gz');
         UCP_Helpers::safe_delete_file($page_cache_file . '.br');
+        $direct_cache_file = UCP_Helpers::direct_cache_file_path($url);
+        if ('' !== $direct_cache_file) {
+            UCP_Helpers::safe_delete_file($direct_cache_file);
+            UCP_Helpers::safe_delete_file($direct_cache_file . '.gz');
+            UCP_Helpers::safe_delete_file($direct_cache_file . '.br');
+        }
         UCP_Helpers::safe_delete_file(UCP_Helpers::get_used_css_path($url));
+        UCP_Helpers::safe_delete_file(trailingslashit(UCP_CACHE_DIR) . 'used-css-served/' . UCP_Helpers::css_artifact_key_for_url($url) . '.css');
         UCP_Helpers::safe_delete_file(UCP_Helpers::get_critical_css_path($url));
         UCP_Helpers::safe_delete_file(UCP_Diagnostics::get_file($url));
         if (class_exists('UCP_Cache_Tags') && UCP_Cache_Tags::enabled()) {

@@ -114,11 +114,31 @@ if (!function_exists('ucp_redis_connection')) {
             $port = defined('WP_REDIS_PORT') ? (int) WP_REDIS_PORT : 6379;
             $timeout = defined('WP_REDIS_TIMEOUT') ? (float) WP_REDIS_TIMEOUT : 1.0;
 
-            // Unix socket when the host looks like a path; TCP otherwise.
-            if ('' !== $host && ('/' === $host[0] || false !== strpos($host, '.sock'))) {
-                $connected = $redis->connect($host);
-            } else {
-                $connected = $redis->connect($host, $port, $timeout);
+            // Persistent connections reuse the socket across requests (skips the TCP
+            // handshake per request). Falls back to a non-persistent connect() when
+            // pconnect is unavailable or disabled via WP_REDIS_PERSISTENT.
+            $is_socket = ('' !== $host && ('/' === $host[0] || false !== strpos($host, '.sock')));
+            $use_persistent = (!defined('WP_REDIS_PERSISTENT') || WP_REDIS_PERSISTENT) && method_exists($redis, 'pconnect');
+            $persistent_id = 'ucp-' . substr(md5(
+                $host . ':' . $port . ':' .
+                (defined('WP_REDIS_DATABASE') ? (string) WP_REDIS_DATABASE : '0') . ':' .
+                (defined('WP_REDIS_PREFIX') ? (string) WP_REDIS_PREFIX : '')
+            ), 0, 12);
+
+            $connected = false;
+            if ($use_persistent) {
+                try {
+                    $connected = $is_socket
+                        ? $redis->pconnect($host)
+                        : $redis->pconnect($host, $port, $timeout, $persistent_id);
+                } catch (Throwable $e) {
+                    $connected = false;
+                }
+            }
+            if (!$connected) {
+                $connected = $is_socket
+                    ? $redis->connect($host)
+                    : $redis->connect($host, $port, $timeout);
             }
             if (!$connected) {
                 $GLOBALS['ucp_redis_connection_failed'] = true;
@@ -135,6 +155,24 @@ if (!function_exists('ucp_redis_connection')) {
             if (defined('Redis::OPT_SERIALIZER')) {
                 $serializer = defined('Redis::SERIALIZER_IGBINARY') && extension_loaded('igbinary') ? Redis::SERIALIZER_IGBINARY : Redis::SERIALIZER_PHP;
                 $redis->setOption(Redis::OPT_SERIALIZER, $serializer);
+            }
+            // Optional value compression (opt-in via WP_REDIS_COMPRESSION: zstd|lz4|lzf).
+            // Off by default: switching compression on existing data requires a Redis
+            // flush, so this must be a deliberate choice. Only applied when PhpRedis was
+            // compiled with the requested algorithm.
+            if (defined('WP_REDIS_COMPRESSION') && defined('Redis::OPT_COMPRESSION')) {
+                $requested = strtolower((string) WP_REDIS_COMPRESSION);
+                $map = array();
+                if (defined('Redis::COMPRESSION_ZSTD')) { $map['zstd'] = Redis::COMPRESSION_ZSTD; }
+                if (defined('Redis::COMPRESSION_LZ4')) { $map['lz4'] = Redis::COMPRESSION_LZ4; }
+                if (defined('Redis::COMPRESSION_LZF')) { $map['lzf'] = Redis::COMPRESSION_LZF; }
+                if (isset($map[$requested])) {
+                    try {
+                        $redis->setOption(Redis::OPT_COMPRESSION, $map[$requested]);
+                    } catch (Throwable $e) {
+                        // Algorithm not compiled in: leave values uncompressed.
+                    }
+                }
             }
 
             $GLOBALS['ucp_redis_connection'] = $redis;

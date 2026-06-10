@@ -171,8 +171,14 @@ trait UCP_REST_Actions_Trait {
         return self::action_success(__('Verkleinde JavaScript is gewist.', 'ultracache-pro'));
     }
 
-    public static function database_cleanup() {
+    public static function database_cleanup($request = null) {
         try {
+            if ($request instanceof WP_REST_Request) {
+                $confirmed_backup = !empty($request->get_param('confirmBackup')) || !empty($request->get_param('confirmed_backup')) || !empty($request->get_param('ucp_confirm_backup'));
+                if (!$confirmed_backup) {
+                    return self::action_error('ucp_database_cleanup_backup_not_confirmed', __('Bevestig eerst dat er een recente database-back-up is voordat database cleanup wordt uitgevoerd.', 'ultracache-pro'), 400);
+                }
+            }
             if (!class_exists('UCP_DB_Cleanup')) {
                 return self::action_error('ucp_database_cleanup_unavailable', __('Database cleanup is niet beschikbaar.', 'ultracache-pro'));
             }
@@ -183,6 +189,24 @@ trait UCP_REST_Actions_Trait {
         } catch (Throwable $e) {
             return self::action_error('ucp_database_cleanup_failed', $e->getMessage());
         }
+    }
+
+    public static function renderer_test($request = null) {
+        if (!class_exists('UCP_Render_Bridge')) {
+            return self::action_error('ucp_renderer_unavailable', __('Headless renderer bridge is niet beschikbaar.', 'ultracache-pro'), 404);
+        }
+        $url = home_url('/');
+        if ($request instanceof WP_REST_Request) {
+            $candidate = (string) $request->get_param('url');
+            if ('' !== $candidate) {
+                $url = $candidate;
+            }
+        }
+        $result = UCP_Render_Bridge::test_endpoint($url);
+        if (is_wp_error($result)) {
+            return self::action_error('ucp_renderer_test_failed', $result->get_error_message(), 400);
+        }
+        return self::action_success(__('Headless renderer test geslaagd.', 'ultracache-pro'), array('renderer' => $result));
     }
 
     public static function run_health_check() {
@@ -291,6 +315,26 @@ trait UCP_REST_Actions_Trait {
             ),
             array('updated' => (int) $updated, 'processed' => $processed, 'cleanup' => $cleanup)
         );
+    }
+
+    public static function clear_cwv_fielddata() {
+        if (!class_exists('UCP_CWV') || !method_exists('UCP_CWV', 'reset_summary')) {
+            return self::action_error('ucp_cwv_unavailable', __('CWV-monitoring is niet beschikbaar.', 'ultracache-pro'), 404);
+        }
+
+        UCP_CWV::reset_summary();
+        if (class_exists('UCP_Logger')) {
+            UCP_Logger::log('info', 'rest', 'cwv_data_reset', 'CWV field data reset from REST admin action.');
+        }
+
+        return self::action_success(__('CWV-fielddata is gewist.', 'ultracache-pro'));
+    }
+
+    /**
+     * Backward-compatible method name for older admin bundles.
+     */
+    public static function clear_rum() {
+        return self::clear_cwv_fielddata();
     }
 
     public static function support_report() {

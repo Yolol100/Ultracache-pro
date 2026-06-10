@@ -23,12 +23,24 @@ trait UCP_Optimizer_Media_Image_Trait {
         $exclude_leading = absint(UCP_Options::get('lazyload_exclude_leading_images', 1));
         $is_leading = $exclude_leading > 0 && $this->ucp_seen_images <= $exclude_leading;
         $is_excluded = $this->media_matches_lazyload_exclusion($class_name) || $this->image_matches_parent_exclusion($class_name);
+        $vpi_src = isset($attr['src']) ? (string) $attr['src'] : '';
+        /**
+         * Allow a viewport-image (VPI) detector to mark a specific image as above-the-fold,
+         * forcing it eager + high priority and excluding it from lazy load.
+         *
+         * @param bool   $is_viewport
+         * @param string $src
+         */
+        $is_viewport = '' !== $vpi_src && (bool) apply_filters('ucp_image_is_viewport_image', false, $vpi_src);
+        if ($is_viewport) {
+            $is_excluded = true;
+        }
         $is_lcp_candidate = !empty($attr['src']) && $this->image_url_matches_lcp_candidate((string) $attr['src']);
         if (!$is_lcp_candidate && !empty($attr['srcset'])) {
             $is_lcp_candidate = $this->srcset_matches_lcp_candidate((string) $attr['srcset']);
         }
 
-        if (($is_lcp_candidate || (!$has_measured_lcp && $is_leading)) && !$this->ucp_lcp_image_seen) {
+        if (($is_lcp_candidate || $is_viewport || (!$has_measured_lcp && $is_leading)) && !$this->ucp_lcp_image_seen) {
             $this->ucp_lcp_image_seen = true;
             $attr['fetchpriority'] = 'high';
             $attr['loading'] = 'eager';
@@ -61,17 +73,67 @@ trait UCP_Optimizer_Media_Image_Trait {
         }
         if (UCP_Options::get('enable_lazy_images') || UCP_Options::get('enable_add_image_dimensions') || UCP_Options::get('preload_critical_images')) {
             $this->detect_lcp_image_candidate($html);
-            $candidate = preg_replace_callback('/<img\b([^>]*)>/i', array($this, 'optimize_image_loading_attribute'), $html);
-            $html = is_string($candidate) ? $candidate : $html;
+            $html = $this->rewrite_start_tag_pass($html, 'img', '/<img\b([^>]*)>/i', array($this, 'optimize_image_loading_attribute'));
         }
         if (UCP_Options::get('enable_lazyload_background_images') || UCP_Options::get('enable_image_optimization') || UCP_Options::get('enable_webp_generation') || UCP_Options::get('enable_avif_generation')) {
             $html = $this->rewrite_background_image_urls_to_modern_variants($html);
         }
         if (UCP_Options::get('enable_lazy_iframes') || UCP_Options::get('enable_lazy_youtube_preview')) {
-            $candidate = preg_replace_callback('/<iframe\b([^>]*)>(.*?)<\/iframe>/is', array($this, 'optimize_iframe_loading_attribute'), $html);
-            $html = is_string($candidate) ? $candidate : $html;
+            $html = $this->rewrite_element_pass($html, 'iframe', '/<iframe\b([^>]*)>(.*?)<\/iframe>/is', array($this, 'optimize_iframe_loading_attribute'));
         }
         return $html;
+    }
+
+    /**
+     * Run a start-tag rewrite pass, using the opt-in tokenizer engine when enabled and falling back
+     * to the supplied regex otherwise. The parser path is fail-safe: any error or non-string result
+     * falls through to the regex, so output can never be worse than the regex-only path.
+     *
+     * @param string   $html
+     * @param string   $tag      Lowercase tag name (e.g. 'img').
+     * @param string   $regex    preg_replace_callback pattern matching the same start tag.
+     * @param callable $callback Receives a preg_replace_callback-compatible array.
+     * @return string
+     */
+    private function rewrite_start_tag_pass($html, $tag, $regex, $callback) {
+        $candidate = null;
+        if (UCP_Options::get('enable_html_parser') && class_exists('UCP_HTML_Parser')) {
+            try {
+                $candidate = UCP_HTML_Parser::replace_tag($html, $tag, $callback);
+            } catch (\Throwable $e) {
+                $candidate = null;
+            }
+        }
+        if (!is_string($candidate)) {
+            $candidate = preg_replace_callback($regex, $callback, $html);
+        }
+        return is_string($candidate) ? $candidate : $html;
+    }
+
+    /**
+     * Run a full-element rewrite pass, using the opt-in tokenizer engine when enabled and falling
+     * back to the supplied regex otherwise. This is for non-void elements where the callback needs
+     * the element body, such as iframe preview/lazy-loading.
+     *
+     * @param string   $html
+     * @param string   $tag
+     * @param string   $regex
+     * @param callable $callback
+     * @return string
+     */
+    private function rewrite_element_pass($html, $tag, $regex, $callback) {
+        $candidate = null;
+        if (UCP_Options::get('enable_html_parser') && class_exists('UCP_HTML_Parser') && method_exists('UCP_HTML_Parser', 'replace_element')) {
+            try {
+                $candidate = UCP_HTML_Parser::replace_element($html, $tag, $callback);
+            } catch (\Throwable $e) {
+                $candidate = null;
+            }
+        }
+        if (!is_string($candidate)) {
+            $candidate = preg_replace_callback($regex, $callback, $html);
+        }
+        return is_string($candidate) ? $candidate : $html;
     }
 
     private function optimize_image_loading_attribute($matches) {
@@ -420,5 +482,40 @@ trait UCP_Optimizer_Media_Image_Trait {
             $attrs .= ' height="' . absint($dims['height']) . '"';
         }
         return '<img' . $attrs . '>';
+    }
+
+    /**
+     * Add a class token to an <img> attribute string, merging with any existing class attribute.
+     *
+     * Operates on the raw attribute fragment (everything between "<img" and ">"), mirroring the
+     * other attribute helpers in this trait. Returns the input unchanged when the class is already
+     * present so repeated passes stay idempotent.
+     *
+     * @param string $attrs Attribute fragment.
+     * @param string $class Class token to add.
+     * @return string
+     */
+    private function append_class_attribute($attrs, $class) {
+        $attrs = (string) $attrs;
+        $class = trim((string) $class);
+        if ('' === $class) {
+            return $attrs;
+        }
+        if (preg_match('/\bclass\s*=\s*("|\')(.*?)\1/is', $attrs, $match)) {
+            $tokens = preg_split('/\s+/', trim((string) $match[2]));
+            $tokens = is_array($tokens) ? array_values(array_filter($tokens, 'strlen')) : array();
+            if (in_array($class, $tokens, true)) {
+                return $attrs;
+            }
+            $tokens[] = $class;
+            $new_attr = 'class=' . $match[1] . trim(implode(' ', $tokens)) . $match[1];
+            $pos = strpos($attrs, $match[0]);
+            if (false === $pos) {
+                return $attrs;
+            }
+            // Replace via offset to avoid preg_replace backreference issues in the class value.
+            return substr($attrs, 0, $pos) . $new_attr . substr($attrs, $pos + strlen($match[0]));
+        }
+        return rtrim($attrs) . ' class="' . esc_attr($class) . '"';
     }
 }

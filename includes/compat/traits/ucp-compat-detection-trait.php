@@ -15,12 +15,15 @@ trait UCP_Compat_Detection_Trait {
             if (array_key_exists($safe_name, $cache)) {
                 return $cache[$safe_name];
             }
-            $path = trailingslashit(UCP_PATH) . 'compat/' . $safe_name . '.json';
-            if (!is_readable($path)) {
-                $cache[$safe_name] = array();
-                return array();
-            }
-            $data = json_decode(UCP_Helpers::read_file($path), true);
+            // Raw read + decode is shared with UCP_Helpers::compat_json_list() (single reader).
+            $data = UCP_Helpers::compat_json_raw($safe_name);
+            /**
+             * Filter a structured compatibility data set after it is read from disk.
+             *
+             * @param array  $data
+             * @param string $safe_name
+             */
+            $data = apply_filters('ucp_compat_json_data', $data, $safe_name);
             $cache[$safe_name] = is_array($data) ? $data : array();
             return $cache[$safe_name];
         }
@@ -265,7 +268,8 @@ trait UCP_Compat_Detection_Trait {
             if (file_exists(WP_CONTENT_DIR . '/object-cache.php')) {
                 $conflicts[] = array('type' => 'dropin', 'slug' => 'object-cache.php', 'label' => 'Persistent object-cache drop-in');
             }
-            if (UCP_Helpers::is_likely_cache_server_present()) {
+            $litespeed_backend_active = class_exists('UCP_LiteSpeed_Cache') && UCP_LiteSpeed_Cache::active();
+            if (UCP_Helpers::is_likely_cache_server_present() && !$litespeed_backend_active) {
                 $conflicts[] = array('type' => 'server', 'slug' => 'server-cache', 'label' => 'Server-side cache headers detected', 'severity' => 'medium');
             }
             if (!empty($_SERVER['HTTP_CF_CACHE_STATUS']) || defined('CLOUDFLARE_PLUGIN_DIR') || class_exists('CF\\WordPress\\Hooks')) {

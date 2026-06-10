@@ -18,7 +18,6 @@ class UCP_Admin_Config {
             'preload'        => array('label' => __('Preloaden', 'ultracache-pro'), 'icon' => 'dashicons-update', 'meta' => __('Cache vooraf opbouwen', 'ultracache-pro')),
             'advanced'       => array('label' => __('Regels', 'ultracache-pro'), 'icon' => 'dashicons-editor-ul', 'meta' => __('Uitsluitingen, query strings, purge en CDN-basis', 'ultracache-pro')),
             'database'       => array('label' => __('Database', 'ultracache-pro'), 'icon' => 'dashicons-database', 'meta' => __('Database-onderhoud', 'ultracache-pro')),
-            'developer'      => array('label' => __('Developer', 'ultracache-pro'), 'icon' => 'dashicons-editor-code', 'meta' => __('REST, fragment cache, Heartbeat en edge-opties', 'ultracache-pro')),
             'tools'          => array('label' => __('Tools', 'ultracache-pro'), 'icon' => 'dashicons-admin-tools', 'meta' => __('Import, export, logs en websitecontrole', 'ultracache-pro')),
         );
     }
@@ -44,7 +43,6 @@ class UCP_Admin_Config {
             'cache' => array('title' => __('Cache', 'ultracache-pro'), 'description' => __('Page cache, bewaartijd, stale cache en purge-gedrag.', 'ultracache-pro'), 'focus' => __('Algemene cache', 'ultracache-pro')),
             'advanced'       => array('title' => __('Regels', 'ultracache-pro'), 'description' => __('Uitsluitingen, cookies, query strings, purge-regels en CDN-basis.', 'ultracache-pro'), 'focus' => __('Uitzonderingen en regels', 'ultracache-pro')),
             'database' => array('title' => __('Database', 'ultracache-pro'), 'description' => __('Revisies, spam, transients en tabellen opschonen.', 'ultracache-pro'), 'focus' => __('Maak eerst een backup', 'ultracache-pro')),
-            'developer' => array('title' => __('Developer', 'ultracache-pro'), 'description' => __('REST-cache, fragment cache en technische veiligheidsopties. Standaard uit en staging-first.', 'ultracache-pro'), 'focus' => __('Alleen voor ontwikkelaars', 'ultracache-pro')),
             'tools' => array('title' => __('Tools', 'ultracache-pro'), 'description' => __('Import, export, rollback en onderhoud.', 'ultracache-pro'), 'focus' => __('Beheer en support', 'ultracache-pro')),
         );
         return isset($map[$tab]) ? wp_parse_args($map[$tab], $defaults) : $defaults;

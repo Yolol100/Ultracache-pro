@@ -370,7 +370,16 @@ if (!function_exists('wp_cache_decr')) {
             $success = false;
             $stored_value = apcu_dec($cache_key, $offset, $success);
             if ($success) {
-                $value = max(0, (int) $stored_value);
+                $value = (int) $stored_value;
+                if ($value < 0) {
+                    // Mirror WP core and the Redis drop-in: a decremented counter must not
+                    // persist below zero. apcu_dec() does not floor, so re-store 0 instead of
+                    // leaving a negative value that a later request would read back.
+                    $value = 0;
+                    if (function_exists('apcu_store')) {
+                        apcu_store($cache_key, 0, 0);
+                    }
+                }
                 $GLOBALS['ucp_apcu_cache_runtime'][$cache_key] = $value;
                 return $value;
             }

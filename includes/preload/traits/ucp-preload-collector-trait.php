@@ -241,7 +241,7 @@ trait UCP_Preload_Collector_Trait {
                 if (count($found) >= $max_urls) {
                     break;
                 }
-                $url = esc_url_raw(html_entity_decode(trim($match)));
+                $url = esc_url_raw(html_entity_decode(trim($match), ENT_QUOTES | ENT_HTML5));
                 if (!$url || !wp_http_validate_url($url)) {
                     continue;
                 }
@@ -272,7 +272,7 @@ trait UCP_Preload_Collector_Trait {
                         if (count($found) >= $max_urls) {
                             break 2;
                         }
-                        $sub_url = esc_url_raw(html_entity_decode(trim($sub_url)));
+                        $sub_url = esc_url_raw(html_entity_decode(trim($sub_url), ENT_QUOTES | ENT_HTML5));
                         if (!$sub_url || !wp_http_validate_url($sub_url)) {
                             continue;
                         }

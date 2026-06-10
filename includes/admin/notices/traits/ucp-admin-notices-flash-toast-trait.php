@@ -61,14 +61,34 @@ trait UCP_Admin_Notices_Flash_Toast_Trait {
                 $script_rel = $script_min;
             }
         }
-        $style_path = UCP_PATH . $style_rel;
+        $tokens_rel = 'assets/admin/css/ucp-admin-tokens.css';
+        if (!$use_debug) {
+            $tokens_min = 'assets/admin/css/ucp-admin-tokens.min.css';
+            if (file_exists(UCP_PATH . $tokens_min)) {
+                $tokens_rel = $tokens_min;
+            }
+        }
+
+        $style_path  = UCP_PATH . $style_rel;
         $script_path = UCP_PATH . $script_rel;
+        $tokens_path = UCP_PATH . $tokens_rel;
+        $style_deps  = array();
+
+        if (file_exists($tokens_path)) {
+            wp_enqueue_style(
+                'ucp-admin-tokens',
+                UCP_URL . $tokens_rel,
+                array(),
+                (string) filemtime($tokens_path)
+            );
+            $style_deps[] = 'ucp-admin-tokens';
+        }
 
         if (file_exists($style_path)) {
             wp_enqueue_style(
                 'ucp-cache-toast',
                 UCP_URL . $style_rel,
-                array(),
+                $style_deps,
                 (string) filemtime($style_path)
             );
         }

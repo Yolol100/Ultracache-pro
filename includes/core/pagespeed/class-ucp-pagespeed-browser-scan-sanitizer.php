@@ -72,6 +72,34 @@ final class UCP_PageSpeed_Browser_Scan_Sanitizer {
     }
 
     /**
+     * @param mixed $items Raw below-fold/lazy-render selectors.
+     * @param int   $limit Maximum number of selectors.
+     * @return string[]
+     */
+    public static function selectors($items, $limit = 20) {
+        $items = is_array($items) ? $items : array();
+        $out = array();
+        foreach ($items as $item) {
+            $selector = is_array($item) && isset($item['selector']) ? (string) $item['selector'] : (string) $item;
+            $selector = trim(sanitize_text_field($selector));
+            if ('' === $selector || strlen($selector) > 160) {
+                continue;
+            }
+            if (preg_match('/[{}<>\"\'`;]/', $selector)) {
+                continue;
+            }
+            if (!preg_match('/^[#.a-zA-Z0-9_:\-\[\]\(\)=\*\^\$\|~+> ,.]+$/', $selector)) {
+                continue;
+            }
+            $out[$selector] = $selector;
+            if (count($out) >= $limit) {
+                break;
+            }
+        }
+        return array_values($out);
+    }
+
+    /**
      * @param mixed $items Raw resource payloads.
      * @param int   $limit Maximum number of resources.
      * @return array<int,array<string,mixed>>

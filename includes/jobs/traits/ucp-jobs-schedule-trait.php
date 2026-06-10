@@ -9,7 +9,7 @@ if (!defined('ABSPATH')) {
 trait UCP_Jobs_Schedule_Trait {
     public static function sync_schedule($settings = null) {
         $settings = is_array($settings) ? $settings : UCP_Options::get_all();
-        $should_run = !empty($settings['enable_css_queue']) || !empty($settings['enable_preload_queue']) || !empty($settings['enable_health_checks']) || !empty($settings['enable_cloud']) || !empty($settings['enable_cloudflare_apo_mode']) || self::has_due_jobs(false);
+        $should_run = self::settings_need_runner($settings) || self::has_due_jobs(false);
         self::ensure_cron_schedule_registered();
         $event = function_exists('wp_get_scheduled_event') ? wp_get_scheduled_event(self::CRON_HOOK) : false;
 
@@ -26,6 +26,27 @@ trait UCP_Jobs_Schedule_Trait {
         if (!$should_run) {
             wp_clear_scheduled_hook(self::CRON_HOOK);
         }
+    }
+
+    protected static function settings_need_runner($settings) {
+        foreach (array(
+            'enable_css_queue',
+            'enable_preload_queue',
+            'enable_health_checks',
+            'enable_cloud',
+            'enable_cloudflare_apo_mode',
+            'enable_async_image_optimization',
+            'enable_lqip',
+            'enable_local_gravatar',
+            'enable_local_youtube_thumbnails',
+            'enable_headless_renderer',
+            'enable_compat_updates',
+        ) as $key) {
+            if (!empty($settings[$key])) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public static function register_schedule($schedules) {

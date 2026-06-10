@@ -61,6 +61,8 @@ class UCP_Optimizer {
         add_filter('wp_resource_hints', array($this, 'resource_hints'), 10, 2);
         add_action('wp_head', array($this, 'output_preload_fonts'), 2);
         add_action('wp_footer', array($this, 'output_link_prefetch_script'), 100);
+        add_filter('wp_speculation_rules_configuration', array($this, 'core_speculation_configuration'));
+        add_filter('wp_speculation_rules_href_exclude_paths', array($this, 'core_speculation_exclude_paths'));
         add_action('wp_head', array($this, 'output_speculation_rules'), 99);
         add_action('wp_head', array($this, 'output_lazy_render_css'), 30);
     }

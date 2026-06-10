@@ -164,7 +164,9 @@ trait UCP_Optimizer_HTML_Trait {
             return $html;
         }
         $script = "<script id=\"ucp-worker-lazyload\">(function(){if('IntersectionObserver'in window){var io=new IntersectionObserver(function(es){es.forEach(function(e){if(!e.isIntersecting)return;var el=e.target;if(el.dataset&&el.dataset.src){el.src=el.dataset.src;el.removeAttribute('data-src')}if(el.dataset&&el.dataset.srcset){el.srcset=el.dataset.srcset;el.removeAttribute('data-srcset')}io.unobserve(el);});},{rootMargin:'50% 0px'});document.querySelectorAll('img[data-src],iframe[data-src]').forEach(function(el){io.observe(el);});}})();</script>";
-        $candidate = preg_replace('#</body>#i', $script . '</body>', $html, 1);
+        $candidate = preg_replace_callback('#</body>#i', static function () use ($script) {
+            return $script . '</body>';
+        }, $html, 1);
         return is_string($candidate) ? $candidate : $html;
     }
 
@@ -376,8 +378,103 @@ trait UCP_Optimizer_HTML_Trait {
         }
         $bundle = "\n" . implode("\n", $modules) . "\n";
         $count = 0;
-        $html = preg_replace('#</body>#i', $bundle . '</body>', $html, 1, $count);
+        $html = preg_replace_callback('#</body>#i', static function () use ($bundle) {
+            return $bundle . '</body>';
+        }, $html, 1, $count);
         return $count ? $html : $html . $bundle;
+    }
+
+    /**
+     * Strip hardcoded Google Maps embeds and JS API scripts from the rendered HTML.
+     *
+     * Complements the enqueue-level cleanup in UCP_Optimizer_Core_Bloat_Trait by catching markup
+     * that themes/page builders output directly (which never passes through wp_enqueue_script).
+     * Conservative by design: only Google Maps hosts are matched, an element opting out with
+     * data-ucp-keep is preserved, and the original HTML is returned on any regex failure.
+     *
+     * @param string $html
+     * @return string
+     */
+    private function remove_google_maps_markup($html) {
+        if (!is_string($html)) {
+            return $html;
+        }
+        if (false === stripos($html, 'maps.google') && false === stripos($html, 'google.com/maps') && false === stripos($html, 'maps.googleapis.com')) {
+            return $html;
+        }
+
+        // Google Maps embed iframes.
+        $result = preg_replace_callback('#<iframe\b[^>]*>(?:.*?</iframe>)?#is', static function ($matches) {
+            $tag = $matches[0];
+            if (false !== stripos($tag, 'data-ucp-keep')) {
+                return $tag;
+            }
+            if (preg_match('#\bsrc\s*=\s*("|\')([^"\']*)\1#i', $tag, $src)
+                && (false !== stripos($src[2], 'google.com/maps') || false !== stripos($src[2], 'maps.google.') || false !== stripos($src[2], 'maps.googleapis.com'))) {
+                return '';
+            }
+            return $tag;
+        }, $html);
+        $html = is_string($result) ? $result : $html;
+
+        // Google Maps JavaScript API scripts.
+        $result = preg_replace_callback('#<script\b[^>]*\bsrc\s*=\s*("|\')([^"\']*)\1[^>]*>\s*(?:</script>)?#is', static function ($matches) {
+            if (false !== stripos($matches[0], 'data-ucp-keep')) {
+                return $matches[0];
+            }
+            if (false !== stripos($matches[2], 'maps.googleapis.com') || false !== stripos($matches[2], 'maps.google.')) {
+                return '';
+            }
+            return $matches[0];
+        }, $html);
+        $html = is_string($result) ? $result : $html;
+
+        return $html;
+    }
+
+    /**
+     * Strip hardcoded Google Fonts stylesheet links, resource hints and @import rules.
+     *
+     * Complements UCP_Fonts (local hosting) and the enqueue-level dequeue: this catches Google
+     * Fonts markup printed directly by themes/builders. Only Google Fonts hosts are matched, and
+     * among <link> tags only stylesheet/font resource-hint rels are removed so unrelated links are
+     * never touched. The original HTML is returned on any regex failure.
+     *
+     * @param string $html
+     * @return string
+     */
+    private function remove_google_fonts_markup($html) {
+        if (!is_string($html)) {
+            return $html;
+        }
+        if (false === stripos($html, 'fonts.googleapis.com') && false === stripos($html, 'fonts.gstatic.com')) {
+            return $html;
+        }
+
+        // <link> stylesheets and font resource hints pointing at Google Fonts hosts.
+        $result = preg_replace_callback('#<link\b[^>]*>#is', static function ($matches) {
+            $tag = $matches[0];
+            if (false !== stripos($tag, 'data-ucp-keep')) {
+                return $tag;
+            }
+            if (false === stripos($tag, 'fonts.googleapis.com') && false === stripos($tag, 'fonts.gstatic.com')) {
+                return $tag;
+            }
+            if (preg_match('#\brel\s*=\s*("|\')([^"\']*)\1#i', $tag, $rel)) {
+                $rel_value = strtolower(trim($rel[2]));
+                return in_array($rel_value, array('stylesheet', 'preconnect', 'dns-prefetch', 'preload', 'prefetch'), true) ? '' : $tag;
+            }
+            return '';
+        }, $html);
+        $html = is_string($result) ? $result : $html;
+
+        // @import rules pulling Google Fonts inside inline <style> blocks.
+        if (false !== stripos($html, '@import')) {
+            $result = preg_replace('#@import\s+(?:url\()?["\']?[^"\')]*fonts\.googleapis\.com[^"\')]*["\']?\)?\s*;?#i', '', $html);
+            $html = is_string($result) ? $result : $html;
+        }
+
+        return $html;
     }
 
 }

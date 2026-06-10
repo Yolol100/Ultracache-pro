@@ -161,7 +161,7 @@ trait UCP_Helpers_Dropin_Trait {
     }
 
     public static function install_own_advanced_cache_with_backup() {
-        self::ensure_cache_dirs();
+        self::ensure_cache_dirs(true);
 
         if (!UCP_Options::get('allow_dropin_writes')) {
             self::log_throttled('advanced_cache_install_disabled', 'Skipped advanced-cache installation: allow_dropin_writes disabled.');
@@ -212,7 +212,7 @@ trait UCP_Helpers_Dropin_Trait {
 
 
     public static function maybe_install_own_advanced_cache_automatically() {
-        self::ensure_cache_dirs();
+        self::ensure_cache_dirs(true);
 
         $active_owner = '';
         if (class_exists('UCP_Compat') && UCP_Compat::has_active_page_cache_plugin($active_owner) && !UCP_Options::get('allow_dropin_takeover')) {
@@ -282,7 +282,9 @@ trait UCP_Helpers_Dropin_Trait {
 
         $config = array(
             'signature' => self::advanced_cache_signature(),
-            'ttl' => max(60, absint(UCP_Options::get('cache_lifespan', 10)) * HOUR_IN_SECONDS),
+            'enable_cache' => !empty(UCP_Options::get('enable_cache')),
+            'cache_backend' => sanitize_key((string) UCP_Options::get('cache_backend', 'auto')),
+            'ttl' => min(YEAR_IN_SECONDS, absint(UCP_Options::get('cache_lifespan', 10)) * HOUR_IN_SECONDS),
             'home_host' => $home_host,
             'allowed_hosts' => $allowed_hosts,
             'cache_query_strings' => !empty(UCP_Options::get('cache_query_strings')),
@@ -296,25 +298,7 @@ trait UCP_Helpers_Dropin_Trait {
             ))))),
             'exclude_cookies' => apply_filters('ucp_dropin_exclude_cookies', array_values(array_unique(array_filter(array_merge(
                 self::normalize_multiline(UCP_Options::get('exclude_cookies', '')),
-                array(
-                    'wordpress_logged_in_',
-                    'wordpress_sec_',
-                    'wp-postpass_',
-                    'comment_author_',
-                    'woocommerce_items_in_cart',
-                    'wp_woocommerce_session_',
-                    'woocommerce_cart_hash',
-                    'pll_language',
-                    '_icl_current_language',
-                    'wcml_client_currency',
-                    'woocommerce_multicurrency_forced_currency',
-                    'aelia_cs_selected_currency',
-                    'aelia_customer_country',
-                    'aelia_customer_state',
-                    'aelia_tax_exempt',
-                    'switch_to_olduser_',
-                    'wordpress_test_cookie',
-                )
+                self::direct_cache_bypass_cookie_fragments()
             ))))),
             'safe_cookies' => apply_filters('ucp_dropin_safe_cookies', array(
                 'ct_',
@@ -355,14 +339,23 @@ trait UCP_Helpers_Dropin_Trait {
                 '__cf_bm',
                 'cf_clearance',
             )),
-            'block_unknown_cookies' => (bool) apply_filters('ucp_dropin_block_unknown_cookies', false),
+            'block_unknown_cookies' => (bool) apply_filters('ucp_dropin_block_unknown_cookies', !empty(UCP_Options::get('block_unknown_request_cookies', 0))),
+            'serve_cache_to_shoppers' => !empty(UCP_Options::get('serve_cache_to_shoppers')),
+            'vary_cookies' => array_values(array_unique(array_filter(array_map('trim',
+                class_exists('UCP_Shopper_Cache') ? UCP_Shopper_Cache::vary_cookie_fragments() : self::normalize_multiline(UCP_Options::get('cache_vary_cookies', ''))
+            ), 'strlen'))),
         );
 
         // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_var_export -- intentional generation of a PHP config array file.
         $content = "<?php
 return " . var_export($config, true) . ";
 ";
-        return self::write_file(self::dropin_config_path(), $content);
+        $written = self::write_file(self::dropin_config_path(), $content);
+        if ($written && method_exists(__CLASS__, 'write_direct_cache_server_rule_exports')) {
+            self::write_direct_cache_server_rule_exports();
+            self::maybe_write_direct_cache_rules();
+        }
+        return $written;
     }
 
     public static function remove_dropin_config() {
@@ -391,8 +384,16 @@ return " . var_export($config, true) . ";
 
         $current = file_exists($target) && is_readable($target) ? self::read_file($target) : '';
         if (is_string($current) && '' !== trim($current)) {
-            if (self::is_own_advanced_cache($current) || trim($current) === trim($content)) {
+            if (trim($current) === trim($content)) {
                 return true;
+            }
+            if (self::is_own_advanced_cache($current)) {
+                self::write_dropin_config($force);
+                $written = self::write_file($target, $content);
+                if ($written) {
+                    delete_option('ucp_advanced_cache_conflict');
+                }
+                return $written;
             }
             update_option('ucp_advanced_cache_conflict', array(
                 'detected_at' => current_time('mysql', true),
@@ -459,6 +460,9 @@ return " . var_export($config, true) . ";
             return;
         }
         insert_with_markers($htaccess, 'UltraCachePro', self::browser_cache_rules());
+        if (method_exists(__CLASS__, 'maybe_write_direct_cache_rules')) {
+            self::maybe_write_direct_cache_rules();
+        }
     }
 
     public static function remove_browser_cache_rules() {
@@ -472,6 +476,140 @@ return " . var_export($config, true) . ";
         }
     }
 
+    /**
+     * Write generated direct-cache server rule snippets to the cache dir for copy/paste or WP-CLI output.
+     * These files are safe documentation artifacts; they do not alter nginx/Apache by themselves.
+     *
+     * @return bool
+     */
+    public static function write_direct_cache_server_rule_exports() {
+        if (!method_exists(__CLASS__, 'direct_cache_server_rules')) {
+            return false;
+        }
+        self::write_file(UCP_CACHE_DIR . 'server-rules-nginx.conf', implode("\n", self::direct_cache_server_rules('nginx')) . "\n");
+        self::write_file(UCP_CACHE_DIR . 'server-rules-apache.txt', implode("\n", self::direct_cache_server_rules('apache')) . "\n");
+        return true;
+    }
+
+    /**
+     * Opt-in Apache/LiteSpeed direct-cache .htaccess writer.
+     *
+     * Safety model:
+     * - disabled by default;
+     * - only runs on Apache/LiteSpeed;
+     * - only edits ABSPATH/.htaccess when writable;
+     * - isolates the block in UltraCacheProDirectCache markers;
+     * - inserts before the WordPress front-controller marker when possible.
+     *
+     * @return bool
+     */
+    public static function maybe_write_direct_cache_rules() {
+        if (!method_exists(__CLASS__, 'direct_cache_server_rules')) {
+            return false;
+        }
+
+        self::write_direct_cache_server_rule_exports();
+        $htaccess = self::root_htaccess_path();
+
+        if (!UCP_Options::get('enable_direct_cache_htaccess')) {
+            self::remove_direct_cache_rules();
+            return false;
+        }
+        if (!UCP_Options::get('allow_browser_cache_rule_writes')) {
+            return false;
+        }
+
+        $server = isset($_SERVER['SERVER_SOFTWARE']) ? strtolower(sanitize_text_field(wp_unslash($_SERVER['SERVER_SOFTWARE']))) : '';
+        if (false === strpos($server, 'apache') && false === strpos($server, 'litespeed')) {
+            self::log('Skipped .htaccess direct-cache rules: server software is not Apache or LiteSpeed. Use server-rules-nginx.conf for nginx.');
+            return false;
+        }
+        if (!self::is_root_htaccess_path($htaccess) || is_link($htaccess)) {
+            self::log('Skipped .htaccess direct-cache rules: root .htaccess validation failed.');
+            return false;
+        }
+        if (!wp_is_writable(ABSPATH) || (file_exists($htaccess) && !wp_is_writable($htaccess))) {
+            self::log('Skipped .htaccess direct-cache rules: .htaccess is not writable.');
+            return false;
+        }
+
+        $current = file_exists($htaccess) ? self::read_root_htaccess() : '';
+        $current = self::normalize_htaccess_content($current);
+        $block   = self::direct_cache_marker_block(self::direct_cache_server_rules('apache'));
+        $next    = self::remove_direct_cache_marker_block($current);
+
+        if (false !== strpos($next, '# BEGIN WordPress')) {
+            $next = str_replace('# BEGIN WordPress', rtrim($block) . "\n\n# BEGIN WordPress", $next);
+        } else {
+            $next = rtrim($next) . "\n\n" . rtrim($block) . "\n";
+        }
+        $next = self::normalize_htaccess_content($next);
+
+        if ($next === $current) {
+            return true;
+        }
+
+        $written = self::write_root_htaccess($next);
+        if (!$written) {
+            self::log('Failed writing .htaccess direct-cache rules after root-path validation.');
+        }
+        return $written;
+    }
+
+    /**
+     * Remove the opt-in direct-cache .htaccess marker block.
+     *
+     * @return bool
+     */
+    public static function remove_direct_cache_rules() {
+        $htaccess = self::root_htaccess_path();
+        if (!self::is_root_htaccess_path($htaccess) || !file_exists($htaccess) || !is_readable($htaccess) || !wp_is_writable($htaccess) || is_link($htaccess)) {
+            return false;
+        }
+
+        $current = self::normalize_htaccess_content(self::read_root_htaccess());
+        $next    = self::normalize_htaccess_content(self::remove_direct_cache_marker_block($current));
+        if ($next === $current) {
+            return true;
+        }
+
+        $written = self::write_root_htaccess($next);
+        if (!$written) {
+            self::log('Failed removing .htaccess direct-cache rules after root-path validation.');
+        }
+        return $written;
+    }
+
+    protected static function direct_cache_marker_block($rules) {
+        $lines = array('# BEGIN UltraCacheProDirectCache');
+        foreach ((array) $rules as $rule) {
+            foreach (preg_split('/\R/', (string) $rule) as $line) {
+                $line = rtrim(str_replace("\0", '', (string) $line));
+                if ('' === $line || '# BEGIN UltraCacheProDirectCache' === $line || '# END UltraCacheProDirectCache' === $line) {
+                    continue;
+                }
+                $lines[] = $line;
+            }
+        }
+        $lines[] = '# END UltraCacheProDirectCache';
+        return implode("\n", $lines) . "\n";
+    }
+
+    protected static function remove_direct_cache_marker_block($content) {
+        $content = self::normalize_htaccess_content($content);
+        $updated = preg_replace('/(?:^|\n)# BEGIN UltraCacheProDirectCache\n.*?# END UltraCacheProDirectCache(?:\n|$)/s', "\n", $content);
+        if (!is_string($updated)) {
+            return $content;
+        }
+        $updated = preg_replace('/\n{3,}/', "\n\n", $updated);
+        return is_string($updated) ? ltrim($updated, "\n") : $content;
+    }
+
+    protected static function normalize_htaccess_content($content) {
+        $content = str_replace(array("\r\n", "\r"), "\n", (string) $content);
+        return '' === $content ? '' : rtrim($content, "\n") . "\n";
+    }
+
     public static function browser_cache_rules() {
         $age = absint(UCP_Options::get('cache_control_max_age', 2592000));
         return array(
@@ -479,15 +617,32 @@ return " . var_export($config, true) . ";
             'ExpiresActive On',
             'ExpiresByType image/jpeg "access plus 1 year"',
             'ExpiresByType image/png "access plus 1 year"',
+            'ExpiresByType image/gif "access plus 1 year"',
             'ExpiresByType image/webp "access plus 1 year"',
             'ExpiresByType image/avif "access plus 1 year"',
+            'ExpiresByType image/svg+xml "access plus 1 year"',
+            'ExpiresByType image/x-icon "access plus 1 year"',
             'ExpiresByType text/css "access plus 1 month"',
             'ExpiresByType application/javascript "access plus 1 month"',
             'ExpiresByType text/javascript "access plus 1 month"',
             'ExpiresByType font/woff2 "access plus 1 year"',
+            'ExpiresByType font/woff "access plus 1 year"',
+            'ExpiresByType font/ttf "access plus 1 year"',
+            'ExpiresByType font/otf "access plus 1 year"',
+            'ExpiresByType application/font-woff2 "access plus 1 year"',
             '</IfModule>',
             '<IfModule mod_headers.c>',
+            // Long-lived Cache-Control is scoped to static assets only. A blanket "Header set"
+            // would override the per-request Cache-Control that the page-cache/request policy
+            // emits for HTML, and could mark logged-in or cart pages publicly cacheable.
+            '<FilesMatch "\\.(?:css|js|mjs|jpe?g|png|gif|webp|avif|svg|ico|woff2?|ttf|otf|eot)$">',
             'Header set Cache-Control "public, max-age=' . $age . '"',
+            '</FilesMatch>',
+            // Content-addressed UltraCache artifacts (combined-<hash>.css/js) never change behind
+            // the same URL, so they are safe to mark immutable for a full year.
+            '<FilesMatch "^combined-[a-f0-9]+\\.(?:css|js)$">',
+            'Header set Cache-Control "public, max-age=31536000, immutable"',
+            '</FilesMatch>',
             '</IfModule>',
         );
     }

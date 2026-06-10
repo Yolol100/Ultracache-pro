@@ -41,6 +41,16 @@ final class UCP_PageSpeed_Browser_Scan_Optimizer {
         $third_party = isset($scan['third_party']) && is_array($scan['third_party']) ? $scan['third_party'] : array();
         $delay_fragments = self::delay_fragments_from_scan_resources(array_merge($delay_candidates, $third_party));
 
+        $below_fold_selectors = isset($scan['below_fold_selectors']) && is_array($scan['below_fold_selectors']) ? self::lazy_render_selectors_from_scan($scan['below_fold_selectors']) : array();
+        if (!empty($below_fold_selectors)) {
+            $existing_selectors = UCP_Helpers::normalize_multiline(isset($settings['lazy_render_selectors']) ? $settings['lazy_render_selectors'] : '');
+            $merged_selectors = array_values(array_unique(array_filter(array_merge($existing_selectors, $below_fold_selectors), 'strlen')));
+            $updates['enable_lazy_render'] = 1;
+            $updates['lazy_render_selectors'] = implode("
+", array_slice($merged_selectors, 0, 80));
+            $applied[] = 'automatic_lazy_render';
+        }
+
         if (!empty($delay_fragments)) {
             $existing = UCP_Helpers::normalize_multiline(isset($settings['delay_js_specified_scripts']) ? $settings['delay_js_specified_scripts'] : '');
             $merged = array_values(array_unique(array_filter(array_merge($existing, $delay_fragments), 'strlen')));
@@ -65,8 +75,8 @@ final class UCP_PageSpeed_Browser_Scan_Optimizer {
     }
 
     /**
-     * Remove per-image LCP rules from older repairs.
-     * Measured LCP hints are applied dynamically.
+     * Remove per-image LCP rules from older versions.
+     * Measured LCP hints are applied at runtime.
      *
      * @param string[] $rules Existing multiline rules.
      * @return string[]
@@ -84,6 +94,37 @@ final class UCP_PageSpeed_Browser_Scan_Optimizer {
             $out[] = $rule;
         }
         return array_values(array_unique($out));
+    }
+
+    /**
+     * Keep only below-fold selectors that are safe to lazy-render automatically.
+     *
+     * @param string[] $selectors Browser-scan selectors.
+     * @return string[]
+     */
+    public static function lazy_render_selectors_from_scan($selectors) {
+        $out = array();
+        foreach ((array) $selectors as $selector) {
+            $selector = trim((string) $selector);
+            if ('' === $selector) {
+                continue;
+            }
+            $haystack = strtolower($selector);
+            $critical = false;
+            foreach (array('header', 'nav', 'menu', 'above', 'hero', 'checkout', 'cart', 'account', 'order-pay', 'form', 'input', 'button', 'select', 'textarea', 'cookie', 'consent', 'modal', 'popup', 'dialog', 'focus') as $needle) {
+                if (false !== strpos($haystack, $needle)) {
+                    $critical = true;
+                    break;
+                }
+            }
+            if (!$critical) {
+                $out[$selector] = $selector;
+            }
+            if (count($out) >= 24) {
+                break;
+            }
+        }
+        return array_values($out);
     }
 
     /**

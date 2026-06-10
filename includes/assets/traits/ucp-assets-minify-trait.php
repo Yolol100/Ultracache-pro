@@ -65,12 +65,8 @@ trait UCP_Assets_Minify_Trait {
 
             if ('css' === $type) {
                 $contents = preg_replace_callback('/url\((["\']?)(?!data:|https?:|\/)([^)"\']+)\1\)/i', function ($matches) use ($path) {
-                    $file = realpath(dirname($path) . '/' . ltrim($matches[2], '/'));
-                    if ($file && file_exists($file) && 0 === strpos($file, WP_CONTENT_DIR)) {
-                        $relative = str_replace(WP_CONTENT_DIR, '', $file);
-                        return 'url(' . content_url($relative) . ')';
-                    }
-                    return $matches[0];
+                    $resolved = $this->rewrite_relative_css_url($path, $matches[2]);
+                    return '' !== $resolved ? $resolved : $matches[0];
                 }, $contents);
                 $minified = UCP_Helpers::minify_css($contents);
             } else {
@@ -106,6 +102,46 @@ trait UCP_Assets_Minify_Trait {
             return UCP_Helpers::file_url_from_path($target);
         }
 
+
+        /**
+         * Resolve a relative url() reference inside a stylesheet to an absolute URL while
+         * preserving any ?query or #fragment. The filesystem lookup uses only the path
+         * portion: cache-busting suffixes such as url(font.woff2?v=4.7.0) otherwise make the
+         * referenced file impossible to locate, which previously left the original relative
+         * URL untouched and broke the asset once the stylesheet was relocated to the cache
+         * directory. Both the resolved file and the base directories are passed through
+         * realpath() so symlinked content directories compare correctly, and references that
+         * resolve into wp-includes/ABSPATH are handled too instead of producing a broken URL.
+         *
+         * @param string $source_path Absolute path of the source stylesheet.
+         * @param string $raw_ref     Raw reference captured from url(...).
+         * @return string Rewritten "url(...)" string, or '' when it cannot be safely resolved.
+         */
+        private function rewrite_relative_css_url($source_path, $raw_ref) {
+            $raw_ref = (string) $raw_ref;
+            $suffix = '';
+            $cut = strcspn($raw_ref, '?#');
+            if ($cut < strlen($raw_ref)) {
+                $suffix = substr($raw_ref, $cut);
+                $raw_ref = substr($raw_ref, 0, $cut);
+            }
+            if ('' === $raw_ref) {
+                return '';
+            }
+            $file = realpath(dirname((string) $source_path) . '/' . ltrim($raw_ref, '/'));
+            if (false === $file || !is_file($file)) {
+                return '';
+            }
+            $content_dir = realpath(WP_CONTENT_DIR);
+            if ($content_dir && 0 === strpos($file, $content_dir)) {
+                return 'url(' . content_url(str_replace($content_dir, '', $file)) . $suffix . ')';
+            }
+            $abspath = defined('ABSPATH') ? realpath(ABSPATH) : false;
+            if ($abspath && 0 === strpos($file, $abspath)) {
+                return 'url(' . site_url(str_replace($abspath, '', $file)) . $suffix . ')';
+            }
+            return '';
+        }
 
         /**
          * Keep the experimental JS minifier conservative. It is not a full parser, so

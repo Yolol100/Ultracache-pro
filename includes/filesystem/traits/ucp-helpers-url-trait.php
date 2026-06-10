@@ -11,17 +11,223 @@ trait UCP_Helpers_URL_Trait {
         return array_values(array_unique($lines));
     }
 
-    protected static function compat_json_list($name) {
+    /**
+     * Validate an outbound URL for SSRF-safe https requests to a third-party service.
+     *
+     * Single source of truth used by every module that talks to an external endpoint
+     * (cloud, headless renderer, CDN providers, compat overlay). Requires https, a public
+     * host (no localhost/.local/.test/.invalid, no embedded credentials) and — for hostnames —
+     * DNS resolution that does not land on a private/reserved network.
+     *
+     * @param string $url
+     * @param array  $opts {
+     *     @type bool $resolve_dns Whether to DNS-resolve hostnames (default true).
+     * }
+     * @return string The validated URL, or '' when unsafe/invalid.
+     */
+    public static function validate_public_https_url($url, $opts = array()) {
+        $url = esc_url_raw((string) $url);
+        if ('' === $url || !wp_http_validate_url($url)) {
+            return '';
+        }
+        $parts = wp_parse_url($url);
+        if (!is_array($parts)) {
+            return '';
+        }
+        $scheme = isset($parts['scheme']) ? strtolower((string) $parts['scheme']) : '';
+        $host   = isset($parts['host']) ? strtolower((string) $parts['host']) : '';
+        if ('https' !== $scheme || '' === $host || !empty($parts['user']) || !empty($parts['pass'])) {
+            return '';
+        }
+        if (in_array($host, array('localhost', '127.0.0.1', '::1'), true)) {
+            return '';
+        }
+        foreach (array('.local', '.test', '.invalid') as $suffix) {
+            if ($host === ltrim($suffix, '.') || (function_exists('str_ends_with') ? str_ends_with($host, $suffix) : (substr($host, -strlen($suffix)) === $suffix))) {
+                return '';
+            }
+        }
+        if (filter_var($host, FILTER_VALIDATE_IP)) {
+            if (false === filter_var($host, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
+                return '';
+            }
+            return $url;
+        }
+        $resolve = !isset($opts['resolve_dns']) || !empty($opts['resolve_dns']);
+        if ($resolve && !self::host_resolves_to_public_ip($host)) {
+            return '';
+        }
+        return $url;
+    }
+
+    /**
+     * Resolve a hostname and confirm none of its A/AAAA records point to a private/reserved IP.
+     *
+     * @param string $host
+     * @return bool
+     */
+    public static function host_resolves_to_public_ip($host) {
+        $host = strtolower(trim((string) $host));
+        if ('' === $host) {
+            return false;
+        }
+        $records = function_exists('dns_get_record') ? dns_get_record($host, DNS_A + DNS_AAAA) : false;
+        if (empty($records) || !is_array($records)) {
+            $ip = gethostbyname($host);
+            $records = ($ip && $ip !== $host) ? array(array('ip' => $ip)) : array();
+        }
+        if (empty($records)) {
+            return false;
+        }
+        foreach ($records as $record) {
+            $ip = '';
+            if (!empty($record['ip'])) {
+                $ip = (string) $record['ip'];
+            } elseif (!empty($record['ipv6'])) {
+                $ip = (string) $record['ipv6'];
+            }
+            if ('' === $ip || !filter_var($ip, FILTER_VALIDATE_IP)) {
+                continue;
+            }
+            if (false === filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Common wp_remote_* argument defaults for outbound requests, merged with overrides.
+     *
+     * @param array $overrides
+     * @return array
+     */
+    public static function default_remote_args($overrides = array()) {
+        $defaults = array(
+            'timeout'            => 20,
+            'redirection'        => 0,
+            'reject_unsafe_urls' => true,
+            'user-agent'         => 'UltraCache/' . (defined('UCP_VERSION') ? UCP_VERSION : 'dev'),
+        );
+        return array_merge($defaults, is_array($overrides) ? $overrides : array());
+    }
+
+    /**
+     * Scheme-relative uploads base URL (e.g. //site.tld/wp-content/uploads), or '' when unknown.
+     *
+     * @return string
+     */
+    public static function uploads_baseurl_relative() {
+        $uploads = wp_upload_dir();
+        if (empty($uploads['baseurl'])) {
+            return '';
+        }
+        return preg_replace('#^https?:#i', '', (string) $uploads['baseurl']);
+    }
+
+    /**
+     * Map an uploads-relative URL to its on-disk realpath inside the uploads dir.
+     * Returns '' for anything outside uploads or with a traversal attempt.
+     *
+     * @param string $url
+     * @return string
+     */
+    public static function uploads_url_to_path($url) {
+        $url = (string) $url;
+        if ('' === $url) {
+            return '';
+        }
+        $uploads = wp_upload_dir();
+        if (empty($uploads['baseurl']) || empty($uploads['basedir'])) {
+            return '';
+        }
+        $baseurl   = preg_replace('#^https?:#i', '', (string) $uploads['baseurl']);
+        $candidate = preg_replace('#^https?:#i', '', $url);
+        if ('' === $baseurl || 0 !== strpos($candidate, $baseurl)) {
+            return '';
+        }
+        $relative = ltrim(substr($candidate, strlen($baseurl)), '/');
+        if (false !== strpos($relative, '..')) {
+            return '';
+        }
+        $path      = trailingslashit($uploads['basedir']) . $relative;
+        $real      = realpath($path);
+        $base_real = realpath($uploads['basedir']);
+        if (!$real || !$base_real || 0 !== strpos($real, $base_real)) {
+            return '';
+        }
+        return $real;
+    }
+
+    /**
+     * Map an on-disk uploads path back to its public URL, or '' when outside uploads.
+     *
+     * @param string $path
+     * @return string
+     */
+    public static function uploads_path_to_url($path) {
+        $uploads = wp_upload_dir();
+        if (empty($uploads['basedir']) || empty($uploads['baseurl'])) {
+            return '';
+        }
+        $base_dir = trailingslashit(wp_normalize_path((string) $uploads['basedir']));
+        $candidate = wp_normalize_path((string) $path);
+        if ('' === $candidate || 0 !== strpos($candidate, $base_dir)) {
+            return '';
+        }
+        $relative = ltrim(substr($candidate, strlen($base_dir)), '/');
+        if ('' === $relative || false !== strpos($relative, '..')) {
+            return '';
+        }
+        return trailingslashit((string) $uploads['baseurl']) . str_replace('%2F', '/', rawurlencode($relative));
+    }
+
+    /**
+     * Read + decode a bundled compatibility JSON file once (shared by both compat list loaders).
+     *
+     * @param string $name
+     * @return array
+     */
+    public static function compat_json_raw($name) {
         $safe_name = preg_replace('/[^a-z0-9_-]/i', '', (string) $name);
+        if ('' === $safe_name) {
+            return array();
+        }
+        static $cache = array();
+        if (array_key_exists($safe_name, $cache)) {
+            return $cache[$safe_name];
+        }
         $path = trailingslashit(UCP_PATH) . 'compat/' . $safe_name . '.json';
         if (!is_readable($path)) {
+            $cache[$safe_name] = array();
             return array();
         }
         $data = json_decode(self::read_file($path), true);
-        if (!is_array($data)) {
-            return array();
+        $cache[$safe_name] = is_array($data) ? $data : array();
+        return $cache[$safe_name];
+    }
+
+    protected static function compat_json_list($name) {
+        $safe_name = preg_replace('/[^a-z0-9_-]/i', '', (string) $name);
+        $data = self::compat_json_raw($safe_name);
+        if (empty($data)) {
+            $list = array();
+        } else {
+            $list = array_values(array_filter(array_map('strval', $data), 'strlen'));
         }
-        return array_values(array_filter(array_map('strval', $data), 'strlen'));
+        /**
+         * Filter a flat compatibility list after it is read from disk.
+         *
+         * @param array  $list
+         * @param string $safe_name
+         */
+        /**
+         * Filter a flat compatibility list after it is read from disk.
+         *
+         * @param array  $list
+         * @param string $safe_name
+         */
+        return apply_filters('ucp_compat_json_list', $list, $safe_name);
     }
 
     public static function query_key_matches($key, $patterns) {
@@ -200,7 +406,71 @@ trait UCP_Helpers_URL_Trait {
         if (UCP_Options::get('cache_mobile_separately') && self::is_mobile_request()) {
             $suffix .= '-mobile';
         }
+        $suffix .= self::cache_vary_suffix();
         return $suffix;
+    }
+
+    /**
+     * Per-currency / per-language cache variation segment.
+     *
+     * MUST stay byte-for-byte identical to the implementation in advanced-cache.php
+     * (ucp_dropin_vary_suffix) or the early drop-in and the PHP fallback will compute
+     * different keys and the fast path will always miss. Returns '' when no vary
+     * cookie is present so ordinary visitors keep sharing the default 'guest' cache.
+     *
+     * @return string
+     */
+    public static function cache_vary_suffix() {
+        if (!class_exists('UCP_Shopper_Cache')) {
+            return '';
+        }
+        $fragments = UCP_Shopper_Cache::vary_cookie_fragments();
+        if (empty($fragments) || empty($_COOKIE) || !is_array($_COOKIE)) {
+            return '';
+        }
+        $pairs = array();
+        foreach ($_COOKIE as $name => $value) {
+            $name = sanitize_key((string) $name);
+            if ('' === $name || is_array($value)) {
+                continue;
+            }
+            foreach ($fragments as $fragment) {
+                $fragment = sanitize_key((string) $fragment);
+                if ('' !== $fragment && false !== strpos($name, $fragment)) {
+                    $clean = preg_replace('/[^A-Za-z0-9_.\-]/', '', (string) wp_unslash($value));
+                    $pairs[$name] = $name . '=' . $clean;
+                    break;
+                }
+            }
+        }
+        if (empty($pairs)) {
+            return '';
+        }
+        ksort($pairs);
+        return '-v' . substr(md5(implode('|', $pairs)), 0, 10);
+    }
+
+    /**
+     * Reduce a URL path to a filesystem-safe, human-readable slug.
+     *
+     * MUST stay byte-for-byte identical to ucp_dropin_cache_path_slug() in advanced-cache.php.
+     * The early drop-in and this PHP fallback both build the page-cache key from this slug, so any
+     * difference makes the pre-WordPress fast path miss a file the PHP layer wrote (and vice versa).
+     * We deliberately do NOT route the assembled key through sanitize_file_name() any more:
+     * sanitize_file_name() collapses dash/space runs and strips characters in ways the drop-in
+     * cannot reproduce without WordPress loaded, which previously caused the two sides to disagree
+     * for any path containing '//', percent-encoding, '+', or multibyte characters.
+     *
+     * @param string $raw_path Untrailingslashed URL path.
+     * @return string
+     */
+    public static function cache_path_slug($raw_path) {
+        $raw = untrailingslashit((string) $raw_path);
+        $slug = str_replace('/', '-', $raw);
+        $slug = preg_replace('/[^A-Za-z0-9_.-]/', '-', $slug);
+        $slug = preg_replace('/-+/', '-', (string) $slug);
+        $slug = trim((string) $slug, '-');
+        return '' === $slug ? 'home' : $slug;
     }
 
     public static function cache_key_for_url($url = '') {
@@ -210,19 +480,144 @@ trait UCP_Helpers_URL_Trait {
         $url = self::enforce_local_url($url);
         $parts = wp_parse_url($url);
         $raw_path = isset($parts['path']) ? untrailingslashit($parts['path']) : '';
-        // Readable slug for humans browsing the cache dir...
-        $path = '' === $raw_path ? 'home' : trim(str_replace('/', '-', $raw_path), '-');
+        // Readable slug for humans browsing the cache dir (reduced with the SAME algorithm the
+        // drop-in uses, so the two layers always agree on the key).
+        $path = self::cache_path_slug($raw_path);
         // ...plus a short hash of the FULL path so '/foo/bar' and '/foo-bar' never collide.
         $path_hash = substr(md5('' === $raw_path ? '/' : $raw_path), 0, 8);
         $normalized_query = isset($parts['query']) ? self::normalized_cache_query($parts['query']) : '';
         $query = '' !== $normalized_query ? md5($normalized_query) : 'noq';
         $host = isset($parts['host']) ? strtolower((string) $parts['host']) : wp_parse_url(home_url(), PHP_URL_HOST);
-        $host_key = $host ? md5($host) : 'nohost';
-        return sanitize_file_name($host_key . '-' . $path . '-' . $path_hash . '-' . self::user_state_suffix() . '-' . $query);
+        $host_key = $host ? md5((string) $host) : 'nohost';
+        // Every segment is already restricted to [A-Za-z0-9_.-] (md5 hex, the safe slug, or fixed
+        // literals), so the key needs no further sanitisation — and crucially none the drop-in
+        // cannot reproduce byte-for-byte.
+        return $host_key . '-' . $path . '-' . $path_hash . '-' . self::user_state_suffix() . '-' . $query;
     }
 
     public static function cache_file_path($url = '') {
         return UCP_CACHE_DIR . 'pages/' . self::cache_key_for_url($url) . '.html';
+    }
+
+
+    public static function direct_cache_file_path($url = '') {
+        if (!$url) {
+            $url = self::current_full_url();
+        }
+        $url = self::enforce_local_url($url);
+        if (!$url) {
+            return '';
+        }
+        $parts = wp_parse_url($url);
+        if (!empty($parts['query'])) {
+            return '';
+        }
+        $host = isset($parts['host']) ? self::normalize_domain_host((string) $parts['host']) : self::normalize_domain_host((string) wp_parse_url(home_url('/'), PHP_URL_HOST));
+        if ('' === $host) {
+            return '';
+        }
+        $path = isset($parts['path']) ? '/' . ltrim((string) $parts['path'], '/') : '/';
+        $segments = array_filter(explode('/', trim($path, '/')), 'strlen');
+        $safe_segments = array();
+        foreach ($segments as $segment) {
+            $safe = sanitize_file_name(rawurldecode((string) $segment));
+            if ('' !== $safe && '.' !== $safe && '..' !== $safe) {
+                $safe_segments[] = $safe;
+            }
+        }
+        return UCP_CACHE_DIR . 'pages-direct/' . $host . '/' . (empty($safe_segments) ? '' : implode('/', $safe_segments) . '/') . 'index.html';
+    }
+
+    public static function direct_cache_bypass_cookie_fragments() {
+        $fragments = class_exists('UCP_Cache_Policy')
+            ? UCP_Cache_Policy::bypass_cookie_fragments()
+            : array(
+            'wordpress_logged_in_',
+            'wordpress_sec_',
+            'wp-postpass_',
+            'wp-resetpass_',
+            'comment_author_',
+            'switch_to_olduser_',
+            'wordpress_test_cookie',
+            'woocommerce_items_in_cart',
+            'woocommerce_cart_hash',
+            'wp_woocommerce_session_',
+            'woocommerce_recently_viewed',
+            'woocommerce_checkout_',
+            'woocommerce_pay_',
+            'edd_items_in_cart',
+            'pll_language',
+            '_icl_current_language',
+            'wp-wpml_current_language',
+            'wpml_browser_redirect_test',
+            'trp_language',
+            'wp_lang',
+            'wcml_client_currency',
+            'woocommerce_multicurrency_forced_currency',
+            'aelia_cs_selected_currency',
+            'aelia_customer_country',
+            'aelia_customer_state',
+            'aelia_tax_exempt',
+            'cookie_notice_',
+            'cmplz_',
+            'complianz_',
+            'cookieyes',
+            'cky-',
+            'borlabs',
+        );
+
+        $fragments = apply_filters('ucp_direct_cache_bypass_cookie_fragments', $fragments);
+        $clean     = array();
+        foreach ((array) $fragments as $fragment) {
+            $fragment = sanitize_key((string) $fragment);
+            if ('' !== $fragment) {
+                $clean[] = $fragment;
+            }
+        }
+        return array_values(array_unique($clean));
+    }
+
+    protected static function direct_cache_bypass_cookie_pattern() {
+        $escaped = array();
+        foreach (self::direct_cache_bypass_cookie_fragments() as $fragment) {
+            $escaped[] = preg_quote($fragment, '/');
+        }
+        return empty($escaped) ? 'a^' : '(' . implode('|', $escaped) . ')';
+    }
+
+    public static function direct_cache_server_rules($server = 'nginx') {
+        $server        = sanitize_key((string) $server);
+        $cookie_bypass = self::direct_cache_bypass_cookie_pattern();
+        if ('apache' === $server || 'htaccess' === $server) {
+            return array(
+                '# UltraCache Pro direct guest page-cache. Place before the WordPress front-controller rules.',
+                '# Safe scope: GET/HEAD, no query string, no mobile UA, no vary/login/cart/consent cookies.',
+                '<IfModule mod_rewrite.c>',
+                'RewriteEngine On',
+                'RewriteCond %{REQUEST_METHOD} ^(?:GET|HEAD)$',
+                'RewriteCond %{QUERY_STRING} ^$',
+                'RewriteCond %{HTTP_USER_AGENT} !(Mobile|Android|Silk/|Kindle|BlackBerry|Opera Mini|Opera Mobi|iPhone|iPad|iPod) [NC]',
+                'RewriteCond %{HTTP:Cookie} !' . $cookie_bypass . ' [NC]',
+                'RewriteCond %{DOCUMENT_ROOT}/wp-content/cache/ultracache-pro/pages-direct/%{HTTP_HOST}/$1/index.html -f',
+                'RewriteRule ^(.+?)/?$ /wp-content/cache/ultracache-pro/pages-direct/%{HTTP_HOST}/$1/index.html [L]',
+                'RewriteCond %{REQUEST_URI} ^/$',
+                'RewriteCond %{DOCUMENT_ROOT}/wp-content/cache/ultracache-pro/pages-direct/%{HTTP_HOST}/index.html -f',
+                'RewriteRule ^$ /wp-content/cache/ultracache-pro/pages-direct/%{HTTP_HOST}/index.html [L]',
+                '</IfModule>',
+            );
+        }
+        return array(
+            '# UltraCache Pro direct guest page-cache. Put inside the server{} block before the PHP location.',
+            '# Safe scope: GET/HEAD, no query string, no mobile UA, no vary/login/cart/consent cookies.',
+            'set $ucp_direct_cache_uri "";',
+            'if ($request_method ~ ^(GET|HEAD)$) { set $ucp_direct_cache_uri $host$uri; }',
+            'if ($query_string != "") { set $ucp_direct_cache_uri ""; }',
+            'if ($http_user_agent ~* "(Mobile|Android|Silk/|Kindle|BlackBerry|Opera Mini|Opera Mobi|iPhone|iPad|iPod)") { set $ucp_direct_cache_uri ""; }',
+            'if ($http_cookie ~* "' . $cookie_bypass . '") { set $ucp_direct_cache_uri ""; }',
+            'location / {',
+            '    try_files /wp-content/cache/ultracache-pro/pages-direct/$ucp_direct_cache_uri/index.html $uri $uri/ /index.php?$args;',
+            '}',
+        );
     }
 
     public static function normalize_domain_host($value) {
@@ -287,7 +682,7 @@ trait UCP_Helpers_URL_Trait {
     }
 
     public static function local_path_from_url($url) {
-        $url = html_entity_decode((string) $url);
+        $url = html_entity_decode((string) $url, ENT_QUOTES | ENT_HTML5);
         if (!self::is_local_url($url)) {
             return '';
         }

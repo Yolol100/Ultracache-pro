@@ -5,6 +5,24 @@ if (!defined('ABSPATH')) {
 }
 
 trait UCP_Options_Lifecycle_Trait {
+    /**
+     * Whether the given settings array represents an active PageSpeed Auto profile.
+     *
+     * The PageSpeed Auto migrations (maybe_upgrade_pagespeed_auto_v2..v12) each only adjust
+     * sites that run this profile and must leave custom configurations untouched. The detection
+     * was previously duplicated verbatim in every migration; this is the single source of truth.
+     *
+     * @param array<string,mixed> $settings Settings snapshot from self::get_all().
+     * @return bool
+     */
+    protected static function is_pagespeed_auto_profile($settings) {
+        if (!is_array($settings)) {
+            return false;
+        }
+        return !empty($settings['autopilot_enabled'])
+            || (isset($settings['active_preset']) && 'pagespeed_auto' === $settings['active_preset']);
+    }
+
     public static function snapshot_option_key() {
         return 'ucp_settings_snapshots';
     }
@@ -56,6 +74,9 @@ trait UCP_Options_Lifecycle_Trait {
         $previous_settings = wp_parse_args((array) $previous_settings, self::defaults());
 
         UCP_Helpers::maybe_write_browser_cache_rules();
+        if (method_exists('UCP_Helpers', 'maybe_write_direct_cache_rules')) {
+            UCP_Helpers::maybe_write_direct_cache_rules();
+        }
         UCP_Helpers::write_dropin_config();
         if (!empty($new_settings['enable_cache'])) {
             UCP_Helpers::write_advanced_cache_stub();
@@ -130,7 +151,7 @@ trait UCP_Options_Lifecycle_Trait {
 
         $detected = class_exists('UCP_Integrations') ? (array) UCP_Integrations::detected() : array();
         $settings = wp_parse_args($settings, self::defaults());
-        $settings = array_merge($settings, class_exists('UCP_Presets') ? UCP_Presets::pagespeed_auto_overrides() : self::rocket_style_default_overrides());
+        $settings = array_merge($settings, class_exists('UCP_Presets') ? UCP_Presets::pagespeed_auto_overrides() : self::rocket_style_default_overrides(), self::automatic_managed_settings());
 
         $settings['ui_mode'] = isset($settings['ui_mode']) && 'advanced' === $settings['ui_mode'] ? 'advanced' : 'simple';
         $settings['defer_all_js'] = !empty($settings['defer_all_js']) ? 1 : 0;
@@ -238,7 +259,7 @@ trait UCP_Options_Lifecycle_Trait {
             return;
         }
 
-        $settings = array_merge(wp_parse_args($settings, self::defaults()), class_exists('UCP_Presets') ? UCP_Presets::pagespeed_auto_overrides() : self::rocket_style_default_overrides());
+        $settings = array_merge(wp_parse_args($settings, self::defaults()), class_exists('UCP_Presets') ? UCP_Presets::pagespeed_auto_overrides() : self::rocket_style_default_overrides(), self::automatic_managed_settings());
         if (class_exists('UCP_Integrations')) {
             UCP_Integrations::autodetect();
             $settings = UCP_Integrations::apply_autopilot_v2_settings(
@@ -266,7 +287,7 @@ trait UCP_Options_Lifecycle_Trait {
         }
 
         $settings = self::get_all();
-        $is_pagespeed = !empty($settings['autopilot_enabled']) || (isset($settings['active_preset']) && 'pagespeed_auto' === $settings['active_preset']);
+        $is_pagespeed = self::is_pagespeed_auto_profile($settings);
         if ($is_pagespeed) {
             $settings['active_preset'] = 'pagespeed_auto';
             $settings['enable_used_css'] = 0;
@@ -296,7 +317,7 @@ trait UCP_Options_Lifecycle_Trait {
         }
 
         $settings = self::get_all();
-        $is_pagespeed = !empty($settings['autopilot_enabled']) || (isset($settings['active_preset']) && 'pagespeed_auto' === $settings['active_preset']);
+        $is_pagespeed = self::is_pagespeed_auto_profile($settings);
         if ($is_pagespeed) {
             $overrides = class_exists('UCP_Presets') ? UCP_Presets::pagespeed_auto_overrides() : array();
             $settings = array_merge($settings, $overrides);
@@ -324,7 +345,7 @@ trait UCP_Options_Lifecycle_Trait {
     }
 
     /**
-     * Re-apply browser scan optimizations after repair7 so old scans immediately fix LCP and measured delay candidates.
+     * Re-apply browser scan optimizations for older profiles so existing scans immediately refresh LCP and measured delay candidates.
      */
     public static function maybe_upgrade_pagespeed_auto_v4() {
         if ('2026-pagespeed-auto-v4' === get_option('ucp_performance_profile_version_v4', '')) {
@@ -361,7 +382,7 @@ trait UCP_Options_Lifecycle_Trait {
         }
 
         $settings = self::get_all();
-        $is_pagespeed = !empty($settings['autopilot_enabled']) || (isset($settings['active_preset']) && 'pagespeed_auto' === $settings['active_preset']);
+        $is_pagespeed = self::is_pagespeed_auto_profile($settings);
         if ($is_pagespeed) {
             $settings['enable_light_preload_requests'] = 0;
             $settings['enable_delay_js_preload_delayed_scripts'] = 1;
@@ -386,7 +407,7 @@ trait UCP_Options_Lifecycle_Trait {
         }
 
         $settings = self::get_all();
-        $is_pagespeed = !empty($settings['autopilot_enabled']) || (isset($settings['active_preset']) && 'pagespeed_auto' === $settings['active_preset']);
+        $is_pagespeed = self::is_pagespeed_auto_profile($settings);
         if ($is_pagespeed) {
             $settings['enable_lazyload_background_images'] = 1;
             $settings['preload_critical_images'] = max(2, absint(isset($settings['preload_critical_images']) ? $settings['preload_critical_images'] : 0));
@@ -408,10 +429,8 @@ trait UCP_Options_Lifecycle_Trait {
         }
 
         $settings = self::get_all();
-        $is_pagespeed = !empty($settings['autopilot_enabled']) || (isset($settings['active_preset']) && 'pagespeed_auto' === $settings['active_preset']);
+        $is_pagespeed = self::is_pagespeed_auto_profile($settings);
         if ($is_pagespeed) {
-            $settings['enable_asset_manager_snapshot'] = 1;
-            $settings['enable_asset_test_mode'] = 1;
             $settings['enable_delay_js_preload_delayed_scripts'] = 1;
             self::update($settings);
         }
@@ -430,7 +449,7 @@ trait UCP_Options_Lifecycle_Trait {
         }
 
         $settings = self::get_all();
-        $is_pagespeed = !empty($settings['autopilot_enabled']) || (isset($settings['active_preset']) && 'pagespeed_auto' === $settings['active_preset']);
+        $is_pagespeed = self::is_pagespeed_auto_profile($settings);
         if ($is_pagespeed) {
             $settings['enable_auto_resource_hints'] = 1;
             $settings['enable_auto_font_preloads'] = 1;
@@ -454,7 +473,7 @@ trait UCP_Options_Lifecycle_Trait {
         }
 
         $settings = self::get_all();
-        $is_pagespeed = !empty($settings['autopilot_enabled']) || (isset($settings['active_preset']) && 'pagespeed_auto' === $settings['active_preset']);
+        $is_pagespeed = self::is_pagespeed_auto_profile($settings);
         if ($is_pagespeed) {
             $settings['enable_css_profiles'] = 1;
             $settings['css_profile_max_age_days'] = isset($settings['css_profile_max_age_days']) ? max(7, absint($settings['css_profile_max_age_days'])) : 14;
@@ -484,7 +503,7 @@ trait UCP_Options_Lifecycle_Trait {
         }
 
         $settings = self::get_all();
-        $is_pagespeed = !empty($settings['autopilot_enabled']) || (isset($settings['active_preset']) && 'pagespeed_auto' === $settings['active_preset']);
+        $is_pagespeed = self::is_pagespeed_auto_profile($settings);
         if ($is_pagespeed) {
             $safe_css = UCP_Helpers::normalize_multiline(isset($settings['used_css_safelist']) ? $settings['used_css_safelist'] : '');
             $safe_css = array_merge($safe_css, array(
@@ -508,7 +527,7 @@ trait UCP_Options_Lifecycle_Trait {
 
     /**
      * Ultimate polish defaults for 11.0.22.
-     * Keeps risky features opt-in while extending safety lists and renderer/LCP guardrails.
+     * Keeps risky features opt-in while updating safety lists and renderer/LCP checks.
      */
     public static function maybe_upgrade_pagespeed_auto_v12() {
         if ('2026-pagespeed-auto-v12' === get_option('ucp_performance_profile_version_v12', '')) {
@@ -516,7 +535,7 @@ trait UCP_Options_Lifecycle_Trait {
         }
 
         $settings = self::get_all();
-        $is_pagespeed = !empty($settings['autopilot_enabled']) || (isset($settings['active_preset']) && 'pagespeed_auto' === $settings['active_preset']);
+        $is_pagespeed = self::is_pagespeed_auto_profile($settings);
         if ($is_pagespeed) {
             $safe_css = UCP_Helpers::normalize_multiline(isset($settings['used_css_safelist']) ? $settings['used_css_safelist'] : '');
             $safe_css = array_merge($safe_css, array(
@@ -539,5 +558,77 @@ trait UCP_Options_Lifecycle_Trait {
         update_option('ucp_performance_profile_version_v12', '2026-pagespeed-auto-v12', false);
     }
 
+
+    /**
+     * Apply the automatic WP Rocket-style baseline to existing installs.
+     *
+     * This intentionally keeps risky render-changing optimizations off, but makes the
+     * required cache, WooCommerce safety, preload, browser-cache and support settings managed.
+     *
+     * @return void
+     */
+    public static function maybe_apply_rocket_style_automation_v1() {
+        if ('2026-rocket-style-automation-v1' === get_option('ucp_rocket_style_automation_version', '')) {
+            return;
+        }
+
+        $settings = get_option(self::OPTION_KEY, false);
+        if (is_array($settings)) {
+            $settings = array_merge(wp_parse_args($settings, self::defaults()), self::automatic_managed_settings());
+
+            $preload_exclusions = UCP_Helpers::normalize_multiline(isset($settings['preload_exclude_urls']) ? $settings['preload_exclude_urls'] : '');
+            $preload_exclusions = array_merge($preload_exclusions, array(
+                'cart', 'checkout', 'winkelwagen', 'afrekenen', 'my-account', 'mijn-account', 'account',
+                'order-pay', 'order-received', 'add-payment-method', 'customer-logout', 'wc-ajax', 'wc-api', 'add-to-cart',
+                'wp-json', '/wp-json/', '/wc/', '/wc-api/', '?wc-ajax=', '?add-to-cart='
+            ));
+            $settings['preload_exclude_urls'] = implode("\n", array_values(array_unique(array_filter($preload_exclusions, 'strlen'))));
+
+            self::update($settings);
+        }
+
+        update_option('ucp_rocket_style_automation_version', '2026-rocket-style-automation-v1', false);
+    }
+
+
+    /**
+     * Normalize hidden automatic defaults and Speculative Loading policy for 11.2.4.
+     *
+     * Existing installs could have stale hidden values from earlier test builds. This
+     * migration makes automatic technical defaults effective without enabling risky
+     * external features, and converts the old speculation toggle pair to the new
+     * Core-aware policy model.
+     *
+     * @return void
+     */
+    public static function maybe_upgrade_refactor_1124() {
+        if ('2026-refactor-1124' === get_option('ucp_refactor_1124_version', '')) {
+            return;
+        }
+
+        $settings = get_option(self::OPTION_KEY, false);
+        if (is_array($settings)) {
+            $settings = wp_parse_args($settings, self::defaults());
+
+            $settings['enable_async_image_optimization'] = 1;
+            $settings['enable_viewport_images'] = 1;
+            $settings['used_css_auto_refresh_days'] = isset($settings['used_css_auto_refresh_days']) ? min(365, max(0, absint($settings['used_css_auto_refresh_days']))) : 30;
+            if (0 === absint($settings['used_css_auto_refresh_days'])) {
+                $settings['used_css_auto_refresh_days'] = 30;
+            }
+
+            if (empty($settings['speculative_loading_mode']) || !in_array($settings['speculative_loading_mode'], array('core', 'enhanced', 'prerender', 'off'), true)) {
+                if (!empty($settings['enable_speculative_loading'])) {
+                    $settings['speculative_loading_mode'] = ('prerender' === (isset($settings['speculation_mode']) ? $settings['speculation_mode'] : 'prefetch')) ? 'prerender' : 'enhanced';
+                } else {
+                    $settings['speculative_loading_mode'] = 'core';
+                }
+            }
+
+            self::update($settings);
+        }
+
+        update_option('ucp_refactor_1124_version', '2026-refactor-1124', false);
+    }
 
 }

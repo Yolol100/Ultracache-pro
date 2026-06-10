@@ -57,7 +57,6 @@ class UCP_Optimization_Status {
             'delayJs'       => self::delay_js_feature($settings, $public_guard),
             'jsCombine'     => self::combine_feature(__('JS combineren', 'ultracache-pro'), !empty($settings['enable_js_combine']), $settings, 'js'),
             'cssCombine'    => self::combine_feature(__('CSS combineren', 'ultracache-pro'), !empty($settings['enable_css_combine']), $settings, 'css'),
-            'scriptManager' => self::script_manager_feature($settings, $public_guard),
             'assetManager'  => self::asset_feature($settings, $public_guard),
             'lazyMedia'     => self::feature(__('Lazy media', 'ultracache-pro'), !empty($settings['enable_lazy_images']) || !empty($settings['enable_lazy_iframes']) || !empty($settings['enable_lazy_youtube_preview']), $public_guard, __('Media-optimalisatie blijft uit op gevoelige of afgeschermde contexten.', 'ultracache-pro')),
             'restCache'     => self::feature(__('REST-cache', 'ultracache-pro'), !empty($settings['enable_rest_cache']), $public_guard, __('Alleen veilige GET-routes zonder persoonlijke context worden gecachet.', 'ultracache-pro')),
@@ -79,7 +78,6 @@ class UCP_Optimization_Status {
                 'usedCss' => self::artifact_records('used_css'),
                 'criticalCss' => self::artifact_records('critical_css'),
                 'delayJs' => self::delay_js_records(),
-                'scriptManager' => self::script_manager_records($settings),
             ),
             'queue' => self::queue_summary($queue),
         );
@@ -221,30 +219,6 @@ class UCP_Optimization_Status {
     }
 
     /**
-     * Script Manager lifecycle surface.
-     *
-     * @param array $settings Settings.
-     * @param bool  $public_guard Public guard state.
-     * @return array
-     */
-    protected static function script_manager_feature($settings, $public_guard) {
-        $rules = self::script_manager_records($settings);
-        if (0 === $rules['total']) {
-            return self::item(__('Script Manager', 'ultracache-pro'), self::SKIPPED, __('Geen regels', 'ultracache-pro'), __('Er zijn nog geen per-pagina, post-type, device of regex assetregels ingesteld.', 'ultracache-pro'));
-        }
-
-        if ($public_guard) {
-            return self::item(__('Script Manager', 'ultracache-pro'), self::PENDING, __('Alleen zichtbaar in testmodus', 'ultracache-pro'), __('Assetregels kunnen door beheerders worden getest voordat ze publiek actief worden.', 'ultracache-pro'));
-        }
-
-        return self::item(__('Script Manager', 'ultracache-pro'), self::ACTIVE, __('Actief', 'ultracache-pro'), sprintf(
-            /* translators: %d: rule count. */
-            _n('%d assetregel is actief.', '%d assetregels zijn actief.', $rules['total'], 'ultracache-pro'),
-            $rules['total']
-        ));
-    }
-
-    /**
      * Queue-backed artifact feature status.
      *
      * @param string $label Label.
@@ -276,7 +250,7 @@ class UCP_Optimization_Status {
     }
 
     /**
-     * Pull artifact counters from options/jobs without requiring a schema change.
+     * Pull cache-file counters from options/jobs without requiring a schema change.
      *
      * @param string $type Artifact type.
      * @return array
@@ -310,35 +284,6 @@ class UCP_Optimization_Status {
     protected static function delay_js_records() {
         $records = get_option('ucp_delay_js_lifecycle', array());
         return is_array($records) ? array_slice(array_values($records), 0, 50) : array();
-    }
-
-    /**
-     * Script Manager rule counters.
-     *
-     * @param array $settings Settings.
-     * @return array
-     */
-    protected static function script_manager_records($settings) {
-        $fields = array(
-            'disabled_style_handles',
-            'disabled_script_handles',
-            'conditional_style_unloads',
-            'conditional_script_unloads',
-            'advanced_asset_rules',
-        );
-        $counts = array('total' => 0, 'fields' => array());
-        foreach ($fields as $field) {
-            $raw = isset($settings[$field]) ? $settings[$field] : '';
-            $count = 0;
-            if (is_string($raw)) {
-                $count = count(array_filter(array_map('trim', preg_split('/\r\n|\r|\n/', $raw))));
-            } elseif (is_array($raw)) {
-                $count = count(array_filter($raw));
-            }
-            $counts['fields'][$field] = $count;
-            $counts['total'] += $count;
-        }
-        return $counts;
     }
 
     /**

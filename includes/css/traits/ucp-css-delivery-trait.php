@@ -52,6 +52,9 @@ trait UCP_CSS_Delivery_Trait {
         $critical_path = UCP_Helpers::get_critical_css_path($url);
         $used_css = is_readable($used_path) ? UCP_Helpers::read_file($used_path) : '';
         $critical_css = is_readable($critical_path) ? UCP_Helpers::read_file($critical_path) : '';
+        if ('' === trim($critical_css)) {
+            $critical_css = self::default_critical_css_for_html($html);
+        }
         $artifact_status = self::artifact_status($url);
 
         if ((('remove_unused' === $mode && '' === trim($used_css)) || ('async' === $mode && '' === trim($critical_css))) && UCP_Options::get('enable_css_queue')) {
@@ -60,7 +63,11 @@ trait UCP_CSS_Delivery_Trait {
                 return $html;
             }
 
-            $job_type = UCP_Options::get('enable_remote_css_render') && UCP_Options::get('enable_cloud') ? 'remote_css' : 'generate_css';
+            if (class_exists('UCP_Render_Bridge') && UCP_Render_Bridge::is_active()) {
+                $job_type = 'headless_css';
+            } else {
+                $job_type = UCP_Options::get('enable_remote_css_render') && UCP_Options::get('enable_cloud') ? 'remote_css' : 'generate_css';
+            }
             if (empty($artifact_status['attempts']) || (int) $artifact_status['attempts'] < absint(UCP_Options::get('css_artifact_retry_limit', 3))) {
                 UCP_Jobs::enqueue_unique($job_type, array('url' => $url), 5, 'css');
                 UCP_Diagnostics::record('css', 'Queued optimized CSS generation', array('type' => $job_type, 'mode' => $mode));
@@ -90,6 +97,43 @@ trait UCP_CSS_Delivery_Trait {
         return $html;
     }
 
+    protected static function default_critical_css_for_html($html) {
+        $html = is_string($html) ? $html : '';
+        if ('' === $html) {
+            return '';
+        }
+        $file = defined('UCP_PATH') ? trailingslashit(UCP_PATH) . 'compat/critical-css-snippets.json' : '';
+        if ('' === $file || !is_readable($file)) {
+            return '';
+        }
+        $raw = UCP_Helpers::read_file($file);
+        $items = json_decode($raw, true);
+        if (!is_array($items)) {
+            return '';
+        }
+        $haystack = strtolower(substr($html, 0, 200000));
+        $css = '';
+        foreach ($items as $item) {
+            if (empty($item['css']) || empty($item['match']) || !is_array($item['match'])) {
+                continue;
+            }
+            foreach ($item['match'] as $needle) {
+                $needle = strtolower(trim((string) $needle));
+                if ('' !== $needle && false !== strpos($haystack, $needle)) {
+                    $css .= (string) $item['css'];
+                    break;
+                }
+            }
+            if (strlen($css) > 14000) {
+                break;
+            }
+        }
+        if ('' !== $css && class_exists('UCP_Diagnostics')) {
+            UCP_Diagnostics::record('css', 'Applied default builder critical CSS fallback.', array('bytes' => strlen($css)));
+        }
+        return $css;
+    }
+
     protected static function apply_remove_unused_css($html, $used_css, $critical_css = '') {
         $used_validation = self::validate_artifact($used_css, false);
         if (!$used_validation['ok']) {
@@ -97,9 +141,24 @@ trait UCP_CSS_Delivery_Trait {
             return $html;
         }
 
-        if (false === stripos($html, 'id="ucp-used-css"')) {
-            $style = '<style id="ucp-used-css" data-ucp="remove-unused-css">' . self::safe_style_css($used_css) . '</style>';
-            $html = preg_replace('#</head>#i', $style . "\n</head>", $html, 1);
+        if (false === stripos($html, 'id="ucp-used-css"') && false === stripos($html, 'id="ucp-used-css-file"')) {
+            $delivery = 'file' === UCP_Options::get('used_css_delivery_method', 'inline') ? 'file' : 'inline';
+            $tag = '';
+            if ('file' === $delivery) {
+                // External-file delivery: tiny, browser-cacheable Used CSS file instead of an inline
+                // <style>. Better for repeat visits / perceived speed (the FlyingPress/Perfmatters/
+                // LiteSpeed school). Falls back to inline when the file cannot be written.
+                $served = self::used_css_served_url($used_css);
+                if ('' !== $served) {
+                    $tag = '<link rel="stylesheet" id="ucp-used-css-file" data-ucp="remove-unused-css" href="' . esc_url($served) . '" media="all">';
+                }
+            }
+            if ('' === $tag) {
+                $tag = '<style id="ucp-used-css" data-ucp="remove-unused-css">' . self::safe_style_css($used_css) . '</style>';
+            }
+            $html = preg_replace_callback('#</head>#i', static function () use ($tag) {
+                return $tag . "\n</head>";
+            }, $html, 1);
         }
 
         $changed = false;
@@ -119,6 +178,42 @@ trait UCP_CSS_Delivery_Trait {
         return $html;
     }
 
+    /**
+     * Write the Used CSS to a small, browser-cacheable file and return its URL (with an mtime
+     * cache-buster). One file per artifact key, overwritten only when the contents change, so the
+     * per-URL purge (which deletes used-css-served/<key>.css) and purge-all both stay in sync.
+     *
+     * @param string $used_css
+     * @return string Public URL, or '' when the file could not be written.
+     */
+    protected static function used_css_served_url($used_css) {
+        $used_css = (string) $used_css;
+        if ('' === trim($used_css)) {
+            return '';
+        }
+        $key = UCP_Helpers::css_artifact_key_for_url(UCP_Helpers::current_full_url());
+        $dir = trailingslashit(UCP_CACHE_DIR) . 'used-css-served/';
+        $path = $dir . $key . '.css';
+        if (!is_file($path) || md5_file($path) !== md5($used_css)) {
+            if (!is_dir($dir)) {
+                wp_mkdir_p($dir);
+            }
+            // Keep the directory non-listable and never served as PHP.
+            if (!is_file($dir . 'index.html')) {
+                UCP_Helpers::write_file($dir . 'index.html', '');
+            }
+            if (false === UCP_Helpers::write_file($path, $used_css)) {
+                return '';
+            }
+        }
+        $url = UCP_Helpers::file_url_from_path($path);
+        if ('' === (string) $url) {
+            return '';
+        }
+        $mtime = @filemtime($path);
+        return $mtime ? add_query_arg('v', (int) $mtime, $url) : $url;
+    }
+
     protected static function apply_async_css($html, $critical_css) {
         if ('' !== trim((string) $critical_css)) {
             $critical_validation = self::validate_artifact($critical_css, true);
@@ -127,7 +222,9 @@ trait UCP_CSS_Delivery_Trait {
             } else {
                 $style_tag = self::critical_css_style_tag($critical_css);
                 if ('' !== $style_tag && false === stripos($html, 'id="ucp-critical-css"')) {
-                    $html = preg_replace('#</head>#i', $style_tag . "\n</head>", $html, 1);
+                    $html = preg_replace_callback('#</head>#i', static function () use ($style_tag) {
+                        return $style_tag . "\n</head>";
+                    }, $html, 1);
                 }
             }
         }
@@ -278,10 +375,12 @@ trait UCP_CSS_Delivery_Trait {
                 continue;
             }
             if (method_exists($node, 'getSelectors')) {
+                $rule_text = (string) $node;
+                $keeps_custom_props = $this->rule_declares_custom_properties($rule_text);
                 $kept = array();
                 foreach ((array) $node->getSelectors() as $selector) {
                     $selector_text = trim((string) $selector);
-                    if ($this->selector_is_safelisted($selector_text, $safelist) || $this->selector_matches_html($selector_text, $html)) {
+                    if ($keeps_custom_props || $this->selector_is_foundational($selector_text) || $this->selector_is_safelisted($selector_text, $safelist) || $this->selector_matches_html($selector_text, $html)) {
                         $kept[] = $selector_text;
                     }
                 }
@@ -332,8 +431,9 @@ trait UCP_CSS_Delivery_Trait {
             }
             $selectors = array_map('trim', explode(',', $prelude));
             $kept = array();
+            $keeps_custom_props = $this->rule_declares_custom_properties($body);
             foreach ($selectors as $selector) {
-                if ($this->selector_is_safelisted($selector, $safelist) || $this->selector_matches_html($selector, $html)) {
+                if ($keeps_custom_props || $this->selector_is_foundational($selector) || $this->selector_is_safelisted($selector, $safelist) || $this->selector_matches_html($selector, $html)) {
                     $kept[] = $selector;
                 }
             }
@@ -432,7 +532,9 @@ trait UCP_CSS_Delivery_Trait {
             $selector = preg_replace('/:{1,2}[a-zA-Z0-9\-()]+/', '', $selector);
         }
         if (preg_match('/\.([a-zA-Z0-9_-]+)/', $selector, $m)) {
-            return false !== strpos($html, 'class="') && preg_match('/class=["\'][^"\']*\b' . preg_quote($m[1], '/') . '\b/i', $html);
+            // Guard on `class=` (not `class="`) so single-quoted attributes are still
+            // considered; missing a match here drops the rule and can break the page.
+            return false !== strpos($html, 'class=') && (bool) preg_match('/class=["\'][^"\']*\b' . preg_quote($m[1], '/') . '\b/i', $html);
         }
         if (preg_match('/#([a-zA-Z0-9_-]+)/', $selector, $m)) {
             return false !== strpos($html, 'id="' . $m[1] . '"') || false !== strpos($html, "id='" . $m[1] . "'");
@@ -444,5 +546,39 @@ trait UCP_CSS_Delivery_Trait {
             return false !== stripos($html, $m[1] . '=');
         }
         return false;
+    }
+
+    /**
+     * Global/root selectors must never be stripped from Used CSS: they carry inherited
+     * CSS custom properties, base resets and box-sizing that the whole page depends on.
+     * Dropping them is the single most common cause of broken theming after RUCSS.
+     */
+    private function selector_is_foundational($selector) {
+        $selector = strtolower(trim((string) $selector));
+        if ('' === $selector) {
+            return false;
+        }
+        $roots = array(':root', 'html', 'body', '*', ':where', ':is', ':has', '::selection', '::before', '::after');
+        foreach ($roots as $root) {
+            if ($selector === $root) {
+                return true;
+            }
+            if (0 === strpos($selector, $root)) {
+                $next = isset($selector[strlen($root)]) ? $selector[strlen($root)] : '';
+                if (in_array($next, array(' ', '.', '#', '[', ':', '>', '~', '+', ',', '('), true)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Keep any rule that declares CSS custom properties. Variables are resolved globally,
+     * so a single dropped --var can cascade into colours/spacing breaking site-wide even
+     * when the literal selector does not appear to match the served HTML.
+     */
+    private function rule_declares_custom_properties($body) {
+        return (bool) preg_match('/(?:^|[;{\s])--[A-Za-z0-9_-]+\s*:/', (string) $body);
     }
 }

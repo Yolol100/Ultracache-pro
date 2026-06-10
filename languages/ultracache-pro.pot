@@ -2,7 +2,7 @@
 # This file is distributed under the GPLv2 or later.
 msgid ""
 msgstr ""
-"Project-Id-Version: UltraCache Pro 11.0.39\n"
+"Project-Id-Version: UltraCache Pro 11.0.44\n"
 "Report-Msgid-Bugs-To: https://webactueel.nl\n"
 "POT-Creation-Date: 2026-05-26 00:00+0000\n"
 "MIME-Version: 1.0\n"
@@ -679,12 +679,6 @@ msgstr ""
 msgid "Aanbevolen volgende stap"
 msgstr ""
 
-#: assets/admin/react/js/app/ucp-react-admin.js:34
-#: includes/admin/class-ucp-admin-config.php:19
-#: includes/admin/class-ucp-admin-config.php:44
-msgid "Developer"
-msgstr ""
-
 #: assets/admin/react/js/app/ucp-react-admin.js:35
 #: assets/admin/react/js/app/ucp-react-admin.js:669
 #: assets/admin/react/js/app/ucp-react-admin.js:1905
@@ -1154,16 +1148,10 @@ msgid "Query strings"
 msgstr ""
 
 #: assets/admin/react/js/app/ucp-react-admin.js:949
-#: includes/admin/views/tabs/developer.php:22
 #: includes/integrations/class-ucp-integrations.php:47
 #: includes/core/class-ucp-site-health.php:74
 #: includes/core/class-ucp-site-health.php:97
 msgid "Compatibiliteit"
-msgstr ""
-
-#: assets/admin/react/js/app/ucp-react-admin.js:949
-#: includes/admin/views/tabs/developer.php:6
-msgid "Developer instellingen"
 msgstr ""
 
 #: assets/admin/react/js/app/ucp-react-admin.js:949
@@ -1179,7 +1167,6 @@ msgid "REST-cache"
 msgstr ""
 
 #: assets/admin/react/js/app/ucp-react-admin.js:949
-#: includes/admin/views/tabs/developer.php:31
 msgid "Veiligheidsmodus"
 msgstr ""
 
@@ -2502,14 +2489,6 @@ msgstr ""
 msgid "Specificeer query strings voor caching"
 msgstr ""
 
-#: includes/admin/views/tabs/advanced-rules.php:54
-msgid "Developer opties verplaatst"
-msgstr ""
-
-#: includes/admin/views/tabs/advanced-rules.php:54
-msgid "REST-cache en fragment cache staan nu apart onder Developer, zodat gewone cache-regels schoon blijven."
-msgstr ""
-
 #: includes/admin/views/tabs/cdn.php:101
 msgid "Eén keuze vervangt CDN inschakelen en bestandstypen herschrijven."
 msgstr ""
@@ -2909,122 +2888,6 @@ msgstr ""
 
 #: includes/admin/views/tabs/database.php:68
 msgid "Maandelijks"
-msgstr ""
-
-#: includes/admin/views/tabs/developer.php:10
-msgid "Alleen gebruiken voor publieke, voorspelbare output. Niet gebruiken voor formulieren, accountdata, carts of persoonlijke content."
-msgstr ""
-
-#: includes/admin/views/tabs/developer.php:10
-msgid "Developer cache"
-msgstr ""
-
-#: includes/admin/views/tabs/developer.php:12
-msgid "Fragment Cache API inschakelen"
-msgstr ""
-
-#: includes/admin/views/tabs/developer.php:12
-msgid "Voor ontwikkelaars: cachet losse outputfragmenten. Alleen gebruiken als je weet welke fragments veilig zijn."
-msgstr ""
-
-#: includes/admin/views/tabs/developer.php:13
-msgid "3600 is een veilige standaard."
-msgstr ""
-
-#: includes/admin/views/tabs/developer.php:13
-msgid "Fragment cache TTL in seconden"
-msgstr ""
-
-#: includes/admin/views/tabs/developer.php:14
-msgid "Cachet publieke GET API-antwoorden. Test formulieren, zoekfuncties en externe koppelingen na inschakelen."
-msgstr ""
-
-#: includes/admin/views/tabs/developer.php:14
-msgid "REST API-cache inschakelen"
-msgstr ""
-
-#: includes/admin/views/tabs/developer.php:15
-msgid "300 is een veilige standaard."
-msgstr ""
-
-#: includes/admin/views/tabs/developer.php:15
-msgid "REST cache TTL in seconden"
-msgstr ""
-
-#: includes/admin/views/tabs/developer.php:17
-msgid "Eén routeprefix per regel. Gebruik alleen publieke contentroutes."
-msgstr ""
-
-#: includes/admin/views/tabs/developer.php:17
-msgid "REST API paden wel cachen"
-msgstr ""
-
-#: includes/admin/views/tabs/developer.php:18
-msgid "Eén routeprefix per regel. Gebruik voor formulieren, accounts, carts, zoek- en app-endpoints."
-msgstr ""
-
-#: includes/admin/views/tabs/developer.php:18
-msgid "REST API paden nooit cachen"
-msgstr ""
-
-#: includes/admin/views/tabs/developer.php:22
-msgid "Belangrijke compatibiliteitsopties blijven beschikbaar, maar staan bewust onder Developer omdat verkeerd gebruik persoonlijke content of builderflows kan raken."
-msgstr ""
-
-#: includes/admin/views/tabs/developer.php:24
-msgid "Laat Redis, Memcached of APCu met rust wanneer die actief zijn."
-msgstr ""
-
-#: includes/admin/views/tabs/developer.php:24
-msgid "Object cache respecteren"
-msgstr ""
-
-#: includes/admin/views/tabs/developer.php:25
-msgid "Beschermt winkelwagen, afrekenen, account en wc-ajax tegen caching en agressieve optimalisaties."
-msgstr ""
-
-#: includes/admin/views/tabs/developer.php:25
-msgid "WooCommerce regels automatisch toepassen"
-msgstr ""
-
-#: includes/admin/views/tabs/developer.php:26
-msgid "Cache voor ingelogde gebruikers"
-msgstr ""
-
-#: includes/admin/views/tabs/developer.php:26
-msgid "Developer-only. Meestal uit laten, omdat dashboards, builders en accounts persoonlijke content kunnen tonen."
-msgstr ""
-
-#: includes/admin/views/tabs/developer.php:31
-msgid "Extra bescherming voor builders, ingelogde sessies en toegankelijkheid."
-msgstr ""
-
-#: includes/admin/views/tabs/developer.php:33
-msgid "Accessibility mode"
-msgstr ""
-
-#: includes/admin/views/tabs/developer.php:33
-msgid "Vermindert risicovolle optimalisaties om interacties, focus en dynamische UI veiliger te houden."
-msgstr ""
-
-#: includes/admin/views/tabs/developer.php:34
-msgid "Aanbevolen voor builders en beheerwerk. Voorkomt dat frontend-optimalisaties editor- of previewflows raken."
-msgstr ""
-
-#: includes/admin/views/tabs/developer.php:34
-msgid "Optimalisaties uitschakelen voor ingelogde gebruikers"
-msgstr ""
-
-#: includes/admin/views/tabs/developer.php:35
-msgid "Schone uninstall"
-msgstr ""
-
-#: includes/admin/views/tabs/developer.php:35
-msgid "Verwijdert plugininstellingen bij deïnstallatie. Alleen aanzetten als je de configuratie niet wilt bewaren."
-msgstr ""
-
-#: includes/admin/views/tabs/developer.php:6
-msgid "REST-cache, fragment cache en technische veiligheidsopties. Standaard uit laten en eerst op staging testen."
 msgstr ""
 
 #: includes/admin/views/tabs/heartbeat.php:10
@@ -4104,7 +3967,7 @@ msgid "Drop-in bestandsrechten controleren"
 msgstr ""
 
 #: includes/admin/views/tabs/tools.php:35
-msgid "Alleen snelle, performancegerichte WordPress-tweaks. Brede hardening-opties zoals XML-RPC, REST API, feeds, reacties en login-aanpassingen zijn bewust uit de hoofdinterface gehaald."
+msgid "Alleen snelle, performancegerichte WordPress-tweaks. Brede beveiligingsopties zoals XML-RPC, REST API, feeds, reacties en login-aanpassingen zijn bewust uit de hoofdinterface gehaald."
 msgstr ""
 
 #: includes/admin/views/tabs/tools.php:35
@@ -5167,139 +5030,138 @@ msgstr ""
 msgid "Dit is de beste standaard voor de meeste bedrijfswebsites: cache, preload, minify, lazy images en lokale fonts aan; combineren, Delay JS en Used CSS blijven uit."
 msgstr ""
 
-#: generated release sync
+#: release sync
 msgid "kolom"
 msgstr ""
 
-#: generated release sync
+#: release sync
 msgid "kolommen"
 msgstr ""
 
-#: generated release sync
+#: release sync
 msgid "Herstel indeling"
 msgstr ""
 
-#: generated release sync
+#: release sync
 msgid "WordPress performance"
 msgstr ""
 
-#: generated release sync
+#: release sync
 msgid "Native WordPress dashboard voor cache, optimalisatie, preload, WooCommerce-safety en websitecontrole."
 msgstr ""
 
-#: generated release sync
+#: release sync
 msgid "Cache actief"
 msgstr ""
 
-#: generated release sync
+#: release sync
 msgid "WooCommerce veilig"
 msgstr ""
 
-#: generated release sync
+#: release sync
 msgid "WooCommerce standaard"
 msgstr ""
 
-#: generated release sync
+#: release sync
 msgid "taken"
 msgstr ""
 
-#: generated release sync
+#: release sync
 msgid "Geen wachtrij"
 msgstr ""
 
-#: generated release sync
+#: release sync
 msgid "JS testen"
 msgstr ""
 
-#: generated release sync
+#: release sync
 msgid "Setup kiezen"
 msgstr ""
 
-#: generated release sync
+#: release sync
 msgid "UltraCache Pro onderdelen"
 msgstr ""
 
-#: generated release sync
+#: release sync
 msgid "Kaartvolgorde bijgewerkt."
 msgstr ""
 
-#: generated release sync
+#: release sync
 msgid "Kaartenindeling bijgewerkt."
 msgstr ""
 
-#: generated release sync
+#: release sync
 msgid "Standaardindeling hersteld."
 msgstr ""
 
-#: generated release sync
+#: release sync
 msgid "Kies een rustige kolomweergave. Kaarten kunnen met muis of toetsenbord worden verplaatst; herstel zet alles terug naar standaard."
 msgstr ""
 
-#: generated release sync
+#: release sync
 msgid "UltraCache Pro wordt geladen"
 msgstr ""
 
-#: generated release sync
+#: release sync
 msgid "APCu is beschikbaar. Je kunt de UltraCache APCu object-cache drop-in optioneel activeren."
 msgstr ""
 
-#: generated release sync
+#: release sync
 msgid "Geen Redis/Memcached/APCu object-cache laag gevonden. Gebruik je hostingpaneel of een gespecialiseerde object-cache drop-in."
 msgstr ""
 
-#: generated release sync
+#: release sync
 msgid "Je hebt geen rechten om de object-cache drop-in te installeren."
 msgstr ""
 
-#: generated release sync
+#: release sync
 msgid "APCu object cache vereist APCu en een expliciet ingeschakelde optie."
 msgstr ""
 
-#: generated release sync
+#: release sync
 msgid "Er bestaat al een object-cache.php drop-in. UltraCache overschrijft die niet automatisch."
 msgstr ""
 
-#: generated release sync
+#: release sync
 msgid "Kon de APCu object-cache drop-in niet installeren."
 msgstr ""
 
-#: generated release sync
+#: release sync
 msgid "APCu object-cache drop-in geïnstalleerd."
 msgstr ""
 
-#: generated release sync
+#: release sync
 msgid "Kies één methode. Ongebruikte CSS gebruikt de parser-first flow wanneer de Composer-library beschikbaar is en valt veilig terug op de lokale scanner. Test grondig op staging, vooral met Elementor, sticky headers, sliders en WooCommerce."
 msgstr ""
 
-#: generated release sync
+#: release sync
 msgid "wp_options engine: %s"
 msgstr ""
 
-#: generated release sync
+#: release sync
 msgid "Mogelijke ontbrekende indexen: %s"
 msgstr ""
 
-#: generated release sync
+#: release sync
 msgid "Sta expliciete MyISAM → InnoDB conversie van wp_options toe"
 msgstr ""
 
-#: generated release sync
+#: release sync
 msgid "Staging-first: alleen gebruiken met recente database-back-up."
 msgstr ""
 
-#: generated release sync
+#: release sync
 msgid "Converteer wp_options naar InnoDB? Maak eerst een database-back-up."
 msgstr ""
 
-#: generated release sync
+#: release sync
 msgid "0 taken verwerkt. Er staan nog %d mislukte taken; gebruik \"Mislukte taken opnieuw proberen\" om ze terug in de wachtrij te zetten."
 msgstr ""
 
-#: generated release sync
+#: release sync
 msgid "Geen rechten."
 msgstr ""
 
-#: generated release sync
+#: release sync
 msgid "InnoDB-conversie vereist expliciete bevestiging in de instellingen."
 msgstr ""
-

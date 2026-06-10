@@ -154,11 +154,47 @@ trait UCP_Helpers_Minify_And_Log_Trait {
     }
 
     public static function get_used_css_path($url = '') {
-        return UCP_CACHE_DIR . 'used-css/' . self::cache_key_for_url($url) . '.css';
+        return UCP_CACHE_DIR . 'used-css/' . self::css_artifact_key_for_url($url) . '.css';
     }
 
     public static function get_critical_css_path($url = '') {
-        return UCP_CACHE_DIR . 'critical-css/' . self::cache_key_for_url($url) . '.css';
+        return UCP_CACHE_DIR . 'critical-css/' . self::css_artifact_key_for_url($url) . '.css';
+    }
+
+    /**
+     * Cache key for used/critical CSS artifacts. Defaults to the per-URL key
+     * (unchanged behaviour). When template grouping is enabled via the
+     * 'ucp_css_artifact_template_grouping' filter, singular posts of the same
+     * post type + page template share one artifact (fewer generations, faster
+     * warmup, less disk). Grouping can under-cache a page that uses blocks absent
+     * from the template's first-generated artifact, so validate on staging before
+     * enabling. Page-cache keying is deliberately not affected.
+     */
+    public static function css_artifact_key_for_url($url = '') {
+        $per_url = self::cache_key_for_url($url);
+        // 'template' scope shares one Used/Critical CSS artifact across singular posts of the same
+        // post type + page template (the QUIC.cloud "CCSS per post type" model): far fewer
+        // generations, faster warmup, less disk. The filter still allows per-call overrides.
+        $grouping = 'template' === UCP_Options::get('css_artifact_scope', 'url');
+        if (!apply_filters('ucp_css_artifact_template_grouping', $grouping, $url)) {
+            return $per_url;
+        }
+        if (!$url) {
+            $url = self::current_full_url();
+        }
+        $url = self::enforce_local_url($url);
+        $post_id = function_exists('url_to_postid') ? (int) url_to_postid($url) : 0;
+        if ($post_id <= 0) {
+            // Archives, front page, search, 404, taxonomy: keep per-URL keying.
+            return $per_url;
+        }
+        $post_type = (string) get_post_type($post_id);
+        $template = (string) get_post_meta($post_id, '_wp_page_template', true);
+        if ('' === $template) {
+            $template = 'default';
+        }
+        $signature = 'tpl-' . $post_type . '-' . substr(md5($template), 0, 8) . '-' . self::user_state_suffix();
+        return sanitize_file_name((string) apply_filters('ucp_css_artifact_key', $signature, $url, $post_id));
     }
 
     public static function has_persistent_object_cache() {
@@ -166,7 +202,16 @@ trait UCP_Helpers_Minify_And_Log_Trait {
     }
 
     public static function is_likely_cache_server_present() {
-        return !empty($_SERVER['LITESPEED_CACHE']) || !empty($_SERVER['HTTP_X_LITE_SPEED_CACHE']) || !empty($_SERVER['HTTP_X_VARNISH']) || !empty($_SERVER['HTTP_X_CACHE']);
+        $server = isset($_SERVER['SERVER_SOFTWARE']) ? strtolower((string) wp_unslash($_SERVER['SERVER_SOFTWARE'])) : '';
+
+        // Trust only server/runtime-owned signals here. Inbound HTTP_* headers are
+        // visitor-controlled and must not create false cache-conflict warnings or
+        // influence LiteSpeed/backend decisions.
+        return false !== strpos($server, 'litespeed')
+            || false !== strpos($server, 'openlitespeed')
+            || !empty($_SERVER['LSWS_EDITION'])
+            || !empty($_SERVER['LITESPEED_CACHE'])
+            || !empty($_SERVER['LSCACHE_VERSION']);
     }
 
     /**

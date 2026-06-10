@@ -75,9 +75,11 @@ if (defined('DONOTCACHEPAGE') && DONOTCACHEPAGE) {
     return;
 }
 
-if ('GET' !== strtoupper(ucp_dropin_server_value('REQUEST_METHOD'))) {
+$ucp_dropin_method = strtoupper(ucp_dropin_server_value('REQUEST_METHOD'));
+if (!in_array($ucp_dropin_method, array('GET', 'HEAD'), true)) {
     return;
 }
+$ucp_dropin_is_head = 'HEAD' === $ucp_dropin_method;
 
 // phpcs:ignore WordPress.Security.NonceVerification.Missing -- this drop-in only refuses to serve cache when request payloads exist; it does not process form data.
 if (!empty($_POST) || !empty($_FILES)) {
@@ -106,28 +108,58 @@ if (false !== strpos($cache_control, 'no-cache') || false !== strpos($cache_cont
 $config_file = WP_CONTENT_DIR . '/cache/ultracache-pro/dropin-config.php';
 $config = is_readable($config_file) ? include $config_file : array();
 $config = is_array($config) ? $config : array();
+$enable_cache = array_key_exists('enable_cache', $config) ? !empty($config['enable_cache']) : true;
+if (!$enable_cache) {
+    return;
+}
+
+$cache_backend = !empty($config['cache_backend']) ? ucp_dropin_sanitize_key((string) $config['cache_backend']) : 'auto';
+if (defined('UCP_DISABLE_LITESPEED_BACKEND') && UCP_DISABLE_LITESPEED_BACKEND && 'litespeed' === $cache_backend) {
+    $cache_backend = 'disk';
+}
+if (!in_array($cache_backend, array('auto', 'disk', 'litespeed'), true)) {
+    $cache_backend = 'auto';
+}
+$server_software = strtolower(ucp_dropin_server_value('SERVER_SOFTWARE'));
+$is_litespeed_server = false !== strpos($server_software, 'litespeed') || false !== strpos($server_software, 'openlitespeed') || '' !== ucp_dropin_server_value('LSWS_EDITION') || '' !== ucp_dropin_server_value('LITESPEED_CACHE') || '' !== ucp_dropin_server_value('LSCACHE_VERSION');
+if ($is_litespeed_server && ('litespeed' === $cache_backend || 'auto' === $cache_backend) && !(defined('UCP_DISABLE_LITESPEED_BACKEND') && UCP_DISABLE_LITESPEED_BACKEND)) {
+    // Auto-detected LiteSpeed bridge: stand down so server-level LSCache can own full-page cache.
+    return;
+}
 $exclude_paths = !empty($config['exclude_paths']) && is_array($config['exclude_paths']) ? $config['exclude_paths'] : array('cart', 'checkout', 'my-account', 'account', 'order-pay', 'order-received', 'add-payment-method', 'wc-api', 'wc-ajax', 'wp-json', 'wp-admin', 'wp-login.php', 'xmlrpc.php', 'customer-logout');
 $exclude_cookies = !empty($config['exclude_cookies']) && is_array($config['exclude_cookies']) ? $config['exclude_cookies'] : array(
     'wordpress_logged_in_',
     'wordpress_sec_',
     'wp-postpass_',
+    'wp-resetpass_',
     'comment_author_',
+    'switch_to_olduser_',
+    'wordpress_test_cookie',
     'woocommerce_items_in_cart',
     'wp_woocommerce_session_',
     'woocommerce_cart_hash',
+    'woocommerce_recently_viewed',
+    'woocommerce_checkout_',
+    'woocommerce_pay_',
+    'edd_items_in_cart',
     'pll_language',
     '_icl_current_language',
+    'wp-wpml_current_language',
+    'wpml_browser_redirect_test',
+    'trp_language',
+    'wp_lang',
     'wcml_client_currency',
     'woocommerce_multicurrency_forced_currency',
     'aelia_cs_selected_currency',
     'aelia_customer_country',
     'aelia_customer_state',
     'aelia_tax_exempt',
-    'switch_to_olduser_',
-    'wordpress_test_cookie',
     'cookie_notice_',
     'cmplz_',
     'complianz_',
+    'cookieyes',
+    'cky-',
+    'borlabs',
 );
 $cache_query_strings = !empty($config['cache_query_strings']);
 $cache_query_string_inclusions = !empty($config['cache_query_string_inclusions']) && is_array($config['cache_query_string_inclusions']) ? $config['cache_query_string_inclusions'] : array();
@@ -142,6 +174,19 @@ $cache_ignore_query_params = !empty($config['cache_ignore_query_params']) && is_
 $cache_mobile_separately = !array_key_exists('cache_mobile_separately', $config) || !empty($config['cache_mobile_separately']);
 $safe_cookies = !empty($config['safe_cookies']) && is_array($config['safe_cookies']) ? $config['safe_cookies'] : array('ct_', 'apbct_', 'ct_sfw', 'cleantalk', 'cookiebot', 'cookie_notice_', 'cmplz_', 'complianz_', 'cookieyes', 'cky-', 'borlabs', 'joinchat_', 'wp-settings-', '_ga', '_gid', '_gat', '_gcl_', '_fbp', '_fbc', '_hj', '_clck', '_clsk', '_pk_id', '_pk_ses', '_uetsid', '_uetvid', '_pin_unauth', '_scid', 'li_gc', 'lidc', 'bcookie', 'bscookie', 'tk_ai', '__stripe_mid', '__stripe_sid', '__cf_bm', 'cf_clearance');
 $block_unknown_cookies = !empty($config['block_unknown_cookies']);
+
+if (!function_exists('ucp_dropin_cache_path_slug')) {
+    // MUST stay byte-for-byte identical to UCP_Helpers::cache_path_slug() so the early drop-in
+    // and the PHP fallback build the same page-cache key. See that method for the rationale.
+    function ucp_dropin_cache_path_slug($raw_path) {
+        $raw = rtrim((string) $raw_path, '/');
+        $slug = str_replace('/', '-', $raw);
+        $slug = preg_replace('/[^A-Za-z0-9_.-]/', '-', $slug);
+        $slug = preg_replace('/-+/', '-', (string) $slug);
+        $slug = trim((string) $slug, '-');
+        return '' === $slug ? 'home' : $slug;
+    }
+}
 
 if (!function_exists('ucp_dropin_sanitize_query_pattern')) {
     function ucp_dropin_sanitize_query_pattern($pattern) {
@@ -238,7 +283,7 @@ foreach ($exclude_paths as $excluded_fragment) {
 
 $path = rtrim($path_only, '/');
 $raw_path = '' === $path ? '/' : $path;
-$path = '' === $path ? 'home' : trim(str_replace('/', '-', $path), '-');
+$path = ucp_dropin_cache_path_slug($path_only);
 $path_hash = substr(md5($raw_path), 0, 8);
 $query = ucp_dropin_parse_url($uri, PHP_URL_QUERY);
 $normalized_query = '';
@@ -311,17 +356,50 @@ $user_agent = ucp_dropin_server_value('HTTP_USER_AGENT');
 // configs written by an older version.
 $mobile_regex = !empty($config['mobile_user_agent_regex']) ? (string) $config['mobile_user_agent_regex'] : '/Mobile|Android|Silk\/|Kindle|BlackBerry|Opera Mini|Opera Mobi|iPhone|iPad|iPod/i';
 $is_mobile = $cache_mobile_separately && 1 === @preg_match($mobile_regex, $user_agent);
-$suffix = 'guest' . ($is_mobile ? '-mobile' : '');
-$cache_key = preg_replace('/[^A-Za-z0-9_.-]/', '-', $host_key . '-' . $path . '-' . $path_hash . '-' . $suffix . '-' . $query_key);
-$cache_file = WP_CONTENT_DIR . '/cache/ultracache-pro/pages/' . $cache_key . '.html';
-$ttl = !empty($config['ttl']) ? max(60, (int) $config['ttl']) : 10 * 3600;
 
-if (is_file($cache_file) && is_readable($cache_file) && (filemtime($cache_file) + $ttl) > time()) {
-    $ucp_cached_html = file_get_contents($cache_file);
-    if (is_string($ucp_cached_html) && '' !== $ucp_cached_html) {
+// Per-currency / per-language cache variation. MUST match UCP_Helpers::cache_vary_suffix()
+// byte-for-byte so the early drop-in and the PHP fallback agree on the key.
+if (!function_exists('ucp_dropin_vary_suffix')) {
+    function ucp_dropin_vary_suffix($vary_cookies) {
+        if (empty($vary_cookies) || !is_array($vary_cookies) || empty($_COOKIE) || !is_array($_COOKIE)) {
+            return '';
+        }
+        $pairs = array();
+        foreach ($_COOKIE as $name => $value) {
+            $name = ucp_dropin_sanitize_key((string) $name);
+            if ('' === $name || is_array($value)) {
+                continue;
+            }
+            foreach ($vary_cookies as $fragment) {
+                $fragment = ucp_dropin_sanitize_key((string) $fragment);
+                if ('' !== $fragment && false !== strpos($name, $fragment)) {
+                    $clean = preg_replace('/[^A-Za-z0-9_.\-]/', '', (string) ucp_dropin_unslash($value));
+                    $pairs[$name] = $name . '=' . $clean;
+                    break;
+                }
+            }
+        }
+        if (empty($pairs)) {
+            return '';
+        }
+        ksort($pairs);
+        return '-v' . substr(md5(implode('|', $pairs)), 0, 10);
+    }
+}
+$vary_cookies = !empty($config['vary_cookies']) && is_array($config['vary_cookies']) ? $config['vary_cookies'] : array();
+$suffix = 'guest' . ($is_mobile ? '-mobile' : '') . ucp_dropin_vary_suffix($vary_cookies);
+// Every segment is already restricted to [A-Za-z0-9_.-] (md5 hex, the safe slug, or fixed
+// literals), exactly like UCP_Helpers::cache_key_for_url(), so no whole-key rewrite is applied.
+$cache_key = $host_key . '-' . $path . '-' . $path_hash . '-' . $suffix . '-' . $query_key;
+$cache_file = WP_CONTENT_DIR . '/cache/ultracache-pro/pages/' . $cache_key . '.html';
+$ttl = array_key_exists('ttl', $config) ? max(0, (int) $config['ttl']) : 10 * 3600;
+
+if (is_file($cache_file) && is_readable($cache_file) && (0 === $ttl || (filemtime($cache_file) + $ttl) > time())) {
+    $file_size = filesize($cache_file);
+    if (false !== $file_size && $file_size > 0) {
         $file_mtime    = (int) filemtime($cache_file);
-        $remaining_ttl = max(0, ($file_mtime + $ttl) - time());
-        $etag          = '"' . dechex($file_mtime) . '-' . dechex(strlen($ucp_cached_html)) . '"';
+        $remaining_ttl = 0 === $ttl ? 31536000 : max(0, ($file_mtime + $ttl) - time());
+        $etag          = '"' . dechex($file_mtime) . '-' . dechex((int) $file_size) . '"';
         $last_modified = gmdate('D, d M Y H:i:s', $file_mtime) . ' GMT';
 
         // 304 Not Modified support (RFC 7232 — accept comma-separated lists and weak validators).
@@ -365,49 +443,36 @@ if (is_file($cache_file) && is_readable($cache_file) && (filemtime($cache_file) 
         header('X-UltraCache-Age: ' . (int)(time() - $file_mtime));
         header('Content-Type: text/html; charset=UTF-8');
 
-        // Serve pre-compressed variants first; fall back to on-the-fly compression only when needed.
+        // Serve pre-compressed variants only; cache hits must not spend CPU on runtime compression.
         $accept_encoding = ucp_dropin_server_value('HTTP_ACCEPT_ENCODING');
+        $variant_file = '';
+        $variant_encoding = '';
         if (false !== strpos($accept_encoding, 'br') && is_file($cache_file . '.br') && is_readable($cache_file . '.br')) {
-            $encoded = file_get_contents($cache_file . '.br');
-            if (is_string($encoded) && '' !== $encoded) {
-                header('Content-Encoding: br');
-                header('Content-Length: ' . strlen($encoded));
-                echo $encoded; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- pre-compressed cached HTML.
-                exit;
-            }
+            $variant_file = $cache_file . '.br';
+            $variant_encoding = 'br';
+        } elseif (false !== strpos($accept_encoding, 'gzip') && is_file($cache_file . '.gz') && is_readable($cache_file . '.gz')) {
+            $variant_file = $cache_file . '.gz';
+            $variant_encoding = 'gzip';
         }
-        if (false !== strpos($accept_encoding, 'gzip') && is_file($cache_file . '.gz') && is_readable($cache_file . '.gz')) {
-            $encoded = file_get_contents($cache_file . '.gz');
-            if (is_string($encoded) && '' !== $encoded) {
-                header('Content-Encoding: gzip');
-                header('Content-Length: ' . strlen($encoded));
-                echo $encoded; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- pre-compressed cached HTML.
+        if ('' !== $variant_file) {
+            $variant_size = filesize($variant_file);
+            if (false !== $variant_size && $variant_size > 0) {
+                header('Content-Encoding: ' . $variant_encoding);
+                header('Content-Length: ' . (int) $variant_size);
+                if (!$ucp_dropin_is_head) {
+                    readfile($variant_file); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped, WordPress.WP.AlternativeFunctions -- pre-compressed cached HTML streamed to the client.
+                }
                 exit;
-            }
-        }
-        if (strlen($ucp_cached_html) > 860) {
-            if (false !== strpos($accept_encoding, 'br') && function_exists('brotli_compress')) {
-                $brotli = @brotli_compress($ucp_cached_html, 4);
-                if (false !== $brotli && '' !== $brotli) {
-                    header('Content-Encoding: br');
-                    header('Content-Length: ' . strlen($brotli));
-                    echo $brotli; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- brotli-compressed cached HTML.
-                    exit;
-                }
-            }
-            if (false !== strpos($accept_encoding, 'gzip') && function_exists('gzencode')) {
-                $gzipped = gzencode($ucp_cached_html, 6);
-                if (false !== $gzipped) {
-                    header('Content-Encoding: gzip');
-                    header('Content-Length: ' . strlen($gzipped));
-                    echo $gzipped; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- gzipped cached HTML.
-                    exit;
-                }
             }
         }
 
-        header('Content-Length: ' . strlen($ucp_cached_html));
-        echo $ucp_cached_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- cached HTML captured from WordPress output buffering.
+        // If no pre-compressed variant exists, serve the identity cache file.
+        // This keeps the advanced-cache.php fast path CPU-cheap under traffic spikes.
+
+        header('Content-Length: ' . (int) $file_size);
+        if (!$ucp_dropin_is_head) {
+            readfile($cache_file); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped, WordPress.WP.AlternativeFunctions -- cached HTML streamed to the client.
+        }
         exit;
     }
 }

@@ -23,6 +23,8 @@ class UCP_Runtime_Tests {
             'elementor' => self::test_elementor_runtime(),
             'cloudflare' => self::test_cloudflare_runtime(),
             'html' => self::test_html_runtime(),
+            'direct_cache' => self::test_direct_cache_runtime(),
+            'headless_renderer' => self::test_headless_renderer_runtime(),
         );
         update_option(self::OPTION_KEY, $results, false);
         UCP_Logger::log('info', 'runtime', 'runtime_tests_ran', 'Runtime compatibility tests executed.', array(
@@ -30,6 +32,8 @@ class UCP_Runtime_Tests {
             'elementor' => $results['elementor']['status'],
             'cloudflare' => $results['cloudflare']['status'],
             'html' => $results['html']['status'],
+            'direct_cache' => $results['direct_cache']['status'],
+            'headless_renderer' => $results['headless_renderer']['status'],
         ));
         return $results;
     }
@@ -150,6 +154,67 @@ class UCP_Runtime_Tests {
             'api_configured' => $api_configured,
             'apo_mode' => (bool) UCP_Options::get('enable_cloudflare_apo_mode'),
         ));
+    }
+
+    protected static function test_direct_cache_runtime() {
+        $enabled = (bool) UCP_Options::get('enable_direct_cache_htaccess');
+        if (!$enabled) {
+            return self::format_result('info', array(__('Directe HTML-cache via .htaccess/Nginx staat uit.', 'ultracache-pro')), array('enabled' => false));
+        }
+        $issues = array();
+        $server_software = isset($_SERVER['SERVER_SOFTWARE']) ? strtolower(sanitize_text_field(wp_unslash($_SERVER['SERVER_SOFTWARE']))) : '';
+        $is_apache = false !== strpos($server_software, 'apache') || false !== strpos($server_software, 'litespeed');
+        $is_nginx  = false !== strpos($server_software, 'nginx');
+        $rules_file = $is_nginx ? UCP_CACHE_DIR . 'server-rules-nginx.conf' : UCP_CACHE_DIR . 'server-rules-apache.txt';
+        $details = array(
+            'enabled'            => true,
+            'server_software'    => $server_software,
+            'pretty_permalinks'  => (bool) get_option('permalink_structure'),
+            'rules_file'         => $rules_file,
+            'rules_file_present' => is_file($rules_file),
+        );
+        if (!get_option('permalink_structure')) {
+            $issues[] = __('Directe cache vereist mooie permalinks; die staan nu uit.', 'ultracache-pro');
+        }
+        if ($is_nginx) {
+            $issues[] = __('Nginx serveert directe cache niet vanzelf: voeg de gegenereerde server-rules-nginx.conf toe aan je serverconfiguratie en herlaad Nginx.', 'ultracache-pro');
+        } elseif (!$is_apache) {
+            $issues[] = __('De serversoftware werd niet herkend als Apache/LiteSpeed. Controleer of de gegenereerde .htaccess-regels worden uitgevoerd.', 'ultracache-pro');
+        }
+        if (!is_file($rules_file)) {
+            $issues[] = __('Het bestand met serverregels is nog niet gegenereerd. Leeg en warm de cache opnieuw op om het aan te maken.', 'ultracache-pro');
+        }
+        return self::format_result(empty($issues) ? 'pass' : 'warning', $issues, $details);
+    }
+
+    protected static function test_headless_renderer_runtime() {
+        $enabled = (bool) UCP_Options::get('enable_headless_renderer');
+        if (!$enabled) {
+            return self::format_result('info', array(__('De headless render-bridge staat uit.', 'ultracache-pro')), array('enabled' => false));
+        }
+        $endpoint = trim((string) UCP_Options::get('headless_renderer_endpoint', ''));
+        $token    = (string) UCP_Options::get('headless_renderer_token', '');
+        $issues   = array();
+        $details  = array(
+            'enabled'             => true,
+            'endpoint_configured' => '' !== $endpoint,
+            'token_configured'    => '' !== $token,
+            'timeout'             => absint(UCP_Options::get('headless_renderer_timeout', 45)),
+            'bridge_available'    => class_exists('UCP_Render_Bridge'),
+            'css_delivery_mode'   => (string) UCP_Options::get('css_delivery_mode'),
+        );
+        if ('' === $endpoint) {
+            $issues[] = __('Er is nog geen endpoint-URL voor de render-bridge ingesteld.', 'ultracache-pro');
+        } elseif (!wp_http_validate_url($endpoint)) {
+            $issues[] = __('De endpoint-URL van de render-bridge is geen geldige URL.', 'ultracache-pro');
+        }
+        if ('' === $token) {
+            $issues[] = __('Er is nog geen gedeeld token voor de render-bridge ingesteld.', 'ultracache-pro');
+        }
+        if (!class_exists('UCP_Render_Bridge')) {
+            $issues[] = __('De render-bridge module kon niet worden geladen.', 'ultracache-pro');
+        }
+        return self::format_result(empty($issues) ? 'pass' : 'warning', $issues, $details);
     }
 
     protected static function format_result($status, $issues, $details) {

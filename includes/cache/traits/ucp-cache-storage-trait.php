@@ -6,6 +6,10 @@ if (!defined('ABSPATH')) {
 
 trait UCP_Cache_Storage_Trait {
     public function maybe_serve_cache() {
+        if (class_exists('UCP_LiteSpeed_Cache') && UCP_LiteSpeed_Cache::should_bypass_disk_page_cache()) {
+            return;
+        }
+
         if (!$this->can_cache_request()) {
             $this->maybe_send_cache_debug_header('bypass', $this->bypass_reason);
             return;
@@ -16,48 +20,109 @@ trait UCP_Cache_Storage_Trait {
             $modified = (int) filemtime($file);
             if (0 === $ttl || ($modified + $ttl) > time()) {
                 $remaining = $ttl > 0 ? max(0, ($modified + $ttl) - time()) : 31536000;
-                $etag = '"' . dechex($modified) . '"';
-                $last_modified_hdr = gmdate('D, d M Y H:i:s', $modified) . ' GMT';
-                // 304 Not Modified
-                $ifnm = isset($_SERVER['HTTP_IF_NONE_MATCH']) ? sanitize_text_field(wp_unslash($_SERVER['HTTP_IF_NONE_MATCH'])) : '';
-                $ifms = isset($_SERVER['HTTP_IF_MODIFIED_SINCE']) ? sanitize_text_field(wp_unslash($_SERVER['HTTP_IF_MODIFIED_SINCE'])) : '';
-                if (($ifnm && $ifnm === $etag) || ($ifms && strtotime($ifms) >= $modified)) {
-                    header('X-UltraCache: HIT-304');
-                    header('ETag: ' . $etag);
-                    header('Last-Modified: ' . $last_modified_hdr);
-                    header('Cache-Control: public, max-age=' . (int)$remaining . ', stale-while-revalidate=60, stale-if-error=3600');
-                    http_response_code(304);
-                    UCP_Diagnostics::record('cache', '304 Not Modified', array('file' => basename($file)));
-                    exit;
-                }
-                header('X-UltraCache: HIT');
-                header('Cache-Control: public, max-age=' . (int) $remaining . ', stale-while-revalidate=60, stale-if-error=3600');
-                header('ETag: ' . $etag);
-                header('Last-Modified: ' . $last_modified_hdr);
-                header('Vary: Accept-Encoding');
-                header('X-UltraCache-Age: ' . (int)(time() - $modified));
-                UCP_Diagnostics::record('cache', 'Served cached response', array('file' => basename($file)));
-                header('Content-Type: text/html; charset=' . get_bloginfo('charset'));
-                echo UCP_Helpers::read_file($file); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- cached HTML captured from WordPress output buffering.
-                exit;
+                $this->serve_cached_html_file($file, $modified, $remaining, 'HIT');
             }
 
             $stale_ttl = absint(UCP_Options::get('stale_cache_lifespan', 24)) * HOUR_IN_SECONDS;
             if (UCP_Options::get('enable_stale_cache') && $stale_ttl > 0 && ($modified + $ttl + $stale_ttl) > time()) {
                 $url = UCP_Helpers::current_full_url();
                 $this->queue_preload_url($url);
-                header('X-UltraCache: STALE');
-                header('Cache-Control: public, max-age=60, stale-while-revalidate=' . absint($stale_ttl));
                 header('Warning: 110 - "UltraCache served stale cache while revalidating"');
-                UCP_Diagnostics::record('cache', 'Served stale cached response and queued revalidation', array('file' => basename($file)));
-                header('Content-Type: text/html; charset=' . get_bloginfo('charset'));
-                echo UCP_Helpers::read_file($file); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- cached HTML captured from WordPress output buffering.
-                exit;
+                $this->serve_cached_html_file($file, $modified, 60, 'STALE', 'public, max-age=60, stale-while-revalidate=' . absint($stale_ttl));
             }
         }
     }
 
+    private function serve_cached_html_file($file, $modified, $remaining, $status = 'HIT', $cache_control = '') {
+        $file = (string) $file;
+        $size = is_file($file) ? filesize($file) : false;
+        if (false === $size || $size <= 0 || headers_sent()) {
+            return;
+        }
+
+        $etag = '"' . dechex((int) $modified) . '-' . dechex((int) $size) . '"';
+        $last_modified_hdr = gmdate('D, d M Y H:i:s', (int) $modified) . ' GMT';
+        $cache_control = '' !== (string) $cache_control ? (string) $cache_control : 'public, max-age=' . (int) $remaining . ', stale-while-revalidate=60, stale-if-error=3600';
+        $method = isset($_SERVER['REQUEST_METHOD']) ? strtoupper(sanitize_text_field(wp_unslash($_SERVER['REQUEST_METHOD']))) : 'GET';
+        $is_head = 'HEAD' === $method;
+
+        if ('STALE' !== $status && $this->request_etag_matches($etag, $modified)) {
+            header('X-UltraCache: HIT-304');
+            header('ETag: ' . $etag);
+            header('Last-Modified: ' . $last_modified_hdr);
+            header('Cache-Control: ' . $cache_control);
+            http_response_code(304);
+            UCP_Diagnostics::record('cache', '304 Not Modified', array('file' => basename($file)));
+            exit;
+        }
+
+        header('X-UltraCache: ' . $status);
+        header('Cache-Control: ' . $cache_control);
+        header('ETag: ' . $etag);
+        header('Last-Modified: ' . $last_modified_hdr);
+        header('Vary: Accept-Encoding');
+        header('X-UltraCache-Age: ' . (int)(time() - (int) $modified));
+        header('Content-Type: text/html; charset=' . get_bloginfo('charset'));
+
+        $accept_encoding = isset($_SERVER['HTTP_ACCEPT_ENCODING']) ? strtolower(sanitize_text_field(wp_unslash($_SERVER['HTTP_ACCEPT_ENCODING']))) : '';
+        $variant_file = '';
+        $variant_encoding = '';
+        if (false !== strpos($accept_encoding, 'br') && is_file($file . '.br') && is_readable($file . '.br')) {
+            $variant_file = $file . '.br';
+            $variant_encoding = 'br';
+        } elseif (false !== strpos($accept_encoding, 'gzip') && is_file($file . '.gz') && is_readable($file . '.gz')) {
+            $variant_file = $file . '.gz';
+            $variant_encoding = 'gzip';
+        }
+        if ('' !== $variant_file) {
+            $variant_size = filesize($variant_file);
+            if (false !== $variant_size && $variant_size > 0) {
+                header('Content-Encoding: ' . $variant_encoding);
+                header('Content-Length: ' . (int) $variant_size);
+                UCP_Diagnostics::record('cache', 'Served cached response', array('file' => basename($file), 'encoding' => $variant_encoding, 'path' => 'php_fallback'));
+                if (!$is_head) {
+                    readfile($variant_file); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped, WordPress.WP.AlternativeFunctions -- pre-compressed cached HTML streamed to the client.
+                }
+                exit;
+            }
+        }
+
+        // No on-the-fly compression on cache hits. .gz/.br variants are generated
+        // at cache-write time, so misses pay the compression cost once and hits stay cheap.
+
+        header('Content-Length: ' . (int) $size);
+        UCP_Diagnostics::record('cache', 'Served cached response', array('file' => basename($file), 'path' => 'php_fallback'));
+        if (!$is_head) {
+            readfile($file); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped, WordPress.WP.AlternativeFunctions -- cached HTML streamed to the client.
+        }
+        exit;
+    }
+
+    private function request_etag_matches($etag, $modified) {
+        $ifnm = isset($_SERVER['HTTP_IF_NONE_MATCH']) ? sanitize_text_field(wp_unslash($_SERVER['HTTP_IF_NONE_MATCH'])) : '';
+        if ('' !== $ifnm) {
+            if ('*' === trim($ifnm)) {
+                return true;
+            }
+            foreach (explode(',', $ifnm) as $candidate) {
+                $candidate = trim($candidate);
+                if (0 === strncmp($candidate, 'W/', 2)) {
+                    $candidate = substr($candidate, 2);
+                }
+                if ($candidate === $etag) {
+                    return true;
+                }
+            }
+        }
+        $ifms = isset($_SERVER['HTTP_IF_MODIFIED_SINCE']) ? sanitize_text_field(wp_unslash($_SERVER['HTTP_IF_MODIFIED_SINCE'])) : '';
+        return '' !== $ifms && strtotime($ifms) >= (int) $modified;
+    }
+
     public function start_buffering() {
+        if (class_exists('UCP_LiteSpeed_Cache') && UCP_LiteSpeed_Cache::should_bypass_disk_page_cache()) {
+            return;
+        }
+
         if (!$this->can_cache_request()) {
             $this->maybe_send_cache_debug_header('bypass', $this->bypass_reason);
             return;
@@ -115,6 +180,7 @@ trait UCP_Cache_Storage_Trait {
         $written = UCP_Helpers::write_file($cache_path, $html);
         if ($written) {
             $this->write_precompressed_cache_variants($cache_path, $html);
+            $this->write_direct_cache_mirror($current_url, $html);
         }
         if (!$written) {
             UCP_Diagnostics::record('cache', 'Failed writing cache file', array('url' => $current_url, 'path' => UCP_Helpers::cache_file_path($current_url)));
@@ -126,7 +192,8 @@ trait UCP_Cache_Storage_Trait {
         UCP_Diagnostics::record('cache', 'Stored fresh cache file', array('url' => $current_url, 'file' => basename($cache_path)));
         if (!headers_sent()) {
             header('X-UltraCache: MISS');
-            header('Cache-Control: public, max-age=' . (int) $ttl);
+            header('Cache-Control: public, max-age=' . (int) $ttl . ', stale-while-revalidate=60, stale-if-error=3600');
+            header('Vary: Accept-Encoding');
         }
         return $html;
     }
@@ -135,20 +202,79 @@ trait UCP_Cache_Storage_Trait {
     private function write_precompressed_cache_variants($path, $html) {
         $path = (string) $path;
         $html = (string) $html;
-        if (strlen($html) < 860 || '' === $path) {
+        if ('' === $path) {
             return;
         }
-        if (UCP_Options::get('enable_brotli_precompression') && function_exists('brotli_compress')) {
-            $br = @brotli_compress($html, 5);
-            if (false !== $br && '' !== $br) {
-                UCP_Helpers::write_file($path . '.br', $br);
-            }
+
+        $brotli_path = $path . '.br';
+        $gzip_path   = $path . '.gz';
+        $html_size   = strlen($html);
+        if ($html_size < 860) {
+            UCP_Helpers::safe_delete_file($brotli_path);
+            UCP_Helpers::safe_delete_file($gzip_path);
+            return;
         }
-        if (UCP_Options::get('enable_gzip_precompression') && function_exists('gzencode')) {
-            $gz = gzencode($html, 6);
-            if (false !== $gz && '' !== $gz) {
-                UCP_Helpers::write_file($path . '.gz', $gz);
+
+        // Pre-compression runs once at write time and is served many times, so use
+        // higher ratios than the former on-the-fly fallback. Filterable for hosts that
+        // write on live cache-misses and want to trade ratio for write latency.
+        $brotli_level = max(0, min(11, absint(apply_filters('ucp_brotli_precompression_level', 9))));
+        $gzip_level   = max(1, min(9, absint(apply_filters('ucp_gzip_precompression_level', 9))));
+
+        if (UCP_Options::get('enable_brotli_precompression') && function_exists('brotli_compress')) {
+            try {
+                $br = brotli_compress($html, $brotli_level);
+            } catch (\Throwable $e) {
+                $br = false;
+                UCP_Diagnostics::record('cache', 'Brotli precompression failed', array('error' => $e->getMessage()));
             }
+            if (is_string($br) && '' !== $br && strlen($br) < $html_size) {
+                if (!UCP_Helpers::write_file_atomic($brotli_path, $br)) {
+                    UCP_Diagnostics::record('cache', 'Failed writing Brotli cache variant', array('file' => basename($brotli_path)));
+                }
+            } else {
+                UCP_Helpers::safe_delete_file($brotli_path);
+            }
+        } else {
+            UCP_Helpers::safe_delete_file($brotli_path);
+        }
+
+        if (UCP_Options::get('enable_gzip_precompression') && function_exists('gzencode')) {
+            try {
+                $gz = gzencode($html, $gzip_level);
+            } catch (\Throwable $e) {
+                $gz = false;
+                UCP_Diagnostics::record('cache', 'Gzip precompression failed', array('error' => $e->getMessage()));
+            }
+            if (is_string($gz) && '' !== $gz && strlen($gz) < $html_size) {
+                if (!UCP_Helpers::write_file_atomic($gzip_path, $gz)) {
+                    UCP_Diagnostics::record('cache', 'Failed writing Gzip cache variant', array('file' => basename($gzip_path)));
+                }
+            } else {
+                UCP_Helpers::safe_delete_file($gzip_path);
+            }
+        } else {
+            UCP_Helpers::safe_delete_file($gzip_path);
+        }
+    }
+
+    private function write_direct_cache_mirror($url, $html) {
+        if (!is_string($html) || '' === trim($html)) {
+            return;
+        }
+        if ('guest' !== UCP_Helpers::user_state_suffix()) {
+            return;
+        }
+        $parts = wp_parse_url((string) $url);
+        if (!empty($parts['query'])) {
+            return;
+        }
+        $path = UCP_Helpers::direct_cache_file_path($url);
+        if ('' === $path) {
+            return;
+        }
+        if (UCP_Helpers::write_file($path, $html)) {
+            $this->write_precompressed_cache_variants($path, $html);
         }
     }
 

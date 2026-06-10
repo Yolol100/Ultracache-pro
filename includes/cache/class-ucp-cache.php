@@ -94,8 +94,13 @@ class UCP_Cache {
         add_action('elementor/document/after_save', array($this, 'purge_on_elementor_document_save'), 20, 2);
         add_action('elementor/editor/after_save', array($this, 'purge_on_elementor_editor_save'), 20, 2);
         $woocommerce_events = apply_filters('ucp_purge_woocommerce_events', array(
+            'woocommerce_new_product' => array('callback' => 'purge_on_woocommerce_product', 'args' => 1),
             'woocommerce_update_product' => array('callback' => 'purge_on_woocommerce_product', 'args' => 1),
+            'woocommerce_delete_product_transients' => array('callback' => 'purge_on_woocommerce_product', 'args' => 1),
+            'woocommerce_new_product_variation' => array('callback' => 'purge_on_woocommerce_product', 'args' => 1),
             'woocommerce_update_product_variation' => array('callback' => 'purge_on_woocommerce_product', 'args' => 1),
+            'woocommerce_product_import_inserted_product_object' => array('callback' => 'purge_on_woocommerce_product_object', 'args' => 2),
+            'woocommerce_product_object_updated_props' => array('callback' => 'purge_on_woocommerce_product_object', 'args' => 2),
             'woocommerce_product_set_stock' => array('callback' => 'purge_on_woocommerce_stock_change', 'args' => 1),
             'woocommerce_variation_set_stock' => array('callback' => 'purge_on_woocommerce_stock_change', 'args' => 1),
             'woocommerce_new_order' => array('callback' => 'purge_on_woocommerce_order_change', 'args' => 1),

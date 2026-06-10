@@ -43,6 +43,7 @@ class UCP_PageSpeed_Browser_Scan {
             'early_scripts' => self::sanitize_resources(isset($payload['earlyScripts']) ? $payload['earlyScripts'] : array(), 120),
             'delay_candidates' => self::sanitize_resources(isset($payload['delayCandidates']) ? $payload['delayCandidates'] : array(), 120),
             'css_candidates' => self::sanitize_resources(isset($payload['cssCandidates']) ? $payload['cssCandidates'] : array(), 80),
+            'below_fold_selectors' => self::sanitize_selectors(isset($payload['belowFoldSelectors']) ? $payload['belowFoldSelectors'] : (isset($payload['lazyRenderSelectors']) ? $payload['lazyRenderSelectors'] : array()), 24),
             'resource_timing' => self::sanitize_resource_timing(isset($payload['resourceTiming']) ? $payload['resourceTiming'] : array(), 160),
             'recommendations' => self::sanitize_recommendations(isset($payload['recommendations']) ? $payload['recommendations'] : array()),
             'source'     => 'admin_browser',
@@ -76,6 +77,7 @@ class UCP_PageSpeed_Browser_Scan {
                 'third_party' => count($scan['third_party']),
                 'render_blocking_stylesheets' => count($scan['render_blocking_stylesheets']),
                 'delay_candidates' => count($scan['delay_candidates']),
+                'below_fold_selectors' => count($scan['below_fold_selectors']),
                 'auto_applied' => implode(',', $applied),
             ));
         }
@@ -206,7 +208,7 @@ class UCP_PageSpeed_Browser_Scan {
      */
     public static function lcp_hint_for_current_request() {
         $scan = self::scan_for_current_request();
-        if (empty($scan['lcp']['url']) || empty($scan['url'])) {
+        if (empty($scan['lcp']) || !is_array($scan['lcp']) || empty($scan['url'])) {
             return array();
         }
         $current = self::current_url_without_query();
@@ -214,17 +216,18 @@ class UCP_PageSpeed_Browser_Scan {
         if (!self::urls_match_request($current, $scanned)) {
             return array();
         }
-        $url = UCP_Helpers::strict_local_url((string) $scan['lcp']['url']);
-        if ('' === $url) {
+        $type = isset($scan['lcp']['type']) ? sanitize_key((string) $scan['lcp']['type']) : (!empty($scan['lcp']['background']) ? 'background-image' : 'image');
+        $url = !empty($scan['lcp']['url']) ? UCP_Helpers::strict_local_url((string) $scan['lcp']['url']) : '';
+        if ('' === $url && 'text' !== $type) {
             return array();
         }
         return array(
-            'url' => esc_url_raw($url),
+            'url' => '' !== $url ? esc_url_raw($url) : '',
             'background' => !empty($scan['lcp']['background']),
             'score' => isset($scan['lcp']['score']) ? absint($scan['lcp']['score']) : 0,
             'srcset' => isset($scan['lcp']['srcset']) ? sanitize_textarea_field((string) $scan['lcp']['srcset']) : '',
             'sizes' => isset($scan['lcp']['sizes']) ? substr(sanitize_text_field((string) $scan['lcp']['sizes']), 0, 240) : '',
-            'type' => isset($scan['lcp']['type']) ? sanitize_key((string) $scan['lcp']['type']) : (!empty($scan['lcp']['background']) ? 'background-image' : 'image'),
+            'type' => $type,
             'source' => 'browser_scan',
         );
     }
@@ -252,6 +255,22 @@ class UCP_PageSpeed_Browser_Scan {
     }
 
     /**
+     * Return safe below-fold selectors from the current URL browser scan.
+     *
+     * @return string[]
+     */
+    public static function lazy_render_selectors_for_current_request() {
+        if (self::current_request_is_sensitive()) {
+            return array();
+        }
+        $scan = self::scan_for_current_request();
+        if (empty($scan['below_fold_selectors']) || !is_array($scan['below_fold_selectors'])) {
+            return array();
+        }
+        return array_values(array_unique(array_filter(array_map('strval', $scan['below_fold_selectors']), 'strlen')));
+    }
+
+    /**
      * Summarize scan data for diagnostics/admin output.
      *
      * @return array<string,mixed>
@@ -270,6 +289,7 @@ class UCP_PageSpeed_Browser_Scan {
             'early_scripts' => isset($scan['early_scripts']) && is_array($scan['early_scripts']) ? count($scan['early_scripts']) : 0,
             'delay_candidates' => isset($scan['delay_candidates']) && is_array($scan['delay_candidates']) ? count($scan['delay_candidates']) : 0,
             'third_party' => isset($scan['third_party']) && is_array($scan['third_party']) ? count($scan['third_party']) : 0,
+            'below_fold_selectors' => isset($scan['below_fold_selectors']) && is_array($scan['below_fold_selectors']) ? count($scan['below_fold_selectors']) : 0,
             'recommendations' => isset($scan['recommendations']) && is_array($scan['recommendations']) ? $scan['recommendations'] : array(),
         );
     }
@@ -386,6 +406,10 @@ class UCP_PageSpeed_Browser_Scan {
 
     protected static function sanitize_resources($items, $limit) {
         return UCP_PageSpeed_Browser_Scan_Sanitizer::resources($items, $limit);
+    }
+
+    protected static function sanitize_selectors($items, $limit) {
+        return UCP_PageSpeed_Browser_Scan_Sanitizer::selectors($items, $limit);
     }
 
     protected static function sanitize_resource_timing($items, $limit) {

@@ -1,0 +1,32 @@
+[
+  {
+    "id": "wordpress-core",
+    "match": ["wp-site-blocks", "wp-block", "wp-custom-logo"],
+    "css": "html{line-height:1.15;-webkit-text-size-adjust:100%}body{margin:0}img,svg,video{max-width:100%;height:auto}a{background-color:transparent}.screen-reader-text{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}"
+  },
+  {
+    "id": "elementor",
+    "match": ["elementor-", "elementor-section", "elementor-widget", "data-elementor-type"],
+    "css": ".elementor-section{position:relative}.elementor-container{display:flex;margin-right:auto;margin-left:auto;position:relative}.elementor-column{position:relative;min-height:1px;display:flex}.elementor-widget-wrap{position:relative;width:100%;flex-wrap:wrap;align-content:flex-start}.elementor-widget{position:relative}.elementor img{height:auto;max-width:100%;border:none;border-radius:0;box-shadow:none}@media(max-width:767px){.elementor-column{width:100%}}"
+  },
+  {
+    "id": "woocommerce",
+    "match": ["woocommerce", "products columns", "single-product", "woocommerce-page"],
+    "css": ".woocommerce img{height:auto;max-width:100%}.woocommerce .products{display:flex;flex-wrap:wrap;gap:var(--wp--style--block-gap,1.5rem);list-style:none;padding:0}.woocommerce .product{position:relative}.woocommerce .price{display:block}.woocommerce button.button,.woocommerce a.button{display:inline-block;text-decoration:none}.woocommerce-message,.woocommerce-info,.woocommerce-error{margin:0 0 1rem;padding:1rem}"
+  },
+  {
+    "id": "divi",
+    "match": ["et_pb_", "et-l", "et_builder_inner_content"],
+    "css": ".et_pb_section{position:relative;background-position:50%;background-size:cover}.et_pb_row{width:80%;max-width:1080px;margin:auto;position:relative}.et_pb_column{float:left;position:relative;z-index:2;min-height:1px}.et_pb_module{position:relative;background-size:cover;background-position:50%}.et_pb_image img{max-width:100%;height:auto}@media(max-width:980px){.et_pb_column{width:100%;margin-bottom:30px}}"
+  },
+  {
+    "id": "bricks",
+    "match": ["brxe-", "bricks-site-wrapper", "bricks-is-frontend"],
+    "css": ".brxe-section{width:100%;position:relative}.brxe-container{width:1100px;max-width:100%;margin-left:auto;margin-right:auto}.brxe-block{display:flex;flex-direction:column}.brxe-image img{max-width:100%;height:auto}.bricks-button{display:inline-flex;align-items:center;justify-content:center;text-decoration:none}"
+  },
+  {
+    "id": "generatepress",
+    "match": ["generatepress", "site-header", "inside-header", "grid-container"],
+    "css": ".grid-container{max-width:1200px;margin-left:auto;margin-right:auto}.site-header{position:relative}.inside-header{display:flex;align-items:center}.main-navigation ul{list-style:none;margin:0;padding-left:0}.main-navigation li{position:relative}.site-content{word-wrap:break-word}.featured-image img,.post-image img{height:auto;max-width:100%}"
+  }
+]

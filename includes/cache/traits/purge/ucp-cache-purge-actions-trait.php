@@ -39,7 +39,9 @@ trait UCP_Cache_Purge_Actions_Trait {
         UCP_Helpers::safe_glob_delete(UCP_CACHE_DIR . 'pages/*.html');
         UCP_Helpers::safe_glob_delete(UCP_CACHE_DIR . 'pages/*.html.gz');
         UCP_Helpers::safe_glob_delete(UCP_CACHE_DIR . 'pages/*.html.br');
+        UCP_Helpers::safe_delete_cache_dir_contents(UCP_CACHE_DIR . 'pages-direct/');
         UCP_Helpers::safe_glob_delete(UCP_CACHE_DIR . 'used-css/*.css');
+        UCP_Helpers::safe_glob_delete(UCP_CACHE_DIR . 'used-css-served/*.css');
         UCP_Helpers::safe_glob_delete(UCP_CACHE_DIR . 'critical-css/*.css');
         UCP_Helpers::safe_glob_delete(UCP_CACHE_DIR . 'diagnostics/*.json');
         if (class_exists('UCP_Cache_Tags') && UCP_Cache_Tags::enabled()) {
@@ -67,6 +69,7 @@ trait UCP_Cache_Purge_Actions_Trait {
         if (class_exists('UCP_Jobs') && UCP_Options::get('enable_cloudflare_apo_mode')) {
             UCP_Jobs::enqueue_unique('cloudflare_purge_url', array('url' => $url), 1, 'cloudflare');
         }
+        do_action('ucp_cache_purged_url', $url);
         self::queue_cache_toast(__('Cache voor deze pagina is geleegd.', 'ultracache-pro'));
     }
 }

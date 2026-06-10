@@ -74,12 +74,8 @@ trait UCP_Assets_Combine_Trait {
                             continue;
                         }
                         $css = preg_replace_callback('/url\((["\']?)(?!data:|https?:|\/)([^)"\']+)\1\)/i', function ($matches) use ($path) {
-                            $file = dirname($path) . '/' . ltrim($matches[2], '/');
-                            if (file_exists($file)) {
-                                $relative = str_replace(WP_CONTENT_DIR, '', $file);
-                                return 'url(' . content_url($relative) . ')';
-                            }
-                            return $matches[0];
+                            $resolved = $this->rewrite_relative_css_url($path, $matches[2]);
+                            return '' !== $resolved ? $resolved : $matches[0];
                         }, $css);
                         $contents .= "\n" . $css;
                     }

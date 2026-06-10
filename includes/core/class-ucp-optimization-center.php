@@ -62,7 +62,6 @@ class UCP_Optimization_Center {
                 'lifecycle' => $lifecycle,
                 'engines' => self::engines($settings),
                 'artifacts' => self::artifacts(),
-                'scriptManager' => self::script_manager($settings),
                 'guardrails' => self::guardrails($settings),
                 'nextActions' => self::next_actions($settings),
             ),
@@ -140,7 +139,7 @@ class UCP_Optimization_Center {
     }
 
     /**
-     * Existing CSS artifact status mapped for center UI.
+     * Existing CSS cache-file status mapped for the center UI.
      *
      * @return array
      */
@@ -164,7 +163,7 @@ class UCP_Optimization_Center {
     }
 
     /**
-     * Determine artifact state for a feature.
+     * Determine cache-file state for a feature.
      *
      * @param string $kind Artifact kind.
      * @return string
@@ -185,7 +184,7 @@ class UCP_Optimization_Center {
     }
 
     /**
-     * Normalize CSS artifact status into center states.
+     * Normalize CSS cache-file status into center states.
      *
      * @param string $status Raw status.
      * @return string
@@ -208,30 +207,7 @@ class UCP_Optimization_Center {
     }
 
     /**
-     * Script Manager rule summary.
-     *
-     * @param array $settings Settings.
-     * @return array
-     */
-    protected static function script_manager($settings) {
-        $fields = array('disabled_style_handles', 'disabled_script_handles', 'conditional_style_unloads', 'conditional_script_unloads', 'advanced_asset_rules');
-        $out = array('total' => 0, 'fields' => array(), 'supports' => array('global_handles', 'conditional_rules', 'advanced_rules', 'testing_mode_preview'));
-        foreach ($fields as $field) {
-            $raw = isset($settings[$field]) ? $settings[$field] : '';
-            $count = 0;
-            if (is_string($raw)) {
-                $count = count(array_filter(array_map('trim', preg_split('/\r\n|\r|\n/', $raw))));
-            } elseif (is_array($raw)) {
-                $count = count(array_filter($raw));
-            }
-            $out['fields'][$field] = $count;
-            $out['total'] += $count;
-        }
-        return $out;
-    }
-
-    /**
-     * Human guardrail list.
+     * Safety guardrail list.
      *
      * @param array $settings Settings.
      * @return array

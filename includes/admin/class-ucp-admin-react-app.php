@@ -80,6 +80,7 @@ class UCP_Admin_React_App {
                 'pluginName' => __('UltraCache Pro', 'ultracache-pro'),
                 'caps'       => array('manageOptions' => current_user_can('manage_options')),
                 'logDownloadUrl' => class_exists('UCP_Log_Package') ? UCP_Log_Package::download_url() : '',
+                'managedSettingKeys' => class_exists('UCP_Options') && method_exists('UCP_Options', 'automatic_managed_keys') ? UCP_Options::automatic_managed_keys() : array(),
             )) . ';',
             'before'
         );

@@ -4,7 +4,7 @@ Tags: cache, performance, core web vitals, critical css, used css
 Requires at least: 6.3
 Tested up to: 6.9
 Requires PHP: 8.0
-Stable tag: 11.0.39
+Stable tag: 11.4.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -70,11 +70,107 @@ UltraCache Pro may store cache metadata, diagnostic records, Core Web Vitals sam
 
 == Changelog ==
 
+= 11.4.0 =
+* Nieuw: optionele fouttolerante HTML-parser-engine voor afbeelding- en iframe-passes (standaard uit). Verwerkt markup binnen `<script>`, `<style>`, `<textarea>` en comments correct en breekt niet op `>` binnen attribuutwaarden. Valt automatisch terug op de bestaande methode bij twijfel. Test op staging.
+
+= 11.3.0 =
+* Nieuw: hosting-cache mee legen (standaard uit). UltraCache-purges kunnen nu ook de servercache van bekende managed hosts legen (WP Engine, SiteGround, SpinupWP, Nginx FastCGI via Nginx Helper, Pantheon), met uitbreidingshooks voor overige stacks.
+
+= 11.2.7 =
+* Fix: de instellingen-sanitizer zet `enable_async_image_optimization` en `enable_viewport_images` niet langer geforceerd aan bij een gedeeltelijke opslag of import; een bewust uitgezette optie blijft nu uit. Nieuwe installaties houden de standaard ingeschakeld.
+* Fix: HEAD-requests adverteren nu de juiste `Content-Encoding` wanneer een GET gecomprimeerd zou worden, in plaats van de ongecomprimeerde lengte.
+* Fix: ontbrekend text-domain op enkele admin-teksten, zodat ze vertaalbaar zijn.
+* Build: de geminificeerde admin-bundles worden uit de bron gebouwd via een vaste build-stap, zodat bron en bundle niet meer uit elkaar kunnen lopen.
+
+= 11.2.5 =
+* Hotfix: Speculative Loading `off` bootstrapt nu ook de optimizer op de frontend, zodat UltraCache op WordPress 6.8+ de Core-configuratiefilter kan registreren en Core Speculative Loading daadwerkelijk kan uitschakelen voor de request.
+
+= 11.2.4 =
+* Refactor: Speculative Loading heeft nu een Core-aware policy: Core standaard volgen, UltraCache veilig versterken, Prerender op staging, of volledig uitschakelen. Op WordPress 6.8+ kan UltraCache Core Speculative Loading nu ook expliciet uitschakelen via de Core-configuratiefilter; eigen speculationrules-output blijft alleen fallback voor oudere WordPress-versies.
+* Refactor: CWV fielddata gebruikt nu een bounded histogram zodat samples, p75 en gemiddelde consistent uit dezelfde begrensde dataset komen.
+* Refactor: de job runner wordt expliciet geactiveerd door alle job-producerende features, inclusief async image optimization, LQIP, lokale media, headless renderer en compat-updates.
+* Migratie: hidden technische defaults voor async image optimization, VPI en Used CSS auto-refresh worden bij bestaande installaties genormaliseerd.
+* Cleanup: de admin-resetactie heet nu `clear-cwv-fielddata`; `clear-rum` blijft alleen als backward-compatible alias.
+* Cleanup: verwarrende RUM/Speculative Loading labels en comments zijn opgeschoond.
+
+= 11.2.3 =
+* Cleanup: RUM is samengevoegd met de bestaande Core Web Vitals-monitoring. De aparte `UCP_RUM`-klasse en `/rum`-endpoint zijn verwijderd; het dashboard gebruikt nu `UCP_CWV::get_summary()` op de bestaande `/cwv` collector. `enable_rum` blijft alleen als legacy-alias bestaan en schakelt `enable_cwv_monitoring` in bij import/WP-CLI.
+* Cleanup: Speculative Loading gebruikt op WordPress 6.8+ Core-filters voor mode/eagerness/exclusions en print de eigen speculationrules alleen nog als fallback op oudere WordPress-versies.
+* Admin cleanup: technische opties voor async image-queue, VPI en Used CSS auto-refresh zijn uit de normale UI gehaald. Async image-queue en VPI staan standaard aan; VPI blijft alleen precies wanneer de headless-renderer actief is.
+* Admin cleanup: de dashboardkaart en resetactie zijn herlabeld naar CWV/RUM-fielddata, zodat duidelijk is dat dit de bestaande CWV-collector gebruikt.
+
+= 11.2.2 =
+* Nieuw (admin): dashboardkaart voor lokale CWV/RUM-fielddata met p75/gemiddelde/samples per metric en device, gevoed door de bestaande CWV-collector.
+* Nieuw (admin): zichtbare controls voor headless renderer, image-CDN, ESI, CDN-provider purge, compat-updates, LQIP, CWV-monitoring en lokale Gravatar/YouTube-thumbnails. Technische subopties voor VPI, async image-queue en Used CSS auto-refresh zijn in 11.2.3 weer uit de normale UI gehaald.
+* Fix (RUM): CLS-gemiddelde wordt nu in dezelfde CLS-eenheid getoond als p75 in plaats van de intern opgeslagen x1000-bucketwaarde.
+* Verbetering: admin-status toont VPI-precisie expliciet; precieze VPI-detectie vereist de headless-renderer, anders blijft de leading-image-heuristiek de fallback.
+* Nieuw (admin): CWV/RUM-fielddata kan via een beveiligde admin REST-actie worden gereset zonder instellingen te wijzigen.
+
+= 11.2.1 =
+* Fix: verwijderde een dubbele speculative-loading-implementatie. Speculative loading bestond al (`enable_speculative_loading` met `speculation_mode`/`speculation_eagerness`/`speculation_exclusions`); de in 11.2.0 toegevoegde parallelle module vuurde op dezelfde optie en is verwijderd, inclusief de dubbele optie-default.
+* Fix (admin): alle nieuwe opties van 11.1.0–11.2.0 (headless renderer, image-CDN, ESI, CDN-provider, compat-updates, LQIP, RUM, viewport-images, lokale Gravatar/YouTube) zijn toegevoegd aan de instellingen-sanitizer met bijbehorende validatie/clamps, zodat ze via de REST-instellingen, import/export en `UCP_Options::update()` correct bewaard blijven in plaats van bij opslaan te worden gestript.
+
+= 11.2.0 =
+* Nieuw (default-off): LQIP — low-quality image placeholders. Berekent lokaal een dominante kleur per afbeelding (achtergrond-queue, job `lqip_generate`) en toont die als placeholder achter lazy-loaded afbeeldingen. Optie: `enable_lqip`.
+* Nieuw (default-off): lokale Core Web Vitals fielddata (LCP/INP/CLS/FCP/TTFB) via de bestaande `/cwv` beacon met p75 per device. Privacy-vriendelijk en gesampled. Optie: `enable_cwv_monitoring`; `enable_rum` is vanaf 11.2.3 alleen nog een legacy-alias.
+* Nieuw: Viewport-image-detectie (VPI) is een automatische detectielaag. Precieze data komt uit de headless-renderer of de `ucp_viewport_images`-filter; zonder data blijft de bestaande leading-image-heuristiek leidend.
+* Nieuw (default-off): Gravatar- en YouTube-thumbnails lokaal hosten (achtergrond-fetch, job `localize_remote_asset`) om externe requests te elimineren. Opties: `enable_local_gravatar`, `enable_local_youtube_thumbnails`.
+* Verbetering: nieuwe `ucp_image_is_viewport_image`-filter in de media-optimizer en een `ucp_render_result`-actie na een headless render.
+
+= 11.1.1 =
+* Refactor (geen gedragswijziging voor bestaande sites): één gedeelde SSRF-veilige URL-validator (`UCP_Helpers::validate_public_https_url()`, incl. DNS-resolutie) vervangt vier losse kopieën in cloud, headless-renderer, CDN-purge en compat-overlay; de asset-CDN-host-check deelt nu dezelfde resolver (nu ook met IPv6-dekking).
+* Refactor: image-CDN-rewriting is samengevoegd met de `<picture>`-stap tot één media-pass over de HTML-buffer. Dit lost een inconsistentie op waarbij `<source>`-URLs lokaal bleven terwijl de `<img>`-fallback naar de CDN wees.
+* Refactor: gedeelde uploads-URL↔pad-helpers en één compat-JSON-reader (dubbele lees/cache-logica verwijderd); gemeenschappelijke `wp_remote_*`-defaults via `UCP_Helpers::default_remote_args()`.
+
+= 11.1.0 =
+* Nieuw (default-off): Headless render bridge — koppel een echte browser-renderer (self-hosted Puppeteer/Playwright, browserless of de UltraCache-cloud) aan `enable_headless_renderer`. Levert browser-geverifieerde Used/Critical CSS en autoriseert pas dán veilige stylesheet-verwijdering via `ucp_css_profile_external_result`. Nieuwe queue-job `headless_css`.
+* Nieuw (default-off): Asynchrone beeldoptimalisatie (`enable_async_image_optimization`) verplaatst WebP/AVIF-generatie naar de achtergrond-queue (`image_optimize`) i.p.v. synchroon bij upload. Optionele image-CDN delivery (`enable_image_cdn`) met width-descriptors voor device-passende afbeeldingen.
+* Nieuw (default-off): Server-agnostische ESI-achtige fragment hole-punching (`enable_esi`) — punch cart/account/gepersonaliseerde regio's uit gedeelde gecachte HTML op elke server; één gebatchte client-side hydratie. Registreer fragmenten via `UCP_ESI::register()` / `ucp_esi_fragments` of `[ucp_esi id="..."]`.
+* Nieuw (default-off): Multi-provider CDN-purge (`cdn_provider`: cloudflare/bunny/generic) gekoppeld aan de bestaande purge-events, zodat pull-zone/full-site CDN's mee leeglopen bij een flush.
+* Nieuw (default-off): Remote-updatebare compatibiliteitslijsten (`enable_compat_updates`) mergen een gevalideerde overlay over de gebundelde compat/*.json, plus automatische Used CSS-verversing op interval (`used_css_auto_refresh_days`, standaard 30).
+* Nieuw: Veilige auto-pilot bij eerste run zet alleen render-veilige optimalisaties aan (cache, lazyload, afbeeldingsdimensies, browser-cache headers, heartbeat); CSS/JS-render-opties blijven opt-in. Uitschakelbaar via `UCP_DISABLE_AUTOPILOT` of `ucp_enable_safe_autopilot`.
+
+
+= 11.0.53 =
+* Release cleanup: aligned plugin and readme version metadata.
+* Release cleanup: clarified optional Composer libraries and fallback behaviour.
+* Release cleanup: rechecked PHP, JSON, JavaScript and zip integrity.
+
+= 11.0.52 =
+* Diagnostics cleanup: removed a spoofable LiteSpeed request-header hint and rechecked the build.
+
+= 11.0.51 =
+* Hardened cache-conflict detection so visitor-spoofable HTTP cache headers no longer trigger server-cache warnings.
+* Re-ran the full CSS/JS/PHP/package audit pipeline after the 11.0.50 cleanup.
+
+= 11.0.50 =
+* Merged the cleaned admin CSS/JS system into the uploaded 11.0.47 package.
+* Overwrote the bundled admin CSS/JS asset files with the deduplicated token-based files.
+* Revalidated CSS scope, duplicate rule blocks, !important usage, JavaScript syntax, PHP linting and package integrity.
+
+= 11.0.47 =
+* Design/admin cleanup: late CSS overrides deduplicated and replaced with one scoped shell guard without forced late override rules.
+* Admin navigation, settings grid, cards and asset-manager overflow handling stay scoped to the UltraCache React page.
+* Rebuilt minified admin CSS so production and debug assets match.
+
+= 11.0.45 =
+* LiteSpeed backend werkt nu expliciet server-detectie-first: de plugin hoeft geen Hostinger-knop te bedienen en schakelt automatisch naar LSCache headers zodra LiteSpeed/OpenLiteSpeed wordt gedetecteerd.
+* Diagnostische header aangepast naar `X-UltraCache-LiteSpeed-Bridge: auto-detected`.
+
+= 11.0.44 =
+* Verbetering voor de automatische LiteSpeed-backend: consistente backend-resolutie, extra Hostinger/LSCache detectie, chunked URL-purge en minder valse server-cache conflictmeldingen.
+
+= 11.0.41 =
+* Nieuw: automatische cache-backend switch. Op LiteSpeed/OpenLiteSpeed gebruikt UltraCache LSCache-responseheaders voor publieke guest page-cache; op gewone servers blijft de bestaande UltraCache disk-cache actief.
+* Nieuw: LiteSpeed purge bridge voor purge-all, purge-url en batch-purge via bestaande UltraCache purge-acties.
+* Veiligheid: ingelogde/private/checkout/cookie-gevoelige responses blijven fail-closed en worden niet publiek door LiteSpeed gecachet.
+* Fix: eigen advanced-cache.php drop-in wordt bij upgrades nu ververst wanneer UltraCache eigenaar is, zodat oude disk-cache drop-ins niet actief blijven in LiteSpeed-modus.
+
 = 11.0.39 =
 * Fixed internal UCP_VERSION mismatch so cache keys, migrations and asset versions match the release header.
 * Hardened automatic advanced-cache installation so drop-in writes remain disabled unless explicitly allowed by an admin action/setting.
 * Added stricter Cloudflare API request validation for zone IDs and supported endpoint paths.
-* Refreshed release metadata after the second static hardening pass.
+* Refreshed release metadata after static checks.
 
 = 11.0.37 =
 * Tweak: LCP-detectie scant het document nog maar één keer — de aparte <img>- en alle-tags-passes in detect_lcp_image_candidate() zijn samengevoegd tot één tag-walk.
@@ -83,7 +179,6 @@ UltraCache Pro may store cache metadata, diagnostic records, Core Web Vitals sam
 = 11.0.36 =
 * Nieuw (default-off): Edge HTML cache — echte shared-cache directives (s-maxage, CDN-Cache-Control, Cloudflare-CDN-Cache-Control, stale-while-revalidate/stale-if-error) plus Cache-Tag headers, fail-closed voor ingelogde/cart/checkout/account/preview.
 * Nieuw: meegeleverde Cloudflare Worker en docs voor volledige edge-HTML-caching op elk Cloudflare-plan; UCP_Edge::cloudflare_purge_tags() voor tag-purge.
-* Nieuw (default-off): per-pagina Script Manager — native Gutenberg-documentpaneel om afzonderlijke scripts/stijlen per pagina uit te schakelen, gegroepeerd per plugin/thema, met read-only inventory-endpoint.
 * Tweak: native toggles toegevoegd aan de React-admin (Cloudflare/Edge + Asset Manager); editorpaneel op @wordpress/components.
 * Note: beide features zijn opt-in; geen gedragswijziging op bestaande installs. Inclusief de classmap-opschoning uit 11.0.35.
 
@@ -130,11 +225,11 @@ UltraCache Pro may store cache metadata, diagnostic records, Core Web Vitals sam
 
 
 = 11.0.25 =
-* Bugfix privacy hardening: plain-text helper logs and REST log rows now redact URL queries, emails, IPs and common secret/payment/order tokens before admin display or storage.
+* Privacy fix: plain-text helper logs and REST log rows now redact URL queries, emails, IPs and common secret/payment/order tokens before admin display or storage.
 * No cache, WooCommerce, asset, CSS, LCP or admin UI behavior changes.
 
 = 11.0.24 =
-* Runtime acceptance privacy hardening: diagnostics and log-package redaction now redact WooCommerce/order, customer, payment, cart, checkout and session-related context keys.
+* Runtime privacy fix: diagnostics and log-package redaction now redact WooCommerce/order, customer, payment, cart, checkout and session-related context keys.
 * No feature behavior changes; staging runtime testing remains required for browser, WooCommerce and payment flows.
 
 = 11.0.23 =
@@ -215,19 +310,19 @@ UltraCache Pro may store cache metadata, diagnostic records, Core Web Vitals sam
 * Scoped React admin navigation CSS to the React admin wrapper only.
 * Removed React-only selectors from the classic admin design-system stylesheet.
 * Kept page override editor styling in its dedicated scoped stylesheet.
-* Regenerated the translation template (`languages/ultracache-pro.pot`) to cover all PHP and JavaScript admin strings.
+* Rebuilt the translation template (`languages/ultracache-pro.pot`) to cover all PHP and JavaScript admin strings.
 * Added minified asset variants for the React admin bundle, design-system CSS and core/tab admin scripts; the plugin now serves `.min` files automatically when `SCRIPT_DEBUG` is off.
 * Added weak/list ETag handling and 304 responses for cached HTML in the advanced-cache drop-in.
 * No runtime cache, CSS optimization, JS optimization, lazyload, preload, WooCommerce, REST, fragment or settings logic was removed.
 
 = 10.12.1 =
-* Restored visibility of important compatibility settings that disappeared from the classic and React UI after the Developer reorganization.
-* Kept `cache_logged_in`, `enable_object_cache_support` and `enable_woocommerce_rules` available under Developer > Compatibility.
+* Restored visibility of important compatibility settings in the classic and React UI after the admin reorganization.
+* Kept `cache_logged_in`, `enable_object_cache_support` and `enable_woocommerce_rules` available under Compatibility.
 * Added a separate, scoped CSS asset for the page exclusions meta box so no inline styling is needed and the post editor layout stays intact.
-* Preserved the central design tokens and avoided global CSS hacks, `!important` overrides and broad admin selectors.
+* Preserved the central design tokens and avoided global CSS hacks, forced late overrides and broad admin selectors.
 
 = 10.12 =
-* Moved Developer cache settings out of the regular advanced rules and into a dedicated Developer section.
+* Reorganized cache compatibility settings outside the regular advanced rules.
 * Tightened the builder-safe layer for Elementor, Bricks, Oxygen, Breakdance, Divi, Beaver Builder, WPBakery, Flatsome UX Builder and SiteOrigin editor/preview flows.
 * Frontend optimizations now skip builder previews and transactional WooCommerce flows through the same central safety layer.
 * React admin and classic admin share the same design tokens; global CSS hiding and hard override rules have been cleaned up.
@@ -277,8 +372,8 @@ UltraCache Pro may store cache metadata, diagnostic records, Core Web Vitals sam
 
 
 = 4.21.76 =
-* Added staging safety hardening for WooCommerce cache bypasses, builder preview bypasses, REST settings import confirmation, and advanced-cache.php ownership protection.
-* Added release hardening for packaged installs, explicit import/database cleanup confirmations, CWV daily sample caps, and admin audit logging for high-impact actions.
+* Added staging safety checks for WooCommerce cache bypasses, builder preview bypasses, REST settings import confirmation, and advanced-cache.php ownership protection.
+* Added release safeguards for packaged installs, explicit import/database cleanup confirmations, CWV daily sample caps, and admin audit logging for high-impact actions.
 * Hardened Core Web Vitals collection with same-origin beacon token, local URL validation and retained rate limiting.
 * Made Google Fonts localization non-blocking on first uncached frontend renders by scheduling cache refreshes instead of fetching during page output.
 * Hardened preload and Cloudflare remote requests with stricter redirect and unsafe URL handling.
@@ -403,4 +498,4 @@ UltraCache Pro can connect to third-party services only when an administrator ex
 * When: only when an administrator with the required capability downloads the package.
 
 = Premium modules added =
-UltraCache Pro includes optional premium modules for WebP/AVIF image variants, Google Fonts localization, link preload/speculation, REST API caching, fragment cache helper API, object-cache detection, and lightweight Core Web Vitals monitoring. Enable these modules gradually and test dynamic pages such as checkout, account, forms and dashboards.
+UltraCache Pro includes optional premium modules for WebP/AVIF image variants, Google Fonts localization, link preload/speculation, REST API caching, fragment cache helper API, object-cache detection, and lightweight Core Web Vitals monitoring. Enable these modules gradually and test dynamic pages such as checkout, account, forms and dashboards. Use strict cookie mode on membership, portal, custom-session or heavily personalized sites. A cache lifespan of 0 means no automatic TTL expiry for disk page cache; purge events and manual purges still invalidate cache.

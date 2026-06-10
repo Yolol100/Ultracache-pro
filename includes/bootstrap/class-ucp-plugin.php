@@ -80,6 +80,42 @@ final class UCP_Plugin {
     }
 
     /**
+     * Return true when any enabled feature can enqueue or process background jobs.
+     * This keeps the queue runner tied to the actual job producers instead of a
+     * small historic subset of CSS/preload/cloud options.
+     *
+     * @return bool
+     */
+    private static function needs_job_runner() {
+        return self::any_option_enabled(array(
+            'enable_css_queue',
+            'enable_preload_queue',
+            'enable_health_checks',
+            'enable_cloud',
+            'enable_cloudflare_apo_mode',
+            'enable_async_image_optimization',
+            'enable_lqip',
+            'enable_local_gravatar',
+            'enable_local_youtube_thumbnails',
+            'enable_headless_renderer',
+            'enable_compat_updates',
+        ));
+    }
+
+    /**
+     * Return true when UltraCache must actively alter WordPress Core speculation behavior.
+     *
+     * Core mode follows WordPress defaults and needs no runtime filter. Enhanced and prerender
+     * are covered by enable_speculative_loading. Off is special: WordPress 6.8+ only fully
+     * disables Core speculative loading when our configuration filter is registered.
+     *
+     * @return bool
+     */
+    private static function should_bootstrap_speculation_policy() {
+        return 'off' === UCP_Options::get('speculative_loading_mode', 'core');
+    }
+
+    /**
      * Run option migrations in a single ordered place before modules read settings.
      *
      * @return void
@@ -89,6 +125,7 @@ final class UCP_Plugin {
         UCP_Options::maybe_apply_preload_safety_migration();
 
         $optional_migrations = array(
+            'maybe_apply_rocket_style_automation_v1',
             'maybe_apply_queue_repair_migration',
             'maybe_upgrade_pagespeed_auto_v2',
             'maybe_upgrade_pagespeed_auto_v3',
@@ -101,6 +138,7 @@ final class UCP_Plugin {
             'maybe_upgrade_pagespeed_auto_v10',
             'maybe_upgrade_pagespeed_auto_v11',
             'maybe_upgrade_pagespeed_auto_v12',
+            'maybe_upgrade_refactor_1124',
         );
 
         foreach ($optional_migrations as $migration) {
@@ -164,6 +202,7 @@ final class UCP_Plugin {
         new UCP_Compat();
 
         if ($backend_context || UCP_Options::get('enable_cache')) {
+            new UCP_LiteSpeed_Cache();
             new UCP_Cache();
         }
         if ($backend_context || UCP_Options::get('enable_preload')) {
@@ -194,7 +233,7 @@ final class UCP_Plugin {
             'enable_disable_dashicons', 'enable_disable_jquery_migrate',
             'enable_move_module_scripts_footer', 'enable_self_host_third_party_assets',
             'enable_cls_iframe_reservation', 'enable_worker_lazyload', 'enable_expand_missing_srcset',
-        ))) {
+        )) || self::should_bootstrap_speculation_policy()) {
             new UCP_Optimizer();
         }
         if ($backend_context || UCP_Options::get('enable_db_cleanup')) {
@@ -202,6 +241,36 @@ final class UCP_Plugin {
         }
         if ($backend_context || UCP_Options::get('enable_cloud')) {
             new UCP_Cloud();
+        }
+        if ($backend_context || 'none' !== UCP_Options::get('cdn_provider', 'none')) {
+            new UCP_CDN();
+        }
+        if ($backend_context || UCP_Options::get('enable_host_cache_purge')) {
+            new UCP_Host_Cache();
+        }
+        if ($backend_context || UCP_Options::get('enable_headless_renderer')) {
+            new UCP_Render_Bridge();
+        }
+        if ($backend_context || self::any_option_enabled(array('enable_async_image_optimization', 'enable_image_cdn'))) {
+            new UCP_Image_Queue();
+        }
+        if ($backend_context || UCP_Options::get('enable_esi')) {
+            new UCP_ESI();
+        }
+        if ($backend_context || UCP_Options::get('enable_compat_updates') || UCP_Options::get('enable_used_css')) {
+            new UCP_Compat_Updater();
+        }
+        if ($backend_context || UCP_Options::get('enable_lqip')) {
+            new UCP_LQIP();
+        }
+        if ($backend_context || UCP_Options::get('enable_viewport_images')) {
+            new UCP_Viewport_Images();
+        }
+        if ($backend_context || self::any_option_enabled(array('enable_local_gravatar', 'enable_local_youtube_thumbnails'))) {
+            new UCP_Self_Host_Media();
+        }
+        if (UCP_Options::get('enable_asset_inspector')) {
+            new UCP_Asset_Inspector();
         }
         if ($backend_context || self::any_option_enabled(array(
             'enable_edge_cache_headers', 'enable_cloudflare_apo_mode', 'enable_early_hints_links',
@@ -211,23 +280,17 @@ final class UCP_Plugin {
         if ($backend_context || UCP_Options::get('enable_edge_html_cache')) {
             new UCP_Edge_HTML();
         }
-        if (class_exists('UCP_Script_Manager')) {
-            UCP_Script_Manager::bootstrap();
-        }
         if ($backend_context || self::any_option_enabled(array(
             'enable_delay_js', 'enable_used_css', 'enable_critical_css',
         ))) {
             new UCP_Modules();
         }
-        if ($backend_context || self::any_option_enabled(array(
-            'enable_cloud', 'enable_cloudflare_apo_mode',
-            'enable_css_queue', 'enable_preload_queue', 'enable_health_checks',
-        ))) {
+        if ($backend_context || self::needs_job_runner()) {
             new UCP_Jobs();
         }
 
         if ($backend_context || self::any_option_enabled(array(
-            'enable_image_optimization', 'enable_webp_generation', 'enable_avif_generation',
+            'enable_image_optimization', 'enable_webp_generation', 'enable_avif_generation', 'enable_image_cdn',
         ))) {
             new UCP_Image_Optimizer();
         }
@@ -237,6 +300,9 @@ final class UCP_Plugin {
         if ($backend_context || UCP_Options::get('enable_fragment_cache')) {
             new UCP_Fragment_Cache();
         }
+        // Registers the cookie-policy filters used by the request policy and the drop-in config.
+        // Front-end behaviour remains controlled by the module's own option checks.
+        new UCP_Shopper_Cache();
         if (UCP_Options::get('enable_rest_cache')) {
             new UCP_REST_Cache();
         }
@@ -274,5 +340,9 @@ final class UCP_Plugin {
         self::bootstrap_backend_services($backend_context);
         self::bootstrap_runtime_modules($backend_context);
         self::bootstrap_admin_ui();
+
+        if (is_admin() && class_exists('UCP_Safe_Autopilot')) {
+            UCP_Safe_Autopilot::bootstrap();
+        }
     }
 }
