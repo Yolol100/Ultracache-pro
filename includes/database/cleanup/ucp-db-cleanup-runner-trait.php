@@ -7,14 +7,52 @@ if (!defined('ABSPATH')) {
 // phpcs:disable WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter -- DB cleanup uses validated plugin-owned table identifiers.
 
 trait UCP_DB_Cleanup_Runner_Trait {
+    public static function selected_operations() {
+        $labels = array(
+            'db_cleanup_post_revisions'       => __('oude revisies', 'ultracache-pro'),
+            'db_cleanup_auto_drafts'          => __('automatische concepten', 'ultracache-pro'),
+            'db_cleanup_drafts'               => __('gewone concepten', 'ultracache-pro'),
+            'db_cleanup_expired_transients'   => __('verlopen transients', 'ultracache-pro'),
+            'db_cleanup_all_transients'       => __('alle transients', 'ultracache-pro'),
+            'db_cleanup_spam_comments'        => __('spamreacties', 'ultracache-pro'),
+            'db_cleanup_trashed_comments'     => __('reacties in de prullenbak', 'ultracache-pro'),
+            'db_cleanup_trashed_posts'        => __('berichten in de prullenbak', 'ultracache-pro'),
+            'db_cleanup_wc_sessions'          => __('verlopen WooCommerce-sessies', 'ultracache-pro'),
+            'db_cleanup_optimize_tables'      => __('plugin-tabellen optimaliseren', 'ultracache-pro'),
+            'db_cleanup_optimize_all_tables'  => __('alle WordPress-tabellen optimaliseren', 'ultracache-pro'),
+        );
+        $selected = array();
+        foreach ($labels as $key => $label) {
+            if (UCP_Options::get($key)) {
+                $selected[] = array(
+                    'key'   => $key,
+                    'label' => $label,
+                );
+            }
+        }
+        return $selected;
+    }
+
     public function handle_manual_cleanup() {
         if (!current_user_can('manage_options')) {
             wp_die(esc_html__('Geen toegang.', 'ultracache-pro'), '', array('response' => 403));
         }
         check_admin_referer('ucp_run_db_cleanup');
-        $confirmed = isset($_GET['confirm']) ? sanitize_text_field(wp_unslash($_GET['confirm'])) : '';
-        if ('yes' !== $confirmed) {
-            wp_safe_redirect(admin_url('admin.php?page=ultracache-pro&tab=database&db_cleanup_confirm=1'));
+        $confirmed_backup = false;
+        if (isset($_GET['confirmBackup'])) {
+            $confirmed_backup = rest_sanitize_boolean(wp_unslash($_GET['confirmBackup']));
+        } elseif (isset($_GET['confirm_backup'])) {
+            $confirmed_backup = rest_sanitize_boolean(wp_unslash($_GET['confirm_backup']));
+        }
+        $confirmed_irreversible = false;
+        if (isset($_GET['confirmIrreversible'])) {
+            $confirmed_irreversible = rest_sanitize_boolean(wp_unslash($_GET['confirmIrreversible']));
+        } elseif (isset($_GET['confirm_irreversible'])) {
+            $confirmed_irreversible = rest_sanitize_boolean(wp_unslash($_GET['confirm_irreversible']));
+        }
+        // AI-PATCH: Legacy admin-post cleanup now requires the same two explicit confirmations as REST.
+        if (!$confirmed_backup || !$confirmed_irreversible) {
+            wp_safe_redirect(admin_url('admin.php?page=ultracache-pro&tab=database&db_cleanup_confirm=1&db_cleanup_error=confirmation_required'));
             exit;
         }
         $results = $this->run_cleanup('manual_admin_post');
@@ -33,12 +71,7 @@ trait UCP_DB_Cleanup_Runner_Trait {
     public function run_cleanup($source = 'manual') {
         global $wpdb;
         $started = microtime(true);
-        $selected = array();
-        foreach (array('db_cleanup_post_revisions','db_cleanup_auto_drafts','db_cleanup_expired_transients','db_cleanup_all_transients','db_cleanup_spam_comments','db_cleanup_trashed_comments','db_cleanup_trashed_posts','db_cleanup_wc_sessions','db_cleanup_optimize_tables') as $key) {
-            if (UCP_Options::get($key)) {
-                $selected[] = $key;
-            }
-        }
+        $selected = wp_list_pluck(self::selected_operations(), 'key');
         UCP_Logger::log('notice', 'database_cleanup', 'cleanup_started', 'Database cleanup gestart.', array('source' => $source, 'user_id' => get_current_user_id(), 'selected' => $selected, 'dry_run' => false));
         $results = array();
 
@@ -72,6 +105,16 @@ trait UCP_DB_Cleanup_Runner_Trait {
             foreach ((array) $ids as $post_id) {
                 if (wp_delete_post((int) $post_id, true)) {
                     $results['auto_drafts_deleted']++;
+                }
+            }
+        }
+
+        if (UCP_Options::get('db_cleanup_drafts')) {
+            $ids = get_posts(array('post_status' => 'draft', 'post_type' => 'any', 'fields' => 'ids', 'posts_per_page' => 500, 'no_found_rows' => true));
+            $results['drafts_deleted'] = 0;
+            foreach ((array) $ids as $post_id) {
+                if (wp_delete_post((int) $post_id, true)) {
+                    $results['drafts_deleted']++;
                 }
             }
         }
@@ -144,16 +187,8 @@ trait UCP_DB_Cleanup_Runner_Trait {
         }
 
         if (UCP_Options::get('db_cleanup_optimize_tables')) {
-            $plugin_tables = array_filter(array_unique(array(
-                function_exists('ucp_table_name') ? ucp_table_name('jobs') : '',
-                function_exists('ucp_table_name') ? ucp_table_name('logs') : '',
-                function_exists('ucp_table_name') ? ucp_table_name('diagnostics') : '',
-            )));
             $optimized = 0;
-            foreach ($plugin_tables as $table) {
-                if (!self::table_exists($table)) {
-                    continue;
-                }
+            foreach (self::plugin_table_names() as $table) {
                 $quoted_table = UCP_Helpers::quote_table_name($table);
                 // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- table identifier is validated and quoted before use; OPTIMIZE TABLE does not support placeholders for identifiers.
                 $wpdb->query("OPTIMIZE TABLE {$quoted_table}");
@@ -161,6 +196,21 @@ trait UCP_DB_Cleanup_Runner_Trait {
             }
             $results['tables_optimized'] = $optimized;
             $results['tables_optimized_scope'] = 'plugin_tables_only';
+        }
+
+        if (UCP_Options::get('db_cleanup_optimize_all_tables')) {
+            $results['wordpress_tables_optimized'] = 0;
+            $results['wordpress_tables_optimized_scope'] = 'manual_only';
+            if ('scheduled_cron' === $source) {
+                $results['wordpress_tables_optimized_skipped'] = 'requires_manual_backup_confirmation';
+            } else {
+                foreach (self::wordpress_table_names() as $table) {
+                    $quoted_table = UCP_Helpers::quote_table_name($table);
+                    // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- broad table optimization is admin-confirmed; table identifiers are validated and quoted.
+                    $wpdb->query("OPTIMIZE TABLE {$quoted_table}");
+                    $results['wordpress_tables_optimized']++;
+                }
+            }
         }
 
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- read-only count with prepared fixed values.
@@ -176,6 +226,9 @@ trait UCP_DB_Cleanup_Runner_Trait {
         $results['cron_events_count'] = is_array(_get_cron_array()) ? count(_get_cron_array()) : 0;
         $results['duration_ms'] = (int) round((microtime(true) - $started) * 1000);
         $results['source'] = sanitize_key($source);
+        $results['completed_at'] = current_time('mysql', true);
+        update_option('ucp_last_db_cleanup_at', $results['completed_at'], false);
+        update_option('ucp_last_db_cleanup_results', $results, false);
         UCP_Helpers::log('DB cleanup run: ' . wp_json_encode($results));
         UCP_Logger::log('notice', 'database_cleanup', 'cleanup_completed', 'Database cleanup voltooid.', array('source' => $source, 'user_id' => get_current_user_id(), 'selected' => $selected, 'results' => $results, 'duration_ms' => $results['duration_ms']));
         return $results;

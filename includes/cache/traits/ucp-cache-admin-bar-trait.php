@@ -81,20 +81,42 @@ trait UCP_Cache_Admin_Bar_Trait {
         if (!is_admin_bar_showing() || !current_user_can('manage_options') || !UCP_Options::get('enable_admin_bar') || UCP_Options::get('enable_hide_toolbar_menu')) {
             return;
         }
+        $rest_url = esc_url_raw(rest_url('ultracache-pro/v1/actions/'));
+        $rest_nonce = wp_create_nonce('wp_rest');
         echo '<style id="ucp-adminbar-styles">'
-            . '#wpadminbar .ucp-adminbar-parent .ab-icon.dashicons{font-family:dashicons;top:2px;margin-right:6px;}'
-            . '#wpadminbar .ucp-adminbar-state{display:inline-flex;align-items:center;margin-left:8px;padding:0 8px;border-radius:999px;font-size:11px;line-height:20px;font-weight:600;background:rgba(255,255,255,.14);}'
+            . '#wpadminbar #wp-admin-bar-ucp-parent>.ab-item{display:flex!important;align-items:center;height:32px;line-height:32px;}'
+            . '#wpadminbar #wp-admin-bar-ucp-parent>.ab-item .ab-icon.dashicons{font-family:dashicons;display:inline-flex;align-items:center;justify-content:center;top:0;margin:0 6px 0 0;height:32px;line-height:32px;}'
+            . '#wpadminbar #wp-admin-bar-ucp-parent>.ab-item .ab-label{display:inline-flex;align-items:center;height:32px;line-height:32px;}'
+            . '#wpadminbar .ucp-adminbar-state{display:inline-flex;align-items:center;justify-content:center;height:20px;min-height:20px;margin:0 0 0 8px;padding:0 8px;border-radius:999px;font-size:11px;line-height:20px;font-weight:600;vertical-align:middle;background:rgba(255,255,255,.14);}'
             . '#wpadminbar .ucp-adminbar-state.is-on{background:#1f6f43;color:#fff;}'
             . '#wpadminbar .ucp-adminbar-state.is-off{background:#8a2424;color:#fff;}'
             . '#wpadminbar .ucp-adminbar-testmode>.ab-item{color:#ffdd57;}'
+            . '.ucp-adminbar-toast{position:fixed;left:50%;right:auto;bottom:24px;transform:translateX(-50%);z-index:999999;display:inline-flex;align-items:center;justify-content:center;gap:8px;width:max-content;max-width:min(92vw,420px);min-height:40px;padding:7px 10px;background:#fff;color:#1d2327;border:1px solid #dcdcde;border-left:4px solid #007cba;border-radius:10px;font-size:13px;font-weight:600;line-height:1.3;text-align:left;box-shadow:0 4px 16px rgba(16,24,40,.10);}'
+            . 'body.wp-admin .ucp-adminbar-toast{left:calc(160px + ((100vw - 160px) / 2));}'
+            . 'body.wp-admin.folded .ucp-adminbar-toast{left:calc(36px + ((100vw - 36px) / 2));}'
+            . '@media (max-width:960px) and (min-width:783px){body.wp-admin .ucp-adminbar-toast{left:calc(36px + ((100vw - 36px) / 2));}}'
+            . '@media (max-width:782px){body.wp-admin .ucp-adminbar-toast{left:16px;right:16px;width:auto;max-width:none;transform:none;}}'
+            . '.ucp-adminbar-toast.is-error{border-left-color:#d63638;}'
+            . '#wpadminbar .ucp-adminbar-busy>.ab-item{opacity:.7;pointer-events:none;}'
             . '</style>';
+        echo '<script id="ucp-adminbar-actions">(function(){'
+            . 'var base=' . wp_json_encode(trailingslashit($rest_url)) . ',nonce=' . wp_json_encode($rest_nonce) . ';'
+            . 'function toast(message,isError){var node=document.querySelector(".ucp-adminbar-toast");if(!node){node=document.createElement("div");node.className="ucp-adminbar-toast";document.body.appendChild(node);}node.className="ucp-adminbar-toast"+(isError?" is-error":"");node.textContent=message;window.clearTimeout(node._ucpTimer);node._ucpTimer=window.setTimeout(function(){if(node&&node.parentNode){node.parentNode.removeChild(node);}},4200);}'
+            . 'function action(slug,data){return window.fetch(base+slug,{method:"POST",credentials:"same-origin",headers:{"Content-Type":"application/json","X-WP-Nonce":nonce},body:JSON.stringify(data||{})}).then(function(r){return r.json().catch(function(){return {};}).then(function(json){if(!r.ok||json.code){throw new Error(json.message||"Actie mislukt.");}return json;});});}'
+            . 'function bind(id,runner){var item=document.getElementById("wp-admin-bar-"+id);if(!item){return;}var link=item.querySelector("a");if(!link){return;}link.addEventListener("click",function(e){e.preventDefault();if(item.classList.contains("ucp-adminbar-busy")){return;}item.classList.add("ucp-adminbar-busy");runner().then(function(message){toast(message||"Actie uitgevoerd.",false);}).catch(function(err){toast((err&&err.message)?err.message:"Actie mislukt.",true);}).then(function(){item.classList.remove("ucp-adminbar-busy");});});}'
+            . 'function ready(fn){if(document.readyState!=="loading"){fn();}else{document.addEventListener("DOMContentLoaded",fn);}}'
+            . 'ready(function(){bind("ucp-purge-preload",function(){return action("purge-all").then(function(){return action("preload");}).then(function(){return "Cache geleegd en opwarmen gestart.";});});'
+            . 'bind("ucp-clear-used-css",function(){return action("clear-used-css").then(function(resp){return resp&&resp.message?resp.message:"Gebruikte CSS is geleegd.";});});'
+            . 'bind("ucp-clear-priority-elements",function(){return action("clear-priority-elements").then(function(resp){return resp&&resp.message?resp.message:"Priority elements zijn geleegd.";});});});'
+            . '})();</script>';
     }
 
     protected function require_post_admin_action($nonce) {
         if (!current_user_can('manage_options')) {
             wp_die(esc_html__('Geen toegang.', 'ultracache-pro'), '', array('response' => 403));
         }
-        if (!isset($_SERVER['REQUEST_METHOD']) || 'POST' !== strtoupper((string) $_SERVER['REQUEST_METHOD'])) {
+        $request_method = isset($_SERVER['REQUEST_METHOD']) ? strtoupper(sanitize_text_field(wp_unslash($_SERVER['REQUEST_METHOD']))) : '';
+        if ('POST' !== $request_method) {
             wp_safe_redirect(admin_url('admin.php?page=ultracache-pro&tab=tools&post_required=1'));
             exit;
         }

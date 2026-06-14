@@ -42,22 +42,116 @@ class UCP_Site_Health {
             'label' => __('UltraCache Composer dependencies', 'ultracache-pro'),
             'test'  => array(__CLASS__, 'test_dependency_status'),
         );
+        $tests['direct']['ucp_release_readiness'] = array(
+            'label' => __('UltraCache release-readiness', 'ultracache-pro'),
+            'test'  => array(__CLASS__, 'test_release_readiness'),
+        );
+        $tests['direct']['ucp_security_verification'] = array(
+            'label' => __('UltraCache security-verificatie', 'ultracache-pro'),
+            'test'  => array(__CLASS__, 'test_security_verification'),
+        );
+        $tests['direct']['ucp_woocommerce_checkout_safety'] = array(
+            'label' => __('UltraCache WooCommerce checkout-veiligheid', 'ultracache-pro'),
+            'test'  => array(__CLASS__, 'test_woocommerce_checkout_safety'),
+        );
+        $tests['direct']['ucp_core_web_vitals_readiness'] = array(
+            'label' => __('UltraCache Core Web Vitals-readiness', 'ultracache-pro'),
+            'test'  => array(__CLASS__, 'test_core_web_vitals_readiness'),
+        );
+        $tests['direct']['ucp_privacy_i18n_hygiene'] = array(
+            'label' => __('UltraCache privacy en i18n', 'ultracache-pro'),
+            'test'  => array(__CLASS__, 'test_privacy_i18n_hygiene'),
+        );
         return $tests;
     }
 
-    public static function test_dependency_status() {
-        $status = function_exists('ucp_dependency_status') ? ucp_dependency_status() : array();
-        $missing = array();
-        foreach ($status as $key => $available) {
-            if (!$available) {
-                $missing[] = sanitize_key((string) $key);
-            }
+
+
+    protected static function latest_runtime_result($key) {
+        $latest = class_exists('UCP_Runtime_Tests') ? UCP_Runtime_Tests::latest() : array();
+        return isset($latest[$key]) && is_array($latest[$key]) ? $latest[$key] : array();
+    }
+
+    protected static function result_to_site_health($key, $good_label, $warning_label, $badge_label) {
+        $result = self::latest_runtime_result($key);
+        $status = isset($result['status']) ? (string) $result['status'] : '';
+        $issues = isset($result['issues']) && is_array($result['issues']) ? $result['issues'] : array();
+        if ('' === $status) {
+            $issues[] = __('Draai eerst de UltraCache runtime-tests zodat dit onderdeel kan worden bevestigd.', 'ultracache-pro');
         }
+        $ok = 'pass' === $status && empty($issues);
+        return array(
+            'label'       => $ok ? $good_label : $warning_label,
+            'status'      => $ok ? 'good' : 'recommended',
+            'badge'       => array('label' => $badge_label, 'color' => $ok ? 'blue' : 'orange'),
+            'description' => '<p>' . esc_html(empty($issues) ? __('Geen aandachtspunten gevonden in de laatst opgeslagen runtime-check.', 'ultracache-pro') : implode(' ', array_map('sanitize_text_field', $issues))) . '</p>',
+            'test'        => 'ucp_' . sanitize_key($key),
+        );
+    }
+
+    public static function test_security_verification() {
+        return self::result_to_site_health(
+            'security_verification',
+            __('UltraCache security-verificatie is compleet', 'ultracache-pro'),
+            __('UltraCache security-verificatie vraagt runtime bewijs', 'ultracache-pro'),
+            __('Security', 'ultracache-pro')
+        );
+    }
+
+    public static function test_woocommerce_checkout_safety() {
+        return self::result_to_site_health(
+            'woocommerce_checkout_safety',
+            __('UltraCache WooCommerce checkout-veiligheid is in orde', 'ultracache-pro'),
+            __('UltraCache WooCommerce checkout-veiligheid vraagt aandacht', 'ultracache-pro'),
+            __('WooCommerce', 'ultracache-pro')
+        );
+    }
+
+    public static function test_core_web_vitals_readiness() {
+        return self::result_to_site_health(
+            'core_web_vitals',
+            __('UltraCache Core Web Vitals-readiness is in orde', 'ultracache-pro'),
+            __('UltraCache Core Web Vitals-readiness vraagt bewijs', 'ultracache-pro'),
+            __('Prestaties', 'ultracache-pro')
+        );
+    }
+
+    public static function test_privacy_i18n_hygiene() {
+        return self::result_to_site_health(
+            'privacy_i18n',
+            __('UltraCache privacy en i18n zijn in orde', 'ultracache-pro'),
+            __('UltraCache privacy en i18n vragen aandacht', 'ultracache-pro'),
+            __('Privacy', 'ultracache-pro')
+        );
+    }
+
+    public static function test_release_readiness() {
+        $latest = class_exists('UCP_Runtime_Tests') ? UCP_Runtime_Tests::latest() : array();
+        $release = isset($latest['release']) && is_array($latest['release']) ? $latest['release'] : array();
+        $status = isset($release['status']) ? (string) $release['status'] : '';
+        $issues = isset($release['issues']) && is_array($release['issues']) ? $release['issues'] : array();
+        $ok = 'pass' === $status && empty($issues);
+        if ('' === $status) {
+            $issues[] = __('Draai eerst de UltraCache runtime-tests zodat release-readiness kan worden bevestigd.', 'ultracache-pro');
+        }
+        return array(
+            'label'       => $ok ? __('UltraCache release-readiness is in orde', 'ultracache-pro') : __('UltraCache release-readiness vraagt aandacht', 'ultracache-pro'),
+            'status'      => $ok ? 'good' : 'recommended',
+            'badge'       => array('label' => __('Release', 'ultracache-pro'), 'color' => $ok ? 'blue' : 'orange'),
+            'description' => '<p>' . esc_html(empty($issues) ? __('Versies, classmap, drop-in templates en kwaliteitsscorecard zijn consistent.', 'ultracache-pro') : implode(' ', array_map('sanitize_text_field', $issues))) . '</p>',
+            'test'        => 'ucp_release_readiness',
+        );
+    }
+
+    public static function test_dependency_status() {
+        $report = function_exists('ucp_dependency_report') ? ucp_dependency_report() : array('available' => function_exists('ucp_dependency_status') ? ucp_dependency_status() : array(), 'missing' => array());
+        $missing = isset($report['missing']) && is_array($report['missing']) ? array_map('sanitize_key', $report['missing']) : array();
         $ok = empty($missing);
         return array(
             'label'       => $ok ? __('UltraCache Composer dependencies zijn beschikbaar', 'ultracache-pro') : __('UltraCache gebruikt native fallback-minifiers', 'ultracache-pro'),
-            'status'      => 'good',
-            'badge'       => array('label' => __('Release', 'ultracache-pro'), 'color' => 'blue'),
+            'status'      => $ok ? 'good' : 'recommended',
+            'badge'       => array('label' => __('Release', 'ultracache-pro'), 'color' => $ok ? 'blue' : 'orange'),
+            /* translators: %s: dynamic value. */
             'description' => '<p>' . esc_html($ok ? __('De gebundelde CSS/JS parser- en minify-libraries zijn geladen.', 'ultracache-pro') : sprintf(__('Optionele libraries niet geladen: %s. Dit pakket gebruikt de ingebouwde fallback-minifiers en parser; bundel vendor-scoped/autoload.php alleen voor een private build met Composer-dependencies.', 'ultracache-pro'), implode(', ', $missing))) . '</p>',
             'test'        => 'ucp_dependency_status',
         );

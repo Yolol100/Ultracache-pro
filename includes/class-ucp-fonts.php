@@ -94,6 +94,7 @@ class UCP_Fonts {
         }
 
         $body = $this->localize_font_files($body, $dir, trailingslashit($uploads['baseurl']) . 'ultracache-pro/fonts/');
+        $body = $this->maybe_apply_unicode_ranges($body);
         $written = $this->write_cached_file($file, $body, $dir);
         if ($written) {
             $this->store_font_preload_candidates($body);
@@ -172,6 +173,51 @@ class UCP_Fonts {
         }
 
         return $css;
+    }
+
+
+    /**
+     * Lightweight local-font subsetting aid: keep Google's own unicode-range declarations and add
+     * a safe Latin range to cached @font-face blocks that do not declare one. This does not modify
+     * binary font files, but it lets browsers skip non-matching faces in split CSS.
+     *
+     * @param string $css Cached Google Fonts CSS.
+     * @return string
+     */
+    protected function maybe_apply_unicode_ranges($css) {
+        if (empty(UCP_Options::get('enable_font_unicode_ranges')) || !is_string($css) || false === stripos($css, '@font-face')) {
+            return $css;
+        }
+
+        $range = $this->font_unicode_range_value();
+        if ('' === $range) {
+            return $css;
+        }
+
+        $updated = preg_replace_callback('/@font-face\s*\{[^}]*\}/i', function ($matches) use ($range) {
+            $block = (string) $matches[0];
+            if (false !== stripos($block, 'unicode-range')) {
+                return $block;
+            }
+            return rtrim($block, '}') . '  unicode-range: ' . $range . ";
+}";
+        }, $css);
+
+        return is_string($updated) ? $updated : $css;
+    }
+
+    /**
+     * @return string
+     */
+    protected function font_unicode_range_value() {
+        $mode = sanitize_key((string) UCP_Options::get('font_unicode_ranges', 'latin'));
+        if ('latin-ext' === $mode) {
+            return 'U+0100-024F, U+1E00-1EFF';
+        }
+        if ('latin-plus-ext' === $mode) {
+            return 'U+0000-00FF, U+0100-024F, U+1E00-1EFF, U+20AC';
+        }
+        return 'U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD';
     }
 
     protected function store_font_preload_candidates($css) {

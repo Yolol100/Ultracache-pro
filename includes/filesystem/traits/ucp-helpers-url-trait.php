@@ -189,45 +189,11 @@ trait UCP_Helpers_URL_Trait {
      * @return array
      */
     public static function compat_json_raw($name) {
-        $safe_name = preg_replace('/[^a-z0-9_-]/i', '', (string) $name);
-        if ('' === $safe_name) {
-            return array();
-        }
-        static $cache = array();
-        if (array_key_exists($safe_name, $cache)) {
-            return $cache[$safe_name];
-        }
-        $path = trailingslashit(UCP_PATH) . 'compat/' . $safe_name . '.json';
-        if (!is_readable($path)) {
-            $cache[$safe_name] = array();
-            return array();
-        }
-        $data = json_decode(self::read_file($path), true);
-        $cache[$safe_name] = is_array($data) ? $data : array();
-        return $cache[$safe_name];
+        return UCP_Compat_List_Loader::compat_json_raw($name);
     }
 
     protected static function compat_json_list($name) {
-        $safe_name = preg_replace('/[^a-z0-9_-]/i', '', (string) $name);
-        $data = self::compat_json_raw($safe_name);
-        if (empty($data)) {
-            $list = array();
-        } else {
-            $list = array_values(array_filter(array_map('strval', $data), 'strlen'));
-        }
-        /**
-         * Filter a flat compatibility list after it is read from disk.
-         *
-         * @param array  $list
-         * @param string $safe_name
-         */
-        /**
-         * Filter a flat compatibility list after it is read from disk.
-         *
-         * @param array  $list
-         * @param string $safe_name
-         */
-        return apply_filters('ucp_compat_json_list', $list, $safe_name);
+        return UCP_Compat_List_Loader::compat_json_list($name);
     }
 
     public static function query_key_matches($key, $patterns) {
@@ -465,12 +431,42 @@ trait UCP_Helpers_URL_Trait {
      * @return string
      */
     public static function cache_path_slug($raw_path) {
-        $raw = untrailingslashit((string) $raw_path);
+        // MUST stay byte-for-byte identical to ucp_dropin_cache_path_slug() in advanced-cache.php.
+        // The drop-in uses rtrim($raw, '/') (it cannot call untrailingslashit() before WP loads),
+        // so this side mirrors it exactly — otherwise a future pipeline change could surface a
+        // trailing-backslash divergence between the early drop-in key and the PHP fallback key.
+        $raw = rtrim((string) $raw_path, '/');
         $slug = str_replace('/', '-', $raw);
         $slug = preg_replace('/[^A-Za-z0-9_.-]/', '-', $slug);
         $slug = preg_replace('/-+/', '-', (string) $slug);
         $slug = trim((string) $slug, '-');
         return '' === $slug ? 'home' : $slug;
+    }
+
+    /**
+     * Canonical host normalization for the page-cache key.
+     *
+     * MUST stay byte-for-byte identical to ucp_dropin_normalize_host() in advanced-cache.php so the
+     * early drop-in and this PHP fallback derive the same host segment. Strips the port, preserves
+     * bracketed IPv6 literals, and restricts the result to [a-z0-9.-]. (The drop-in cannot call this
+     * class because it runs before WordPress loads, hence the deliberate duplicate — see
+     * cache_path_slug() for the same pattern.)
+     *
+     * @param string $host
+     * @return string
+     */
+    public static function normalize_host($host) {
+        $host = strtolower(trim(wp_strip_all_tags((string) $host)));
+        if ('' === $host) {
+            return '';
+        }
+        if (preg_match('/^\[([a-f0-9:]+)\](?::\d+)?$/i', $host, $match)) {
+            return '[' . strtolower($match[1]) . ']';
+        }
+        if (preg_match('/^([^:]+):\d+$/', $host, $match)) {
+            $host = $match[1];
+        }
+        return preg_replace('/[^a-z0-9.-]/', '', $host);
     }
 
     public static function cache_key_for_url($url = '') {
@@ -487,8 +483,9 @@ trait UCP_Helpers_URL_Trait {
         $path_hash = substr(md5('' === $raw_path ? '/' : $raw_path), 0, 8);
         $normalized_query = isset($parts['query']) ? self::normalized_cache_query($parts['query']) : '';
         $query = '' !== $normalized_query ? md5($normalized_query) : 'noq';
-        $host = isset($parts['host']) ? strtolower((string) $parts['host']) : wp_parse_url(home_url(), PHP_URL_HOST);
-        $host_key = $host ? md5((string) $host) : 'nohost';
+        $raw_host = isset($parts['host']) ? (string) $parts['host'] : (string) wp_parse_url(home_url(), PHP_URL_HOST);
+        $host = self::normalize_host($raw_host);
+        $host_key = '' !== $host ? md5($host) : 'nohost';
         // Every segment is already restricted to [A-Za-z0-9_.-] (md5 hex, the safe slug, or fixed
         // literals), so the key needs no further sanitisation — and crucially none the drop-in
         // cannot reproduce byte-for-byte.

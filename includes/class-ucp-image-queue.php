@@ -129,8 +129,9 @@ class UCP_Image_Queue {
      * @param string $url
      * @return string
      */
-    public static function cdn_url($url) {
+    public static function cdn_url($url, $width = 0) {
         $url = (string) $url;
+        $width = absint($width);
         if ('' === $url || preg_match('#^data:#i', $url)) {
             return $url;
         }
@@ -149,13 +150,192 @@ class UCP_Image_Queue {
         $relative = substr($candidate, strlen($origin));
         $mapped   = rtrim($base, '/') . '/' . ltrim($relative, '/');
 
-        $query = trim((string) UCP_Options::get('image_cdn_query', ''));
-        if ('' !== $query) {
-            $q = (int) UCP_Options::get('image_quality', 82);
-            $query = str_replace(array('{q}', '{quality}'), array($q, $q), $query);
-            $mapped .= (false === strpos($mapped, '?') ? '?' : '&') . ltrim($query, '?&');
+        if ($width > 0 && UCP_Options::get('enable_image_cdn_transforms')) {
+            $mapped = self::apply_transform_to_cdn_url($mapped, $relative, $width);
+        } else {
+            $query = self::image_cdn_query_template(0);
+            if ('' !== $query) {
+                $mapped .= (false === strpos($mapped, '?') ? '?' : '&') . ltrim($query, '?&');
+            }
         }
         return $mapped;
+    }
+
+    /**
+     * Build a transformed srcset from one uploads URL and configured width descriptors.
+     *
+     * @param string $url Original image URL.
+     * @return string
+     */
+    public static function adaptive_srcset($url, $tag = '') {
+        if (!self::cdn_active() || !UCP_Options::get('enable_adaptive_image_srcset')) {
+            return '';
+        }
+
+        $url = (string) $url;
+        if ('' !== (string) $tag && self::should_skip_adaptive_image_tag((string) $tag)) {
+            return '';
+        }
+        if ('' === $url || preg_match('#^data:#i', $url) || !self::is_adaptive_srcset_eligible_url($url)) {
+            return '';
+        }
+
+        $parts = array();
+        foreach (self::image_cdn_widths() as $width) {
+            $mapped = self::cdn_url($url, $width);
+            if ($mapped && $mapped !== $url) {
+                $parts[] = esc_url($mapped) . ' ' . absint($width) . 'w';
+            }
+        }
+
+        return implode(', ', array_unique($parts));
+    }
+
+
+
+    /**
+     * Central skip helper for adaptive images. Keep this consistent across
+     * buffered HTML rewrites, attachment filters and image optimizer paths.
+     *
+     * @param string $tag Image tag or attribute string.
+     * @return bool
+     */
+    public static function should_skip_adaptive_image_tag($tag) {
+        $tag = (string) $tag;
+        if ('' === trim($tag)) {
+            return false;
+        }
+        if (preg_match('/\b(data-ucp-no-cdn|data-no-optimize|data-no-lazy|data-zoom-image|data-large_image|data-gallery|data-product|data-variation)\b/i', $tag)) {
+            return true;
+        }
+        if (preg_match('/\b(fetchpriority=("|\')high\2|loading=("|\')eager\3)\b/i', $tag)) {
+            return true;
+        }
+        $haystack = strtolower(wp_strip_all_tags($tag));
+        if (preg_match('/(logo|icon|sprite|avatar|emoji|placeholder|tracking|pixel|hero|lcp|product-gallery|woocommerce-product-gallery|wp-post-image|flex-control-thumbs|photoswipe|zoom)/', $haystack)) {
+            return true;
+        }
+        if (preg_match('/\bsrc=("|\')(.*?)\1/i', $tag, $src_match)) {
+            $path = strtolower((string) wp_parse_url(html_entity_decode($src_match[2], ENT_QUOTES), PHP_URL_PATH));
+            if ('' === $path || !preg_match('/\.(jpe?g|png|webp|avif)(?:$|\?)/i', $path)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Keep adaptive srcsets on real raster uploads only. SVG/icons and tracking
+     * pixels should stay untouched, and unknown file types fall back to WordPress.
+     *
+     * @param string $url Image URL.
+     * @return bool
+     */
+    protected static function is_adaptive_srcset_eligible_url($url) {
+        $path = strtolower((string) wp_parse_url((string) $url, PHP_URL_PATH));
+        if ('' === $path || !preg_match('/\.(jpe?g|png|webp|avif)(?:$|\?)/i', $path)) {
+            return false;
+        }
+        if (preg_match('#/(icons?|logos?|sprites?)/#i', $path) || preg_match('/(logo|icon|sprite|placeholder|tracking|pixel)/i', basename($path))) {
+            return false;
+        }
+        return true;
+    }
+
+
+    /**
+     * Return sanitized image-CDN transform widths.
+     *
+     * @return array<int,int>
+     */
+    protected static function image_cdn_widths() {
+        $raw = UCP_Helpers::normalize_multiline(UCP_Options::get('image_cdn_widths', ''));
+        $widths = array();
+        foreach ($raw as $value) {
+            $width = absint($value);
+            if ($width >= 160 && $width <= 2560) {
+                $widths[$width] = $width;
+            }
+        }
+        if (empty($widths)) {
+            $widths = array(320 => 320, 480 => 480, 768 => 768, 1024 => 1024, 1366 => 1366, 1600 => 1600);
+        }
+        ksort($widths);
+        return array_values($widths);
+    }
+
+    /**
+     * Add provider-aware width/quality parameters to a CDN URL.
+     *
+     * @param string $mapped   CDN URL already mapped to the CDN base.
+     * @param string $relative Upload-relative path.
+     * @param int    $width    Width descriptor.
+     * @return string
+     */
+    protected static function apply_transform_to_cdn_url($mapped, $relative, $width) {
+        $provider = self::transform_provider();
+        $quality  = max(40, min(100, absint(UCP_Options::get('image_quality', 82))));
+        $width    = max(160, min(2560, absint($width)));
+
+        if ('cloudflare' === $provider) {
+            $base = self::cdn_base();
+            if ('' !== $base) {
+                $params = 'width=' . $width . ',quality=' . $quality . ',format=auto';
+                return rtrim($base, '/') . '/cdn-cgi/image/' . rawurlencode($params) . '/' . ltrim((string) $relative, '/');
+            }
+        }
+
+        $query = self::image_cdn_query_template($width);
+        if ('' === $query) {
+            if ('bunny' === $provider) {
+                $query = 'width=' . $width . '&quality=' . $quality . '&format=auto';
+            } else {
+                $query = 'width=' . $width . '&quality=' . $quality;
+            }
+        }
+
+        return $mapped . (false === strpos($mapped, '?') ? '?' : '&') . ltrim($query, '?&');
+    }
+
+    /**
+     * Provider from option or CDN host inference.
+     *
+     * @return string
+     */
+    protected static function transform_provider() {
+        $provider = sanitize_key((string) UCP_Options::get('image_cdn_transform_provider', 'auto'));
+        if (in_array($provider, array('bunny', 'cloudflare', 'generic'), true)) {
+            return $provider;
+        }
+
+        $base = strtolower(self::cdn_base());
+        if (false !== strpos($base, 'b-cdn.net') || false !== strpos($base, 'bunnycdn')) {
+            return 'bunny';
+        }
+        if (false !== strpos($base, 'cloudflare') || false !== strpos($base, 'cdn-cgi')) {
+            return 'cloudflare';
+        }
+        $cdn_provider = sanitize_key((string) UCP_Options::get('cdn_provider', 'none'));
+        if (in_array($cdn_provider, array('bunny', 'cloudflare'), true)) {
+            return $cdn_provider;
+        }
+        return 'generic';
+    }
+
+    /**
+     * Expand query placeholders for provider transforms.
+     *
+     * @param int $width Optional width.
+     * @return string
+     */
+    protected static function image_cdn_query_template($width = 0) {
+        $query = trim((string) UCP_Options::get('image_cdn_query', ''));
+        if ('' === $query) {
+            return '';
+        }
+        $quality = max(40, min(100, absint(UCP_Options::get('image_quality', 82))));
+        $width   = absint($width);
+        return str_replace(array('{q}', '{quality}', '{w}', '{width}'), array($quality, $quality, $width, $width), $query);
     }
 
     /**

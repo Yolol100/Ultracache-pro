@@ -2,9 +2,9 @@
 Contributors: ultracache-pro
 Tags: cache, performance, core web vitals, critical css, used css
 Requires at least: 6.3
-Tested up to: 6.9
+Tested up to: 7.0
 Requires PHP: 8.0
-Stable tag: 11.4.0
+Stable tag: 11.4.23
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -69,6 +69,98 @@ UltraCache Pro may store cache metadata, diagnostic records, Core Web Vitals sam
 4. Diagnostics and Core Web Vitals overview.
 
 == Changelog ==
+
+= 11.4.23 =
+* Instellingen-navigatie: het langste tab-label (WooCommerce) werd bij krappere breedtes aan beide kanten afgekapt. Oorzaak was `justify-content: center` op een horizontaal scrollbare flex-balk — bij overloop duwt centreren de inhoud onbereikbaar naar buiten. Vervangen door een `flex-start` basis met `safe center` verfijning: gecentreerd zolang de tabs passen, anders netjes scrollen vanaf links zonder clipping.
+* React-admin `.min.css` opnieuw gegenereerd uit de bron (de vorige build was een niet-geminificeerde kopie, ~270 KB). De geladen productie-stylesheet bevat nu de fix en is ~20 KB kleiner.
+
+= 11.4.22 =
+* Page-cache-sleutel: host-segment in de PHP-fallback (`UCP_Helpers::cache_key_for_url()`) genormaliseerd via de nieuwe gedeelde `UCP_Helpers::normalize_host()`, byte-voor-byte identiek aan `ucp_dropin_normalize_host()` in de drop-in. Lost een latente sleuteldivergentie op bij multi-host-, poort- en niet-canonieke hostsituaties (raakte ook de Used/Critical-CSS artifact-sleutels via `css_artifact_key_for_url()`).
+* `cache_path_slug()` gebruikt nu `rtrim($raw_path, '/')` i.p.v. `untrailingslashit()`, exact gelijk aan de drop-in, zodat de "byte-voor-byte identiek"-invariant ook in de bron klopt.
+* Runtime drift-check (Quality Suite) spiegelt nu de canonieke drop-in host-normalisatie, zodat de zelftest tegen de juiste referentie valideert.
+* Used CSS wordt standaard als losse, browser-cachebare bestandslevering uitgeleverd (`used_css_delivery_method = file`, met de bestaande inline-fallback wanneer het bestand niet schrijfbaar is). Betere herhaalbezoek-LCP; bestaande installaties behouden hun opgeslagen keuze.
+
+= 11.4.21 =
+* Veldtypografie over alle instellingen-tabs gelijkgetrokken met de Cache/Tools-referentie: een rustige, sentence-case labelstijl (geen hoofdletter-labels meer op Preload, CSS & JS en Regels) en identieke veld-tegels.
+* Scoped CSS-consistentielaag binnen de plugin-wrapper; geen globale selectors, geen markup- of gedragswijziging. Hero-statusbadges en de Server & CDN service-tegels blijven bewust hun eigen variant.
+
+= 11.4.20 =
+* Afbeeldingen-tab gelijkgetrokken met Cache/Tools: dezelfde hero, kaarten, koppen, veld-rijen, badges en witruimte (gedeelde cache-tools-opbouw).
+* Verwijderde afwijkende media-only styling (vette hoofdletter-labels, losse veldhulp, multi-pill hero, kaart-eyebrows) zodat alle tabs één design-systeem delen.
+* Adaptive images blijft inklapbaar maar gebruikt nu de uniforme geavanceerd-accordion. Geen functionele of opslagwijzigingen.
+
+= 11.4.19 =
+* Eén uniforme, rustige en premium admin-interface over alle menu-items.
+* Alle pagina's gebruiken nu hetzelfde gedeelde design-systeem: identieke kaarten, koppen, velden, grids, badges en witruimte.
+* Design-tokens als single source of truth voor radii, schaduw en lijnkleur; per menu-item blijft de eigen structuur behouden.
+* Rustiger en consistenter ritme en breakpoints; kalmere kaart-hover. Geen functionele wijzigingen.
+
+= 11.4.18 =
+* Wizard-styling aangepast naar een lichte WordPress-native adminkaart.
+* Donkere full-screen onboarding-modal vervangen door inline setupkaart binnen de UCP-adminpagina.
+* Standaard WordPress-kleuren, borders en knoppen gebruikt zodat de wizard beter aansluit op de plugininterface.
+* Wizard-functionaliteit behouden; alleen presentatie en plaatsing aangepast.
+
+= 11.4.17 =
+* Admin UI eenvoudiger gemaakt rond status-first werken: Overzicht toont status, bescherming en belangrijkste actie.
+* Simple mode beperkt tot Overzicht, Cache, Afbeeldingen, WooCommerce en Preload; Advanced toont CSS & JS, Server & CDN, Regels en Tools.
+* Nieuwe WooCommerce-adminsectie toegevoegd als UI-groepering voor bestaande cart/checkout/account/payment-bescherming.
+* Nieuwe Server & CDN-adminsectie toegevoegd als UI-groepering voor bestaande CDN- en object-cache-infrastructuur.
+* CDN-instellingen uit de CSS & JS-weergave gehaald zodat optimalisatie en infrastructuur niet door elkaar staan.
+* Geen nieuwe performance-features, option keys, REST-routes of WebP/AVIF-promotie toegevoegd.
+
+= 11.4.16 =
+* Strakkere uitvoering van bestaande features: Delay JS beschermt checkout, formulieren, captcha, consent en payment scripts consequenter.
+* Centrale WooCommerce-guard toegevoegd voor cache/CSS/JS/CDN/media optimalisaties.
+* Adaptive image srcsets veiliger begrensd voor normale rasterafbeeldingen; logo’s, icons, hero/LCP-beelden en productgalerijen blijven beschermd.
+* Font preload beperkt automatische kandidaten tot enkele veilige WOFF2-fonts en vermijdt icon-fonts.
+* CDN en Object Cache statusmodellen duidelijker gemaakt zonder nieuwe featurelaag.
+* Simple mode houdt geavanceerde beheerpagina’s rustiger verborgen.
+
+= 11.4.14 =
+* UX: toegevoegd dashboardoverzicht "Wat staat aan en waarom?" met rustige veiligheidslabels.
+* UX: setup-wizard vereenvoudigd naar 3 stappen met profielkeuze, voorafzicht en bevestiging.
+* UX: waarschuwingstaal aangescherpt naar Render-veilig / Geavanceerd — eerst testen.
+* UI: geavanceerde CDN, adaptive images en font-preload instellingen overzichtelijker voorbereid zonder bestaande features te verwijderen.
+
+
+= 11.4.13 =
+* Nieuw: first-run onboarding-wizard (3 stappen) in het beheerscherm. Stap 1 laat je een doel kiezen (Snelheid & SEO / WooCommerce / Conservatief) met een live omgevings-readiness-check (PHP/WP, WP_CACHE, minify-libraries). Stap 2 toont exact welke render-veilige optimalisaties worden aangezet en past ze toe via het bestaande, ge-sanitizede instellingen-endpoint; geavanceerde CSS/JS (Used/Critical CSS, combineren, Delay JS) blijft uitgeschakeld tot je ze zelf aanzet. Stap 3 warmt de homepage en toont een echte eerste cache-respons-tijd.
+* Veiligheid/scope: de wizard laadt alleen op de UltraCache-adminpagina voor beheerders, schrijft instellingen uitsluitend via `POST settings/bulk` (non-destructieve merge + sanitatie), en gebruikt voor de afronding een eigen REST-route met dezelfde permission/nonce-controle als de overige admin-acties. Eigen done-flag (`ucp_onboarding_completed`), los van de Safe Autopilot; opnieuw te openen met `?ucp-wizard=1`.
+* Build: build-vrij component (`wp.element`), met geminificeerde `.min.js`/`.min.css` naast de bron (geladen via de bestaande `UCP_Helpers::asset_path()`-selectie). POT bijgewerkt en een script-translation JSON (`ucp-onboarding-wizard`-handle) toegevoegd. Geen wijziging aan bestaande hooks, option keys, REST-routes of class names; alleen één classmap-entry en één admin-bootstrapaanroep toegevoegd.
+
+= 11.4.12 =
+* Prestatie: geminificeerde CSS/JS-bestanden worden nu op bron-vingerafdruk (pad + mtime + grootte + versie) gecached. Een eerder geminificeerd bestand kost daardoor één bestandscontrole in plaats van een volledige parse+minify per asset bij elke cache-miss render. Bestanden die niet de moeite waard zijn (te kleine besparing of JS die een volledige parser nodig heeft) krijgen een lichte negatieve markering, zodat ze niet telkens opnieuw worden verwerkt.
+* Nieuw: inline <style>- en <script>-blokken worden nu ook verkleind, net als bij WP Rocket, Autoptimize en LiteSpeed. Page builders (Elementor, Divi, Bricks) zetten het meeste CSS inline; dat werd voorheen ongewijzigd verstuurd. Inline CSS volgt 'CSS verkleinen', inline JS volgt 'JavaScript verkleinen'. JSON-LD, templates, importmaps, speculation rules en modules blijven onaangeroerd; blokken met data-cfasync of data-ucp-no-minify worden overgeslagen, en met de filter 'ucp_enable_inline_minify' kun je het volledig uitschakelen.
+* Onderhoud: 'Cache legen' verwijdert nu ook de map met losse geminificeerde bestanden (min/) en de gecombineerde CSS/JS-bundels (assets/, js/). Deze waren al zelf-invaliderend op basis van bron-vingerafdruk, maar verweesde bestanden bleven voorheen staan.
+* QA: PHP-syntax (brace/quote-balans), geen gewijzigde hooks, option keys, REST-routes of class names; alleen interne minify-logica en cacheopruiming aangepast.
+
+= 11.4.11 =
+* Veiligheid: REST-acties (cache legen, preload, CSS genereren, database opruimen, enz.) vangen nu onverwachte fouten netjes op. In plaats van een kale serverfout krijg je een duidelijke melding ("Probeer het opnieuw of controleer Tools") en wordt de fout gelogd.
+* UX: knoppen in het beheerscherm kunnen niet meer eindeloos op "Bezig…" blijven staan. Verzoeken hebben nu een veilige tijdslimiet (langer voor preload, CSS en websitecontrole) met een rustige fallbackmelding; de achtergrondtaak loopt indien nodig gewoon door.
+* CSS: Used/Critical CSS probeert generatie nu maximaal 3 keer in plaats van 5, gelijk aan de bestaande opslagregels. Rustiger, voorspelbaarder en met dezelfde veilige terugval naar normale CSS.
+* QA: PHP-, JavaScript- en JSON-syntaxcontrole, REST permission/nonce-controle, text-domain- en conflictmarker-scan en zip-integriteit opnieuw geverifieerd. Geen nieuwe functies, hooks, option keys, REST-routes of class names gewijzigd.
+
+= 11.4.10 =
+* Release: final release-ready packaging and validation pass.
+* QA: validated feature-toggle mappings, UI grouping, REST permissions, classmap, includes, translations and zip integrity.
+* UX: preserves simplified customer-facing menu structure while keeping advanced controls available in advanced view.
+
+= 11.4.9 =
+* UX: geavanceerde weergave toont nu ook automatisch beheerde instellingen, zodat toggles en selecties na de menuherindeling handmatig controleerbaar blijven.
+* QA: feature-toggle mapping gecontroleerd van UI-control naar option key, save/load flow, normalizer en runtime-referentie.
+* UX: eenvoudige weergave blijft rustig; automatische baseline-instellingen worden daar nog steeds verborgen.
+
+= 11.4.3 =
+* Quality: added PHPCS/WPCS, PHPUnit and CI configuration for repeatable scoring.
+* Quality: minified the React admin production asset and added an asset size check.
+* I18n: refreshed POT metadata and added a generated script-translation JSON for the admin app handle.
+* Docs: added staging validation and testing guides for runtime proof above the static score cap.
+
+= 11.4.1 =
+* Quality: added deterministic release-readiness runtime checks and Site Health visibility for version/classmap/REST smoke signals.
+* Quality: explicitly loads the plugin text domain for private/non-standard installs while preserving WordPress.org language-pack behaviour.
+* Docs: added a stable scorecard and validation checklist so future audits can use the same scoring basis.
 
 = 11.4.0 =
 * Nieuw: optionele fouttolerante HTML-parser-engine voor afbeelding- en iframe-passes (standaard uit). Verwerkt markup binnen `<script>`, `<style>`, `<textarea>` en comments correct en breekt niet op `>` binnen attribuutwaarden. Valt automatisch terug op de bestaande methode bij twijfel. Test op staging.

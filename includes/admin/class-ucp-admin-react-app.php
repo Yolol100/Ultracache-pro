@@ -23,22 +23,49 @@ class UCP_Admin_React_App {
         return UCP_Helpers::asset_path($relative);
     }
 
+    /**
+     * Return modular admin stylesheet assets in load order.
+     *
+     * The legacy monolithic CSS remains as a fallback for custom/private builds,
+     * but release builds can load smaller sectioned files while preserving the
+     * same cascade order through chained style dependencies.
+     *
+     * @return array<int,string>
+     */
+    protected static function style_asset_relatives() {
+        $modules = glob(UCP_PATH . 'assets/admin/react/css/modules/ucp-react-admin-*.css');
+        if (!empty($modules) && is_array($modules)) {
+            sort($modules, SORT_NATURAL);
+            $assets = array();
+            foreach ($modules as $module) {
+                if (false !== strpos((string) $module, '.min.css')) {
+                    continue;
+                }
+                $assets[] = self::asset_path(str_replace(wp_normalize_path(UCP_PATH), '', wp_normalize_path((string) $module)));
+            }
+            if (!empty($assets)) {
+                return $assets;
+            }
+        }
+
+        return array(self::asset_path('assets/admin/react/css/ucp-react-admin.css'));
+    }
+
     public static function should_render() {
         $script_path = UCP_PATH . self::asset_path('assets/admin/react/js/app/ucp-react-admin.js');
-        $style_path  = UCP_PATH . self::asset_path('assets/admin/react/css/ucp-react-admin.css');
+        $style_assets = self::style_asset_relatives();
+        $style_path  = !empty($style_assets[0]) ? UCP_PATH . $style_assets[0] : '';
 
         return self::enabled() && file_exists($script_path) && file_exists($style_path);
     }
 
     public static function enqueue() {
         $script_rel  = self::asset_path('assets/admin/react/js/app/ucp-react-admin.js');
-        $style_rel   = self::asset_path('assets/admin/react/css/ucp-react-admin.css');
+        $style_rels  = self::style_asset_relatives();
         $tokens_rel  = self::asset_path('assets/admin/css/ucp-admin-tokens.css');
         $script_path = UCP_PATH . $script_rel;
-        $style_path  = UCP_PATH . $style_rel;
         $tokens_path = UCP_PATH . $tokens_rel;
         $script_ver  = file_exists($script_path) ? (string) filemtime($script_path) : UCP_VERSION;
-        $style_ver   = file_exists($style_path) ? (string) filemtime($style_path) : UCP_VERSION;
         $tokens_ver  = file_exists($tokens_path) ? (string) filemtime($tokens_path) : UCP_VERSION;
 
         wp_enqueue_script(
@@ -59,12 +86,19 @@ class UCP_Admin_React_App {
             );
         }
 
-        wp_enqueue_style(
-            self::STYLE_HANDLE,
-            UCP_URL . $style_rel,
-            array('wp-components', 'ucp-admin-tokens'),
-            $style_ver
-        );
+        $style_dependency = 'ucp-admin-tokens';
+        $style_count = count($style_rels);
+        foreach ($style_rels as $index => $style_rel) {
+            $handle = ($index === $style_count - 1) ? self::STYLE_HANDLE : self::STYLE_HANDLE . '-' . ($index + 1);
+            $style_path = UCP_PATH . $style_rel;
+            wp_enqueue_style(
+                $handle,
+                UCP_URL . $style_rel,
+                array('wp-components', $style_dependency),
+                file_exists($style_path) ? (string) filemtime($style_path) : UCP_VERSION
+            );
+            $style_dependency = $handle;
+        }
 
         if (function_exists('wp_set_script_translations')) {
             wp_set_script_translations(self::SCRIPT_HANDLE, 'ultracache-pro', UCP_PATH . 'languages');

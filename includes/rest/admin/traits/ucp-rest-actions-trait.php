@@ -171,12 +171,27 @@ trait UCP_REST_Actions_Trait {
         return self::action_success(__('Verkleinde JavaScript is gewist.', 'ultracache-pro'));
     }
 
+    public static function clear_priority_elements() {
+        try {
+            UCP_Helpers::safe_glob_delete(UCP_CACHE_DIR . 'meta/*.json');
+            UCP_Helpers::safe_glob_delete(UCP_CACHE_DIR . 'css/status-*.json');
+            UCP_Logger::log('info', 'rest', 'priority_elements_cleared', 'Priority element metadata cleared from admin bar action.');
+            return self::action_success(__('Priority elements zijn geleegd.', 'ultracache-pro'), array(), false);
+        } catch (Throwable $e) {
+            return self::action_error('ucp_priority_elements_clear_failed', $e->getMessage());
+        }
+    }
+
     public static function database_cleanup($request = null) {
         try {
             if ($request instanceof WP_REST_Request) {
                 $confirmed_backup = !empty($request->get_param('confirmBackup')) || !empty($request->get_param('confirmed_backup')) || !empty($request->get_param('ucp_confirm_backup'));
+                $confirmed_irreversible = !empty($request->get_param('confirmIrreversible')) || !empty($request->get_param('confirmed_irreversible')) || !empty($request->get_param('ucp_confirm_irreversible'));
                 if (!$confirmed_backup) {
                     return self::action_error('ucp_database_cleanup_backup_not_confirmed', __('Bevestig eerst dat er een recente database-back-up is voordat database cleanup wordt uitgevoerd.', 'ultracache-pro'), 400);
+                }
+                if (!$confirmed_irreversible) {
+                    return self::action_error('ucp_database_cleanup_irreversible_not_confirmed', __('Bevestig eerst dat je begrijpt dat database cleanup niet kan worden teruggedraaid.', 'ultracache-pro'), 400);
                 }
             }
             if (!class_exists('UCP_DB_Cleanup')) {
@@ -241,14 +256,32 @@ trait UCP_REST_Actions_Trait {
         return self::quality_suite_action('rest_repair_cache_files', 'ucp_repair_cache_files_unavailable');
     }
 
-    public static function run_due_jobs() {
+    public static function dashboard_preload_timeout() {
+        return 5;
+    }
+
+    public static function run_due_jobs($request = null) {
         if (!class_exists('UCP_Jobs')) {
             return self::action_error('ucp_jobs_unavailable', __('Jobrunner is niet beschikbaar.', 'ultracache-pro'), 404);
         }
 
+        $max_batches = 2;
+        if ($request instanceof WP_REST_Request) {
+            $requested_batches = absint($request->get_param('maxBatches'));
+            if ($requested_batches > 0) {
+                $max_batches = $requested_batches;
+            }
+        }
+        $max_batches = max(1, min(3, $max_batches));
+        $dashboard_run = $request instanceof WP_REST_Request && rest_sanitize_boolean($request->get_param('dashboard'));
+        if ($dashboard_run) {
+            add_filter('ucp_jobs_run_queue_limit', '__return_one', 10, 2);
+            add_filter('ucp_preload_request_timeout', array(__CLASS__, 'dashboard_preload_timeout'), 10, 4);
+        }
+
         UCP_Jobs::sync_schedule();
         $runner = new UCP_Jobs(true);
-        $processed = (int) $runner->run_queue_until_idle(true, 5);
+        $processed = (int) $runner->run_queue_until_idle(true, $max_batches);
         $failed = (int) UCP_Jobs::count_by_status('failed');
 
         if (0 === $processed && $failed > 0) {

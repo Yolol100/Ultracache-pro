@@ -1,0 +1,3665 @@
+{
+  "translation-revision-date": "2026-06-12 00:00+0000",
+  "generator": "UltraCache Pro build tooling",
+  "domain": "messages",
+  "locale_data": {
+    "messages": {
+      "": {
+        "domain": "messages",
+        "lang": "nl_NL",
+        "plural-forms": "nplurals=2; plural=(n != 1);"
+      },
+      "Opschonen": [
+        "Opschonen"
+      ],
+      "Maak eerst een database-backup. Database-acties kunnen niet ongedaan worden gemaakt.": [
+        "Maak eerst een database-backup. Database-acties kunnen niet ongedaan worden gemaakt."
+      ],
+      "Geen extra risicovolle onderdelen geselecteerd.": [
+        "Geen extra risicovolle onderdelen geselecteerd."
+      ],
+      "risicovolle onderdelen geselecteerd.": [
+        "risicovolle onderdelen geselecteerd."
+      ],
+      "Geselecteerde onderdelen opschonen": [
+        "Geselecteerde onderdelen opschonen"
+      ],
+      "Voor de meeste sites hoef je alleen cachelevensduur en WooCommerce-uitsluitingen te controleren. Laat user-agents en query strings leeg tenzij er een duidelijke reden is.": [
+        "Voor de meeste sites hoef je alleen cachelevensduur en WooCommerce-uitsluitingen te controleren. Laat user-agents en query strings leeg tenzij er een duidelijke reden is."
+      ],
+      "Aan": [
+        "Aan"
+      ],
+      "Stale cache": [
+        "Stale cache"
+      ],
+      "Gebruik uitsluitingen voor dynamische of persoonlijke paginaâs, zoals cart, checkout, account, zoek- en filterpaginaâs.": [
+        "Gebruik uitsluitingen voor dynamische of persoonlijke paginaâs, zoals cart, checkout, account, zoek- en filterpaginaâs."
+      ],
+      "URL-regels": [
+        "URL-regels"
+      ],
+      "Cookies": [
+        "Cookies"
+      ],
+      "User-agents": [
+        "User-agents"
+      ],
+      "Standaard worden URLâs met query strings voorzichtig behandeld. Cache alleen bekende parameters die geen persoonlijke content veranderen.": [
+        "Standaard worden URLâs met query strings voorzichtig behandeld. Cache alleen bekende parameters die geen persoonlijke content veranderen."
+      ],
+      "Status": [
+        "Status"
+      ],
+      "Parameters": [
+        "Parameters"
+      ],
+      "Voor de meeste sites is dit de veiligste preload-opzet: queue aan, sitemaps aan, homepage aan en een rustige batchgrootte.": [
+        "Voor de meeste sites is dit de veiligste preload-opzet: queue aan, sitemaps aan, homepage aan en een rustige batchgrootte."
+      ],
+      "Preload aan": [
+        "Preload aan"
+      ],
+      "Preload uit": [
+        "Preload uit"
+      ],
+      "Queue aan": [
+        "Queue aan"
+      ],
+      "Queue uit": [
+        "Queue uit"
+      ],
+      "Sitemap aan": [
+        "Sitemap aan"
+      ],
+      "Sitemap uit": [
+        "Sitemap uit"
+      ],
+      "Homepage aan": [
+        "Homepage aan"
+      ],
+      "Homepage uit": [
+        "Homepage uit"
+      ],
+      "Wachtrij": [
+        "Wachtrij"
+      ],
+      "Open": [
+        "Open"
+      ],
+      "Nu klaar": [
+        "Nu klaar"
+      ],
+      "Opnieuw": [
+        "Opnieuw"
+      ],
+      "Preload starten": [
+        "Preload starten"
+      ],
+      "Verwerk nu": [
+        "Verwerk nu"
+      ],
+      "Snelheid en belasting": [
+        "Snelheid en belasting"
+      ],
+      "Gebruik lagere batches op shared hosting. Verhoog de pauze als taken opnieuw ingepland worden of hosting traag reageert.": [
+        "Gebruik lagere batches op shared hosting. Verhoog de pauze als taken opnieuw ingepland worden of hosting traag reageert."
+      ],
+      "Batch": [
+        "Batch"
+      ],
+      "Pauze": [
+        "Pauze"
+      ],
+      "Max": [
+        "Max"
+      ],
+      "Zet groepen in 1, 2, 3 of 4 kolommen en sleep kaarten om de volgorde aan te passen. In 1x1 blijven compacte velden op een nette rij; brede velden, lange hulptekst en risicovolle opties stapelen automatisch.": [
+        "Zet groepen in 1, 2, 3 of 4 kolommen en sleep kaarten om de volgorde aan te passen. In 1x1 blijven compacte velden op een nette rij; brede velden, lange hulptekst en risicovolle opties stapelen automatisch."
+      ],
+      "Indeling": [
+        "Indeling"
+      ],
+      "Opslaan": [
+        "Opslaan"
+      ],
+      "Aantal zichtbare boven-de-vouw afbeeldingen. Maximaal 3.": [
+        "Aantal zichtbare boven-de-vouw afbeeldingen. Maximaal 3."
+      ],
+      "Kritieke afbeeldingen preloaden": [
+        "Kritieke afbeeldingen preloaden"
+      ],
+      "Aantal eerste afbeeldingen dat niet lazyloadt. Maximaal 5.": [
+        "Aantal eerste afbeeldingen dat niet lazyloadt. Maximaal 5."
+      ],
+      "Bovenste afbeeldingen niet lazyloaden": [
+        "Bovenste afbeeldingen niet lazyloaden"
+      ],
+      "Aangepaste LCP-instellingen opslaan": [
+        "Aangepaste LCP-instellingen opslaan"
+      ],
+      "Aanbevolen voorkomt dat hero/LCP-afbeeldingen per ongeluk lazyloaden en zet alleen beperkte preloads klaar.": [
+        "Aanbevolen voorkomt dat hero/LCP-afbeeldingen per ongeluk lazyloaden en zet alleen beperkte preloads klaar."
+      ],
+      "Frontend interval": [
+        "Frontend interval"
+      ],
+      "Seconden bij Verminderen.": [
+        "Seconden bij Verminderen."
+      ],
+      "Editor interval": [
+        "Editor interval"
+      ],
+      "Backend interval": [
+        "Backend interval"
+      ],
+      "Aangepaste intervallen opslaan": [
+        "Aangepaste intervallen opslaan"
+      ],
+      "Opslaanâ¦": [
+        "Opslaanâ¦"
+      ],
+      "Laat CSS normaal laden. Gebruik dit voor maximale compatibiliteit of als de layout gevoelig is.": [
+        "Laat CSS normaal laden. Gebruik dit voor maximale compatibiliteit of als de layout gevoelig is."
+      ],
+      "Veiligste keuze": [
+        "Veiligste keuze"
+      ],
+      "Gebruikt de AST-parser wanneer vendor libraries aanwezig zijn en valt anders terug op de lokale parser. Test builders, formulieren en checkout visueel.": [
+        "Gebruikt de AST-parser wanneer vendor libraries aanwezig zijn en valt anders terug op de lokale parser. Test builders, formulieren en checkout visueel."
+      ],
+      "Staging-first optimalisatie": [
+        "Staging-first optimalisatie"
+      ],
+      "Fallback als Used CSS problemen geeft": [
+        "Fallback als Used CSS problemen geeft"
+      ],
+      "Genereert Critical CSS en laadt de overige CSS asynchroon. Minder agressief dan Used CSS, maar nog steeds visueel testen.": [
+        "Genereert Critical CSS en laadt de overige CSS asynchroon. Minder agressief dan Used CSS, maar nog steeds visueel testen."
+      ],
+      "UltraCache zet de onderliggende Used CSS/Critical CSS flags automatisch goed. Je hoeft hiervoor geen losse toggles meer te beheren.": [
+        "UltraCache zet de onderliggende Used CSS/Critical CSS flags automatisch goed. Je hoeft hiervoor geen losse toggles meer te beheren."
+      ],
+      "Niets gevonden.": [
+        "Niets gevonden."
+      ],
+      "Websitecontrole kon niet geladen worden.": [
+        "Websitecontrole kon niet geladen worden."
+      ],
+      "Snelheidsscan opgeslagen en optimalisaties toegepast.": [
+        "Snelheidsscan opgeslagen en optimalisaties toegepast."
+      ],
+      "Snelheidsscan opgeslagen.": [
+        "Snelheidsscan opgeslagen."
+      ],
+      "Snelheidsscan mislukt.": [
+        "Snelheidsscan mislukt."
+      ],
+      "Controle nodig": [
+        "Controle nodig"
+      ],
+      "Er zijn achtergrondtaken vastgelopen. Gebruik hieronder de herstelopties of neem contact op met je beheerder.": [
+        "Er zijn achtergrondtaken vastgelopen. Gebruik hieronder de herstelopties of neem contact op met je beheerder."
+      ],
+      "Status opnieuw laden": [
+        "Status opnieuw laden"
+      ],
+      "Laadt de actuele websitestatus opnieuw in.": [
+        "Laadt de actuele websitestatus opnieuw in."
+      ],
+      "Opnieuw laden": [
+        "Opnieuw laden"
+      ],
+      "Open taken verwerken": [
+        "Open taken verwerken"
+      ],
+      "Verwerkt de eerstvolgende achtergrondtaken direct.": [
+        "Verwerkt de eerstvolgende achtergrondtaken direct."
+      ],
+      "Zet vastgelopen taken terug in de wachtrij en probeert ze opnieuw.": [
+        "Zet vastgelopen taken terug in de wachtrij en probeert ze opnieuw."
+      ],
+      "Controleert of de website en cache goed werken.": [
+        "Controleert of de website en cache goed werken."
+      ],
+      "Cachetest uitvoeren": [
+        "Cachetest uitvoeren"
+      ],
+      "Controleert of de cache actief is en paginaâs correct worden overgeslagen waar dat nodig is.": [
+        "Controleert of de cache actief is en paginaâs correct worden overgeslagen waar dat nodig is."
+      ],
+      "Snelheidsscan uitvoeren": [
+        "Snelheidsscan uitvoeren"
+      ],
+      "Controleert de homepage en helpt verbeterpunten voor snelheid te vinden.": [
+        "Controleert de homepage en helpt verbeterpunten voor snelheid te vinden."
+      ],
+      "Laatste snelheidsscan": [
+        "Laatste snelheidsscan"
+      ],
+      "CSS/JS hints:": [
+        "CSS/JS hints:"
+      ],
+      "render-blocking CSS": [
+        "render-blocking CSS"
+      ],
+      "delay-kandidaten": [
+        "delay-kandidaten"
+      ],
+      "third-party": [
+        "third-party"
+      ],
+      "Cachebestanden herstellen": [
+        "Cachebestanden herstellen"
+      ],
+      "Herstelt belangrijke cachebestanden veilig met een back-up.": [
+        "Herstelt belangrijke cachebestanden veilig met een back-up."
+      ],
+      "Conflicten scannen": [
+        "Conflicten scannen"
+      ],
+      "Controleert actieve cache-, optimalisatie-, WooCommerce- en builderplugins op mogelijke overlap.": [
+        "Controleert actieve cache-, optimalisatie-, WooCommerce- en builderplugins op mogelijke overlap."
+      ],
+      "Testmodus 30 min": [
+        "Testmodus 30 min"
+      ],
+      "Zet tijdelijke testinformatie aan zodat problemen makkelijker te controleren zijn.": [
+        "Zet tijdelijke testinformatie aan zodat problemen makkelijker te controleren zijn."
+      ],
+      "Controlelijst ophalen": [
+        "Controlelijst ophalen"
+      ],
+      "Toont de belangrijkste controles voor cache, runtime en WooCommerce-transacties.": [
+        "Toont de belangrijkste controles voor cache, runtime en WooCommerce-transacties."
+      ],
+      "Logpakket downloaden": [
+        "Logpakket downloaden"
+      ],
+      "Download een technisch pakket voor support of beheer. Controleer het pakket voordat je het extern deelt.": [
+        "Download een technisch pakket voor support of beheer. Controleer het pakket voordat je het extern deelt."
+      ],
+      "Logdownload is niet beschikbaar.": [
+        "Logdownload is niet beschikbaar."
+      ],
+      "UltraCache Pro wordt voorbereid": [
+        "UltraCache Pro wordt voorbereid"
+      ],
+      "We laden je cache-instellingen en websitecontrole. Dit duurt meestal maar even.": [
+        "We laden je cache-instellingen en websitecontrole. Dit duurt meestal maar even."
+      ],
+      "Melding sluiten": [
+        "Melding sluiten"
+      ],
+      "Check": [
+        "Check"
+      ],
+      "Goed": [
+        "Goed"
+      ],
+      "UltraCache Pro hoofdtabbladen": [
+        "UltraCache Pro hoofdtabbladen"
+      ],
+      "Cache is actief": [
+        "Cache is actief"
+      ],
+      "Cache vraagt aandacht": [
+        "Cache vraagt aandacht"
+      ],
+      "De basis staat goed. Controleer alleen de frontend na CSS- of JavaScript-wijzigingen.": [
+        "De basis staat goed. Controleer alleen de frontend na CSS- of JavaScript-wijzigingen."
+      ],
+      "Kies bovenaan een preset of pas de aanbevolen slimme scan toe om veilig te starten.": [
+        "Kies bovenaan een preset of pas de aanbevolen slimme scan toe om veilig te starten."
+      ],
+      "Dashboard": [
+        "Dashboard"
+      ],
+      "Er staan achtergrondtaken gepland voor een volgende poging. Dit is normaal na CSS/preload-acties; gebruik Diagnostiek als dit blijft oplopen.": [
+        "Er staan achtergrondtaken gepland voor een volgende poging. Dit is normaal na CSS/preload-acties; gebruik Diagnostiek als dit blijft oplopen."
+      ],
+      "Overzicht": [
+        "Overzicht"
+      ],
+      "Optimalisatie": [
+        "Optimalisatie"
+      ],
+      "Verwerk taken nu": [
+        "Verwerk taken nu"
+      ],
+      "Actief": [
+        "Actief"
+      ],
+      "Cache": [
+        "Cache"
+      ],
+      "Niet actief": [
+        "Niet actief"
+      ],
+      "Basis": [
+        "Basis"
+      ],
+      "Ingesteld": [
+        "Ingesteld"
+      ],
+      "Optimalisatie": [
+        "Optimalisatie"
+      ],
+      "Queue": [
+        "Queue"
+      ],
+      "Rustig": [
+        "Rustig"
+      ],
+      "wachtend": [
+        "wachtend"
+      ],
+      "Standaard": [
+        "Standaard"
+      ],
+      "Veilig": [
+        "Veilig"
+      ],
+      "WooCommerce": [
+        "WooCommerce"
+      ],
+      "Media": [
+        "Media"
+      ],
+      "Preloaden": [
+        "Preloaden"
+      ],
+      "Geavanceerde regels": [
+        "Geavanceerde regels"
+      ],
+      "Wachtrij rustig": [
+        "Wachtrij rustig"
+      ],
+      "WP-Cron uitgeschakeld": [
+        "WP-Cron uitgeschakeld"
+      ],
+      "mislukt": [
+        "mislukt"
+      ],
+      "klaar om te verwerken": [
+        "klaar om te verwerken"
+      ],
+      "Database": [
+        "Database"
+      ],
+      "gepland": [
+        "gepland"
+      ],
+      "actief": [
+        "actief"
+      ],
+      "Taakstatus": [
+        "Taakstatus"
+      ],
+      "In wachtrij": [
+        "In wachtrij"
+      ],
+      "Mislukt": [
+        "Mislukt"
+      ],
+      "OK": [
+        "OK"
+      ],
+      "Uit": [
+        "Uit"
+      ],
+      "WP-Cron": [
+        "WP-Cron"
+      ],
+      "WP-Cron lijkt uitgeschakeld. UltraCache verwerkt taken ook via de admin-fallback. Stel voor productie een echte server-cron in.": [
+        "WP-Cron lijkt uitgeschakeld. UltraCache verwerkt taken ook via de admin-fallback. Stel voor productie een echte server-cron in."
+      ],
+      "Verwerkt direct de eerstvolgende wachtrijtaken zonder te wachten op WP-Cron.": [
+        "Verwerkt direct de eerstvolgende wachtrijtaken zonder te wachten op WP-Cron."
+      ],
+      "Mislukte taken opnieuw": [
+        "Mislukte taken opnieuw"
+      ],
+      "Zet mislukte taken terug in de wachtrij.": [
+        "Zet mislukte taken terug in de wachtrij."
+      ],
+      "Volgende geplande run: ": [
+        "Volgende geplande run: "
+      ],
+      "Geen geplande runner â wordt automatisch aangemaakt zodra er taken zijn.": [
+        "Geen geplande runner â wordt automatisch aangemaakt zodra er taken zijn."
+      ],
+      "Websitecontrole": [
+        "Websitecontrole"
+      ],
+      "Alles ziet er goed uit. Controleer de site frontend na CSS- of JavaScript-wijzigingen.": [
+        "Alles ziet er goed uit. Controleer de site frontend na CSS- of JavaScript-wijzigingen."
+      ],
+      "Zet pagina caching aan om de basisversnelling te activeren.": [
+        "Zet pagina caching aan om de basisversnelling te activeren."
+      ],
+      "WooCommerce safety mode staat uit. Zet dit aan voor shops.": [
+        "WooCommerce safety mode staat uit. Zet dit aan voor shops."
+      ],
+      "Er zijn mislukte achtergrondtaken. Open Diagnostiek of start de taken opnieuw.": [
+        "Er zijn mislukte achtergrondtaken. Open Diagnostiek of start de taken opnieuw."
+      ],
+      "Delay JS is actief. Test formulieren, sliders en checkout handmatig.": [
+        "Delay JS is actief. Test formulieren, sliders en checkout handmatig."
+      ],
+      "Aanbevolen volgende stap": [
+        "Aanbevolen volgende stap"
+      ],
+      "Tools": [
+        "Tools"
+      ],
+      "Sluiten": [
+        "Sluiten"
+      ],
+      "Kies een startconfiguratie": [
+        "Kies een startconfiguratie"
+      ],
+      "UltraCache setup": [
+        "UltraCache setup"
+      ],
+      "Kies direct een veilige basis. Je kunt later alle instellingen handmatig aanpassen.": [
+        "Kies direct een veilige basis. Je kunt later alle instellingen handmatig aanpassen."
+      ],
+      "Toepassen": [
+        "Toepassen"
+      ],
+      "Tip: gebruik Webshop veilig als WooCommerce actief is. Delay JS en combineren blijven dan bewust uit.": [
+        "Tip: gebruik Webshop veilig als WooCommerce actief is. Delay JS en combineren blijven dan bewust uit."
+      ],
+      "Nog geen scan uitgevoerd": [
+        "Nog geen scan uitgevoerd"
+      ],
+      "Scan je WordPress-installatie": [
+        "Scan je WordPress-installatie"
+      ],
+      "Slimme scan": [
+        "Slimme scan"
+      ],
+      "UltraCache kijkt naar actieve plugins, thema, WooCommerce/LMS, builders, cache-plugins, WordPress-omgeving en veiligheidsrisicoâs en adviseert daarna de beste preset of een veilige maatwerkpreset.": [
+        "UltraCache kijkt naar actieve plugins, thema, WooCommerce/LMS, builders, cache-plugins, WordPress-omgeving en veiligheidsrisicoâs en adviseert daarna de beste preset of een veilige maatwerkpreset."
+      ],
+      "Plugins gecontroleerd": [
+        "Plugins gecontroleerd"
+      ],
+      "actieve plugins": [
+        "actieve plugins"
+      ],
+      "Scannenâ¦": [
+        "Scannenâ¦"
+      ],
+      "Site scannen": [
+        "Site scannen"
+      ],
+      "Aanbevolen preset toepassen": [
+        "Aanbevolen preset toepassen"
+      ],
+      "Maatwerk toepassen": [
+        "Maatwerk toepassen"
+      ],
+      "Scan klaar: ": [
+        "Scan klaar: "
+      ],
+      "Scan kon niet worden uitgevoerd.": [
+        "Scan kon niet worden uitgevoerd."
+      ],
+      "Geen scanadvies gevonden om toe te passen.": [
+        "Geen scanadvies gevonden om toe te passen."
+      ],
+      "Scanadvies kon niet worden toegepast.": [
+        "Scanadvies kon niet worden toegepast."
+      ],
+      "Kies je startinstelling": [
+        "Kies je startinstelling"
+      ],
+      "Online best practices toegepast: kies direct een veilige preset. Minify staat standaard aan; combineren, Delay JS en Used CSS blijven uit tot je bewust test.": [
+        "Online best practices toegepast: kies direct een veilige preset. Minify staat standaard aan; combineren, Delay JS en Used CSS blijven uit tot je bewust test."
+      ],
+      "Actie uitgevoerd.": [
+        "Actie uitgevoerd."
+      ],
+      "Actie mislukt.": [
+        "Actie mislukt."
+      ],
+      "Bezigâ¦": [
+        "Bezigâ¦"
+      ],
+      "Actie uitvoeren": [
+        "Actie uitvoeren"
+      ],
+      "Bevestigen": [
+        "Bevestigen"
+      ],
+      "Annuleren": [
+        "Annuleren"
+      ],
+      "Deze gecombineerde actie voert meerdere stappen uit. Doorgaan?": [
+        "Deze gecombineerde actie voert meerdere stappen uit. Doorgaan?"
+      ],
+      "Klaar: %d acties uitgevoerd.": [
+        "Klaar: %d acties uitgevoerd."
+      ],
+      "Gecombineerde actie mislukt. Controleer logs en probeer de losse stap opnieuw.": [
+        "Gecombineerde actie mislukt. Controleer logs en probeer de losse stap opnieuw."
+      ],
+      "Dagelijkse cache-acties": [
+        "Dagelijkse cache-acties"
+      ],
+      "Gebruik deze acties na content-, thema- of pluginwijzigingen.": [
+        "Gebruik deze acties na content-, thema- of pluginwijzigingen."
+      ],
+      "Cache geleegd, preload gestart en wachtrij verwerkt.": [
+        "Cache geleegd, preload gestart en wachtrij verwerkt."
+      ],
+      "Cache legen + opwarmen": [
+        "Cache legen + opwarmen"
+      ],
+      "Leeg alle cache": [
+        "Leeg alle cache"
+      ],
+      "Verwijdert alle cachebestanden en laat nieuwe cache opnieuw opbouwen.": [
+        "Verwijdert alle cachebestanden en laat nieuwe cache opnieuw opbouwen."
+      ],
+      "Leeg pagina-cache": [
+        "Leeg pagina-cache"
+      ],
+      "Verwijdert alleen de HTML-pagina-cache. CSS, JS en instellingen blijven ongemoeid.": [
+        "Verwijdert alleen de HTML-pagina-cache. CSS, JS en instellingen blijven ongemoeid."
+      ],
+      "Preload en wachtrij": [
+        "Preload en wachtrij"
+      ],
+      "Start preload of verwerk taken wanneer WP-Cron niet meteen draait.": [
+        "Start preload of verwerk taken wanneer WP-Cron niet meteen draait."
+      ],
+      "Preload gestart en open taken verwerkt.": [
+        "Preload gestart en open taken verwerkt."
+      ],
+      "Preload volledig uitvoeren": [
+        "Preload volledig uitvoeren"
+      ],
+      "Cache opwarmen": [
+        "Cache opwarmen"
+      ],
+      "Mislukte taken opnieuw proberen": [
+        "Mislukte taken opnieuw proberen"
+      ],
+      "CSS": [
+        "CSS"
+      ],
+      "Herbouw of wis CSS-bestanden.": [
+        "Herbouw of wis CSS-bestanden."
+      ],
+      "CSS volledig vernieuwen": [
+        "CSS volledig vernieuwen"
+      ],
+      "CSS-bestanden gewist en Critical/Used CSS opnieuw gestart.": [
+        "CSS-bestanden gewist en Critical/Used CSS opnieuw gestart."
+      ],
+      "Genereer kritieke CSS": [
+        "Genereer kritieke CSS"
+      ],
+      "Used CSS opnieuw genereren": [
+        "Used CSS opnieuw genereren"
+      ],
+      "Verkleinde CSS wissen": [
+        "Verkleinde CSS wissen"
+      ],
+      "JavaScript": [
+        "JavaScript"
+      ],
+      "Wis opgebouwde JavaScript-bestanden.": [
+        "Wis opgebouwde JavaScript-bestanden."
+      ],
+      "Verkleinde JS wissen": [
+        "Verkleinde JS wissen"
+      ],
+      "Support": [
+        "Support"
+      ],
+      "Controle en supportacties.": [
+        "Controle en supportacties."
+      ],
+      "Controlepakket uitvoeren": [
+        "Controlepakket uitvoeren"
+      ],
+      "Health check, runtime test, conflictcheck en release checklist uitgevoerd.": [
+        "Health check, runtime test, conflictcheck en release checklist uitgevoerd."
+      ],
+      "Controleert cachemap, drop-in, conflicten en runtimevoorwaarden.": [
+        "Controleert cachemap, drop-in, conflicten en runtimevoorwaarden."
+      ],
+      "Websitecontrole uitvoeren": [
+        "Websitecontrole uitvoeren"
+      ],
+      "Risico": [
+        "Risico"
+      ],
+      "Gebruik alleen bewust en na backup.": [
+        "Gebruik alleen bewust en na backup."
+      ],
+      "Database opschonen": [
+        "Database opschonen"
+      ],
+      "Kaartenindeling": [
+        "Kaartenindeling"
+      ],
+      "Kies 1x1 t/m 4x4. In 1x1 zet UltraCache compacte velden netjes op een rij; langere of risicovolle inhoud blijft automatisch onder elkaar.": [
+        "Kies 1x1 t/m 4x4. In 1x1 zet UltraCache compacte velden netjes op een rij; langere of risicovolle inhoud blijft automatisch onder elkaar."
+      ],
+      "Verplaats kaart met pijltjestoetsen of sleep met de muis": [
+        "Verplaats kaart met pijltjestoetsen of sleep met de muis"
+      ],
+      "Verplaats kaart. Gebruik pijltoetsen, Home of End.": [
+        "Verplaats kaart. Gebruik pijltoetsen, Home of End."
+      ],
+      "Instellingen geÃ«xporteerd.": [
+        "Instellingen geÃ«xporteerd."
+      ],
+      "Export mislukt.": [
+        "Export mislukt."
+      ],
+      "Ongeldig JSON-bestand. Gebruik een UltraCache exportbestand.": [
+        "Ongeldig JSON-bestand. Gebruik een UltraCache exportbestand."
+      ],
+      "Import overschrijft bestaande UltraCache-instellingen. Maak eerst een export of database-back-up. Doorgaan?": [
+        "Import overschrijft bestaande UltraCache-instellingen. Maak eerst een export of database-back-up. Doorgaan?"
+      ],
+      "JSON-instellingen geÃ¯mporteerd.": [
+        "JSON-instellingen geÃ¯mporteerd."
+      ],
+      "Import mislukt.": [
+        "Import mislukt."
+      ],
+      "Kies een .json of .txt bestand.": [
+        "Kies een .json of .txt bestand."
+      ],
+      "Het JSON-bestand is te groot. Maximale grootte is 256 KB.": [
+        "Het JSON-bestand is te groot. Maximale grootte is 256 KB."
+      ],
+      "Ongeldige JSON in het gekozen bestand.": [
+        "Ongeldige JSON in het gekozen bestand."
+      ],
+      "Het JSON-bestand kon niet worden gelezen.": [
+        "Het JSON-bestand kon niet worden gelezen."
+      ],
+      "Import / export": [
+        "Import / export"
+      ],
+      "Export": [
+        "Export"
+      ],
+      "Instellingen exporteren": [
+        "Instellingen exporteren"
+      ],
+      "Download je huidige UltraCache-instellingen als JSON-back-up voordat je nieuwe instellingen importeert.": [
+        "Download je huidige UltraCache-instellingen als JSON-back-up voordat je nieuwe instellingen importeert."
+      ],
+      "Exporteren": [
+        "Exporteren"
+      ],
+      "Import": [
+        "Import"
+      ],
+      "Instellingen importeren": [
+        "Instellingen importeren"
+      ],
+      "Upload een UltraCache .json exportbestand. Na bevestiging worden je instellingen direct bijgewerkt.": [
+        "Upload een UltraCache .json exportbestand. Na bevestiging worden je instellingen direct bijgewerkt."
+      ],
+      "JSON importeren": [
+        "JSON importeren"
+      ],
+      "1. Kies eerst een preset": [
+        "1. Kies eerst een preset"
+      ],
+      "2. Controleer HTML en CSS": [
+        "2. Controleer HTML en CSS"
+      ],
+      "3. Test JavaScript apart": [
+        "3. Test JavaScript apart"
+      ],
+      "Begin met veilige optimalisaties. Zet risicovolle CSS- en JavaScript-opties pas aan nadat je de frontend, formulieren en checkout hebt getest.": [
+        "Begin met veilige optimalisaties. Zet risicovolle CSS- en JavaScript-opties pas aan nadat je de frontend, formulieren en checkout hebt getest."
+      ],
+      "Optimalisatie overzicht": [
+        "Optimalisatie overzicht"
+      ],
+      "Aanbevolen basis": [
+        "Aanbevolen basis"
+      ],
+      "Afbeeldingen": [
+        "Afbeeldingen"
+      ],
+      "Fonts": [
+        "Fonts"
+      ],
+      "Gebruik veilige media-optimalisaties eerst: lazy load voor offscreen media, vaste afbeeldingsafmetingen en font-display swap. Gebruik preload alleen voor kritieke fonts of hero-afbeeldingen.": [
+        "Gebruik veilige media-optimalisaties eerst: lazy load voor offscreen media, vaste afbeeldingsafmetingen en font-display swap. Gebruik preload alleen voor kritieke fonts of hero-afbeeldingen."
+      ],
+      "Media optimalisatie overzicht": [
+        "Media optimalisatie overzicht"
+      ],
+      "Uitsluitingen en connecties": [
+        "Uitsluitingen en connecties"
+      ],
+      "Cache vooraf opbouwen": [
+        "Cache vooraf opbouwen"
+      ],
+      "Link preload": [
+        "Link preload"
+      ],
+      "Preload maakt cachebestanden klaar voordat bezoekers paginaâs openen. Gebruik de queue en sitemap als veilige basis; stuur snelheid met batchgrootte en pauze.": [
+        "Preload maakt cachebestanden klaar voordat bezoekers paginaâs openen. Gebruik de queue en sitemap als veilige basis; stuur snelheid met batchgrootte en pauze."
+      ],
+      "Preload overzicht": [
+        "Preload overzicht"
+      ],
+      "Serverbelasting": [
+        "Serverbelasting"
+      ],
+      "Uitsluitingen": [
+        "Uitsluitingen"
+      ],
+      "Cache levensduur": [
+        "Cache levensduur"
+      ],
+      "Geavanceerde regels overzicht": [
+        "Geavanceerde regels overzicht"
+      ],
+      "Gebruik deze pagina alleen voor uitzonderingen: paginaâs die nooit gecachet mogen worden, cookies die gepersonaliseerde content tonen en query parameters. Laat velden leeg wanneer je geen specifieke uitzondering nodig hebt.": [
+        "Gebruik deze pagina alleen voor uitzonderingen: paginaâs die nooit gecachet mogen worden, cookies die gepersonaliseerde content tonen en query parameters. Laat velden leeg wanneer je geen specifieke uitzondering nodig hebt."
+      ],
+      "Query strings": [
+        "Query strings"
+      ],
+      "Compatibiliteit": [
+        "Compatibiliteit"
+      ],
+      "Fragment cache": [
+        "Fragment cache"
+      ],
+      "Gebruik deze pagina alleen voor REST-cache, fragment cache en technische veiligheidsopties. Deze instellingen blijven standaard uit en horen eerst op staging getest te worden.": [
+        "Gebruik deze pagina alleen voor REST-cache, fragment cache en technische veiligheidsopties. Deze instellingen blijven standaard uit en horen eerst op staging getest te worden."
+      ],
+      "REST-cache": [
+        "REST-cache"
+      ],
+      "Veiligheidsmodus": [
+        "Veiligheidsmodus"
+      ],
+      "Berichten": [
+        "Berichten"
+      ],
+      "Database onderhoud": [
+        "Database onderhoud"
+      ],
+      "Reacties": [
+        "Reacties"
+      ],
+      "Ruim alleen gegevens op die je bewust hebt geselecteerd. Verlopen transients zijn meestal veilig; revisies, prullenbak, alle transients en tabeloptimalisatie vragen meer voorzichtigheid.": [
+        "Ruim alleen gegevens op die je bewust hebt geselecteerd. Verlopen transients zijn meestal veilig; revisies, prullenbak, alle transients en tabeloptimalisatie vragen meer voorzichtigheid."
+      ],
+      "Tabellen": [
+        "Tabellen"
+      ],
+      "Transients": [
+        "Transients"
+      ],
+      "Veilig eerst": [
+        "Veilig eerst"
+      ],
+      "CDN CNAMEs": [
+        "CDN CNAMEs"
+      ],
+      "CDN overzicht": [
+        "CDN overzicht"
+      ],
+      "Cloudflare": [
+        "Cloudflare"
+      ],
+      "Configureer CDN- en edge-opties alleen wanneer je CNAMEs en Cloudflare-instellingen bekend zijn.": [
+        "Configureer CDN- en edge-opties alleen wanneer je CNAMEs en Cloudflare-instellingen bekend zijn."
+      ],
+      "Backend": [
+        "Backend"
+      ],
+      "Editor": [
+        "Editor"
+      ],
+      "Frontend": [
+        "Frontend"
+      ],
+      "Heartbeat overzicht": [
+        "Heartbeat overzicht"
+      ],
+      "Verminder WordPress Heartbeat voorzichtig. Uitschakelen kan invloed hebben op editors, autosave of plugins.": [
+        "Verminder WordPress Heartbeat voorzichtig. Uitschakelen kan invloed hebben op editors, autosave of plugins."
+      ],
+      "Veilige basis": [
+        "Veilige basis"
+      ],
+      "Start met verlopen transients. Zet revisies, prullenbak en alle transients alleen aan wanneer je zeker weet dat je die gegevens niet meer nodig hebt.": [
+        "Start met verlopen transients. Zet revisies, prullenbak en alle transients alleen aan wanneer je zeker weet dat je die gegevens niet meer nodig hebt."
+      ],
+      "Verlopen transients aan": [
+        "Verlopen transients aan"
+      ],
+      "Verlopen transients uit": [
+        "Verlopen transients uit"
+      ],
+      "Geen schema": [
+        "Geen schema"
+      ],
+      "Schema actief": [
+        "Schema actief"
+      ],
+      "Selectie": [
+        "Selectie"
+      ],
+      "UltraCache ruimt alleen de onderdelen op die hieronder zijn ingeschakeld. Controleer de selectie voordat je opschoont.": [
+        "UltraCache ruimt alleen de onderdelen op die hieronder zijn ingeschakeld. Controleer de selectie voordat je opschoont."
+      ],
+      "Instellingen aangezet.": [
+        "Instellingen aangezet."
+      ],
+      "Testtaken toegevoegd.": [
+        "Testtaken toegevoegd."
+      ],
+      "Taken gestart.": [
+        "Taken gestart."
+      ],
+      "Bestand verwerkt.": [
+        "Bestand verwerkt."
+      ],
+      "Controle bijgewerkt.": [
+        "Controle bijgewerkt."
+      ],
+      "Eerste hulp is klaar.": [
+        "Eerste hulp is klaar."
+      ],
+      "Onderhoud is klaar.": [
+        "Onderhoud is klaar."
+      ],
+      "Cache is geleegd.": [
+        "Cache is geleegd."
+      ],
+      "Cache is opgewarmd.": [
+        "Cache is opgewarmd."
+      ],
+      "Pagina's zijn toegevoegd om op te warmen.": [
+        "Pagina's zijn toegevoegd om op te warmen."
+      ],
+      "Cache is ingeschakeld.": [
+        "Cache is ingeschakeld."
+      ],
+      "Snelle uitsluitingen zijn toegepast.": [
+        "Snelle uitsluitingen zijn toegepast."
+      ],
+      "Compatibiliteitslijsten zijn gecontroleerd.": [
+        "Compatibiliteitslijsten zijn gecontroleerd."
+      ],
+      "Gebruikte CSS is geleegd.": [
+        "Gebruikte CSS is geleegd."
+      ],
+      "Verkleinde CSS is geleegd.": [
+        "Verkleinde CSS is geleegd."
+      ],
+      "Verkleinde JavaScript is geleegd.": [
+        "Verkleinde JavaScript is geleegd."
+      ],
+      "Priority elements zijn geleegd.": [
+        "Priority elements zijn geleegd."
+      ],
+      "Lokale lettertypes zijn geleegd.": [
+        "Lokale lettertypes zijn geleegd."
+      ],
+      "Standaardopties zijn teruggezet.": [
+        "Standaardopties zijn teruggezet."
+      ],
+      "Meta opties zijn opgeschoond.": [
+        "Meta opties zijn opgeschoond."
+      ],
+      "Instellingen": [
+        "Instellingen"
+      ],
+      "Krijg hulp, accountinformatie": [
+        "Krijg hulp, accountinformatie"
+      ],
+      "CSS & JS optimaliseren": [
+        "CSS & JS optimaliseren"
+      ],
+      "LazyLoad, image dimensions, font optimization": [
+        "LazyLoad, image dimensions, font optimization"
+      ],
+      "Generate cache files": [
+        "Generate cache files"
+      ],
+      "Cache-regels verfijnen": [
+        "Cache-regels verfijnen"
+      ],
+      "Optimaliseer, verminder bloat": [
+        "Optimaliseer, verminder bloat"
+      ],
+      "CDN": [
+        "CDN"
+      ],
+      "Integreer je CDN": [
+        "Integreer je CDN"
+      ],
+      "Beheer WordPress Heartbeat API": [
+        "Beheer WordPress Heartbeat API"
+      ],
+      "Heartbeat": [
+        "Heartbeat"
+      ],
+      "REST-cache, fragment cache en veiligheidsopties": [
+        "REST-cache, fragment cache en veiligheidsopties"
+      ],
+      "Importeren, exporteren, terugzetten": [
+        "Importeren, exporteren, terugzetten"
+      ],
+      "Alles op Ã©Ã©n plek.": [
+        "Alles op Ã©Ã©n plek."
+      ],
+      "Volgorde": [
+        "Volgorde"
+      ],
+      "Krijg hulp, accountinformatie en snelle cache-acties.": [
+        "Krijg hulp, accountinformatie en snelle cache-acties."
+      ],
+      "Startpunt": [
+        "Startpunt"
+      ],
+      "CSS en JS": [
+        "CSS en JS"
+      ],
+      "CSS en JavaScript optimaliseren zonder media- of preload-instellingen door elkaar te zetten.": [
+        "CSS en JavaScript optimaliseren zonder media- of preload-instellingen door elkaar te zetten."
+      ],
+      "Afbeeldingen, iframes en fonts": [
+        "Afbeeldingen, iframes en fonts"
+      ],
+      "LazyLoad, afmetingen, fonts en media-gerelateerde optimalisaties.": [
+        "LazyLoad, afmetingen, fonts en media-gerelateerde optimalisaties."
+      ],
+      "Cachebestanden vooraf genereren en links voorbereiden.": [
+        "Cachebestanden vooraf genereren en links voorbereiden."
+      ],
+      "Cache-levensduur, nooit cachen, query strings en purge-regels.": [
+        "Cache-levensduur, nooit cachen, query strings en purge-regels."
+      ],
+      "Maak eerst een backup": [
+        "Maak eerst een backup"
+      ],
+      "Revisies, spam, transients en tabellen opschonen.": [
+        "Revisies, spam, transients en tabellen opschonen."
+      ],
+      "Statische bestanden via je CDN-CNAME laden.": [
+        "Statische bestanden via je CDN-CNAME laden."
+      ],
+      "Beheer de WordPress Heartbeat API per omgeving.": [
+        "Beheer de WordPress Heartbeat API per omgeving."
+      ],
+      "Rustiger backend-verkeer": [
+        "Rustiger backend-verkeer"
+      ],
+      "Alleen voor ontwikkelaars": [
+        "Alleen voor ontwikkelaars"
+      ],
+      "REST-cache, fragment cache en technische veiligheidsopties. Standaard uit en staging-first.": [
+        "REST-cache, fragment cache en technische veiligheidsopties. Standaard uit en staging-first."
+      ],
+      "Beheer en support": [
+        "Beheer en support"
+      ],
+      "Import, export, rollback en onderhoud.": [
+        "Import, export, rollback en onderhoud."
+      ],
+      "Doel": [
+        "Doel"
+      ],
+      "Extra hulp": [
+        "Extra hulp"
+      ],
+      "Klaar": [
+        "Klaar"
+      ],
+      "Soort site": [
+        "Soort site"
+      ],
+      "UltraCache Pro": [
+        "UltraCache Pro"
+      ],
+      "Cache legen": [
+        "Cache legen"
+      ],
+      "Opwarmen": [
+        "Opwarmen"
+      ],
+      "Veilige start aanbevolen kiezen": [
+        "Veilige start aanbevolen kiezen"
+      ],
+      "Systeemtest uitvoeren": [
+        "Systeemtest uitvoeren"
+      ],
+      "Geselecteerde onderdelen opruimen": [
+        "Geselecteerde onderdelen opruimen"
+      ],
+      "Cache inschakelen": [
+        "Cache inschakelen"
+      ],
+      "Optimalisatie starten": [
+        "Optimalisatie starten"
+      ],
+      "Overgeslagen": [
+        "Overgeslagen"
+      ],
+      "Mogelijk later laden": [
+        "Mogelijk later laden"
+      ],
+      "Overal uitgezet": [
+        "Overal uitgezet"
+      ],
+      "Asset Manager regel": [
+        "Asset Manager regel"
+      ],
+      "Asset Manager uitzondering": [
+        "Asset Manager uitzondering"
+      ],
+      "Gezien op frontend": [
+        "Gezien op frontend"
+      ],
+      "Normaal": [
+        "Normaal"
+      ],
+      "Safe mode hoort bij Delay JS.": [
+        "Safe mode hoort bij Delay JS."
+      ],
+      "Deze instelling wordt pas gebruikt als Delay JS aan staat.": [
+        "Deze instelling wordt pas gebruikt als Delay JS aan staat."
+      ],
+      "Extra uitzonderingen horen bij Delay JS.": [
+        "Extra uitzonderingen horen bij Delay JS."
+      ],
+      "Beschikbaar zodra pagina-cache actief is.": [
+        "Beschikbaar zodra pagina-cache actief is."
+      ],
+      "Beschikbaar zodra Defer JS actief is.": [
+        "Beschikbaar zodra Defer JS actief is."
+      ],
+      "Deze expertoptie gaat uit zodra Delay JS aan staat.": [
+        "Deze expertoptie gaat uit zodra Delay JS aan staat."
+      ],
+      "Deze lijst hoort bij de veilige script-laadstrategie.": [
+        "Deze lijst hoort bij de veilige script-laadstrategie."
+      ],
+      "Deze optie hoort bij Opwarmen.": [
+        "Deze optie hoort bij Opwarmen."
+      ],
+      "Deze lijst is pas relevant zodra JavaScript-optimalisatie actief is.": [
+        "Deze lijst is pas relevant zodra JavaScript-optimalisatie actief is."
+      ],
+      "Kies eerst Volgende pagina voorbereiden - Voorzichtig gebruiken.": [
+        "Kies eerst Volgende pagina voorbereiden - Voorzichtig gebruiken."
+      ],
+      "Uitzonderingen zijn alleen nodig als voorbereid laden actief is.": [
+        "Uitzonderingen zijn alleen nodig als voorbereid laden actief is."
+      ],
+      "Beschikbaar zodra opwarmen actief is.": [
+        "Beschikbaar zodra opwarmen actief is."
+      ],
+      "Deze instelling wordt pas gebruikt als Opwarmen aan staat.": [
+        "Deze instelling wordt pas gebruikt als Opwarmen aan staat."
+      ],
+      "Uitzonderingen zijn vooral nodig als HTML verkleinen actief is.": [
+        "Uitzonderingen zijn vooral nodig als HTML verkleinen actief is."
+      ],
+      "Deze uitzonderingen zijn pas relevant als HTML-opties aan staan.": [
+        "Deze uitzonderingen zijn pas relevant als HTML-opties aan staan."
+      ],
+      "CSS samenvoegen wordt automatisch uitgezet wanneer CSS-levering optimaliseren actief is.": [
+        "CSS samenvoegen wordt automatisch uitgezet wanneer CSS-levering optimaliseren actief is."
+      ],
+      "Deze wachtrij is alleen nuttig wanneer CSS-levering optimaliseren actief is.": [
+        "Deze wachtrij is alleen nuttig wanneer CSS-levering optimaliseren actief is."
+      ],
+      "Cloud CSS is alleen relevant wanneer CSS-levering optimaliseren actief is.": [
+        "Cloud CSS is alleen relevant wanneer CSS-levering optimaliseren actief is."
+      ],
+      "Beschikbaar zodra CSS-levering optimaliseren actief is.": [
+        "Beschikbaar zodra CSS-levering optimaliseren actief is."
+      ],
+      "Beschikbaar zodra Cloud-rendering is ingericht.": [
+        "Beschikbaar zodra Cloud-rendering is ingericht."
+      ],
+      "Deze lijst is pas relevant zodra CSS-optimalisatie actief is.": [
+        "Deze lijst is pas relevant zodra CSS-optimalisatie actief is."
+      ],
+      "De CSS veilige lijst is alleen nodig als CSS-levering optimaliseren actief is.": [
+        "De CSS veilige lijst is alleen nodig als CSS-levering optimaliseren actief is."
+      ],
+      "Er lijkt al een andere page-cache of drop-in actief. Test eerst cachegedrag en gebruik zo nodig alleen UltraCache voor purge en observatie.": [
+        "Er lijkt al een andere page-cache of drop-in actief. Test eerst cachegedrag en gebruik zo nodig alleen UltraCache voor purge en observatie."
+      ],
+      "Er draait al een andere optimalisatieplugin. Laat overlap liever uit of test eerst in een veilige modus.": [
+        "Er draait al een andere optimalisatieplugin. Laat overlap liever uit of test eerst in een veilige modus."
+      ],
+      "Je site gebruikt plugins die gevoelig zijn voor markup-wijzigingen. Test alle flows handmatig voordat je dit live verder aanscherpt.": [
+        "Je site gebruikt plugins die gevoelig zijn voor markup-wijzigingen. Test alle flows handmatig voordat je dit live verder aanscherpt."
+      ],
+      "Delay JS is een ingrijpende optimalisatie. Test altijd formulieren, sliders, cookiebanners, analytics en checkout.": [
+        "Delay JS is een ingrijpende optimalisatie. Test altijd formulieren, sliders, cookiebanners, analytics en checkout."
+      ],
+      "JavaScript samenvoegen - Geavanceerd wordt automatisch uitgezet zodra Delay JS actief is.": [
+        "JavaScript samenvoegen - Geavanceerd wordt automatisch uitgezet zodra Delay JS actief is."
+      ],
+      "De veilige script-laadstrategie gaat automatisch uit zodra Delay JS actief is.": [
+        "De veilige script-laadstrategie gaat automatisch uit zodra Delay JS actief is."
+      ],
+      "Delay JS neemt de laadstrategie over. Defer blijft als hoofdschakel zichtbaar voor consistentie, maar Delay bepaalt dan het gedrag.": [
+        "Delay JS neemt de laadstrategie over. Defer blijft als hoofdschakel zichtbaar voor consistentie, maar Delay bepaalt dan het gedrag."
+      ],
+      "Deze expertoptie heeft geen effect zolang Delay JS actief is.": [
+        "Deze expertoptie heeft geen effect zolang Delay JS actief is."
+      ],
+      "Gebruik voorbereid laden alleen als formulieren, cookieflow en shopacties goed blijven werken.": [
+        "Gebruik voorbereid laden alleen als formulieren, cookieflow en shopacties goed blijven werken."
+      ],
+      "WP_CACHE staat niet actief in wp-config.php. UltraCache kan daardoor niet vroeg genoeg laden.": [
+        "WP_CACHE staat niet actief in wp-config.php. UltraCache kan daardoor niet vroeg genoeg laden."
+      ],
+      "WP_CACHE veilig aanzetten": [
+        "WP_CACHE veilig aanzetten"
+      ],
+      "Mogelijke overlap gevonden: %s. UltraCache neemt automatisch over als er geen actieve andere page-cacheplugin is. Is er wel een actieve cacheplugin, kies dan bewust welke cachelaag actief mag zijn of gebruik de knop om UltraCache alsnog te activeren.": [
+        "Mogelijke overlap gevonden: %s. UltraCache neemt automatisch over als er geen actieve andere page-cacheplugin is. Is er wel een actieve cacheplugin, kies dan bewust welke cachelaag actief mag zijn of gebruik de knop om UltraCache alsnog te activeren."
+      ],
+      "Cachelaag controleren": [
+        "Cachelaag controleren"
+      ],
+      "Er staat al een advanced-cache.php van een andere cachelaag. Als er geen andere cacheplugin actief is, neemt UltraCache dit automatisch veilig over. Anders kun je bewust een back-up maken en cache activeren.": [
+        "Er staat al een advanced-cache.php van een andere cachelaag. Als er geen andere cacheplugin actief is, neemt UltraCache dit automatisch veilig over. Anders kun je bewust een back-up maken en cache activeren."
+      ],
+      "Bestaande drop-in back-uppen en cache activeren": [
+        "Bestaande drop-in back-uppen en cache activeren"
+      ],
+      "Aanbevolen veilige modus door overlap: %s.": [
+        "Aanbevolen veilige modus door overlap: %s."
+      ],
+      "Aandacht vereist": [
+        "Aandacht vereist"
+      ],
+      "Context voor deze tab": [
+        "Context voor deze tab"
+      ],
+      "Testtaken gemaakt.": [
+        "Testtaken gemaakt."
+      ],
+      "Instelhulp is klaar.": [
+        "Instelhulp is klaar."
+      ],
+      "Snelle hulp is aangepast.": [
+        "Snelle hulp is aangepast."
+      ],
+      "Automatische hulp is toegepast.": [
+        "Automatische hulp is toegepast."
+      ],
+      "Veilige Heartbeat instellingen zijn toegepast.": [
+        "Veilige Heartbeat instellingen zijn toegepast."
+      ],
+      "Veilige opwarminstellingen zijn toegepast.": [
+        "Veilige opwarminstellingen zijn toegepast."
+      ],
+      "UltraCache is nu de actieve page-cache drop-in.": [
+        "UltraCache is nu de actieve page-cache drop-in."
+      ],
+      "Drop-in bestandsrechten opnieuw gecontroleerd.": [
+        "Drop-in bestandsrechten opnieuw gecontroleerd."
+      ],
+      "De vorige advanced-cache.php is veilig als backup bewaard.": [
+        "De vorige advanced-cache.php is veilig als backup bewaard."
+      ],
+      "UltraCache heeft automatisch de page-cache drop-in geactiveerd omdat er geen actieve andere cacheplugin is gevonden.": [
+        "UltraCache heeft automatisch de page-cache drop-in geactiveerd omdat er geen actieve andere cacheplugin is gevonden."
+      ],
+      "UltraCache heeft de bestaande drop-in niet automatisch vervangen omdat er nog een actieve cacheplugin is gevonden.": [
+        "UltraCache heeft de bestaande drop-in niet automatisch vervangen omdat er nog een actieve cacheplugin is gevonden."
+      ],
+      "WP_CACHE is aangezet. De bestaande advanced-cache.php is bewaard als backup en UltraCache is actief gemaakt.": [
+        "WP_CACHE is aangezet. De bestaande advanced-cache.php is bewaard als backup en UltraCache is actief gemaakt."
+      ],
+      "Veilige HTML-instellingen actief.": [
+        "Veilige HTML-instellingen actief."
+      ],
+      "Cloud synchronisatie is uitgevoerd.": [
+        "Cloud synchronisatie is uitgevoerd."
+      ],
+      "Object cache status is gecontroleerd.": [
+        "Object cache status is gecontroleerd."
+      ],
+      "Afbeeldingsoptimalisatie is uitgevoerd.": [
+        "Afbeeldingsoptimalisatie is uitgevoerd."
+      ],
+      "Systeemtest is uitgevoerd.": [
+        "Systeemtest is uitgevoerd."
+      ],
+      "%d taak opnieuw in de wachtrij gezet.": [
+        "%d taak opnieuw in de wachtrij gezet."
+      ],
+      "%d taak is overgeslagen omdat er al een actieve dubbele taak bestaat.": [
+        "%d taak is overgeslagen omdat er al een actieve dubbele taak bestaat."
+      ],
+      "%d taak bestond niet meer.": [
+        "%d taak bestond niet meer."
+      ],
+      "%d taak kon niet opnieuw worden ingepland.": [
+        "%d taak kon niet opnieuw worden ingepland."
+      ],
+      "Automatisch herkend: %1$d groep met %2$d uitsluiting.": [
+        "Automatisch herkend: %1$d groep met %2$d uitsluiting."
+      ],
+      "Vooral voor: %s.": [
+        "Vooral voor: %s."
+      ],
+      "CSS genereren": [
+        "CSS genereren"
+      ],
+      "CSS opschonen": [
+        "CSS opschonen"
+      ],
+      "Bezig": [
+        "Bezig"
+      ],
+      "Opnieuw proberen": [
+        "Opnieuw proberen"
+      ],
+      "URL opwarmen": [
+        "URL opwarmen"
+      ],
+      "Regel toegevoegd.": [
+        "Regel toegevoegd."
+      ],
+      "Je hebt iets aangepast. Wil je weggaan zonder op te slaan?": [
+        "Je hebt iets aangepast. Wil je weggaan zonder op te slaan?"
+      ],
+      "UltraCache: instellingen opgeslagen.": [
+        "UltraCache: instellingen opgeslagen."
+      ],
+      "Geen toegang.": [
+        "Geen toegang."
+      ],
+      "UltraCache": [
+        "UltraCache"
+      ],
+      "Controleren": [
+        "Controleren"
+      ],
+      "Info": [
+        "Info"
+      ],
+      "Zet daarna alleen handles uit die je echt herkent. Laat onbekende WordPress-, WooCommerce- en builderbestanden met rust.": [
+        "Zet daarna alleen handles uit die je echt herkent. Laat onbekende WordPress-, WooCommerce- en builderbestanden met rust."
+      ],
+      "Handig als je de voorkant van je site controleert.": [
+        "Handig als je de voorkant van je site controleert."
+      ],
+      "Snelle knop bovenaan": [
+        "Snelle knop bovenaan"
+      ],
+      "Asset cleanup": [
+        "Asset cleanup"
+      ],
+      "Gebruik dit alleen als een pagina echt te veel CSS of scripts laadt.": [
+        "Gebruik dit alleen als een pagina echt te veel CSS of scripts laadt."
+      ],
+      "Veilige start aanbevolen toepassen": [
+        "Veilige start aanbevolen toepassen"
+      ],
+      "Zo gebruik je dit veilig": [
+        "Zo gebruik je dit veilig"
+      ],
+      "Deze scriptbestanden overslaan": [
+        "Deze scriptbestanden overslaan"
+      ],
+      "Hier zet je bestanden neer die UltraCache met rust moet laten.": [
+        "Hier zet je bestanden neer die UltraCache met rust moet laten."
+      ],
+      "Uitzonderingen voor bestanden": [
+        "Uitzonderingen voor bestanden"
+      ],
+      "Deze stijlbestanden overslaan": [
+        "Deze stijlbestanden overslaan"
+      ],
+      "ÃÃ©n handle of deel van de naam per regel.": [
+        "ÃÃ©n handle of deel van de naam per regel."
+      ],
+      "Waarde voor de regel": [
+        "Waarde voor de regel"
+      ],
+      "CSS-optimalisatie uitzetten": [
+        "CSS-optimalisatie uitzetten"
+      ],
+      "Cache uitzetten": [
+        "Cache uitzetten"
+      ],
+      "Cloud CSS overslaan": [
+        "Cloud CSS overslaan"
+      ],
+      "Later laden uitzetten": [
+        "Later laden uitzetten"
+      ],
+      "Opwarmen van links uitzetten": [
+        "Opwarmen van links uitzetten"
+      ],
+      "Scriptoptimalisatie uitzetten": [
+        "Scriptoptimalisatie uitzetten"
+      ],
+      "Regel omhoog": [
+        "Regel omhoog"
+      ],
+      "Regel omlaag": [
+        "Regel omlaag"
+      ],
+      "Regel verwijderen": [
+        "Regel verwijderen"
+      ],
+      "Weg": [
+        "Weg"
+      ],
+      "404": [
+        "404"
+      ],
+      "Archief": [
+        "Archief"
+      ],
+      "Device": [
+        "Device"
+      ],
+      "Homepage": [
+        "Homepage"
+      ],
+      "Ingelogd": [
+        "Ingelogd"
+      ],
+      "Pad bevat": [
+        "Pad bevat"
+      ],
+      "Post type": [
+        "Post type"
+      ],
+      "Regex": [
+        "Regex"
+      ],
+      "Singular": [
+        "Singular"
+      ],
+      "Type pagina": [
+        "Type pagina"
+      ],
+      "URL bevat": [
+        "URL bevat"
+      ],
+      "Uitgelogd": [
+        "Uitgelogd"
+      ],
+      "Houd het klein": [
+        "Houd het klein"
+      ],
+      "Maak zo weinig mogelijk regels. Minder regels is makkelijker en veiliger.": [
+        "Maak zo weinig mogelijk regels. Minder regels is makkelijker en veiliger."
+      ],
+      "Actie": [
+        "Actie"
+      ],
+      "Waarde": [
+        "Waarde"
+      ],
+      "Wanneer": [
+        "Wanneer"
+      ],
+      "Extra regels": [
+        "Extra regels"
+      ],
+      "Gebruik dit alleen als de gewone opties niet genoeg zijn.": [
+        "Gebruik dit alleen als de gewone opties niet genoeg zijn."
+      ],
+      "Regel toevoegen": [
+        "Regel toevoegen"
+      ],
+      "Stijlen: %d": [
+        "Stijlen: %d"
+      ],
+      "Scripts: %d": [
+        "Scripts: %d"
+      ],
+      "Overgeslagen: %d": [
+        "Overgeslagen: %d"
+      ],
+      "Overal uitgezet: %d": [
+        "Overal uitgezet: %d"
+      ],
+      "Asset Manager regels: %d": [
+        "Asset Manager regels: %d"
+      ],
+      "Naam": [
+        "Naam"
+      ],
+      "Soort": [
+        "Soort"
+      ],
+      "Bestand": [
+        "Bestand"
+      ],
+      "Afhankelijkheden": [
+        "Afhankelijkheden"
+      ],
+      "Gebruikt door": [
+        "Gebruikt door"
+      ],
+      "Wat doen we?": [
+        "Wat doen we?"
+      ],
+      "Herkomst": [
+        "Herkomst"
+      ],
+      "Er zijn op dit scherm geen bestanden gevonden.": [
+        "Er zijn op dit scherm geen bestanden gevonden."
+      ],
+      "Script": [
+        "Script"
+      ],
+      "Stijl": [
+        "Stijl"
+      ],
+      "Frontend snapshot": [
+        "Frontend snapshot"
+      ],
+      "Huidig scherm": [
+        "Huidig scherm"
+      ],
+      "Technische details en geladen bestanden": [
+        "Technische details en geladen bestanden"
+      ],
+      "Laatste frontend snapshot: %1$s om %2$s": [
+        "Laatste frontend snapshot: %1$s om %2$s"
+      ],
+      "Deze scriptbestanden overal uitzetten": [
+        "Deze scriptbestanden overal uitzetten"
+      ],
+      "EÃ©n handle per regel. Voorbeeld: wc-cart-fragments": [
+        "EÃ©n handle per regel. Voorbeeld: wc-cart-fragments"
+      ],
+      "EÃ©n regel per keer. Voorbeeld: /afrekenen/ => theme-checkout": [
+        "EÃ©n regel per keer. Voorbeeld: /afrekenen/ => theme-checkout"
+      ],
+      "Stijlbestanden per pagina uitzetten": [
+        "Stijlbestanden per pagina uitzetten"
+      ],
+      "EÃ©n regel per keer. Voorbeeld: /account/ => reviews-loader": [
+        "EÃ©n regel per keer. Voorbeeld: /account/ => reviews-loader"
+      ],
+      "Scriptbestanden per pagina uitzetten": [
+        "Scriptbestanden per pagina uitzetten"
+      ],
+      "Asset Manager 2.0 regels": [
+        "Asset Manager 2.0 regels"
+      ],
+      "Formaat: script|handle|disable|path_contains|/contact/ of style|handle|keep|post_type|product. Scopes: all, path_contains, url_contains, post_type, archive, device, logged_in, logged_out, regex, front_page, singular, 404.": [
+        "Formaat: script|handle|disable|path_contains|/contact/ of style|handle|keep|post_type|product. Scopes: all, path_contains, url_contains, post_type, archive, device, logged_in, logged_out, regex, front_page, singular, 404."
+      ],
+      "Asset Manager testmodus": [
+        "Asset Manager testmodus"
+      ],
+      "Past asset-regels alleen toe voor beheerders, zodat bezoekers nog de normale site zien.": [
+        "Past asset-regels alleen toe voor beheerders, zodat bezoekers nog de normale site zien."
+      ],
+      "Frontend asset-inspector voor admins": [
+        "Frontend asset-inspector voor admins"
+      ],
+      "Slaat de laatst bezochte frontend-assets op voor het assetoverzicht. Alleen voor beheerders.": [
+        "Slaat de laatst bezochte frontend-assets op voor het assetoverzicht. Alleen voor beheerders."
+      ],
+      "Bestanden uitzetten": [
+        "Bestanden uitzetten"
+      ],
+      "Gebruik dit alleen voor handles die je echt herkent.": [
+        "Gebruik dit alleen voor handles die je echt herkent."
+      ],
+      "Deze stijlbestanden overal uitzetten": [
+        "Deze stijlbestanden overal uitzetten"
+      ],
+      "EÃ©n handle per regel. Voorbeeld: contact-form-7": [
+        "EÃ©n handle per regel. Voorbeeld: contact-form-7"
+      ],
+      "UltraCache onderdelen": [
+        "UltraCache onderdelen"
+      ],
+      "UltraCache beheer": [
+        "UltraCache beheer"
+      ],
+      "Sla op om je wijziging te bewaren.": [
+        "Sla op om je wijziging te bewaren."
+      ],
+      "Terugzetten": [
+        "Terugzetten"
+      ],
+      "Je hebt iets aangepast.": [
+        "Je hebt iets aangepast."
+      ],
+      "Upload een eerder geexporteerde UltraCache configuratie. Import overschrijft bestaande instellingen; exporteer eerst een back-up.": [
+        "Upload een eerder geexporteerde UltraCache configuratie. Import overschrijft bestaande instellingen; exporteer eerst een back-up."
+      ],
+      "Veiligheidsstap: de import start pas nadat je hieronder bevestigt dat je een recente export of database-back-up hebt.": [
+        "Veiligheidsstap: de import start pas nadat je hieronder bevestigt dat je een recente export of database-back-up hebt."
+      ],
+      "Configuratiebestand": [
+        "Configuratiebestand"
+      ],
+      "Kies een .json of .txt exportbestand.": [
+        "Kies een .json of .txt exportbestand."
+      ],
+      "Ik heb een recente export of database-back-up en begrijp dat import bestaande UltraCache-instellingen overschrijft.": [
+        "Ik heb een recente export of database-back-up en begrijp dat import bestaande UltraCache-instellingen overschrijft."
+      ],
+      "Import overschrijft bestaande UltraCache-instellingen. Doorgaan?": [
+        "Import overschrijft bestaande UltraCache-instellingen. Doorgaan?"
+      ],
+      "Bepaal wanneer de volledige cache automatisch wordt geleegd.": [
+        "Bepaal wanneer de volledige cache automatisch wordt geleegd."
+      ],
+      "Bestandsrechten controleren": [
+        "Bestandsrechten controleren"
+      ],
+      "Cachebestand herstellen": [
+        "Cachebestand herstellen"
+      ],
+      "Maakt paginaâs sneller voor bezoekers.": [
+        "Maakt paginaâs sneller voor bezoekers."
+      ],
+      "Pagina-cache inschakelen": [
+        "Pagina-cache inschakelen"
+      ],
+      "0 = onbeperkt. 10 uur is een veilige standaard bij wisselende content.": [
+        "0 = onbeperkt. 10 uur is een veilige standaard bij wisselende content."
+      ],
+      "Cache legen na - uren": [
+        "Cache legen na - uren"
+      ],
+      "Cache legen na wijzigingen": [
+        "Cache legen na wijzigingen"
+      ],
+      "Nieuwe content wordt dan sneller zichtbaar.": [
+        "Nieuwe content wordt dan sneller zichtbaar."
+      ],
+      "12 uur": [
+        "12 uur"
+      ],
+      "24 uur": [
+        "24 uur"
+      ],
+      "48 uur": [
+        "48 uur"
+      ],
+      "6 uur": [
+        "6 uur"
+      ],
+      "Serveer tijdelijk oude cache als vernieuwen mislukt.": [
+        "Serveer tijdelijk oude cache als vernieuwen mislukt."
+      ],
+      "Alleen gewijzigde paginaâs legen": [
+        "Alleen gewijzigde paginaâs legen"
+      ],
+      "Veilige en snelle standaard voor de meeste sites.": [
+        "Veilige en snelle standaard voor de meeste sites."
+      ],
+      "Handig voor blogs, categorieÃ«n en archieven.": [
+        "Handig voor blogs, categorieÃ«n en archieven."
+      ],
+      "Ook gerelateerde paginaâs legen": [
+        "Ook gerelateerde paginaâs legen"
+      ],
+      "Gebruik dit voor gevoelige of dynamische paginaâs zoals checkout, account en persoonlijke content.": [
+        "Gebruik dit voor gevoelige of dynamische paginaâs zoals checkout, account en persoonlijke content."
+      ],
+      "Nooit URL(s) cachen": [
+        "Nooit URL(s) cachen"
+      ],
+      "EÃ©n pad of URL-fragment per regel. Bijvoorbeeld /checkout/ of ?preview=true.": [
+        "EÃ©n pad of URL-fragment per regel. Bijvoorbeeld /checkout/ of ?preview=true."
+      ],
+      "Specificeer URLâs of paginaâs die nooit gecached mogen worden": [
+        "Specificeer URLâs of paginaâs die nooit gecached mogen worden"
+      ],
+      "Nooit cookies cachen": [
+        "Nooit cookies cachen"
+      ],
+      "Voorkom caching wanneer specifieke cookies aanwezig zijn.": [
+        "Voorkom caching wanneer specifieke cookies aanwezig zijn."
+      ],
+      "Cookie-IDâs die caching moeten overslaan": [
+        "Cookie-IDâs die caching moeten overslaan"
+      ],
+      "EÃ©n volledige of gedeeltelijke cookie-ID per regel.": [
+        "EÃ©n volledige of gedeeltelijke cookie-ID per regel."
+      ],
+      "Gebruik dit voor bots, apps of browsers die eigen cachegedrag nodig hebben.": [
+        "Gebruik dit voor bots, apps of browsers die eigen cachegedrag nodig hebben."
+      ],
+      "Nooit user agent(s) cachen": [
+        "Nooit user agent(s) cachen"
+      ],
+      "EÃ©n user-agent fragment per regel. Gebruik (.*) wildcards.": [
+        "EÃ©n user-agent fragment per regel. Gebruik (.*) wildcards."
+      ],
+      "User-agent strings die nooit cache mogen zien": [
+        "User-agent strings die nooit cache mogen zien"
+      ],
+      "Altijd URL(s) legen": [
+        "Altijd URL(s) legen"
+      ],
+      "Deze URLâs worden extra geleegd wanneer content wijzigt.": [
+        "Deze URLâs worden extra geleegd wanneer content wijzigt."
+      ],
+      "EÃ©n pad of URL per regel. Wildcardregels legen minimaal de homepage mee.": [
+        "EÃ©n pad of URL per regel. Wildcardregels legen minimaal de homepage mee."
+      ],
+      "URLâs die altijd mee geleegd moeten worden": [
+        "URLâs die altijd mee geleegd moeten worden"
+      ],
+      "Query string(s) cachen": [
+        "Query string(s) cachen"
+      ],
+      "Sta specifieke GET-parameters toe als eigen cachevariant.": [
+        "Sta specifieke GET-parameters toe als eigen cachevariant."
+      ],
+      "Alleen onderstaande parameters toestaan": [
+        "Alleen onderstaande parameters toestaan"
+      ],
+      "Laat uit, tenzij filters, zoekresultaten of campagnes unieke content tonen.": [
+        "Laat uit, tenzij filters, zoekresultaten of campagnes unieke content tonen."
+      ],
+      "Query strings cachen": [
+        "Query strings cachen"
+      ],
+      "Alleen nodig als mobiel andere inhoud toont.": [
+        "Alleen nodig als mobiel andere inhoud toont."
+      ],
+      "Aparte cache voor mobiel": [
+        "Aparte cache voor mobiel"
+      ],
+      "EÃ©n parameter per regel. Bijvoorbeeld lang, currency, orderby, filter_*.": [
+        "EÃ©n parameter per regel. Bijvoorbeeld lang, currency, orderby, filter_*."
+      ],
+      "Specificeer query strings voor caching": [
+        "Specificeer query strings voor caching"
+      ],
+      "EÃ©n keuze vervangt CDN inschakelen en bestandstypen herschrijven.": [
+        "EÃ©n keuze vervangt CDN inschakelen en bestandstypen herschrijven."
+      ],
+      "Statische bestanden herschrijven": [
+        "Statische bestanden herschrijven"
+      ],
+      "Vul alleen hostnamen in, zonder pad. UltraCache gebruikt de huidige URL-structuur en vervangt alleen het domein.": [
+        "Vul alleen hostnamen in, zonder pad. UltraCache gebruikt de huidige URL-structuur en vervangt alleen het domein."
+      ],
+      "CDN CNAME(s)": [
+        "CDN CNAME(s)"
+      ],
+      "EÃ©n host per regel. Voorbeeld: cdn.example.com. Gebruik geen volledige asset-URL met /wp-content/.": [
+        "EÃ©n host per regel. Voorbeeld: cdn.example.com. Gebruik geen volledige asset-URL met /wp-content/."
+      ],
+      "Test na opslaan altijd een pagina in een privÃ©venster en controleer in DevTools of CSS, JS en afbeeldingen nog zonder 404 of CORS-fouten laden.": [
+        "Test na opslaan altijd een pagina in een privÃ©venster en controleer in DevTools of CSS, JS en afbeeldingen nog zonder 404 of CORS-fouten laden."
+      ],
+      "Alle statische bestanden": [
+        "Alle statische bestanden"
+      ],
+      "Sluit dynamische endpoints, problematische pluginbestanden of assets met strikte domeincontrole uit.": [
+        "Sluit dynamische endpoints, problematische pluginbestanden of assets met strikte domeincontrole uit."
+      ],
+      "Alleen CSS en JavaScript": [
+        "Alleen CSS en JavaScript"
+      ],
+      "EÃ©n URL, domein, pad of bestand per regel. Voorbeelden: /wp-json/, .php, /wp-content/plugins/some-plugin/(.*).css.": [
+        "EÃ©n URL, domein, pad of bestand per regel. Voorbeelden: /wp-json/, .php, /wp-content/plugins/some-plugin/(.*).css."
+      ],
+      "Niet via CDN laden": [
+        "Niet via CDN laden"
+      ],
+      "Voorbeelden van CDN uitsluitingen": [
+        "Voorbeelden van CDN uitsluitingen"
+      ],
+      "Alleen afbeeldingen": [
+        "Alleen afbeeldingen"
+      ],
+      "Edge cache en Cloudflare": [
+        "Edge cache en Cloudflare"
+      ],
+      "Huidige bewaartijd voor statische bestanden: ongeveer %d dagen.": [
+        "Huidige bewaartijd voor statische bestanden: ongeveer %d dagen."
+      ],
+      "1 jaar": [
+        "1 jaar"
+      ],
+      "30 dagen": [
+        "30 dagen"
+      ],
+      "6 maanden": [
+        "6 maanden"
+      ],
+      "Aangepast": [
+        "Aangepast"
+      ],
+      "Browser-cache statische bestanden": [
+        "Browser-cache statische bestanden"
+      ],
+      "EÃ©n keuze vervangt browser-cache headers en bewaartijd.": [
+        "EÃ©n keuze vervangt browser-cache headers en bewaartijd."
+      ],
+      "Aangepaste bewaartijd": [
+        "Aangepaste bewaartijd"
+      ],
+      "In seconden. Alleen nodig wanneer je Aangepast gebruikt.": [
+        "In seconden. Alleen nodig wanneer je Aangepast gebruikt."
+      ],
+      "Alleen gebruiken wanneer je host of edge-laag deze headers ondersteunt.": [
+        "Alleen gebruiken wanneer je host of edge-laag deze headers ondersteunt."
+      ],
+      "Extra host-headers inschakelen": [
+        "Extra host-headers inschakelen"
+      ],
+      "Cloudflare purge/API-ondersteuning": [
+        "Cloudflare purge/API-ondersteuning"
+      ],
+      "Gebruik dit alleen wanneer Cloudflare actief is en je een zone ID en API-token invult.": [
+        "Gebruik dit alleen wanneer Cloudflare actief is en je een zone ID en API-token invult."
+      ],
+      "Cloudflare zone ID": [
+        "Cloudflare zone ID"
+      ],
+      "Te vinden in je Cloudflare dashboard bij de zone-overzichtspagina.": [
+        "Te vinden in je Cloudflare dashboard bij de zone-overzichtspagina."
+      ],
+      "Cloudflare API-token": [
+        "Cloudflare API-token"
+      ],
+      "Gebruik een token met alleen de noodzakelijke cache purge-rechten voor deze zone.": [
+        "Gebruik een token met alleen de noodzakelijke cache purge-rechten voor deze zone."
+      ],
+      "Eerst inschakelen": [
+        "Eerst inschakelen"
+      ],
+      "Zodra je CDN herschrijven aanzet, verschijnen hier het CDN-adres, de bestandstypen en de uitsluitingen. Cloudflare- en edge-opties staan in geavanceerde modus.": [
+        "Zodra je CDN herschrijven aanzet, verschijnen hier het CDN-adres, de bestandstypen en de uitsluitingen. Cloudflare- en edge-opties staan in geavanceerde modus."
+      ],
+      "Koppel alleen een CDN-CNAME wanneer je statische bestanden wilt herschrijven. Gebruik je Cloudflare, Sucuri of een host-proxy voor je volledige domein? Dan is een CNAME meestal niet nodig.": [
+        "Koppel alleen een CDN-CNAME wanneer je statische bestanden wilt herschrijven. Gebruik je Cloudflare, Sucuri of een host-proxy voor je volledige domein? Dan is een CNAME meestal niet nodig."
+      ],
+      "CDN statusoverzicht": [
+        "CDN statusoverzicht"
+      ],
+      "CDN herschrijven": [
+        "CDN herschrijven"
+      ],
+      "Ingeschakeld": [
+        "Ingeschakeld"
+      ],
+      "Uitgeschakeld": [
+        "Uitgeschakeld"
+      ],
+      "CDN CNAME": [
+        "CDN CNAME"
+      ],
+      " +%d extra": [
+        " +%d extra"
+      ],
+      "Bestandstypen": [
+        "Bestandstypen"
+      ],
+      "Niet ingesteld": [
+        "Niet ingesteld"
+      ],
+      "Cloudflare API": [
+        "Cloudflare API"
+      ],
+      "Optioneel": [
+        "Optioneel"
+      ],
+      "Zone en token ingevuld": [
+        "Zone en token ingevuld"
+      ],
+      "Route 1": [
+        "Route 1"
+      ],
+      "Pull CDN / CNAME": [
+        "Pull CDN / CNAME"
+      ],
+      "Gebruik dit wanneer assets via bijvoorbeeld cdn.jedomein.nl geladen moeten worden.": [
+        "Gebruik dit wanneer assets via bijvoorbeeld cdn.jedomein.nl geladen moeten worden."
+      ],
+      "Route 2": [
+        "Route 2"
+      ],
+      "Proxy / WAF": [
+        "Proxy / WAF"
+      ],
+      "Bij Cloudflare of Sucuri op je hoofddomein laat je CDN herschrijven meestal uit en gebruik je alleen purge/API-opties wanneer nodig.": [
+        "Bij Cloudflare of Sucuri op je hoofddomein laat je CDN herschrijven meestal uit en gebruik je alleen purge/API-opties wanneer nodig."
+      ],
+      "Backup je database voordat je het opschonen begint. Database optimalisatie kan niet ongedaan worden gemaakt.": [
+        "Backup je database voordat je het opschonen begint. Database optimalisatie kan niet ongedaan worden gemaakt."
+      ],
+      "Database opschonen kan geselecteerde revisies, concepten, prullenbakitems, spamreacties, sessies en transients definitief verwijderen. Heb je een recente database-back-up?": [
+        "Database opschonen kan geselecteerde revisies, concepten, prullenbakitems, spamreacties, sessies en transients definitief verwijderen. Heb je een recente database-back-up?"
+      ],
+      "Ruim revisies, concepten, spam, prullenbak en tijdelijke gegevens veilig op. Maak altijd eerst een databaseback-up.": [
+        "Ruim revisies, concepten, spam, prullenbak en tijdelijke gegevens veilig op. Maak altijd eerst een databaseback-up."
+      ],
+      "Let op": [
+        "Let op"
+      ],
+      "Revisies, concepten en prullenbakitems worden definitief verwijderd wanneer je die opties aanvinkt.": [
+        "Revisies, concepten en prullenbakitems worden definitief verwijderd wanneer je die opties aanvinkt."
+      ],
+      "Berichten opschonen": [
+        "Berichten opschonen"
+      ],
+      "Gebruik dit niet als je revisies of concepten wilt behouden.": [
+        "Gebruik dit niet als je revisies of concepten wilt behouden."
+      ],
+      "%d revisie in je database.": [
+        "%d revisie in je database."
+      ],
+      "%d concept in je database.": [
+        "%d concept in je database."
+      ],
+      "%d verwijderd bericht in je database.": [
+        "%d verwijderd bericht in je database."
+      ],
+      "Berichtrevisies opschonen": [
+        "Berichtrevisies opschonen"
+      ],
+      "Verwijdert oude revisies, maar bewaart het ingestelde aantal per bericht.": [
+        "Verwijdert oude revisies, maar bewaart het ingestelde aantal per bericht."
+      ],
+      "Aanbevolen: 5 revisies.": [
+        "Aanbevolen: 5 revisies."
+      ],
+      "Aantal revisies bewaren": [
+        "Aantal revisies bewaren"
+      ],
+      "Automatische concepten verwijderen": [
+        "Automatische concepten verwijderen"
+      ],
+      "Verwijdert auto-drafts die WordPress tijdelijk heeft aangemaakt.": [
+        "Verwijdert auto-drafts die WordPress tijdelijk heeft aangemaakt."
+      ],
+      "Verwijderde berichten opschonen": [
+        "Verwijderde berichten opschonen"
+      ],
+      "Verwijdert berichten die al in de prullenbak staan.": [
+        "Verwijdert berichten die al in de prullenbak staan."
+      ],
+      "Reacties opschonen": [
+        "Reacties opschonen"
+      ],
+      "Spam en verwijderde reacties worden definitief verwijderd.": [
+        "Spam en verwijderde reacties worden definitief verwijderd."
+      ],
+      "%d spam reactie in je database.": [
+        "%d spam reactie in je database."
+      ],
+      "%d verwijderde reactie in je database.": [
+        "%d verwijderde reactie in je database."
+      ],
+      "Spamreacties verwijderen": [
+        "Spamreacties verwijderen"
+      ],
+      "Veilig voor de meeste sites.": [
+        "Veilig voor de meeste sites."
+      ],
+      "Reacties uit prullenbak verwijderen": [
+        "Reacties uit prullenbak verwijderen"
+      ],
+      "Verwijdert reacties die al in de prullenbak staan.": [
+        "Verwijdert reacties die al in de prullenbak staan."
+      ],
+      "Transients opschonen": [
+        "Transients opschonen"
+      ],
+      "Transients zijn tijdelijke opties; ze worden opnieuw gegenereerd wanneer plugins ze nodig hebben.": [
+        "Transients zijn tijdelijke opties; ze worden opnieuw gegenereerd wanneer plugins ze nodig hebben."
+      ],
+      "%d transient in je database.": [
+        "%d transient in je database."
+      ],
+      "%d verlopen transient in je database.": [
+        "%d verlopen transient in je database."
+      ],
+      "Veilig: verwijdert alleen verlopen tijdelijke gegevens.": [
+        "Veilig: verwijdert alleen verlopen tijdelijke gegevens."
+      ],
+      "Verlopen transients verwijderen": [
+        "Verlopen transients verwijderen"
+      ],
+      "Alle transients verwijderen - Geavanceerd": [
+        "Alle transients verwijderen - Geavanceerd"
+      ],
+      "Alleen gebruiken bij probleemoplossing; sommige plugins bouwen gegevens opnieuw op.": [
+        "Alleen gebruiken bij probleemoplossing; sommige plugins bouwen gegevens opnieuw op."
+      ],
+      "Verminder overhead binnen plugin-tabellen en oude WooCommerce-sessies.": [
+        "Verminder overhead binnen plugin-tabellen en oude WooCommerce-sessies."
+      ],
+      "Databasetabellen optimaliseren": [
+        "Databasetabellen optimaliseren"
+      ],
+      "Optimaliseert alleen UltraCache-tabellen, niet de volledige WordPress-database.": [
+        "Optimaliseert alleen UltraCache-tabellen, niet de volledige WordPress-database."
+      ],
+      "Alleen nuttig voor webshops.": [
+        "Alleen nuttig voor webshops."
+      ],
+      "Oude WooCommerce-sessies verwijderen": [
+        "Oude WooCommerce-sessies verwijderen"
+      ],
+      "Automatisch opruimen": [
+        "Automatisch opruimen"
+      ],
+      "Laat dit uit tenzij je zeker weet welke onderdelen periodiek verwijderd mogen worden.": [
+        "Laat dit uit tenzij je zeker weet welke onderdelen periodiek verwijderd mogen worden."
+      ],
+      "Automatische database-opschoning": [
+        "Automatische database-opschoning"
+      ],
+      "Kies Uit of een schema. De losse inschakelknop is samengevoegd met deze frequentiekeuze.": [
+        "Kies Uit of een schema. De losse inschakelknop is samengevoegd met deze frequentiekeuze."
+      ],
+      "Maandelijks": [
+        "Maandelijks"
+      ],
+      "Kies hieronder per locatie Behouden, Verminderen of Uitschakelen. UltraCache zet de interne Heartbeat-controle automatisch aan zodra Ã©Ã©n locatie wordt aangepast, en uit wanneer alles op Behouden staat.": [
+        "Kies hieronder per locatie Behouden, Verminderen of Uitschakelen. UltraCache zet de interne Heartbeat-controle automatisch aan zodra Ã©Ã©n locatie wordt aangepast, en uit wanneer alles op Behouden staat."
+      ],
+      "Behouden": [
+        "Behouden"
+      ],
+      "Gedrag in de backend": [
+        "Gedrag in de backend"
+      ],
+      "Uitschakelen": [
+        "Uitschakelen"
+      ],
+      "Verminder activiteit": [
+        "Verminder activiteit"
+      ],
+      "Gedrag in de berichten editor": [
+        "Gedrag in de berichten editor"
+      ],
+      "Gedrag in de frontend": [
+        "Gedrag in de frontend"
+      ],
+      "120 sec": [
+        "120 sec"
+      ],
+      "30 sec": [
+        "30 sec"
+      ],
+      "60 sec": [
+        "60 sec"
+      ],
+      "Aangepast per locatie": [
+        "Aangepast per locatie"
+      ],
+      "EÃ©n keuze vervangt de drie losse intervalvelden. Kies Aangepast voor verschillende waarden per locatie.": [
+        "EÃ©n keuze vervangt de drie losse intervalvelden. Kies Aangepast voor verschillende waarden per locatie."
+      ],
+      "Heartbeat interval bij verminderen": [
+        "Heartbeat interval bij verminderen"
+      ],
+      "Gebruikt wanneer frontend op verminderen staat.": [
+        "Gebruikt wanneer frontend op verminderen staat."
+      ],
+      "Gebruikt wanneer editor op verminderen staat.": [
+        "Gebruikt wanneer editor op verminderen staat."
+      ],
+      "Gebruikt wanneer backend op verminderen staat.": [
+        "Gebruikt wanneer backend op verminderen staat."
+      ],
+      "Veilige start": [
+        "Veilige start"
+      ],
+      "Gebruik 60 seconden als veilige algemene instelling. Kies Aangepast per locatie als je de editor sneller wilt houden dan frontend of backend.": [
+        "Gebruik 60 seconden als veilige algemene instelling. Kies Aangepast per locatie als je de editor sneller wilt houden dan frontend of backend."
+      ],
+      "Gebruik veilige standaard": [
+        "Gebruik veilige standaard"
+      ],
+      "Maak dit simpel. Voor de meeste sites zijn veilige standaardwaarden genoeg.": [
+        "Maak dit simpel. Voor de meeste sites zijn veilige standaardwaarden genoeg."
+      ],
+      "Hoofdschakelaar samengevoegd": [
+        "Hoofdschakelaar samengevoegd"
+      ],
+      "Afbeeldingen optimaliseren": [
+        "Afbeeldingen optimaliseren"
+      ],
+      "Maakt WebP- en AVIF-versies wanneer je server dit ondersteunt.": [
+        "Maakt WebP- en AVIF-versies wanneer je server dit ondersteunt."
+      ],
+      "Afbeeldingsoptimalisatie": [
+        "Afbeeldingsoptimalisatie"
+      ],
+      "EÃ©n keuze vervangt de losse optimalisatie-, WebP- en AVIF-knoppen. Laat uit als ShortPixel, Imagify, LiteSpeed, CDN-transforms of een andere image optimizer dit al doet.": [
+        "EÃ©n keuze vervangt de losse optimalisatie-, WebP- en AVIF-knoppen. Laat uit als ShortPixel, Imagify, LiteSpeed, CDN-transforms of een andere image optimizer dit al doet."
+      ],
+      "Nieuwe uploads optimaliseren": [
+        "Nieuwe uploads optimaliseren"
+      ],
+      "Optimaliseren + WebP + AVIF maken": [
+        "Optimaliseren + WebP + AVIF maken"
+      ],
+      "Optimaliseren + WebP maken": [
+        "Optimaliseren + WebP maken"
+      ],
+      "Aanbevolen: 2 preloaden + 4 beschermen": [
+        "Aanbevolen: 2 preloaden + 4 beschermen"
+      ],
+      "EÃ©n keuze vervangt kritieke afbeeldingen preloaden en bovenste afbeeldingen niet lazyloaden.": [
+        "EÃ©n keuze vervangt kritieke afbeeldingen preloaden en bovenste afbeeldingen niet lazyloaden."
+      ],
+      "Hero beschermen: niet lazyloaden": [
+        "Hero beschermen: niet lazyloaden"
+      ],
+      "Hero preloaden": [
+        "Hero preloaden"
+      ],
+      "LCP-afbeeldingen": [
+        "LCP-afbeeldingen"
+      ],
+      "Kan CLS verbeteren bij uploads zonder width/height. Staging eerst testen.": [
+        "Kan CLS verbeteren bij uploads zonder width/height. Staging eerst testen."
+      ],
+      "Ontbrekende afbeeldingsafmetingen toevoegen": [
+        "Ontbrekende afbeeldingsafmetingen toevoegen"
+      ],
+      "Aanbevolen: 82. Dit houdt afbeeldingen scherp met een kleinere bestandsgrootte.": [
+        "Aanbevolen: 82. Dit houdt afbeeldingen scherp met een kleinere bestandsgrootte."
+      ],
+      "Afbeeldingskwaliteit": [
+        "Afbeeldingskwaliteit"
+      ],
+      "Fonts en extra snelheid": [
+        "Fonts en extra snelheid"
+      ],
+      "Host Google Fonts lokaal en gebruik optionele snelheidsfuncties alleen wanneer de basis goed werkt.": [
+        "Host Google Fonts lokaal en gebruik optionele snelheidsfuncties alleen wanneer de basis goed werkt."
+      ],
+      "Google Fonts": [
+        "Google Fonts"
+      ],
+      "Sla Google Fonts lokaal op wanneer je thema of plugins ze vanaf Google laden.": [
+        "Sla Google Fonts lokaal op wanneer je thema of plugins ze vanaf Google laden."
+      ],
+      "Alleen font-display swap": [
+        "Alleen font-display swap"
+      ],
+      "EÃ©n keuze vervangt lokaal hosten, font-display swap en Google Fonts uitschakelen.": [
+        "EÃ©n keuze vervangt lokaal hosten, font-display swap en Google Fonts uitschakelen."
+      ],
+      "Google Fonts gedrag": [
+        "Google Fonts gedrag"
+      ],
+      "Google Fonts uitschakelen": [
+        "Google Fonts uitschakelen"
+      ],
+      "Lokaal hosten + swap": [
+        "Lokaal hosten + swap"
+      ],
+      "EÃ©n .woff2 URL per regel.": [
+        "EÃ©n .woff2 URL per regel."
+      ],
+      "Fonts vooraf laden": [
+        "Fonts vooraf laden"
+      ],
+      "EÃ©n vroege externe origin per regel, bijvoorbeeld https://fonts.gstatic.com.": [
+        "EÃ©n vroege externe origin per regel, bijvoorbeeld https://fonts.gstatic.com."
+      ],
+      "Preconnect URLs": [
+        "Preconnect URLs"
+      ],
+      "DNS prefetch domeinen": [
+        "DNS prefetch domeinen"
+      ],
+      "EÃ©n domein per regel, bijvoorbeeld fonts.googleapis.com.": [
+        "EÃ©n domein per regel, bijvoorbeeld fonts.googleapis.com."
+      ],
+      "Lokale lettertypes wissen": [
+        "Lokale lettertypes wissen"
+      ],
+      "Priority elements wissen": [
+        "Priority elements wissen"
+      ],
+      "Vooruit laden - optioneel": [
+        "Vooruit laden - optioneel"
+      ],
+      "Gebruik dit pas nadat lazy load en de basisinstellingen goed werken.": [
+        "Gebruik dit pas nadat lazy load en de basisinstellingen goed werken."
+      ],
+      "EÃ©n keuze vervangt speculative loading, modus en snelheid. Test menu's, formulieren en winkelpagina's.": [
+        "EÃ©n keuze vervangt speculative loading, modus en snelheid. Test menu's, formulieren en winkelpagina's."
+      ],
+      "Prefetch normaal": [
+        "Prefetch normaal"
+      ],
+      "Prefetch rustig": [
+        "Prefetch rustig"
+      ],
+      "Prerender voorzichtig": [
+        "Prerender voorzichtig"
+      ],
+      "Volgende pagina voorbereiden": [
+        "Volgende pagina voorbereiden"
+      ],
+      "Deze paden overslaan": [
+        "Deze paden overslaan"
+      ],
+      "EÃ©n pad per regel. Gebruik dit voor checkout, account, login, formulieren en dynamische paginaâs.": [
+        "EÃ©n pad per regel. Gebruik dit voor checkout, account, login, formulieren en dynamische paginaâs."
+      ],
+      "Afbeeldingen en lazy load": [
+        "Afbeeldingen en lazy load"
+      ],
+      "Laad media slimmer en maak moderne afbeeldingsvarianten zonder onnodige extra instellingen.": [
+        "Laad media slimmer en maak moderne afbeeldingsvarianten zonder onnodige extra instellingen."
+      ],
+      "Bestaande afbeeldingen optimaliseren": [
+        "Bestaande afbeeldingen optimaliseren"
+      ],
+      "Lazy load": [
+        "Lazy load"
+      ],
+      "Beelden en embeds later laden, met veilige standaardinstellingen.": [
+        "Beelden en embeds later laden, met veilige standaardinstellingen."
+      ],
+      "Afbeeldingen + iframes/video": [
+        "Afbeeldingen + iframes/video"
+      ],
+      "Afbeeldingen + iframes/video + YouTube preview": [
+        "Afbeeldingen + iframes/video + YouTube preview"
+      ],
+      "EÃ©n keuze vervangt lazyload voor afbeeldingen, iframes/video en YouTube preview.": [
+        "EÃ©n keuze vervangt lazyload voor afbeeldingen, iframes/video en YouTube preview."
+      ],
+      "Media lazyload": [
+        "Media lazyload"
+      ],
+      "Geef trefwoorden op, zoals bestandsnaam, CSS-klasse, domein of iframe-bron. EÃ©n per regel.": [
+        "Geef trefwoorden op, zoals bestandsnaam, CSS-klasse, domein of iframe-bron. EÃ©n per regel."
+      ],
+      "Uitgesloten afbeeldingen of iframes": [
+        "Uitgesloten afbeeldingen of iframes"
+      ],
+      "EÃ©n selector per regel, zoals .hero of .product-gallery.": [
+        "EÃ©n selector per regel, zoals .hero of .product-gallery."
+      ],
+      "Lazyload uitsluiten binnen selectors": [
+        "Lazyload uitsluiten binnen selectors"
+      ],
+      "Test formulieren, cookiebanners en checkout nog even visueel als je lazy load of het voorbereiden van links aanpast.": [
+        "Test formulieren, cookiebanners en checkout nog even visueel als je lazy load of het voorbereiden van links aanpast."
+      ],
+      "Klaar in een paar stappen.": [
+        "Klaar in een paar stappen."
+      ],
+      "Kies je site": [
+        "Kies je site"
+      ],
+      "Kies wat het beste past.": [
+        "Kies wat het beste past."
+      ],
+      "Kies je doel": [
+        "Kies je doel"
+      ],
+      "Veilig, gebalanceerd of sterker optimaliseren.": [
+        "Veilig, gebalanceerd of sterker optimaliseren."
+      ],
+      "Plugins": [
+        "Plugins"
+      ],
+      "We kijken welke plugins actief zijn.": [
+        "We kijken welke plugins actief zijn."
+      ],
+      "Sla op en ga verder.": [
+        "Sla op en ga verder."
+      ],
+      "Gewone site": [
+        "Gewone site"
+      ],
+      "WooCommerce winkel": [
+        "WooCommerce winkel"
+      ],
+      "Bouwsite": [
+        "Bouwsite"
+      ],
+      "Cloudflare site": [
+        "Cloudflare site"
+      ],
+      "Sterker": [
+        "Sterker"
+      ],
+      "Gevonden plugins": [
+        "Gevonden plugins"
+      ],
+      "Instellen": [
+        "Instellen"
+      ],
+      "Afronden": [
+        "Afronden"
+      ],
+      "Device fetchpriority-regels": [
+        "Device fetchpriority-regels"
+      ],
+      "Formaat: selector|device|context|priority. Bijvoorbeeld .wp-post-image|mobile|front_page|high of .custom-logo|desktop|all|high.": [
+        "Formaat: selector|device|context|priority. Bijvoorbeeld .wp-post-image|mobile|front_page|high of .custom-logo|desktop|all|high."
+      ],
+      "Laat alleen de hoofdkeuzes direct zien. Risicovolle of conflicterende opties staan achter Meer JavaScript opties.": [
+        "Laat alleen de hoofdkeuzes direct zien. Risicovolle of conflicterende opties staan achter Meer JavaScript opties."
+      ],
+      "Experimenteel. Zet dit alleen aan na stagingtests, vooral checkout, formulieren en cookie banners.": [
+        "Experimenteel. Zet dit alleen aan na stagingtests, vooral checkout, formulieren en cookie banners."
+      ],
+      "JavaScript verkleinen": [
+        "JavaScript verkleinen"
+      ],
+      "Defer JS": [
+        "Defer JS"
+      ],
+      "Stelt niet-kritieke scripts later in de laadvolgorde uit. Kan samen met minify; test checkout en formulieren.": [
+        "Stelt niet-kritieke scripts later in de laadvolgorde uit. Kan samen met minify; test checkout en formulieren."
+      ],
+      "Alle scripts behalve uitsluitingen": [
+        "Alle scripts behalve uitsluitingen"
+      ],
+      "Alleen opgegeven scripts": [
+        "Alleen opgegeven scripts"
+      ],
+      "EÃ©n keuze vervangt Delay JS, modus en veilige modus. Test altijd formulieren, sliders, cookie banners en checkout op staging.": [
+        "EÃ©n keuze vervangt Delay JS, modus en veilige modus. Test altijd formulieren, sliders, cookie banners en checkout op staging."
+      ],
+      "JavaScript uitstellen": [
+        "JavaScript uitstellen"
+      ],
+      "Veilige modus": [
+        "Veilige modus"
+      ],
+      "Automatische JavaScript-compatibiliteit": [
+        "Automatische JavaScript-compatibiliteit"
+      ],
+      "UltraCache zet JavaScript samenvoegen automatisch uit zodra Delay JS actief is. Als JavaScript samenvoegen aan staat, blijft JS verkleinen automatisch aan. Defer JS blijft een losse, veiligere keuze met uitsluitingen.": [
+        "UltraCache zet JavaScript samenvoegen automatisch uit zodra Delay JS actief is. Als JavaScript samenvoegen aan staat, blijft JS verkleinen automatisch aan. Defer JS blijft een losse, veiligere keuze met uitsluitingen."
+      ],
+      "Delay JS, uitzonderingen en expertopties staan samen in Ã©Ã©n overzichtelijk blok.": [
+        "Delay JS, uitzonderingen en expertopties staan samen in Ã©Ã©n overzichtelijk blok."
+      ],
+      "JavaScript extra opties": [
+        "JavaScript extra opties"
+      ],
+      "Delay JS en uitzonderingen": [
+        "Delay JS en uitzonderingen"
+      ],
+      "Automatische hulp": [
+        "Automatische hulp"
+      ],
+      "Pas veilige Delay JS-uitsluitingen toe voor actieve plugins.": [
+        "Pas veilige Delay JS-uitsluitingen toe voor actieve plugins."
+      ],
+      "Snelle uitsluitingen": [
+        "Snelle uitsluitingen"
+      ],
+      "Scripts uitsluiten van Delay JS": [
+        "Scripts uitsluiten van Delay JS"
+      ],
+      "Voeg hier eigen handles, URL-fragmenten of delen van bestandsnamen toe. De automatische detectie blijft daarnaast actief. EÃ©n regel per item.": [
+        "Voeg hier eigen handles, URL-fragmenten of delen van bestandsnamen toe. De automatische detectie blijft daarnaast actief. EÃ©n regel per item."
+      ],
+      "Aanbevolen op basis van je actieve site-stack.": [
+        "Aanbevolen op basis van je actieve site-stack."
+      ],
+      "Alleen deze scripts delayen": [
+        "Alleen deze scripts delayen"
+      ],
+      "EÃ©n handle, URL-fragment of scriptnaam per regel. Alleen actief bij Alleen opgegeven scripts.": [
+        "EÃ©n handle, URL-fragment of scriptnaam per regel. Alleen actief bij Alleen opgegeven scripts."
+      ],
+      "Fallback als er geen interactie komt.": [
+        "Fallback als er geen interactie komt."
+      ],
+      "Wachttijd voor Delay JS (seconden)": [
+        "Wachttijd voor Delay JS (seconden)"
+      ],
+      "Meer JavaScript opties": [
+        "Meer JavaScript opties"
+      ],
+      "JS samenvoegen zet JS verkleinen automatisch aan. Delay JS en geavanceerde scriptstrategie kunnen niet tegelijk met JS samenvoegen; UltraCache corrigeert dit bij opslaan.": [
+        "JS samenvoegen zet JS verkleinen automatisch aan. Delay JS en geavanceerde scriptstrategie kunnen niet tegelijk met JS samenvoegen; UltraCache corrigeert dit bij opslaan."
+      ],
+      "Alleen voor eenvoudige sites. JavaScript verkleinen mag aan blijven; alleen samenvoegen wordt automatisch uitgezet wanneer Delay JS of geavanceerde scriptstrategie actief is.": [
+        "Alleen voor eenvoudige sites. JavaScript verkleinen mag aan blijven; alleen samenvoegen wordt automatisch uitgezet wanneer Delay JS of geavanceerde scriptstrategie actief is."
+      ],
+      "JavaScript samenvoegen - Geavanceerd": [
+        "JavaScript samenvoegen - Geavanceerd"
+      ],
+      "Expertoptie. Wordt niet gecombineerd met Delay JS of JS samenvoegen, maar JavaScript verkleinen mag aan blijven.": [
+        "Expertoptie. Wordt niet gecombineerd met Delay JS of JS samenvoegen, maar JavaScript verkleinen mag aan blijven."
+      ],
+      "Veilige script-laadstrategie": [
+        "Veilige script-laadstrategie"
+      ],
+      "Advanced: verplaatst type=module scripts naar net voor </body>. Test met moderne themes/blocks.": [
+        "Advanced: verplaatst type=module scripts naar net voor </body>. Test met moderne themes/blocks."
+      ],
+      "Module scripts naar footer verplaatsen": [
+        "Module scripts naar footer verplaatsen"
+      ],
+      "Slaat toegestane externe CSS, JS en fonts lokaal op in de UltraCache cachemap.": [
+        "Slaat toegestane externe CSS, JS en fonts lokaal op in de UltraCache cachemap."
+      ],
+      "Third-party CSS/JS/fonts lokaal hosten": [
+        "Third-party CSS/JS/fonts lokaal hosten"
+      ],
+      "Domeinen lokaal hosten": [
+        "Domeinen lokaal hosten"
+      ],
+      "EÃ©n domein per regel. Bijvoorbeeld fonts.googleapis.com of www.googletagmanager.com.": [
+        "EÃ©n domein per regel. Bijvoorbeeld fonts.googleapis.com of www.googletagmanager.com."
+      ],
+      "Geef URLs, handles, domeinen of trefwoorden op die uitgesloten worden van minify, combineren en defer. Automatische detectie blijft daarnaast actief. EÃ©n per regel.": [
+        "Geef URLs, handles, domeinen of trefwoorden op die uitgesloten worden van minify, combineren en defer. Automatische detectie blijft daarnaast actief. EÃ©n per regel."
+      ],
+      "JavaScript-bestanden uitsluiten": [
+        "JavaScript-bestanden uitsluiten"
+      ],
+      "Leeg laten voor normaal gedrag.": [
+        "Leeg laten voor normaal gedrag."
+      ],
+      "Scripts forceren naar veilige laadstrategie": [
+        "Scripts forceren naar veilige laadstrategie"
+      ],
+      "Laat samenvoegen en Delay alleen aan als je die overlap bewust test.": [
+        "Laat samenvoegen en Delay alleen aan als je die overlap bewust test."
+      ],
+      "Overlap gedetecteerd": [
+        "Overlap gedetecteerd"
+      ],
+      "HTML en CSS": [
+        "HTML en CSS"
+      ],
+      "De belangrijkste optimalisaties staan overzichtelijk in Ã©Ã©n scherm.": [
+        "De belangrijkste optimalisaties staan overzichtelijk in Ã©Ã©n scherm."
+      ],
+      "HTML": [
+        "HTML"
+      ],
+      "Laat alleen de veilige hoofdkeuzes direct zien. Uitzonderingen staan in het uitklapblok.": [
+        "Laat alleen de veilige hoofdkeuzes direct zien. Uitzonderingen staan in het uitklapblok."
+      ],
+      "Alleen comments verwijderen": [
+        "Alleen comments verwijderen"
+      ],
+      "EÃ©n duidelijke keuze. HTML verkleinen zet comments verwijderen automatisch aan en slaat gevoelige WooCommerce-, builder- en previewpaginaâs over.": [
+        "EÃ©n duidelijke keuze. HTML verkleinen zet comments verwijderen automatisch aan en slaat gevoelige WooCommerce-, builder- en previewpaginaâs over."
+      ],
+      "HTML optimalisatie": [
+        "HTML optimalisatie"
+      ],
+      "HTML verkleinen + comments verwijderen": [
+        "HTML verkleinen + comments verwijderen"
+      ],
+      "Automatische HTML-compatibiliteit": [
+        "Automatische HTML-compatibiliteit"
+      ],
+      "HTML verkleinen gebruikt comments verwijderen als onderdeel van dezelfde veilige methode. Gevoelige templates, WooCommerce-flows, previews en uitgesloten URLs worden automatisch overgeslagen.": [
+        "HTML verkleinen gebruikt comments verwijderen als onderdeel van dezelfde veilige methode. Gevoelige templates, WooCommerce-flows, previews en uitgesloten URLs worden automatisch overgeslagen."
+      ],
+      "HTML uitzonderingen": [
+        "HTML uitzonderingen"
+      ],
+      "Deze URLs nooit aanpassen": [
+        "Deze URLs nooit aanpassen"
+      ],
+      "EÃ©n URL-fragment of pad per regel. Bijvoorbeeld /checkout of ?elementor-preview=.": [
+        "EÃ©n URL-fragment of pad per regel. Bijvoorbeeld /checkout of ?elementor-preview=."
+      ],
+      "Deze templates nooit aanpassen": [
+        "Deze templates nooit aanpassen"
+      ],
+      "EÃ©n templatebestand of slug per regel.": [
+        "EÃ©n templatebestand of slug per regel."
+      ],
+      "Laat alleen de hoofdkeuzes direct zien. Alles met meer risico staat in het uitklapblok.": [
+        "Laat alleen de hoofdkeuzes direct zien. Alles met meer risico staat in het uitklapblok."
+      ],
+      "CSS verkleinen": [
+        "CSS verkleinen"
+      ],
+      "Experimenteel: staat standaard uit en vereist expliciet inschakelen. Test altijd op staging, vooral checkout, formulieren en cookie banners.": [
+        "Experimenteel: staat standaard uit en vereist expliciet inschakelen. Test altijd op staging, vooral checkout, formulieren en cookie banners."
+      ],
+      "CSS-levering optimaliseren": [
+        "CSS-levering optimaliseren"
+      ],
+      "Elimineert render-blocking CSS. Er kan maar Ã©Ã©n methode actief zijn. Ongebruikte CSS verwijderen is staging-first en gebruikt de AST-parser wanneer vendor libraries aanwezig zijn; CSS asynchroon laden is de veiligere fallback als layout breekt.": [
+        "Elimineert render-blocking CSS. Er kan maar Ã©Ã©n methode actief zijn. Ongebruikte CSS verwijderen is staging-first en gebruikt de AST-parser wanneer vendor libraries aanwezig zijn; CSS asynchroon laden is de veiligere fallback als layout breekt."
+      ],
+      "CSS asynchroon laden": [
+        "CSS asynchroon laden"
+      ],
+      "Kies Ã©Ã©n methode. Ongebruikte CSS gebruikt de AST-parser wanneer vendor libraries aanwezig zijn en valt anders veilig terug. Test grondig op staging, vooral met Elementor, sticky headers, sliders en WooCommerce.": [
+        "Kies Ã©Ã©n methode. Ongebruikte CSS gebruikt de AST-parser wanneer vendor libraries aanwezig zijn en valt anders veilig terug. Test grondig op staging, vooral met Elementor, sticky headers, sliders en WooCommerce."
+      ],
+      "Ongebruikte CSS verwijderen - staging": [
+        "Ongebruikte CSS verwijderen - staging"
+      ],
+      "Meer CSS-opties": [
+        "Meer CSS-opties"
+      ],
+      "Automatische compatibiliteit": [
+        "Automatische compatibiliteit"
+      ],
+      "UltraCache zet CSS samenvoegen automatisch uit zodra Ongebruikte CSS verwijderen of CSS asynchroon laden actief is. De CSS-achtergrondwachtrij wordt automatisch gekoppeld aan CSS-levering; Cloud CSS blijft uit totdat Cloud-rendering is ingericht.": [
+        "UltraCache zet CSS samenvoegen automatisch uit zodra Ongebruikte CSS verwijderen of CSS asynchroon laden actief is. De CSS-achtergrondwachtrij wordt automatisch gekoppeld aan CSS-levering; Cloud CSS blijft uit totdat Cloud-rendering is ingericht."
+      ],
+      "CSS samenvoegen": [
+        "CSS samenvoegen"
+      ],
+      "CSS verkleinen mag samen met CSS-levering. Alleen CSS samenvoegen wordt automatisch uitgezet wanneer CSS-levering optimaliseren actief is, omdat combine vaker builder-/formulierproblemen geeft.": [
+        "CSS verkleinen mag samen met CSS-levering. Alleen CSS samenvoegen wordt automatisch uitgezet wanneer CSS-levering optimaliseren actief is, omdat combine vaker builder-/formulierproblemen geeft."
+      ],
+      "Alleen beschikbaar als Cloud-rendering is ingericht.": [
+        "Alleen beschikbaar als Cloud-rendering is ingericht."
+      ],
+      "Cloud CSS gebruiken": [
+        "Cloud CSS gebruiken"
+      ],
+      "Wachtrijstatus": [
+        "Wachtrijstatus"
+      ],
+      "CSS-bestanden uitsluiten": [
+        "CSS-bestanden uitsluiten"
+      ],
+      "Geef URLs, handles, domeinen of padfragmenten op. Wildcards zoals (.*).css worden ondersteund. EÃ©n per regel.": [
+        "Geef URLs, handles, domeinen of padfragmenten op. Wildcards zoals (.*).css worden ondersteund. EÃ©n per regel."
+      ],
+      "CSS veilige lijst": [
+        "CSS veilige lijst"
+      ],
+      "Geef CSS-bestandsnamen, IDs of klassen op die niet verwijderd/asynchroon gemaakt mogen worden. EÃ©n per regel, bijvoorbeeld elementor, jeg-elementor-kit of sticky-header.": [
+        "Geef CSS-bestandsnamen, IDs of klassen op die niet verwijderd/asynchroon gemaakt mogen worden. EÃ©n per regel, bijvoorbeeld elementor, jeg-elementor-kit of sticky-header."
+      ],
+      "Minimumgrootte CSS-artifact": [
+        "Minimumgrootte CSS-artifact"
+      ],
+      "Voorkomt dat lege of kapotte Used/Critical CSS wordt uitgerold.": [
+        "Voorkomt dat lege of kapotte Used/Critical CSS wordt uitgerold."
+      ],
+      "Maximaal aantal CSS retries": [
+        "Maximaal aantal CSS retries"
+      ],
+      "Na deze limiet stopt UltraCache met automatisch opnieuw proberen.": [
+        "Na deze limiet stopt UltraCache met automatisch opnieuw proberen."
+      ],
+      "Behoudt de laatst werkende CSS-artifacts bij een mislukte build.": [
+        "Behoudt de laatst werkende CSS-artifacts bij een mislukte build."
+      ],
+      "CSS rollback bewaren": [
+        "CSS rollback bewaren"
+      ],
+      "Lazy render - geavanceerd": [
+        "Lazy render - geavanceerd"
+      ],
+      "Alleen testen op staging": [
+        "Alleen testen op staging"
+      ],
+      "Voegt content-visibility toe aan handmatige selectors. Gebruik dit alleen voor secties onder de vouw, zoals footer, reviews of related products.": [
+        "Voegt content-visibility toe aan handmatige selectors. Gebruik dit alleen voor secties onder de vouw, zoals footer, reviews of related products."
+      ],
+      "Gebruik content-visibility voor geselecteerde offscreen containers.": [
+        "Gebruik content-visibility voor geselecteerde offscreen containers."
+      ],
+      "Lazy render selectors inschakelen": [
+        "Lazy render selectors inschakelen"
+      ],
+      "EÃ©n CSS-selector per regel. Bijvoorbeeld .site-footer of .related-products.": [
+        "EÃ©n CSS-selector per regel. Bijvoorbeeld .site-footer of .related-products."
+      ],
+      "Lazy render selectors": [
+        "Lazy render selectors"
+      ],
+      "Maatwerk": [
+        "Maatwerk"
+      ],
+      "Maatwerkprofiel verwijderen?": [
+        "Maatwerkprofiel verwijderen?"
+      ],
+      "Verwijderen": [
+        "Verwijderen"
+      ],
+      "CSS en JavaScript optimaliseren.": [
+        "CSS en JavaScript optimaliseren."
+      ],
+      "Cache-levensduur, uitsluitingen en query strings.": [
+        "Cache-levensduur, uitsluitingen en query strings."
+      ],
+      "UltraCache in het kort": [
+        "UltraCache in het kort"
+      ],
+      "Afbeeldingen, WebP/AVIF en iframe-opties.": [
+        "Afbeeldingen, WebP/AVIF en iframe-opties."
+      ],
+      "Revisies, transients en tabellen opruimen.": [
+        "Revisies, transients en tabellen opruimen."
+      ],
+      "Import, export, supportrapport en onderhoud.": [
+        "Import, export, supportrapport en onderhoud."
+      ],
+      "Kies Ã©Ã©n preset en beheer daarna alleen cache, optimalisatie en expertinstellingen als dat nodig is.": [
+        "Kies Ã©Ã©n preset en beheer daarna alleen cache, optimalisatie en expertinstellingen als dat nodig is."
+      ],
+      "%d aandachtspunt": [
+        "%d aandachtspunt"
+      ],
+      "Geen grote overlap": [
+        "Geen grote overlap"
+      ],
+      "Page cache": [
+        "Page cache"
+      ],
+      "De belangrijkste snelheidsfunctie.": [
+        "De belangrijkste snelheidsfunctie."
+      ],
+      "Cachebestand": [
+        "Cachebestand"
+      ],
+      "Andere plugin": [
+        "Andere plugin"
+      ],
+      "Nog niet actief": [
+        "Nog niet actief"
+      ],
+      "UltraCache actief": [
+        "UltraCache actief"
+      ],
+      "Controleer dit onder Cache.": [
+        "Controleer dit onder Cache."
+      ],
+      "Nodig voor snelle pagina-cache.": [
+        "Nodig voor snelle pagina-cache."
+      ],
+      "Preset": [
+        "Preset"
+      ],
+      "Handmatig": [
+        "Handmatig"
+      ],
+      "Je kunt later altijd wisselen.": [
+        "Je kunt later altijd wisselen."
+      ],
+      "Zet de belangrijkste page-cachefunctie aan met de veilige standaardinstellingen.": [
+        "Zet de belangrijkste page-cachefunctie aan met de veilige standaardinstellingen."
+      ],
+      "Verwijder bestaande cachebestanden zodat bezoekers de nieuwste versie van de site zien.": [
+        "Verwijder bestaande cachebestanden zodat bezoekers de nieuwste versie van de site zien."
+      ],
+      "Leeg de cache en bouw belangrijke paginaâs opnieuw op, zodat ze sneller klaarstaan.": [
+        "Leeg de cache en bouw belangrijke paginaâs opnieuw op, zodat ze sneller klaarstaan."
+      ],
+      "Kies je preset": [
+        "Kies je preset"
+      ],
+      "Presets zetten meerdere instellingen tegelijk goed. Begin veilig en finetune alleen als dat nodig is.": [
+        "Presets zetten meerdere instellingen tegelijk goed. Begin veilig en finetune alleen als dat nodig is."
+      ],
+      "Deze kiezen": [
+        "Deze kiezen"
+      ],
+      "Opnieuw toepassen": [
+        "Opnieuw toepassen"
+      ],
+      "Maatwerkprofiel opslaan": [
+        "Maatwerkprofiel opslaan"
+      ],
+      "Bewaar de huidige configuratie als eigen profiel voor klanttypes, staging of multisite-hergebruik.": [
+        "Bewaar de huidige configuratie als eigen profiel voor klanttypes, staging of multisite-hergebruik."
+      ],
+      "Naam maatwerkprofiel": [
+        "Naam maatwerkprofiel"
+      ],
+      "Bijv. Elementor webshop veilig": [
+        "Bijv. Elementor webshop veilig"
+      ],
+      "Huidige instellingen opslaan": [
+        "Huidige instellingen opslaan"
+      ],
+      "Cache preloaden": [
+        "Cache preloaden"
+      ],
+      "Preload bouwt cachebestanden vooraf op zodat bezoekers direct gecachte paginaâs krijgen.": [
+        "Preload bouwt cachebestanden vooraf op zodat bezoekers direct gecachte paginaâs krijgen."
+      ],
+      "Cache legen en preloaden": [
+        "Cache legen en preloaden"
+      ],
+      "Veilige preload standaard": [
+        "Veilige preload standaard"
+      ],
+      "Alleen homepage": [
+        "Alleen homepage"
+      ],
+      "Cache preload": [
+        "Cache preload"
+      ],
+      "EÃ©n keuze vervangt preload aan/uit, queue, sitemap en homepage meenemen.": [
+        "EÃ©n keuze vervangt preload aan/uit, queue, sitemap en homepage meenemen."
+      ],
+      "Handmatig / geavanceerd": [
+        "Handmatig / geavanceerd"
+      ],
+      "Veilig aanbevolen: queue + sitemap + homepage": [
+        "Veilig aanbevolen: queue + sitemap + homepage"
+      ],
+      "Gebruikt lichte requests wanneer mogelijk, met normale preload als fallback.": [
+        "Gebruikt lichte requests wanneer mogelijk, met normale preload als fallback."
+      ],
+      "Lichte preload requests gebruiken": [
+        "Lichte preload requests gebruiken"
+      ],
+      "Taken": [
+        "Taken"
+      ],
+      "Wacht: %1$d Â· Bezig: %2$d Â· Opnieuw: %3$d Â· Mislukt: %4$d": [
+        "Wacht: %1$d Â· Bezig: %2$d Â· Opnieuw: %3$d Â· Mislukt: %4$d"
+      ],
+      "Link preloaden bereidt een pagina voor wanneer een bezoeker over een interne link beweegt.": [
+        "Link preloaden bereidt een pagina voor wanneer een bezoeker over een interne link beweegt."
+      ],
+      "Links preloaden": [
+        "Links preloaden"
+      ],
+      "Link preloaden activeren": [
+        "Link preloaden activeren"
+      ],
+      "Verbetert de beleving bij interne navigatie.": [
+        "Verbetert de beleving bij interne navigatie."
+      ],
+      "Geavanceerde preload instellingen": [
+        "Geavanceerde preload instellingen"
+      ],
+      "Paginaâs per batch": [
+        "Paginaâs per batch"
+      ],
+      "Veilige start: 15 paginaâs per batch.": [
+        "Veilige start: 15 paginaâs per batch."
+      ],
+      "Dagelijks": [
+        "Dagelijks"
+      ],
+      "Elke 2 uur": [
+        "Elke 2 uur"
+      ],
+      "Laat dit uit tenzij je automatische heropwarming nodig hebt.": [
+        "Laat dit uit tenzij je automatische heropwarming nodig hebt."
+      ],
+      "Periodieke cache refresh": [
+        "Periodieke cache refresh"
+      ],
+      "Wekelijks": [
+        "Wekelijks"
+      ],
+      "Maximaal aantal paginaâs": [
+        "Maximaal aantal paginaâs"
+      ],
+      "Veilige start: maximaal 250 paginaâs.": [
+        "Veilige start: maximaal 250 paginaâs."
+      ],
+      "Aanbevolen: 500 ms tussen aanvragen.": [
+        "Aanbevolen: 500 ms tussen aanvragen."
+      ],
+      "Pauze per aanvraag (ms)": [
+        "Pauze per aanvraag (ms)"
+      ],
+      "Comma-separated: posts,archives,terms,authors.": [
+        "Comma-separated: posts,archives,terms,authors."
+      ],
+      "Preload inhoud": [
+        "Preload inhoud"
+      ],
+      "EÃ©n URL of pad per regel. Gebruik (.*) wildcards, bijvoorbeeld /author/(.*).": [
+        "EÃ©n URL of pad per regel. Gebruik (.*) wildcards, bijvoorbeeld /author/(.*)."
+      ],
+      "URLâs uitsluiten van preload": [
+        "URLâs uitsluiten van preload"
+      ],
+      "Cache legen en opwarmen": [
+        "Cache legen en opwarmen"
+      ],
+      "Wachtrij verwerken": [
+        "Wachtrij verwerken"
+      ],
+      "Onderhoud": [
+        "Onderhoud"
+      ],
+      "Onderhoud uitvoeren": [
+        "Onderhoud uitvoeren"
+      ],
+      "Veilige instellingen toepassen": [
+        "Veilige instellingen toepassen"
+      ],
+      "Supportrapport downloaden": [
+        "Supportrapport downloaden"
+      ],
+      "Compatibiliteitslijsten controleren": [
+        "Compatibiliteitslijsten controleren"
+      ],
+      "Back-up maken en cache activeren": [
+        "Back-up maken en cache activeren"
+      ],
+      "Drop-in bestandsrechten controleren": [
+        "Drop-in bestandsrechten controleren"
+      ],
+      "Alleen snelle, performancegerichte WordPress-tweaks. Brede beveiligingsopties zoals XML-RPC, REST API, feeds, reacties en login-aanpassingen zijn bewust uit de hoofdinterface gehaald.": [
+        "Alleen snelle, performancegerichte WordPress-tweaks. Brede beveiligingsopties zoals XML-RPC, REST API, feeds, reacties en login-aanpassingen zijn bewust uit de hoofdinterface gehaald."
+      ],
+      "Lichte WordPress performance-tweaks": [
+        "Lichte WordPress performance-tweaks"
+      ],
+      "Emojis uitschakelen": [
+        "Emojis uitschakelen"
+      ],
+      "Alleen voor niet-ingelogde bezoekers.": [
+        "Alleen voor niet-ingelogde bezoekers."
+      ],
+      "Dashicons uitschakelen voor bezoekers": [
+        "Dashicons uitschakelen voor bezoekers"
+      ],
+      "Insluitingen uitschakelen": [
+        "Insluitingen uitschakelen"
+      ],
+      "Alleen gebruiken na testen met oudere themaâs/plugins.": [
+        "Alleen gebruiken na testen met oudere themaâs/plugins."
+      ],
+      "jQuery Migrate verwijderen voor bezoekers": [
+        "jQuery Migrate verwijderen voor bezoekers"
+      ],
+      "Globale stijlen verwijderen": [
+        "Globale stijlen verwijderen"
+      ],
+      "Blokstijlen gescheiden laden": [
+        "Blokstijlen gescheiden laden"
+      ],
+      "Auto-save interval": [
+        "Auto-save interval"
+      ],
+      "In seconden. Standaard 60.": [
+        "In seconden. Standaard 60."
+      ],
+      "Lijsten controleren": [
+        "Lijsten controleren"
+      ],
+      "Lijsten met insluitingen en uitsluitingen": [
+        "Lijsten met insluitingen en uitsluitingen"
+      ],
+      "UltraCache gebruikt lokale compatibiliteitslijsten voor CDN, cache, CSS, JavaScript, lazyload en builders.": [
+        "UltraCache gebruikt lokale compatibiliteitslijsten voor CDN, cache, CSS, JavaScript, lazyload en builders."
+      ],
+      "%d lokale JSON-lijst aanwezig en valideerbaar.": [
+        "%d lokale JSON-lijst aanwezig en valideerbaar."
+      ],
+      "Er is bewust geen nep-remote updater toegevoegd; nieuwe lijsten worden met pluginupdates meegeleverd.": [
+        "Er is bewust geen nep-remote updater toegevoegd; nieuwe lijsten worden met pluginupdates meegeleverd."
+      ],
+      "Meta opties opschonen": [
+        "Meta opties opschonen"
+      ],
+      "Standaardopties terugzetten": [
+        "Standaardopties terugzetten"
+      ],
+      "Standaardopties terugzetten?": [
+        "Standaardopties terugzetten?"
+      ],
+      "Instellingen-back-ups": [
+        "Instellingen-back-ups"
+      ],
+      "UltraCache bewaart automatisch de laatste 5 instellingen vÃ³Ã³r wijzigingen. Maak ook handmatig een snapshot voordat je agressiever optimaliseert.": [
+        "UltraCache bewaart automatisch de laatste 5 instellingen vÃ³Ã³r wijzigingen. Maak ook handmatig een snapshot voordat je agressiever optimaliseert."
+      ],
+      "Snapshot maken": [
+        "Snapshot maken"
+      ],
+      "Moment": [
+        "Moment"
+      ],
+      "Type": [
+        "Type"
+      ],
+      "Deze snapshot terugzetten? De huidige instellingen worden eerst automatisch bewaard.": [
+        "Deze snapshot terugzetten? De huidige instellingen worden eerst automatisch bewaard."
+      ],
+      "Nog geen snapshots aanwezig. Na de eerstvolgende wijziging wordt automatisch een snapshot gemaakt.": [
+        "Nog geen snapshots aanwezig. Na de eerstvolgende wijziging wordt automatisch een snapshot gemaakt."
+      ],
+      "Import, export en onderhoud": [
+        "Import, export en onderhoud"
+      ],
+      "Gebruik export/import om een goede configuratie op een andere site te hergebruiken.": [
+        "Gebruik export/import om een goede configuratie op een andere site te hergebruiken."
+      ],
+      "Tip": [
+        "Tip"
+      ],
+      "Achtergrondtaken bewaren": [
+        "Achtergrondtaken bewaren"
+      ],
+      "Snelle acties": [
+        "Snelle acties"
+      ],
+      "Voer veelgebruikte onderhoudstaken snel uit. Minder gebruikte taken staan lager op deze pagina.": [
+        "Voer veelgebruikte onderhoudstaken snel uit. Minder gebruikte taken staan lager op deze pagina."
+      ],
+      "Cache voor deze pagina is geleegd.": [
+        "Cache voor deze pagina is geleegd."
+      ],
+      "Cache uit": [
+        "Cache uit"
+      ],
+      "Gebruikte CSS legen": [
+        "Gebruikte CSS legen"
+      ],
+      "Priority elements legen": [
+        "Priority elements legen"
+      ],
+      "Deze pagina legen": [
+        "Deze pagina legen"
+      ],
+      "UltraCache openen": [
+        "UltraCache openen"
+      ],
+      "Teststand staat aan": [
+        "Teststand staat aan"
+      ],
+      "Fragment cache is actief.": [
+        "Fragment cache is actief."
+      ],
+      "Je hebt geen rechten om afbeeldingen te optimaliseren.": [
+        "Je hebt geen rechten om afbeeldingen te optimaliseren."
+      ],
+      "UltraCache heeft %d afbeelding(en) verwerkt.": [
+        "UltraCache heeft %d afbeelding(en) verwerkt."
+      ],
+      "Je hebt geen rechten om object cache te controleren.": [
+        "Je hebt geen rechten om object cache te controleren."
+      ],
+      "Object cache is actief. UltraCache laat de bestaande drop-in bewust met rust.": [
+        "Object cache is actief. UltraCache laat de bestaande drop-in bewust met rust."
+      ],
+      "Redis of Memcached lijkt beschikbaar, maar er is nog geen actieve WordPress object-cache drop-in.": [
+        "Redis of Memcached lijkt beschikbaar, maar er is nog geen actieve WordPress object-cache drop-in."
+      ],
+      "Geen Redis/Memcached object-cache laag gevonden. Gebruik je hostingpaneel of een gespecialiseerde object-cache drop-in.": [
+        "Geen Redis/Memcached object-cache laag gevonden. Gebruik je hostingpaneel of een gespecialiseerde object-cache drop-in."
+      ],
+      "Deze site lijkt via HTTP/2 of HTTP/3 te draaien. Bestanden samenvoegen levert dan meestal weinig op en kan caching/debugging lastiger maken.": [
+        "Deze site lijkt via HTTP/2 of HTTP/3 te draaien. Bestanden samenvoegen levert dan meestal weinig op en kan caching/debugging lastiger maken."
+      ],
+      "Er is al een optimalisatieplugin actief. Voorkom dubbele CSS/JS-combinatie en kies Ã©Ã©n plugin die dit beheert.": [
+        "Er is al een optimalisatieplugin actief. Voorkom dubbele CSS/JS-combinatie en kies Ã©Ã©n plugin die dit beheert."
+      ],
+      "CSS-levering optimaliseren is actief. UltraCache zet CSS samenvoegen uit omdat dit conflicteert met Used/Critical CSS per pagina.": [
+        "CSS-levering optimaliseren is actief. UltraCache zet CSS samenvoegen uit omdat dit conflicteert met Used/Critical CSS per pagina."
+      ],
+      "Er is een builder of formulierplugin gedetecteerd. CSS samenvoegen is dan extra breekgevoelig en blijft daarom vergrendeld.": [
+        "Er is een builder of formulierplugin gedetecteerd. CSS samenvoegen is dan extra breekgevoelig en blijft daarom vergrendeld."
+      ],
+      "Delay JS is actief. Net als WP Rocket schakelt UltraCache JavaScript samenvoegen dan uit om de uitvoervolgorde te beschermen.": [
+        "Delay JS is actief. Net als WP Rocket schakelt UltraCache JavaScript samenvoegen dan uit om de uitvoervolgorde te beschermen."
+      ],
+      "Er is al een script-laadstrategie actief. JavaScript samenvoegen wordt daarom vergrendeld.": [
+        "Er is al een script-laadstrategie actief. JavaScript samenvoegen wordt daarom vergrendeld."
+      ],
+      "Er is een builder, shop, formulier- of cookieplugin gedetecteerd. JavaScript samenvoegen kan dan interacties breken en blijft daarom uit.": [
+        "Er is een builder, shop, formulier- of cookieplugin gedetecteerd. JavaScript samenvoegen kan dan interacties breken en blijft daarom uit."
+      ],
+      "pagina-cache": [
+        "pagina-cache"
+      ],
+      "JavaScript samenvoegen": [
+        "JavaScript samenvoegen"
+      ],
+      "bestanden uitschakelen": [
+        "bestanden uitschakelen"
+      ],
+      "ongebruikte CSS verwijderen": [
+        "ongebruikte CSS verwijderen"
+      ],
+      "kritieke CSS laden": [
+        "kritieke CSS laden"
+      ],
+      "object-cache overlap": [
+        "object-cache overlap"
+      ],
+      "Bestaande advanced-cache.php (%s)": [
+        "Bestaande advanced-cache.php (%s)"
+      ],
+      "Maak eerst een back-up. Activeer UltraCache alleen als je zeker weet dat deze plugin de actieve page-cachelaag mag worden.": [
+        "Maak eerst een back-up. Activeer UltraCache alleen als je zeker weet dat deze plugin de actieve page-cachelaag mag worden."
+      ],
+      "Laat Redis/Memcached object cache als aparte laag werken en voorkom dubbele object-cache drop-ins.": [
+        "Laat Redis/Memcached object cache als aparte laag werken en voorkom dubbele object-cache drop-ins."
+      ],
+      "Schakel overlappende CSS/JS combine, delay of asset-unload opties in Ã©Ã©n van beide plugins uit.": [
+        "Schakel overlappende CSS/JS combine, delay of asset-unload opties in Ã©Ã©n van beide plugins uit."
+      ],
+      "Gebruik UltraCache als applicatielaag en purge de server/CDN-laag expliciet na wijzigingen.": [
+        "Gebruik UltraCache als applicatielaag en purge de server/CDN-laag expliciet na wijzigingen."
+      ],
+      "Controleer overlap met page cache, minify, preload, CDN of cache legen voordat je ingrijpende opties inschakelt.": [
+        "Controleer overlap met page cache, minify, preload, CDN of cache legen voordat je ingrijpende opties inschakelt."
+      ],
+      "UltraCache status": [
+        "UltraCache status"
+      ],
+      "Preload": [
+        "Preload"
+      ],
+      "CSS minify": [
+        "CSS minify"
+      ],
+      "Lazyload media": [
+        "Lazyload media"
+      ],
+      "Actieve preset:": [
+        "Actieve preset:"
+      ],
+      "CSS-artifacts zijn als stale gemarkeerd en de homepage is opnieuw ingepland.": [
+        "CSS-artifacts zijn als stale gemarkeerd en de homepage is opnieuw ingepland."
+      ],
+      "Alle UltraCache optimalisaties uitschakelen": [
+        "Alle UltraCache optimalisaties uitschakelen"
+      ],
+      "Pagina-cache uitschakelen": [
+        "Pagina-cache uitschakelen"
+      ],
+      "Delay JS uitschakelen": [
+        "Delay JS uitschakelen"
+      ],
+      "CSS-optimalisatie uitschakelen": [
+        "CSS-optimalisatie uitschakelen"
+      ],
+      "JS-optimalisatie uitschakelen": [
+        "JS-optimalisatie uitschakelen"
+      ],
+      "Speculative loading uitschakelen": [
+        "Speculative loading uitschakelen"
+      ],
+      "UltraCache pagina-uitzonderingen": [
+        "UltraCache pagina-uitzonderingen"
+      ],
+      "Gebruik dit alleen voor paginaâs met formulier-, checkout-, builder- of scriptsproblemen.": [
+        "Gebruik dit alleen voor paginaâs met formulier-, checkout-, builder- of scriptsproblemen."
+      ],
+      "Maatwerk preset": [
+        "Maatwerk preset"
+      ],
+      "PageSpeed Auto": [
+        "PageSpeed Auto"
+      ],
+      "Opgeslagen vanuit de huidige UltraCache-instellingen.": [
+        "Opgeslagen vanuit de huidige UltraCache-instellingen."
+      ],
+      "Staging-vriendelijk profiel voor Elementor/WooCommerce: cache, preload, CSS-minify, lokale fonts, lazyload en veilige checkout-bypasses. Used CSS en Delay JS blijven bewust handmatig.": [
+        "Staging-vriendelijk profiel voor Elementor/WooCommerce: cache, preload, CSS-minify, lokale fonts, lazyload en veilige checkout-bypasses. Used CSS en Delay JS blijven bewust handmatig."
+      ],
+      "Basis-cache en veilige headers zonder agressieve frontend-optimalisatie.": [
+        "Basis-cache en veilige headers zonder agressieve frontend-optimalisatie."
+      ],
+      "WP Rocket-achtige veilige standaard: cache, preload, minify, heartbeat en link preload.": [
+        "WP Rocket-achtige veilige standaard: cache, preload, minify, heartbeat en link preload."
+      ],
+      "Snel": [
+        "Snel"
+      ],
+      "Extra optimalisatie zonder Delay JS of Used CSS: lazyload, veilige defer-fallback, font-display en query-string cleanup.": [
+        "Extra optimalisatie zonder Delay JS of Used CSS: lazyload, veilige defer-fallback, font-display en query-string cleanup."
+      ],
+      "Agressief - staging": [
+        "Agressief - staging"
+      ],
+      "Alleen voor staging of ervaren gebruikers. Kan scripts, checkout of builders raken.": [
+        "Alleen voor staging of ervaren gebruikers. Kan scripts, checkout of builders raken."
+      ],
+      "Webshop veilig": [
+        "Webshop veilig"
+      ],
+      "Beschermt winkelwagen, afrekenen, account, order-pay en WooCommerce-fragmenten extra.": [
+        "Beschermt winkelwagen, afrekenen, account, order-pay en WooCommerce-fragmenten extra."
+      ],
+      "Builder veilig": [
+        "Builder veilig"
+      ],
+      "Veiliger voor Elementor, Bricks, Divi, Beaver Builder en visuele editors.": [
+        "Veiliger voor Elementor, Bricks, Divi, Beaver Builder en visuele editors."
+      ],
+      "Edge eerst": [
+        "Edge eerst"
+      ],
+      "Gemaakt voor Cloudflare-achtige opzet zonder lokale agressieve JS/CSS-magie.": [
+        "Gemaakt voor Cloudflare-achtige opzet zonder lokale agressieve JS/CSS-magie."
+      ],
+      "Veilige stand": [
+        "Veilige stand"
+      ],
+      "Zet de sterkere snelheid uit en laat alleen conservatieve optimalisatie over.": [
+        "Zet de sterkere snelheid uit en laat alleen conservatieve optimalisatie over."
+      ],
+      "Opgeslagen maatwerkprofiel.": [
+        "Opgeslagen maatwerkprofiel."
+      ],
+      "CSS samenvoegen staat aan. Bij builders werkt uit vaak beter.": [
+        "CSS samenvoegen staat aan. Bij builders werkt uit vaak beter."
+      ],
+      "Uitgesteld JS noemt Elementor nu niet.": [
+        "Uitgesteld JS noemt Elementor nu niet."
+      ],
+      "HTML kleiner maken staat live aan op een site met gevoelige plugins. Test dit eerst rustig op staging of handmatig.": [
+        "HTML kleiner maken staat live aan op een site met gevoelige plugins. Test dit eerst rustig op staging of handmatig."
+      ],
+      "Cloudflare is niet gevonden in plugin, headers of API.": [
+        "Cloudflare is niet gevonden in plugin, headers of API."
+      ],
+      "Cloudflare Zone ID en API token zijn nog niet compleet.": [
+        "Cloudflare Zone ID en API token zijn nog niet compleet."
+      ],
+      "Preload Link headers staat uit.": [
+        "Preload Link headers staat uit."
+      ],
+      "Edge cache headers staan uit.": [
+        "Edge cache headers staan uit."
+      ],
+      "wp-content is niet schrijfbaar.": [
+        "wp-content is niet schrijfbaar."
+      ],
+      "De UltraCache cachemap ontbreekt.": [
+        "De UltraCache cachemap ontbreekt."
+      ],
+      "Het rewrite-systeem is niet gestart.": [
+        "Het rewrite-systeem is niet gestart."
+      ],
+      "WooCommerce staat niet aan op deze site.": [
+        "WooCommerce staat niet aan op deze site."
+      ],
+      "Deze WooCommerce pagina ontbreekt: %s.": [
+        "Deze WooCommerce pagina ontbreekt: %s."
+      ],
+      "De winkelwagen staat niet in uitgesloten URL's.": [
+        "De winkelwagen staat niet in uitgesloten URL's."
+      ],
+      "wc-cart-fragments staat niet in Uitgesteld JS.": [
+        "wc-cart-fragments staat niet in Uitgesteld JS."
+      ],
+      "Elementor staat niet aan op deze site.": [
+        "Elementor staat niet aan op deze site."
+      ],
+      "UltraCache cachemap": [
+        "UltraCache cachemap"
+      ],
+      "UltraCache wachtrij": [
+        "UltraCache wachtrij"
+      ],
+      "UltraCache cacheconflicten": [
+        "UltraCache cacheconflicten"
+      ],
+      "UltraCache drop-in configuratie": [
+        "UltraCache drop-in configuratie"
+      ],
+      "UltraCache cachemap heeft aandacht nodig": [
+        "UltraCache cachemap heeft aandacht nodig"
+      ],
+      "UltraCache cachemap is schrijfbaar": [
+        "UltraCache cachemap is schrijfbaar"
+      ],
+      "Snelheid": [
+        "Snelheid"
+      ],
+      "UltraCache heeft een schrijfbare cachemap nodig voor cache, gemaakte CSS en controles.": [
+        "UltraCache heeft een schrijfbare cachemap nodig voor cache, gemaakte CSS en controles."
+      ],
+      "Controleer de UltraCache wachtrij": [
+        "Controleer de UltraCache wachtrij"
+      ],
+      "UltraCache wachtrij ziet er goed uit": [
+        "UltraCache wachtrij ziet er goed uit"
+      ],
+      "Nu in de wachtrij: %1$d open, %2$d mislukt.": [
+        "Nu in de wachtrij: %1$d open, %2$d mislukt."
+      ],
+      "Geen bekende UltraCache conflicten gevonden": [
+        "Geen bekende UltraCache conflicten gevonden"
+      ],
+      "UltraCache heeft mogelijke overlap met andere cachelagen": [
+        "UltraCache heeft mogelijke overlap met andere cachelagen"
+      ],
+      "Er zijn geen bekende overlap-signalen gevonden.": [
+        "Er zijn geen bekende overlap-signalen gevonden."
+      ],
+      "WP_CACHE ontbreekt of staat uit in wp-config.php.": [
+        "WP_CACHE ontbreekt of staat uit in wp-config.php."
+      ],
+      "De drop-in configuratie is nog niet geschreven.": [
+        "De drop-in configuratie is nog niet geschreven."
+      ],
+      "WP_CACHE en de drop-in configuratie zijn aanwezig.": [
+        "WP_CACHE en de drop-in configuratie zijn aanwezig."
+      ],
+      "UltraCache drop-in configuratie heeft aandacht nodig": [
+        "UltraCache drop-in configuratie heeft aandacht nodig"
+      ],
+      "UltraCache drop-in configuratie is in orde": [
+        "UltraCache drop-in configuratie is in orde"
+      ],
+      "Je hebt geen rechten om UltraCache logs te downloaden.": [
+        "Je hebt geen rechten om UltraCache logs te downloaden."
+      ],
+      "Kon geen tijdelijk logpakket maken.": [
+        "Kon geen tijdelijk logpakket maken."
+      ],
+      "Kon het logpakket niet bouwen. Controleer of ZipArchive beschikbaar is.": [
+        "Kon het logpakket niet bouwen. Controleer of ZipArchive beschikbaar is."
+      ],
+      "Elke dag": [
+        "Elke dag"
+      ],
+      "UltraCache Pro controles": [
+        "UltraCache Pro controles"
+      ],
+      "Pad": [
+        "Pad"
+      ],
+      "Notities": [
+        "Notities"
+      ],
+      "Assets": [
+        "Assets"
+      ],
+      "Gegenereerd": [
+        "Gegenereerd"
+      ],
+      "UltraCache Pro kan logs en controles bewaren voor beheerders. Deze gegevens blijven lokaal in WordPress voor controle en hulp bij problemen.": [
+        "UltraCache Pro kan logs en controles bewaren voor beheerders. Deze gegevens blijven lokaal in WordPress voor controle en hulp bij problemen."
+      ],
+      "UltraCache Pro gegevens": [
+        "UltraCache Pro gegevens"
+      ],
+      "UltraCache Pro logs": [
+        "UltraCache Pro logs"
+      ],
+      "Niveau": [
+        "Niveau"
+      ],
+      "Onderdeel": [
+        "Onderdeel"
+      ],
+      "Gebeurtenis": [
+        "Gebeurtenis"
+      ],
+      "Bericht": [
+        "Bericht"
+      ],
+      "Context": [
+        "Context"
+      ],
+      "URL": [
+        "URL"
+      ],
+      "Aangemaakt": [
+        "Aangemaakt"
+      ],
+      "Debug/testmodus is 30 minuten ingeschakeld.": [
+        "Debug/testmodus is 30 minuten ingeschakeld."
+      ],
+      "WP_CACHE en drop-in herstelactie uitgevoerd.": [
+        "WP_CACHE en drop-in herstelactie uitgevoerd."
+      ],
+      "Preset kon niet worden toegepast.": [
+        "Preset kon niet worden toegepast."
+      ],
+      "Preset toegepast.": [
+        "Preset toegepast."
+      ],
+      "%d mogelijke overlap gevonden.": [
+        "%d mogelijke overlap gevonden."
+      ],
+      "Actieve plugin gevonden: %s. Controleer overlappende cache/optimalisatie-instellingen.": [
+        "Actieve plugin gevonden: %s. Controleer overlappende cache/optimalisatie-instellingen."
+      ],
+      "Logs opgehaald.": [
+        "Logs opgehaald."
+      ],
+      "Release checklist opgehaald.": [
+        "Release checklist opgehaald."
+      ],
+      "Cache runtime test uitgevoerd.": [
+        "Cache runtime test uitgevoerd."
+      ],
+      "UltraCache runtime cache test is recent en compleet": [
+        "UltraCache runtime cache test is recent en compleet"
+      ],
+      "Voer de UltraCache runtime cache test uit": [
+        "Voer de UltraCache runtime cache test uit"
+      ],
+      "Gebruik UltraCache > Diagnostiek > Cache runtime test uitvoeren om HIT/BYPASS-signalen te controleren.": [
+        "Gebruik UltraCache > Diagnostiek > Cache runtime test uitvoeren om HIT/BYPASS-signalen te controleren."
+      ],
+      "WP_CACHE, advanced-cache.php en drop-in config zijn aanwezig in de laatste test.": [
+        "WP_CACHE, advanced-cache.php en drop-in config zijn aanwezig in de laatste test."
+      ],
+      "UltraCache runtime cache test": [
+        "UltraCache runtime cache test"
+      ],
+      "URL is niet toegestaan voor CSS-opbouw.": [
+        "URL is niet toegestaan voor CSS-opbouw."
+      ],
+      "CSS-opbouw redirectte naar een niet-toegestane URL.": [
+        "CSS-opbouw redirectte naar een niet-toegestane URL."
+      ],
+      "Te veel redirects tijdens CSS-opbouw.": [
+        "Te veel redirects tijdens CSS-opbouw."
+      ],
+      "Monthly": [
+        "Monthly"
+      ],
+      "Onbekende cachelaag": [
+        "Onbekende cachelaag"
+      ],
+      "Winkelwagen, productvariaties en checkout scripts.": [
+        "Winkelwagen, productvariaties en checkout scripts."
+      ],
+      "Builders": [
+        "Builders"
+      ],
+      "Elementor, Bricks, Breakdance, Oxygen en andere builders.": [
+        "Elementor, Bricks, Breakdance, Oxygen en andere builders."
+      ],
+      "Formulieren": [
+        "Formulieren"
+      ],
+      "Contact Form 7, WPForms, Gravity Forms en vergelijkbaar.": [
+        "Contact Form 7, WPForms, Gravity Forms en vergelijkbaar."
+      ],
+      "Cookie banners": [
+        "Cookie banners"
+      ],
+      "Complianz, Cookiebot, Borlabs en andere consent tools.": [
+        "Complianz, Cookiebot, Borlabs en andere consent tools."
+      ],
+      "Analytics en ads": [
+        "Analytics en ads"
+      ],
+      "Google Analytics, GTM, Meta Pixel en advertentie scripts.": [
+        "Google Analytics, GTM, Meta Pixel en advertentie scripts."
+      ],
+      "Video en kaarten": [
+        "Video en kaarten"
+      ],
+      "YouTube, Wistia, Typekit, Google Maps en vergelijkbaar.": [
+        "YouTube, Wistia, Typekit, Google Maps en vergelijkbaar."
+      ],
+      "Afgezwakt door conflict": [
+        "Afgezwakt door conflict"
+      ],
+      "Bestanden": [
+        "Bestanden"
+      ],
+      "Minify-instellingen actief": [
+        "Minify-instellingen actief"
+      ],
+      "Later laden actief": [
+        "Later laden actief"
+      ],
+      "Niet aangepast": [
+        "Niet aangepast"
+      ],
+      "Autopilot": [
+        "Autopilot"
+      ],
+      "Slimme detectie actief": [
+        "Slimme detectie actief"
+      ],
+      "Conflictbewaking": [
+        "Conflictbewaking"
+      ],
+      "%d overlap gevonden": [
+        "%d overlap gevonden"
+      ],
+      "Exclusions automatisch aangevuld": [
+        "Exclusions automatisch aangevuld"
+      ],
+      "Winkelwagen, afrekenen en account zijn automatisch uitgesloten van zware optimalisatie.": [
+        "Winkelwagen, afrekenen en account zijn automatisch uitgesloten van zware optimalisatie."
+      ],
+      "Builder scripts staan nu in de veilige uitzonderingen en samenvoegen blijft uit.": [
+        "Builder scripts staan nu in de veilige uitzonderingen en samenvoegen blijft uit."
+      ],
+      "Taal- en valuta-cookies zijn toegevoegd aan de cache-uitzonderingen.": [
+        "Taal- en valuta-cookies zijn toegevoegd aan de cache-uitzonderingen."
+      ],
+      "Tracking-, consent- en SEO-scripts zijn toegevoegd aan de JS-uitzonderingen.": [
+        "Tracking-, consent- en SEO-scripts zijn toegevoegd aan de JS-uitzonderingen."
+      ],
+      "Formulier-scripts zijn beschermd tegen Delay JS en ingrijpende optimalisatie.": [
+        "Formulier-scripts zijn beschermd tegen Delay JS en ingrijpende optimalisatie."
+      ],
+      "Dubbele optimalisatie wordt afgezwakt door combine, delay en HTML-minify uit te houden.": [
+        "Dubbele optimalisatie wordt afgezwakt door combine, delay en HTML-minify uit te houden."
+      ],
+      "Elke minuut": [
+        "Elke minuut"
+      ],
+      "Elke 5 minuten": [
+        "Elke 5 minuten"
+      ],
+      "YouTube-video afspelen": [
+        "YouTube-video afspelen"
+      ],
+      "REST API is uitgeschakeld voor publieke verzoeken.": [
+        "REST API is uitgeschakeld voor publieke verzoeken."
+      ],
+      "Feeds zijn uitgeschakeld.": [
+        "Feeds zijn uitgeschakeld."
+      ],
+      "Every 2 hours": [
+        "Every 2 hours"
+      ],
+      "Weekly": [
+        "Weekly"
+      ],
+      "Je hebt geen rechten om UltraCache Pro te beheren.": [
+        "Je hebt geen rechten om UltraCache Pro te beheren."
+      ],
+      "Ongeldige of ontbrekende REST-beveiligingstoken.": [
+        "Ongeldige of ontbrekende REST-beveiligingstoken."
+      ],
+      "Kritieke CSS is aangezet. De CSS-wachtrij bouwt de bestanden opnieuw op.": [
+        "Kritieke CSS is aangezet. De CSS-wachtrij bouwt de bestanden opnieuw op."
+      ],
+      "Kritieke CSS is gegenereerd en CSS-levering is bijgewerkt.": [
+        "Kritieke CSS is gegenereerd en CSS-levering is bijgewerkt."
+      ],
+      "Used CSS is aangezet en opnieuw gegenereerd voor de homepage.": [
+        "Used CSS is aangezet en opnieuw gegenereerd voor de homepage."
+      ],
+      "Used CSS is aangezet. De CSS-wachtrij bouwt de bestanden opnieuw op.": [
+        "Used CSS is aangezet. De CSS-wachtrij bouwt de bestanden opnieuw op."
+      ],
+      "Verkleinde CSS is gewist.": [
+        "Verkleinde CSS is gewist."
+      ],
+      "Verkleinde JavaScript is gewist.": [
+        "Verkleinde JavaScript is gewist."
+      ],
+      "Database cleanup is niet beschikbaar.": [
+        "Database cleanup is niet beschikbaar."
+      ],
+      "Database opschoning is uitgevoerd.": [
+        "Database opschoning is uitgevoerd."
+      ],
+      "Health check uitgevoerd.": [
+        "Health check uitgevoerd."
+      ],
+      "Quality suite is niet beschikbaar.": [
+        "Quality suite is niet beschikbaar."
+      ],
+      "Jobrunner is niet beschikbaar.": [
+        "Jobrunner is niet beschikbaar."
+      ],
+      "0 taken verwerkt. Er staan nog %d mislukte taken; gebruik \"Mislukte taken opnieuw proberen\" om ze terug in de wachtrij te zetten.": [
+        "0 taken verwerkt. Er staan nog %d mislukte taken; gebruik \"Mislukte taken opnieuw proberen\" om ze terug in de wachtrij te zetten."
+      ],
+      "%d taak verwerkt.": [
+        "%d taak verwerkt."
+      ],
+      "Jobtabel is niet beschikbaar.": [
+        "Jobtabel is niet beschikbaar."
+      ],
+      "Jobtabel is ongeldig.": [
+        "Jobtabel is ongeldig."
+      ],
+      "%1$d taken teruggezet in de wachtrij. %2$d direct verwerkt.": [
+        "%1$d taken teruggezet in de wachtrij. %2$d direct verwerkt."
+      ],
+      "Cachemodule is niet beschikbaar.": [
+        "Cachemodule is niet beschikbaar."
+      ],
+      "Support report is niet beschikbaar.": [
+        "Support report is niet beschikbaar."
+      ],
+      "Alle cache is geleegd.": [
+        "Alle cache is geleegd."
+      ],
+      "Pagina-cache is geleegd.": [
+        "Pagina-cache is geleegd."
+      ],
+      "Ongeldige of niet-lokale URL.": [
+        "Ongeldige of niet-lokale URL."
+      ],
+      "De cache voor deze URL is geleegd.": [
+        "De cache voor deze URL is geleegd."
+      ],
+      "Cache opwarmen is gestart.": [
+        "Cache opwarmen is gestart."
+      ],
+      "Preloadmodule is niet beschikbaar.": [
+        "Preloadmodule is niet beschikbaar."
+      ],
+      "Browser scan is niet beschikbaar.": [
+        "Browser scan is niet beschikbaar."
+      ],
+      "PageSpeed browser scan opgeslagen.": [
+        "PageSpeed browser scan opgeslagen."
+      ],
+      "Instellingen konden niet worden geÃ¯mporteerd. Controleer de serverlog voor details.": [
+        "Instellingen konden niet worden geÃ¯mporteerd. Controleer de serverlog voor details."
+      ],
+      "Snapshot niet gevonden.": [
+        "Snapshot niet gevonden."
+      ],
+      "Snapshot teruggezet.": [
+        "Snapshot teruggezet."
+      ],
+      "Geef een geldige naam op voor het maatwerkprofiel.": [
+        "Geef een geldige naam op voor het maatwerkprofiel."
+      ],
+      "Ongeldige instellingen ontvangen.": [
+        "Ongeldige instellingen ontvangen."
+      ],
+      "Instellingen opgeslagen.": [
+        "Instellingen opgeslagen."
+      ],
+      "Instellingen konden niet worden opgeslagen. Controleer de serverlog voor details.": [
+        "Instellingen konden niet worden opgeslagen. Controleer de serverlog voor details."
+      ],
+      "Bevestig eerst dat je een recente export of database-back-up hebt voordat instellingen worden geÃ¯mporteerd.": [
+        "Bevestig eerst dat je een recente export of database-back-up hebt voordat instellingen worden geÃ¯mporteerd."
+      ],
+      "Ongeldige import ontvangen.": [
+        "Ongeldige import ontvangen."
+      ],
+      "Geen geldige UltraCache instellingen gevonden.": [
+        "Geen geldige UltraCache instellingen gevonden."
+      ],
+      "Instellingen geÃ¯mporteerd.": [
+        "Instellingen geÃ¯mporteerd."
+      ],
+      "LMS/membership-functionaliteit gevonden: ingelogde en persoonlijke paginaâs vragen veilige cache-regels.": [
+        "LMS/membership-functionaliteit gevonden: ingelogde en persoonlijke paginaâs vragen veilige cache-regels."
+      ],
+      "Formulierplugin gevonden: Delay JS moet voorzichtig blijven zodat formulieren betrouwbaar werken.": [
+        "Formulierplugin gevonden: Delay JS moet voorzichtig blijven zodat formulieren betrouwbaar werken."
+      ],
+      "Multisite gedetecteerd. Test wijzigingen per site en voorkom netwerkbrede verrassingen.": [
+        "Multisite gedetecteerd. Test wijzigingen per site en voorkom netwerkbrede verrassingen."
+      ],
+      "Geen duidelijke shop-, builder- of membership-risicoâs gevonden.": [
+        "Geen duidelijke shop-, builder- of membership-risicoâs gevonden."
+      ],
+      "Maatwerk veilig": [
+        "Maatwerk veilig"
+      ],
+      "Maatwerk preset: shop/builder veilig": [
+        "Maatwerk preset: shop/builder veilig"
+      ],
+      "UltraCache adviseert een eigen veilige preset: cache, preload, minify, lazy load en lokale fonts aan; combineren, Delay JS, REST cache en Used CSS blijven uit.": [
+        "UltraCache adviseert een eigen veilige preset: cache, preload, minify, lazy load en lokale fonts aan; combineren, Delay JS, REST cache en Used CSS blijven uit."
+      ],
+      "Maatwerk voorzichtig": [
+        "Maatwerk voorzichtig"
+      ],
+      "Maatwerk preset: builder/veel plugins": [
+        "Maatwerk preset: builder/veel plugins"
+      ],
+      "UltraCache adviseert een eigen conservatieve preset: veilige cache en minify aan, maar agressieve JS/CSS-optimalisatie uit tot je gericht test.": [
+        "UltraCache adviseert een eigen conservatieve preset: veilige cache en minify aan, maar agressieve JS/CSS-optimalisatie uit tot je gericht test."
+      ],
+      "Snelste modus": [
+        "Snelste modus"
+      ],
+      "Advies: Snelste modus": [
+        "Advies: Snelste modus"
+      ],
+      "Deze omgeving lijkt staging/dev en er zijn weinig risicosignalen. Je kunt Used CSS en Delay JS hier veilig testen voordat je live gaat.": [
+        "Deze omgeving lijkt staging/dev en er zijn weinig risicosignalen. Je kunt Used CSS en Delay JS hier veilig testen voordat je live gaat."
+      ],
+      "Gebalanceerd": [
+        "Gebalanceerd"
+      ],
+      "Advies: Gebalanceerd": [
+        "Advies: Gebalanceerd"
+      ],
+      "Dit is de beste standaard voor de meeste bedrijfswebsites: cache, preload, minify, lazy images en lokale fonts aan; combineren, Delay JS en Used CSS blijven uit.": [
+        "Dit is de beste standaard voor de meeste bedrijfswebsites: cache, preload, minify, lazy images en lokale fonts aan; combineren, Delay JS en Used CSS blijven uit."
+      ],
+      "kolom": [
+        "kolom"
+      ],
+      "kolommen": [
+        "kolommen"
+      ],
+      "Herstel indeling": [
+        "Herstel indeling"
+      ],
+      "WordPress performance": [
+        "WordPress performance"
+      ],
+      "Native WordPress dashboard voor cache, optimalisatie, preload, WooCommerce-safety en websitecontrole.": [
+        "Native WordPress dashboard voor cache, optimalisatie, preload, WooCommerce-safety en websitecontrole."
+      ],
+      "Cache actief": [
+        "Cache actief"
+      ],
+      "WooCommerce veilig": [
+        "WooCommerce veilig"
+      ],
+      "WooCommerce standaard": [
+        "WooCommerce standaard"
+      ],
+      "taken": [
+        "taken"
+      ],
+      "Geen wachtrij": [
+        "Geen wachtrij"
+      ],
+      "JS testen": [
+        "JS testen"
+      ],
+      "Setup kiezen": [
+        "Setup kiezen"
+      ],
+      "UltraCache Pro onderdelen": [
+        "UltraCache Pro onderdelen"
+      ],
+      "Kaartvolgorde bijgewerkt.": [
+        "Kaartvolgorde bijgewerkt."
+      ],
+      "Kaartenindeling bijgewerkt.": [
+        "Kaartenindeling bijgewerkt."
+      ],
+      "Standaardindeling hersteld.": [
+        "Standaardindeling hersteld."
+      ],
+      "Kies een rustige kolomweergave. Kaarten kunnen met muis of toetsenbord worden verplaatst; herstel zet alles terug naar standaard.": [
+        "Kies een rustige kolomweergave. Kaarten kunnen met muis of toetsenbord worden verplaatst; herstel zet alles terug naar standaard."
+      ],
+      "UltraCache Pro wordt geladen": [
+        "UltraCache Pro wordt geladen"
+      ],
+      "APCu is beschikbaar. Je kunt de UltraCache APCu object-cache drop-in optioneel activeren.": [
+        "APCu is beschikbaar. Je kunt de UltraCache APCu object-cache drop-in optioneel activeren."
+      ],
+      "Geen Redis/Memcached/APCu object-cache laag gevonden. Gebruik je hostingpaneel of een gespecialiseerde object-cache drop-in.": [
+        "Geen Redis/Memcached/APCu object-cache laag gevonden. Gebruik je hostingpaneel of een gespecialiseerde object-cache drop-in."
+      ],
+      "Je hebt geen rechten om de object-cache drop-in te installeren.": [
+        "Je hebt geen rechten om de object-cache drop-in te installeren."
+      ],
+      "APCu object cache vereist APCu en een expliciet ingeschakelde optie.": [
+        "APCu object cache vereist APCu en een expliciet ingeschakelde optie."
+      ],
+      "Er bestaat al een object-cache.php drop-in. UltraCache overschrijft die niet automatisch.": [
+        "Er bestaat al een object-cache.php drop-in. UltraCache overschrijft die niet automatisch."
+      ],
+      "Kon de APCu object-cache drop-in niet installeren.": [
+        "Kon de APCu object-cache drop-in niet installeren."
+      ],
+      "APCu object-cache drop-in geÃ¯nstalleerd.": [
+        "APCu object-cache drop-in geÃ¯nstalleerd."
+      ],
+      "Kies Ã©Ã©n methode. Ongebruikte CSS gebruikt de parser-first flow wanneer de Composer-library beschikbaar is en valt veilig terug op de lokale scanner. Test grondig op staging, vooral met Elementor, sticky headers, sliders en WooCommerce.": [
+        "Kies Ã©Ã©n methode. Ongebruikte CSS gebruikt de parser-first flow wanneer de Composer-library beschikbaar is en valt veilig terug op de lokale scanner. Test grondig op staging, vooral met Elementor, sticky headers, sliders en WooCommerce."
+      ],
+      "wp_options engine: %s": [
+        "wp_options engine: %s"
+      ],
+      "Mogelijke ontbrekende indexen: %s": [
+        "Mogelijke ontbrekende indexen: %s"
+      ],
+      "Sta expliciete MyISAM â InnoDB conversie van wp_options toe": [
+        "Sta expliciete MyISAM â InnoDB conversie van wp_options toe"
+      ],
+      "Staging-first: alleen gebruiken met recente database-back-up.": [
+        "Staging-first: alleen gebruiken met recente database-back-up."
+      ],
+      "Converteer wp_options naar InnoDB? Maak eerst een database-back-up.": [
+        "Converteer wp_options naar InnoDB? Maak eerst een database-back-up."
+      ],
+      "Geen rechten.": [
+        "Geen rechten."
+      ],
+      "InnoDB-conversie vereist expliciete bevestiging in de instellingen.": [
+        "InnoDB-conversie vereist expliciete bevestiging in de instellingen."
+      ],
+      "Aanbevolen startinstelling": [
+        "Aanbevolen startinstelling"
+      ],
+      "Laat UltraCache één veilige aanbeveling tonen. Alle technische details blijven beschikbaar via Geavanceerde instellingen.": [
+        "Laat UltraCache één veilige aanbeveling tonen. Alle technische details blijven beschikbaar via Geavanceerde instellingen."
+      ],
+      "Geavanceerd - open alleen als je dit nodig hebt": [
+        "Geavanceerd - open alleen als je dit nodig hebt"
+      ]
+    }
+  }
+}

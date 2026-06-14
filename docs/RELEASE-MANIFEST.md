@@ -35,3 +35,8 @@ This manifest defines what belongs in the production ZIP.
 - Package hygiene check
 - ZIP integrity check
 - WordPress activation/deactivation/uninstall smoke test on staging
+
+
+## 11.4.10 release-ready pass
+
+Final package validation pass after UI grouping and feature-toggle verification.

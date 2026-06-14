@@ -193,125 +193,13 @@ final class UCP_Plugin {
     }
 
     /**
-     * Instantiate runtime modules using the same conditions as the legacy bootstrap method.
+     * Instantiate runtime modules using the central service registry.
      *
      * @param bool $backend_context Whether this is an admin/cron/CLI request.
      * @return void
      */
     private static function bootstrap_runtime_modules($backend_context) {
-        new UCP_Compat();
-
-        if ($backend_context || UCP_Options::get('enable_cache')) {
-            new UCP_LiteSpeed_Cache();
-            new UCP_Cache();
-        }
-        if ($backend_context || UCP_Options::get('enable_preload')) {
-            new UCP_Preload();
-        }
-        if ($backend_context || self::any_option_enabled(array(
-            'enable_css_minify', 'enable_js_minify', 'enable_css_combine', 'enable_js_combine',
-            'disabled_style_handles', 'disabled_script_handles',
-            'conditional_style_unloads', 'conditional_script_unloads',
-            'advanced_asset_rules', 'enable_asset_manager_snapshot',
-        ))) {
-            new UCP_Assets();
-        }
-        if ($backend_context || UCP_Options::get('enable_used_css') || UCP_Options::get('enable_critical_css')) {
-            new UCP_CSS();
-        }
-        if ($backend_context || self::any_option_enabled(array(
-            'enable_remove_emojis', 'enable_disable_embeds', 'enable_delay_js',
-            'remove_html_comments', 'enable_html_minify',
-            'enable_lazy_images', 'enable_lazy_iframes', 'enable_lazy_youtube_preview',
-            'defer_all_js', 'enable_defer_js_fallback', 'enable_native_script_strategy',
-            'enable_heartbeat_control', 'enable_cdn', 'enable_prefetch_links',
-            'enable_speculative_loading', 'preload_fonts', 'dns_prefetch_domains',
-            'enable_auto_resource_hints', 'enable_auto_font_preloads',
-            'enable_font_display_swap', 'enable_remove_query_strings',
-            'enable_add_image_dimensions', 'preload_critical_images',
-            'enable_disable_google_fonts', 'preconnect_domains', 'enable_lazy_render',
-            'enable_disable_dashicons', 'enable_disable_jquery_migrate',
-            'enable_move_module_scripts_footer', 'enable_self_host_third_party_assets',
-            'enable_cls_iframe_reservation', 'enable_worker_lazyload', 'enable_expand_missing_srcset',
-        )) || self::should_bootstrap_speculation_policy()) {
-            new UCP_Optimizer();
-        }
-        if ($backend_context || UCP_Options::get('enable_db_cleanup')) {
-            new UCP_DB_Cleanup();
-        }
-        if ($backend_context || UCP_Options::get('enable_cloud')) {
-            new UCP_Cloud();
-        }
-        if ($backend_context || 'none' !== UCP_Options::get('cdn_provider', 'none')) {
-            new UCP_CDN();
-        }
-        if ($backend_context || UCP_Options::get('enable_host_cache_purge')) {
-            new UCP_Host_Cache();
-        }
-        if ($backend_context || UCP_Options::get('enable_headless_renderer')) {
-            new UCP_Render_Bridge();
-        }
-        if ($backend_context || self::any_option_enabled(array('enable_async_image_optimization', 'enable_image_cdn'))) {
-            new UCP_Image_Queue();
-        }
-        if ($backend_context || UCP_Options::get('enable_esi')) {
-            new UCP_ESI();
-        }
-        if ($backend_context || UCP_Options::get('enable_compat_updates') || UCP_Options::get('enable_used_css')) {
-            new UCP_Compat_Updater();
-        }
-        if ($backend_context || UCP_Options::get('enable_lqip')) {
-            new UCP_LQIP();
-        }
-        if ($backend_context || UCP_Options::get('enable_viewport_images')) {
-            new UCP_Viewport_Images();
-        }
-        if ($backend_context || self::any_option_enabled(array('enable_local_gravatar', 'enable_local_youtube_thumbnails'))) {
-            new UCP_Self_Host_Media();
-        }
-        if (UCP_Options::get('enable_asset_inspector')) {
-            new UCP_Asset_Inspector();
-        }
-        if ($backend_context || self::any_option_enabled(array(
-            'enable_edge_cache_headers', 'enable_cloudflare_apo_mode', 'enable_early_hints_links',
-        ))) {
-            new UCP_Edge();
-        }
-        if ($backend_context || UCP_Options::get('enable_edge_html_cache')) {
-            new UCP_Edge_HTML();
-        }
-        if ($backend_context || self::any_option_enabled(array(
-            'enable_delay_js', 'enable_used_css', 'enable_critical_css',
-        ))) {
-            new UCP_Modules();
-        }
-        if ($backend_context || self::needs_job_runner()) {
-            new UCP_Jobs();
-        }
-
-        if ($backend_context || self::any_option_enabled(array(
-            'enable_image_optimization', 'enable_webp_generation', 'enable_avif_generation', 'enable_image_cdn',
-        ))) {
-            new UCP_Image_Optimizer();
-        }
-        if ($backend_context || UCP_Options::get('enable_object_cache_support') || UCP_Options::get('enable_apcu_object_cache') || UCP_Options::get('enable_redis_object_cache')) {
-            new UCP_Object_Cache();
-        }
-        if ($backend_context || UCP_Options::get('enable_fragment_cache')) {
-            new UCP_Fragment_Cache();
-        }
-        // Registers the cookie-policy filters used by the request policy and the drop-in config.
-        // Front-end behaviour remains controlled by the module's own option checks.
-        new UCP_Shopper_Cache();
-        if (UCP_Options::get('enable_rest_cache')) {
-            new UCP_REST_Cache();
-        }
-        if ($backend_context || UCP_Options::get('enable_cwv_monitoring')) {
-            new UCP_CWV();
-        }
-        if ($backend_context || UCP_Options::get('enable_local_google_fonts')) {
-            new UCP_Fonts();
-        }
+        UCP_Service_Registry::bootstrap_runtime_modules($backend_context);
     }
 
     /**
@@ -343,6 +231,10 @@ final class UCP_Plugin {
 
         if (is_admin() && class_exists('UCP_Safe_Autopilot')) {
             UCP_Safe_Autopilot::bootstrap();
+        }
+
+        if (is_admin() && class_exists('UCP_Onboarding_Wizard')) {
+            UCP_Onboarding_Wizard::bootstrap();
         }
     }
 }

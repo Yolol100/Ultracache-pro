@@ -12,7 +12,12 @@
       "frontend-modules",
       "swiper"
     ],
-    "summary": "Compatibility exclusion set for Elementor"
+    "summary": "Compatibility exclusion set for Elementor",
+    "feature": "delay_js",
+    "type": "plugin",
+    "default": true,
+    "risk": "medium",
+    "reason": "Beschermt kritieke scripts/markup van Elementor tegen te agressieve optimalisatie."
   },
   {
     "id": "ucp-woocommerce",
@@ -27,7 +32,12 @@
       "wc-checkout",
       "js-cookie"
     ],
-    "summary": "Compatibility exclusion set for WooCommerce"
+    "summary": "Compatibility exclusion set for WooCommerce",
+    "feature": "delay_js",
+    "type": "plugin",
+    "default": true,
+    "risk": "high",
+    "reason": "Beschermt kritieke scripts/markup van WooCommerce tegen te agressieve optimalisatie."
   },
   {
     "id": "ucp-divi",
@@ -41,7 +51,12 @@
       "Divi",
       "et-core"
     ],
-    "summary": "Compatibility exclusion set for Divi"
+    "summary": "Compatibility exclusion set for Divi",
+    "feature": "delay_js",
+    "type": "plugin",
+    "default": true,
+    "risk": "medium",
+    "reason": "Beschermt kritieke scripts/markup van Divi tegen te agressieve optimalisatie."
   },
   {
     "id": "ucp-bricks",
@@ -54,7 +69,12 @@
       "bricks-frontend",
       "bricks"
     ],
-    "summary": "Compatibility exclusion set for Bricks"
+    "summary": "Compatibility exclusion set for Bricks",
+    "feature": "delay_js",
+    "type": "plugin",
+    "default": true,
+    "risk": "medium",
+    "reason": "Beschermt kritieke scripts/markup van Bricks tegen te agressieve optimalisatie."
   },
   {
     "id": "ucp-wpforms",
@@ -67,7 +87,12 @@
       "wpforms",
       "wpforms-lite"
     ],
-    "summary": "Compatibility exclusion set for WPForms"
+    "summary": "Compatibility exclusion set for WPForms",
+    "feature": "delay_js",
+    "type": "plugin",
+    "default": true,
+    "risk": "high",
+    "reason": "Beschermt kritieke scripts/markup van WPForms tegen te agressieve optimalisatie."
   },
   {
     "id": "ucp-gravityforms",
@@ -80,7 +105,12 @@
       "gform",
       "gravityforms"
     ],
-    "summary": "Compatibility exclusion set for Gravity Forms"
+    "summary": "Compatibility exclusion set for Gravity Forms",
+    "feature": "delay_js",
+    "type": "plugin",
+    "default": true,
+    "risk": "high",
+    "reason": "Beschermt kritieke scripts/markup van Gravity Forms tegen te agressieve optimalisatie."
   },
   {
     "id": "ucp-contact-form-7",
@@ -93,7 +123,12 @@
       "wpcf7",
       "contact-form-7"
     ],
-    "summary": "Compatibility exclusion set for Contact Form 7"
+    "summary": "Compatibility exclusion set for Contact Form 7",
+    "feature": "delay_js",
+    "type": "plugin",
+    "default": true,
+    "risk": "high",
+    "reason": "Beschermt kritieke scripts/markup van Contact Form 7 tegen te agressieve optimalisatie."
   },
   {
     "id": "ucp-complianz-gdpr",
@@ -106,7 +141,12 @@
       "complianz",
       "cmplz"
     ],
-    "summary": "Compatibility exclusion set for Complianz"
+    "summary": "Compatibility exclusion set for Complianz",
+    "feature": "delay_js",
+    "type": "plugin",
+    "default": true,
+    "risk": "medium",
+    "reason": "Beschermt kritieke scripts/markup van Complianz tegen te agressieve optimalisatie."
   },
   {
     "id": "ucp-cookiebot",
@@ -118,7 +158,12 @@
     "exclusions": [
       "cookiebot"
     ],
-    "summary": "Compatibility exclusion set for Cookiebot"
+    "summary": "Compatibility exclusion set for Cookiebot",
+    "feature": "delay_js",
+    "type": "plugin",
+    "default": true,
+    "risk": "high",
+    "reason": "Beschermt kritieke scripts/markup van Cookiebot tegen te agressieve optimalisatie."
   },
   {
     "id": "ucp-rank-math",
@@ -130,7 +175,12 @@
     "exclusions": [
       "rank-math"
     ],
-    "summary": "Compatibility exclusion set for Rank Math"
+    "summary": "Compatibility exclusion set for Rank Math",
+    "feature": "delay_js",
+    "type": "plugin",
+    "default": true,
+    "risk": "medium",
+    "reason": "Beschermt kritieke scripts/markup van Rank Math tegen te agressieve optimalisatie."
   },
   {
     "id": "ucp-wordpress-seo",
@@ -143,7 +193,12 @@
       "yoast",
       "wp-seo"
     ],
-    "summary": "Compatibility exclusion set for Yoast SEO"
+    "summary": "Compatibility exclusion set for Yoast SEO",
+    "feature": "delay_js",
+    "type": "plugin",
+    "default": true,
+    "risk": "medium",
+    "reason": "Beschermt kritieke scripts/markup van Yoast SEO tegen te agressieve optimalisatie."
   },
   {
     "id": "ucp-sitepress-multilingual-cms",
@@ -156,7 +211,12 @@
       "wpml",
       "sitepress"
     ],
-    "summary": "Compatibility exclusion set for WPML"
+    "summary": "Compatibility exclusion set for WPML",
+    "feature": "delay_js",
+    "type": "plugin",
+    "default": true,
+    "risk": "medium",
+    "reason": "Beschermt kritieke scripts/markup van WPML tegen te agressieve optimalisatie."
   },
   {
     "id": "ucp-polylang",
@@ -169,7 +229,12 @@
       "polylang",
       "pll_"
     ],
-    "summary": "Compatibility exclusion set for Polylang"
+    "summary": "Compatibility exclusion set for Polylang",
+    "feature": "delay_js",
+    "type": "plugin",
+    "default": true,
+    "risk": "medium",
+    "reason": "Beschermt kritieke scripts/markup van Polylang tegen te agressieve optimalisatie."
   },
   {
     "id": "ucp-google-site-kit",
@@ -182,7 +247,12 @@
       "googlesitekit",
       "site-kit"
     ],
-    "summary": "Compatibility exclusion set for Site Kit"
+    "summary": "Compatibility exclusion set for Site Kit",
+    "feature": "delay_js",
+    "type": "plugin",
+    "default": true,
+    "risk": "medium",
+    "reason": "Beschermt kritieke scripts/markup van Site Kit tegen te agressieve optimalisatie."
   },
   {
     "id": "ucp-gtm4wp",
@@ -195,7 +265,12 @@
       "gtm4wp",
       "googletagmanager"
     ],
-    "summary": "Compatibility exclusion set for GTM4WP"
+    "summary": "Compatibility exclusion set for GTM4WP",
+    "feature": "delay_js",
+    "type": "plugin",
+    "default": true,
+    "risk": "medium",
+    "reason": "Beschermt kritieke scripts/markup van GTM4WP tegen te agressieve optimalisatie."
   },
   {
     "id": "ucp-stripe-for-woocommerce",
@@ -208,7 +283,12 @@
       "stripe",
       "wc-stripe"
     ],
-    "summary": "Compatibility exclusion set for Stripe"
+    "summary": "Compatibility exclusion set for Stripe",
+    "feature": "delay_js",
+    "type": "plugin",
+    "default": true,
+    "risk": "high",
+    "reason": "Beschermt kritieke scripts/markup van Stripe tegen te agressieve optimalisatie."
   },
   {
     "id": "ucp-woocommerce-paypal-payments",
@@ -221,7 +301,12 @@
       "paypal",
       "ppcp"
     ],
-    "summary": "Compatibility exclusion set for PayPal"
+    "summary": "Compatibility exclusion set for PayPal",
+    "feature": "delay_js",
+    "type": "plugin",
+    "default": true,
+    "risk": "high",
+    "reason": "Beschermt kritieke scripts/markup van PayPal tegen te agressieve optimalisatie."
   },
   {
     "id": "ucp-mollie-payments-for-woocommerce",
@@ -233,7 +318,12 @@
     "exclusions": [
       "mollie"
     ],
-    "summary": "Compatibility exclusion set for Mollie"
+    "summary": "Compatibility exclusion set for Mollie",
+    "feature": "delay_js",
+    "type": "plugin",
+    "default": true,
+    "risk": "high",
+    "reason": "Beschermt kritieke scripts/markup van Mollie tegen te agressieve optimalisatie."
   },
   {
     "id": "ucp-klarna-payments-for-woocommerce",
@@ -245,7 +335,12 @@
     "exclusions": [
       "klarna"
     ],
-    "summary": "Compatibility exclusion set for Klarna"
+    "summary": "Compatibility exclusion set for Klarna",
+    "feature": "delay_js",
+    "type": "plugin",
+    "default": true,
+    "risk": "high",
+    "reason": "Beschermt kritieke scripts/markup van Klarna tegen te agressieve optimalisatie."
   },
   {
     "id": "ucp-fluentform",
@@ -257,7 +352,12 @@
     "exclusions": [
       "fluentform"
     ],
-    "summary": "Compatibility exclusion set for Fluent Forms"
+    "summary": "Compatibility exclusion set for Fluent Forms",
+    "feature": "delay_js",
+    "type": "plugin",
+    "default": true,
+    "risk": "high",
+    "reason": "Beschermt kritieke scripts/markup van Fluent Forms tegen te agressieve optimalisatie."
   },
   {
     "id": "ucp-ninja-forms",
@@ -269,7 +369,12 @@
     "exclusions": [
       "ninja-forms"
     ],
-    "summary": "Compatibility exclusion set for Ninja Forms"
+    "summary": "Compatibility exclusion set for Ninja Forms",
+    "feature": "delay_js",
+    "type": "plugin",
+    "default": true,
+    "risk": "high",
+    "reason": "Beschermt kritieke scripts/markup van Ninja Forms tegen te agressieve optimalisatie."
   },
   {
     "id": "ucp-formidable",
@@ -281,7 +386,12 @@
     "exclusions": [
       "formidable"
     ],
-    "summary": "Compatibility exclusion set for Formidable Forms"
+    "summary": "Compatibility exclusion set for Formidable Forms",
+    "feature": "delay_js",
+    "type": "plugin",
+    "default": true,
+    "risk": "high",
+    "reason": "Beschermt kritieke scripts/markup van Formidable Forms tegen te agressieve optimalisatie."
   },
   {
     "id": "ucp-mailchimp-for-wp",
@@ -294,7 +404,12 @@
       "mailchimp",
       "mc4wp"
     ],
-    "summary": "Compatibility exclusion set for Mailchimp"
+    "summary": "Compatibility exclusion set for Mailchimp",
+    "feature": "delay_js",
+    "type": "plugin",
+    "default": true,
+    "risk": "medium",
+    "reason": "Beschermt kritieke scripts/markup van Mailchimp tegen te agressieve optimalisatie."
   },
   {
     "id": "ucp-trustpilot-reviews",
@@ -306,7 +421,12 @@
     "exclusions": [
       "trustpilot"
     ],
-    "summary": "Compatibility exclusion set for Trustpilot"
+    "summary": "Compatibility exclusion set for Trustpilot",
+    "feature": "delay_js",
+    "type": "plugin",
+    "default": true,
+    "risk": "medium",
+    "reason": "Beschermt kritieke scripts/markup van Trustpilot tegen te agressieve optimalisatie."
   },
   {
     "id": "ucp-yotpo-social-reviews-for-woocommerce",
@@ -318,7 +438,12 @@
     "exclusions": [
       "yotpo"
     ],
-    "summary": "Compatibility exclusion set for Yotpo"
+    "summary": "Compatibility exclusion set for Yotpo",
+    "feature": "delay_js",
+    "type": "plugin",
+    "default": true,
+    "risk": "high",
+    "reason": "Beschermt kritieke scripts/markup van Yotpo tegen te agressieve optimalisatie."
   },
   {
     "id": "ucp-loox",
@@ -330,7 +455,12 @@
     "exclusions": [
       "loox"
     ],
-    "summary": "Compatibility exclusion set for Loox"
+    "summary": "Compatibility exclusion set for Loox",
+    "feature": "delay_js",
+    "type": "plugin",
+    "default": true,
+    "risk": "medium",
+    "reason": "Beschermt kritieke scripts/markup van Loox tegen te agressieve optimalisatie."
   },
   {
     "id": "ucp-intercom",
@@ -342,7 +472,12 @@
     "exclusions": [
       "intercom"
     ],
-    "summary": "Compatibility exclusion set for Intercom"
+    "summary": "Compatibility exclusion set for Intercom",
+    "feature": "delay_js",
+    "type": "plugin",
+    "default": true,
+    "risk": "medium",
+    "reason": "Beschermt kritieke scripts/markup van Intercom tegen te agressieve optimalisatie."
   },
   {
     "id": "ucp-tawkto-live-chat",
@@ -354,7 +489,12 @@
     "exclusions": [
       "tawk"
     ],
-    "summary": "Compatibility exclusion set for Tawk.to"
+    "summary": "Compatibility exclusion set for Tawk.to",
+    "feature": "delay_js",
+    "type": "plugin",
+    "default": true,
+    "risk": "medium",
+    "reason": "Beschermt kritieke scripts/markup van Tawk.to tegen te agressieve optimalisatie."
   },
   {
     "id": "ucp-crisp",
@@ -366,7 +506,12 @@
     "exclusions": [
       "crisp"
     ],
-    "summary": "Compatibility exclusion set for Crisp"
+    "summary": "Compatibility exclusion set for Crisp",
+    "feature": "delay_js",
+    "type": "plugin",
+    "default": true,
+    "risk": "medium",
+    "reason": "Beschermt kritieke scripts/markup van Crisp tegen te agressieve optimalisatie."
   },
   {
     "id": "ucp-hubspot",
@@ -378,7 +523,12 @@
     "exclusions": [
       "hubspot"
     ],
-    "summary": "Compatibility exclusion set for HubSpot"
+    "summary": "Compatibility exclusion set for HubSpot",
+    "feature": "delay_js",
+    "type": "plugin",
+    "default": true,
+    "risk": "medium",
+    "reason": "Beschermt kritieke scripts/markup van HubSpot tegen te agressieve optimalisatie."
   },
   {
     "id": "ucp-avada",
@@ -391,7 +541,12 @@
       "fusion-",
       "avada"
     ],
-    "summary": "Compatibility exclusion set for Avada"
+    "summary": "Compatibility exclusion set for Avada",
+    "feature": "delay_js",
+    "type": "plugin",
+    "default": true,
+    "risk": "medium",
+    "reason": "Beschermt kritieke scripts/markup van Avada tegen te agressieve optimalisatie."
   },
   {
     "id": "ucp-flatsome",
@@ -403,7 +558,12 @@
     "exclusions": [
       "flatsome"
     ],
-    "summary": "Compatibility exclusion set for Flatsome"
+    "summary": "Compatibility exclusion set for Flatsome",
+    "feature": "delay_js",
+    "type": "plugin",
+    "default": true,
+    "risk": "medium",
+    "reason": "Beschermt kritieke scripts/markup van Flatsome tegen te agressieve optimalisatie."
   },
   {
     "id": "ucp-oxygen",
@@ -415,7 +575,12 @@
     "exclusions": [
       "oxygen"
     ],
-    "summary": "Compatibility exclusion set for Oxygen"
+    "summary": "Compatibility exclusion set for Oxygen",
+    "feature": "delay_js",
+    "type": "plugin",
+    "default": true,
+    "risk": "medium",
+    "reason": "Beschermt kritieke scripts/markup van Oxygen tegen te agressieve optimalisatie."
   },
   {
     "id": "ucp-breakdance",
@@ -427,7 +592,12 @@
     "exclusions": [
       "breakdance"
     ],
-    "summary": "Compatibility exclusion set for Breakdance"
+    "summary": "Compatibility exclusion set for Breakdance",
+    "feature": "delay_js",
+    "type": "plugin",
+    "default": true,
+    "risk": "medium",
+    "reason": "Beschermt kritieke scripts/markup van Breakdance tegen te agressieve optimalisatie."
   },
   {
     "id": "ucp-beaver-builder-lite-version",
@@ -440,7 +610,12 @@
       "fl-builder",
       "bb-plugin"
     ],
-    "summary": "Compatibility exclusion set for Beaver Builder"
+    "summary": "Compatibility exclusion set for Beaver Builder",
+    "feature": "delay_js",
+    "type": "plugin",
+    "default": true,
+    "risk": "medium",
+    "reason": "Beschermt kritieke scripts/markup van Beaver Builder tegen te agressieve optimalisatie."
   },
   {
     "id": "ucp-visual-composer",
@@ -453,7 +628,12 @@
       "js_composer",
       "vc_"
     ],
-    "summary": "Compatibility exclusion set for WPBakery"
+    "summary": "Compatibility exclusion set for WPBakery",
+    "feature": "delay_js",
+    "type": "plugin",
+    "default": true,
+    "risk": "medium",
+    "reason": "Beschermt kritieke scripts/markup van WPBakery tegen te agressieve optimalisatie."
   },
   {
     "id": "ucp-jet-engine",
@@ -465,7 +645,12 @@
     "exclusions": [
       "jet-"
     ],
-    "summary": "Compatibility exclusion set for JetEngine"
+    "summary": "Compatibility exclusion set for JetEngine",
+    "feature": "delay_js",
+    "type": "plugin",
+    "default": true,
+    "risk": "medium",
+    "reason": "Beschermt kritieke scripts/markup van JetEngine tegen te agressieve optimalisatie."
   },
   {
     "id": "ucp-essential-addons-for-elementor-lite",
@@ -477,7 +662,12 @@
     "exclusions": [
       "eael"
     ],
-    "summary": "Compatibility exclusion set for Essential Addons"
+    "summary": "Compatibility exclusion set for Essential Addons",
+    "feature": "delay_js",
+    "type": "plugin",
+    "default": true,
+    "risk": "medium",
+    "reason": "Beschermt kritieke scripts/markup van Essential Addons tegen te agressieve optimalisatie."
   },
   {
     "id": "ucp-premium-addons-for-elementor",
@@ -489,7 +679,12 @@
     "exclusions": [
       "premium-addons"
     ],
-    "summary": "Compatibility exclusion set for Premium Addons"
+    "summary": "Compatibility exclusion set for Premium Addons",
+    "feature": "delay_js",
+    "type": "plugin",
+    "default": true,
+    "risk": "medium",
+    "reason": "Beschermt kritieke scripts/markup van Premium Addons tegen te agressieve optimalisatie."
   },
   {
     "id": "ucp-ultimate-addons-for-elementor",
@@ -501,7 +696,12 @@
     "exclusions": [
       "uael"
     ],
-    "summary": "Compatibility exclusion set for Ultimate Addons"
+    "summary": "Compatibility exclusion set for Ultimate Addons",
+    "feature": "delay_js",
+    "type": "plugin",
+    "default": true,
+    "risk": "medium",
+    "reason": "Beschermt kritieke scripts/markup van Ultimate Addons tegen te agressieve optimalisatie."
   },
   {
     "id": "ucp-facetwp",
@@ -515,7 +715,12 @@
       "fwp-",
       "fwp_"
     ],
-    "summary": "Compatibility exclusion set for FacetWP filter refreshes and front-end assets"
+    "summary": "Compatibility exclusion set for FacetWP filter refreshes and front-end assets",
+    "feature": "delay_js",
+    "type": "plugin",
+    "default": true,
+    "risk": "medium",
+    "reason": "Beschermt kritieke scripts/markup van FacetWP tegen te agressieve optimalisatie."
   },
   {
     "id": "ucp-bbpress",
@@ -528,7 +733,12 @@
       "bbpress",
       "bbp-"
     ],
-    "summary": "Compatibility exclusion set for bbPress interactive forum pages"
+    "summary": "Compatibility exclusion set for bbPress interactive forum pages",
+    "feature": "delay_js",
+    "type": "plugin",
+    "default": true,
+    "risk": "medium",
+    "reason": "Beschermt kritieke scripts/markup van bbPress tegen te agressieve optimalisatie."
   },
   {
     "id": "ucp-wpdiscuz",
@@ -542,7 +752,12 @@
       "wc_comm",
       "comment_author_"
     ],
-    "summary": "Compatibility exclusion set for wpDiscuz comments and commenter state"
+    "summary": "Compatibility exclusion set for wpDiscuz comments and commenter state",
+    "feature": "delay_js",
+    "type": "plugin",
+    "default": true,
+    "risk": "medium",
+    "reason": "Beschermt kritieke scripts/markup van wpDiscuz tegen te agressieve optimalisatie."
   },
   {
     "id": "ucp-user-switching",
@@ -555,7 +770,12 @@
       "user-switching",
       "switch_to_olduser_"
     ],
-    "summary": "Compatibility exclusion set for user switching sessions and nonces"
+    "summary": "Compatibility exclusion set for user switching sessions and nonces",
+    "feature": "delay_js",
+    "type": "plugin",
+    "default": true,
+    "risk": "medium",
+    "reason": "Beschermt kritieke scripts/markup van User Switching tegen te agressieve optimalisatie."
   },
   {
     "id": "ucp-aelia-currency-switcher",
@@ -570,7 +790,12 @@
       "aelia_customer_state",
       "aelia_tax_exempt"
     ],
-    "summary": "Compatibility exclusion set for Aelia currency/location cookies"
+    "summary": "Compatibility exclusion set for Aelia currency/location cookies",
+    "feature": "delay_js",
+    "type": "plugin",
+    "default": true,
+    "risk": "high",
+    "reason": "Beschermt kritieke scripts/markup van Aelia Currency Switcher tegen te agressieve optimalisatie."
   },
   {
     "id": "ucp-nextgen-gallery",
@@ -584,7 +809,12 @@
       "ngg_",
       "photocrati"
     ],
-    "summary": "Compatibility exclusion set for NextGEN Gallery scripts and dynamic gallery output"
+    "summary": "Compatibility exclusion set for NextGEN Gallery scripts and dynamic gallery output",
+    "feature": "delay_js",
+    "type": "plugin",
+    "default": true,
+    "risk": "medium",
+    "reason": "Beschermt kritieke scripts/markup van NextGEN Gallery tegen te agressieve optimalisatie."
   },
   {
     "id": "ucp-perfmatters",
@@ -598,6 +828,11 @@
       "pmsm-",
       "data-perfmatters"
     ],
-    "summary": "Compatibility exclusion set for Perfmatters script manager output"
+    "summary": "Compatibility exclusion set for Perfmatters script manager output",
+    "feature": "delay_js",
+    "type": "plugin",
+    "default": true,
+    "risk": "medium",
+    "reason": "Beschermt kritieke scripts/markup van Perfmatters tegen te agressieve optimalisatie."
   }
 ]

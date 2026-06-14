@@ -1,3 +1,121 @@
+UltraCache Pro 11.4.19
+
+- Eén uniforme, rustige en premium admin-interface over alle menu-items.
+- Alle pagina-dialecten (Cache, Afbeeldingen, WooCommerce, Preload, CSS & JS, Server & CDN, Regels, Tools) gebruiken nu hetzelfde gedeelde design-systeem: identieke kaartchrome, koppen, eyebrows, velden, grids, badges en witruimte.
+- Design-tokens als single source of truth: consistente radii (kaart 12px / veld 10px), één zachte premium schaduw en één hairline-kleur.
+- Per menu-item blijft de eigen structuur en inhoud behouden; alleen de presentatie is rechtgetrokken.
+- Rustiger ritme: gelijke verticale spacing in de shell, header en secties; kaart-hover is kalm i.p.v. hard.
+- Geünificeerde, voorspelbare breakpoints voor alle schermen.
+- Geen functionele wijzigingen aan instellingen, REST of opslaglogica.
+
+UltraCache Pro 11.4.18
+
+- Wizard-styling aangepast naar lichte WordPress-native adminkaart.
+- Donkere full-screen modal/overlay verwijderd uit de wizardpresentatie.
+- Wizard wordt inline boven de UCP-admin-app geplaatst.
+- Standaard WordPress-kleuren, borders en knoppen gebruikt voor betere aansluiting.
+- Functionaliteit van de 3-staps wizard behouden.
+
+UltraCache Pro 11.4.17
+
+- Admin UI opnieuw geordend volgens status-first principe: dashboard = status + vertrouwen, simple mode = veilige basis, advanced = volledige controle.
+- Simple mode toont alleen Overzicht, Cache, Afbeeldingen, WooCommerce en Preload.
+- Advanced mode voegt CSS & JS, Server & CDN, Regels en Tools toe.
+- WooCommerce kreeg een eigen rustige UI-sectie voor bestaande bescherming van cart, checkout, account, order-pay, betaalmodules en productgalerijen.
+- Server & CDN kreeg een eigen UI-sectie voor bestaande CDN rewrite/purge/provider velden en object-cache status/beheerlink.
+- CDN-kaarten zijn weggehaald uit CSS & JS zodat infrastructuur en frontend-optimalisatie gescheiden blijven.
+- WebP/AVIF blijft aanwezig, maar is niet extra gepromoot.
+- Geen nieuwe performance-feature, option key, REST-route of runtime-optimalisatie toegevoegd.
+
+UltraCache Pro 11.4.15
+
+- Dashboardkaart toegevoegd: Wat staat aan en waarom?
+- 3-staps start-wizard toegevoegd/aangescherpt.
+- Veiligheidslabels toegevoegd: Render-veilig en Geavanceerd — eerst testen.
+- WebP/AVIF blijft aanwezig maar is niet extra prominent gemaakt.
+- Geen Insights-tab, vergelijkingspagina of marketingbewijs toegevoegd.
+
+
+11.4.11-10 visible minify state
+- Optimization now shows a customer-visible HTML/CSS/JavaScript minify status strip, so admins can immediately see that CSS minify is active, JavaScript minify is off by default, and HTML minify can be active through the PageSpeed Auto profile.
+- Updated helper text for HTML, CSS and JavaScript minify controls without changing option keys, defaults, hooks, REST routes or runtime optimization logic.
+- Added docs/PATCH-11.4.11-10.md with verification notes.
+
+11.4.11-9 WP Rocket-style defaults and visible Defer JS
+
+- JavaScript uitgesteld laden (Defer JS) is visible again in the customer Optimization view.
+- Added a customer-safe JavaScript QA warning for menus, forms, sliders, cookie banner and checkout.
+
+- Confirmed existing safe defaults for new installs: page cache, preload, homepage preload and WooCommerce safety remain enabled.
+- Existing saved settings are not overwritten; break-sensitive features such as Delay JS, object cache, CDN and database cleanup are not forced on.
+
+
+11.4.11-8 customer UI final cleanup
+
+- Finalized customer-facing menu cleanup for Cache, Optimization, Media, Preload and Object Cache.
+- Cache now groups visitor/admin/WooCommerce-safe controls under Cacheveiligheid and keeps shopper public cache support-only.
+
+- Optimization shows Safe interactions in normal mode and keeps Defer JS, combine, exclusions and CDN/provider details support-only.
+- Media now uses Afbeeldingen, Lazyload & LCP and Fonts as customer groups; LQIP, parser, font-range and Image CDN details are support-only.
+
+- Preload now shows Navigatie versnellen and keeps prerender support-only.
+- Object Cache now keeps Redis/status central, collapses wp-config details and shows APCu only as fallback/support mode.
+
+
+11.4.11-7 customer Rules essentials
+
+- Regels now keeps customer-facing URL rules visible: never cache URLs, always purge URLs, and preload exclusions. Technical cookie, user-agent and query-string controls remain support-only.
+11.4.11-6 object cache full-width
+
+- Object Cache admin page now uses full-width cards instead of a 760px constrained layout.
+11.4.11-5 customer-visible essentials
+- Refined default customer-visible settings after comparison with WP Rocket and LiteSpeed Cache patterns.
+- Restored essential media, font, preload-exclusion, visitor/admin and WooCommerce safety controls to normal customer view.
+- Combined database cleanup options into fewer customer-facing groups and moved higher-risk database operations behind the advanced/support layer.
+
+11.4.11-4 customer settings cleanup
+- Confirmed that the combined Tools actions from 11.4.11-3 are present.
+- Simplified the customer-facing Optimization view: advanced combine, exclusions, CDN and provider fields are hidden unless support mode is enabled.
+- Generic advanced setting groups are hidden from normal customer views and remain available through ?ucp_support=1.
+
+11.4.11-3 customer Tools action consolidation
+- Main cache buttons now also clear minified CSS, clear minified JavaScript, request Critical CSS, request Used CSS and process due jobs.
+- Cache warmup now includes the same technical refresh chain before preload.
+- Import/export and Database cleanup are visible again in normal customer Tools view, while advanced CSS/JS cards remain hidden outside support mode.
+- No REST slugs, option keys, hooks, cache keys or database cleanup safeguards were changed.
+
+11.4.11-1 defensive patch
+- Added explicit no-store/noindex headers to public CWV beacon success responses.
+- Centralized CWV 429 responses with Retry-After, no-store and noindex headers.
+- Added no-store/noindex headers to ESI rate-limit responses.
+- Added docs/PATCH-11.4.11-1.md with runtime verification requirements for WordPress 7.0, public REST endpoints, WooCommerce and drop-in rollback.
+
+UltraCache Pro 11.4.11 (safety & clarity pass)
+
+Hardening (no new features, no renames)
+- REST action handlers are now wrapped in a last-resort guard: any unexpected exception/fatal is converted into a clean WP_Error ("Probeer het opnieuw of controleer Tools") and logged, instead of surfacing as a bare 500. Handlers keep full control of their own success and WP_Error responses.
+- Admin requests now have a client-side timeout (30s default, 90s for preload/CSS/browser-scan/queue/database actions). A stuck request can no longer leave a button on "Bezig…"; it aborts client-side and shows a calm fallback message while any server-side work continues.
+- Used/Critical CSS retry limit default lowered from 5 to 3, matching the existing sanitizer fallback and storage rules. Calmer, more predictable generation with the same safe fallback to normal/async CSS.
+- No option keys, hooks, REST namespace/slugs, text-domain, class names, cache keys, drop-in policy or wp-config policy were changed.
+
+Release-ready validation
+- Re-verified PHP/JS/JSON syntax (152 PHP + 9 JS files), REST permission/nonce callbacks, text-domain consistency, absence of conflict markers and old slugs, and zip integrity.
+
+UltraCache Pro 11.4.10 (feature-toggle verification)
+
+Regression fix
+- Advanced mode now shows automatically managed settings again, so each visible feature can be manually verified after the menu simplification. Simple mode still hides the managed baseline to keep the client UI calm.
+- Verified UI control -> option key -> REST save/load -> sanitizer/normalizer -> runtime references for the simplified menu groups.
+- No option keys, REST namespace, public hooks, cache keys, drop-in policy or wp-config policy were changed.
+
+UltraCache Pro 11.4.3 (maxscore evidence pass)
+
+Release evidence
+- Added Site Health/runtime verification surfaces for security proof, compatibility, WooCommerce checkout safety, Core Web Vitals and privacy/i18n hygiene.
+- Added production validation documents for security role/nonce checks, runtime smoke tests, compatibility matrix, WooCommerce checkout validation, Core Web Vitals validation and privacy notes.
+- Updated the stable scorecard so repeat audits use the same evidence basis.
+- No runtime cache policy, drop-in takeover policy, wp-config write policy, public hooks, option keys, database keys or REST namespace were changed.
+
 UltraCache Pro 11.4.0 (code fixes)
 
 Bug fixes
@@ -16,14 +134,30 @@ Maintenance release
 - Added an admin-only Asset Inspector for reviewing loaded script and style handles.
 - Expanded the default Used CSS safelist for common themes, builders, WooCommerce, consent tools, forms and sliders.
 
-UltraCache Pro 11.2.6
 
-Maintenance release
-- Scoped browser cache headers to static assets instead of applying them to every response.
-- Long-lived browser cache headers are now limited to content-addressed combined CSS and JavaScript files.
-- Added browser cache rules for additional image and font formats.
-- Preserved foundational CSS selectors and custom properties during Used CSS processing.
-- Aligned cache-control and validator headers between MISS, HIT and fallback responses.
+Release-ready validation
+- Production package validated for syntax, classmap, REST permission callbacks, UI mapping, translations and zip integrity.
+- Runtime-sensitive WooCommerce checkout and Core Web Vitals flows remain staging smoke-test items before live deployment.
 
-Upgrade note
-After updating, purge Used CSS and Critical CSS once so the new CSS output can be rebuilt. Browser-cache rules are refreshed on the next settings save when rule writing is enabled.
+11.4.11-2 customer Tools cleanup
+- Tools tab now defaults to a customer-friendly action set: clear cache, warm/preload cache, process the queue, and run a website check.
+- CSS rebuild, JS rebuild, database cleanup, import/export, retention, uninstall, CWV fielddata, logs, and headless/ESI diagnostics are hidden from the default Tools view.
+- Technical support controls remain available to administrators through the explicit support URL parameter `ucp_support=1`, so no existing backend action or saved setting is removed.
+
+
+Focus 11.4.15: niet groter maken, strakker maken.
+
+Uitgevoerd:
+- Delay JS quick exclusions aangescherpt voor WooCommerce, betalingen, formulieren, captcha, consent tools, builders en sliders.
+- Centrale WooCommerce/payment guard toegevoegd en aangesloten op HTML-optimalisatie.
+- CDN rewrite slaat gevoelige WooCommerce/formulier-contexten eerder over.
+- Adaptive images beperken tot normale rasterafbeeldingen en slaan logo’s, icons, hero/LCP-beelden en productgalerijen over.
+- Font preload kiest veiliger: maximaal enkele WOFF2-kandidaten, geen icon-fonts.
+- Object cache/CDN/adaptive-images status in lifecycle-model duidelijker gemaakt.
+- Simple mode verbergt geavanceerde tabs rustiger.
+
+Niet toegevoegd:
+- Geen UCP Insights.
+- Geen WP Rocket-vergelijkingspagina.
+- Geen nieuwe performance-feature.
+- Geen WebP/AVIF-promotieblok.

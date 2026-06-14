@@ -3,12 +3,12 @@
 /**
  * Plugin Name: UltraCache Pro
  * Description: Premium modular WordPress performance suite with cache, optimization, automation, edge integrations and visual asset control.
- * Version: 11.4.0
+ * Version: 11.4.23
  * Author: UltraCache Pro
  * Text Domain: ultracache-pro
  * Domain Path: /languages
  * Requires at least: 6.3
- * Tested up to: 6.9
+ * Tested up to: 7.0
  * Requires PHP: 8.0
  * GitHub Plugin URI: Yolol100/Ultracache-pro
  * Primary Branch: main
@@ -20,7 +20,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('UCP_VERSION', '11.4.0');
+define('UCP_VERSION', '11.4.23');
 define('UCP_FILE', __FILE__);
 define('UCP_PATH', plugin_dir_path(__FILE__));
 define('UCP_URL', plugin_dir_url(__FILE__));
@@ -71,6 +71,33 @@ if (!function_exists('ucp_dependency_status')) {
             'sabberworm_css_parser' => '' !== ucp_dependency_class('Sabberworm\\CSS\\Parser'),
             'matthias_css_minify'   => '' !== ucp_dependency_class('MatthiasMullie\\Minify\\CSS'),
             'matthias_js_minify'    => '' !== ucp_dependency_class('MatthiasMullie\\Minify\\JS'),
+        );
+    }
+}
+if (!function_exists('ucp_dependency_report')) {
+    /**
+     * Return release dependency details for admin status and Site Health.
+     *
+     * @return array<string,mixed>
+     */
+    function ucp_dependency_report() {
+        $available = function_exists('ucp_dependency_status') ? ucp_dependency_status() : array();
+        $missing = array();
+        foreach ($available as $key => $is_available) {
+            if (!$is_available) {
+                $missing[] = sanitize_key((string) $key);
+            }
+        }
+        $autoloaders = array(
+            'vendor_scoped' => is_readable(UCP_PATH . 'vendor-scoped/autoload.php'),
+            'vendor'        => is_readable(UCP_PATH . 'vendor/autoload.php'),
+        );
+        return array(
+            'available' => $available,
+            'missing' => $missing,
+            'fallback_active' => !empty($missing),
+            'autoloaders' => $autoloaders,
+            'fallback_features' => !empty($missing) ? array('css_minify', 'js_minify', 'used_css_parser') : array(),
         );
     }
 }

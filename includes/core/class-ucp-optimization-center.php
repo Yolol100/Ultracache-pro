@@ -43,7 +43,7 @@ class UCP_Optimization_Center {
      * @return true|WP_Error
      */
     public static function permissions_check($request = null) {
-        return class_exists('UCP_Helpers') ? UCP_Helpers::rest_admin_permission_check($request) : current_user_can('manage_options');
+        return class_exists('UCP_REST_Permissions') ? UCP_REST_Permissions::admin_permission_check($request) : current_user_can('manage_options');
     }
 
     /**

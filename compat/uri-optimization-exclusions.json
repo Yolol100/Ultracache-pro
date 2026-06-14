@@ -40,5 +40,14 @@
     "download_file",
     "download=",
     "token=",
-    "key="
+    "key=",
+    "wc-ajax=",
+    "wc-api=",
+    "add-to-cart=",
+    "apply_coupon",
+    "remove_item",
+    "update_cart",
+    "wcpay",
+    "woocommerce-payments",
+    "edd_action="
 ]

@@ -31,7 +31,8 @@
   --ucp-color-text: #1d2327;
   --ucp-color-heading: #1d2327;
   --ucp-color-muted: #50575e;
-  --ucp-color-border: #c3c4c7;
+  --ucp-color-muted-soft: #646970;
+  --ucp-color-border: #e3e5e8;
 
   /* Semantic — WordPress admin notice palette */
   --ucp-color-success: #00a32a;
@@ -51,16 +52,29 @@
   --ucp-space-7: 32px;
   --ucp-space-8: 40px;
 
-  /* Radii */
-  --ucp-radius-sm: 4px;
-  --ucp-radius-md: 4px;
-  --ucp-radius-lg: 4px;
-  --ucp-radius-xl: 4px;
+  /* Radii — one calm, premium scale used everywhere. */
+  --ucp-radius-sm: 6px;
+  --ucp-radius-md: 10px;
+  --ucp-radius-lg: 12px;
+  --ucp-radius-xl: 14px;
 
-  /* Elevation */
-  --ucp-shadow-sm: none;
-  --ucp-shadow-md: none;
-  --ucp-shadow-lg: none;
+  /* Unified surface primitives (single source for every menu item).
+   * Cards, intros, heroes and field tiles all resolve to these so the
+   * product reads as one calm interface instead of per-page dialects. */
+  --ucp-card-radius: 12px;
+  --ucp-field-radius: 10px;
+  --ucp-pill-radius: 999px;
+  --ucp-line: #e3e5e8;        /* card / tile hairline */
+  --ucp-line-soft: #eef0f2;   /* header divider */
+  --ucp-tile-bg: #fcfcfd;     /* resting field tile */
+  --ucp-tile-bg-hover: #ffffff;
+  --ucp-tile-border: #e6e8eb;
+  --ucp-tile-border-hover: #cdd2d8;
+
+  /* Elevation — a single soft premium shadow, calm at rest. */
+  --ucp-shadow-sm: 0 1px 2px rgba(16, 24, 40, .04);
+  --ucp-shadow-md: 0 1px 2px rgba(16, 24, 40, .04), 0 8px 24px rgba(16, 24, 40, .045);
+  --ucp-shadow-lg: 0 2px 6px rgba(16, 24, 40, .05), 0 18px 40px rgba(16, 24, 40, .06);
 
   --ucp-toast-shadow: 0 14px 34px rgba(16, 24, 40, .16), 0 2px 8px rgba(16, 24, 40, .08);
 
@@ -101,9 +115,9 @@
   --ucp-premium-muted: var(--ucp-color-muted);
   --ucp-premium-danger: var(--ucp-color-danger);
   --ucp-premium-focus: var(--ucp-color-primary);
-  --ucp-premium-radius-sm: var(--ucp-radius-sm);
-  --ucp-premium-shadow-card: var(--ucp-shadow-sm);
-  --ucp-premium-shadow-lift: var(--ucp-shadow-md);
+  --ucp-premium-radius-sm: var(--ucp-field-radius);
+  --ucp-premium-shadow-card: var(--ucp-shadow-md);
+  --ucp-premium-shadow-lift: var(--ucp-shadow-lg);
 
   /* Layout */
   --ucp-grid-columns: 2;

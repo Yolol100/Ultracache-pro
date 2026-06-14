@@ -45,6 +45,9 @@ trait UCP_Installer_Lifecycle_Trait {
         UCP_Options::maybe_apply_performance_migration();
         if ($created_defaults) {
             UCP_Options::maybe_apply_install_profile(true);
+            if (class_exists('UCP_Onboarding_Wizard')) {
+                UCP_Onboarding_Wizard::mark_fresh_install_pending();
+            }
         }
         UCP_Helpers::ensure_cache_dirs(true);
         self::cleanup_previous_version_artifacts();

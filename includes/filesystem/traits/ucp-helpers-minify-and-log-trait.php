@@ -202,7 +202,7 @@ trait UCP_Helpers_Minify_And_Log_Trait {
     }
 
     public static function is_likely_cache_server_present() {
-        $server = isset($_SERVER['SERVER_SOFTWARE']) ? strtolower((string) wp_unslash($_SERVER['SERVER_SOFTWARE'])) : '';
+        $server = isset($_SERVER['SERVER_SOFTWARE']) ? strtolower(sanitize_text_field(wp_unslash($_SERVER['SERVER_SOFTWARE']))) : '';
 
         // Trust only server/runtime-owned signals here. Inbound HTTP_* headers are
         // visitor-controlled and must not create false cache-conflict warnings or

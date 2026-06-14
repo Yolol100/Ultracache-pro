@@ -145,7 +145,7 @@ class UCP_Edge_HTML {
         }
 
         // Query strings: only allow when the page-cache query policy explicitly allows it.
-        $query_string = isset($_SERVER['QUERY_STRING']) ? (string) wp_unslash($_SERVER['QUERY_STRING']) : '';
+        $query_string = isset($_SERVER['QUERY_STRING']) ? sanitize_text_field(wp_unslash($_SERVER['QUERY_STRING'])) : '';
         if ('' !== trim($query_string) && !UCP_Options::get('cache_query_strings')) {
             return false;
         }

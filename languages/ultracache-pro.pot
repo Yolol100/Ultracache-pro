@@ -2,9 +2,9 @@
 # This file is distributed under the GPLv2 or later.
 msgid ""
 msgstr ""
-"Project-Id-Version: UltraCache Pro 11.0.44\n"
+"Project-Id-Version: UltraCache Pro 11.4.6\n"
 "Report-Msgid-Bugs-To: https://webactueel.nl\n"
-"POT-Creation-Date: 2026-05-26 00:00+0000\n"
+"POT-Creation-Date: 2026-06-12 00:00+0000\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -459,7 +459,7 @@ msgstr ""
 #: includes/admin/class-ucp-admin-config.php:12
 #: includes/admin/class-ucp-admin-config.php:37
 #: includes/admin/views/tabs/overview.php:120
-msgid "Bestandsoptimalisatie"
+msgid "Optimalisatie"
 msgstr ""
 
 #: assets/admin/react/js/app/ucp-react-admin.js:262
@@ -1073,7 +1073,7 @@ msgid "Begin met veilige optimalisaties. Zet risicovolle CSS- en JavaScript-opti
 msgstr ""
 
 #: assets/admin/react/js/app/ucp-react-admin.js:945
-msgid "Bestandsoptimalisatie overzicht"
+msgid "Optimalisatie overzicht"
 msgstr ""
 
 #: assets/admin/react/js/app/ucp-react-admin.js:946
@@ -1736,9 +1736,6 @@ msgstr ""
 msgid "Gebruik voorbereid laden alleen als formulieren, cookieflow en shopacties goed blijven werken."
 msgstr ""
 
-#: includes/admin/notices/traits/ucp-admin-notices-flash-toast-trait.php:90
-msgid "%1$s (%2$d keer)"
-msgstr ""
 
 #: includes/admin/notices/traits/ucp-admin-notices-render-trait.php:114
 msgid "WP_CACHE staat niet actief in wp-config.php. UltraCache kan daardoor niet vroeg genoeg laden."
@@ -5164,4 +5161,485 @@ msgstr ""
 
 #: release sync
 msgid "InnoDB-conversie vereist expliciete bevestiging in de instellingen."
+msgstr ""
+
+# Maxscore evidence strings
+#: includes/core/class-ucp-runtime-tests.php:104
+msgid "Page/REST cache staat aan, maar de winkelwagen staat niet in uitgesloten URL's en WooCommerce-regels staan uit."
+msgstr ""
+
+#: includes/core/class-ucp-runtime-tests.php:107
+msgid "Delay JS staat aan, maar wc-cart-fragments staat niet in de uitsluitingen."
+msgstr ""
+
+#: includes/core/class-ucp-runtime-tests.php:128
+msgid "Delay JS staat aan, maar de uitsluitingen noemen Elementor nu niet."
+msgstr ""
+
+#: includes/core/class-ucp-runtime-tests.php:152
+msgid "Delay JS"
+msgstr ""
+
+#: includes/core/class-ucp-runtime-tests.php:153
+msgid "Used CSS"
+msgstr ""
+
+#: includes/core/class-ucp-runtime-tests.php:154
+msgid "Used CSS delivery"
+msgstr ""
+
+#: includes/core/class-ucp-runtime-tests.php:155
+msgid "Critical CSS"
+msgstr ""
+
+#: includes/core/class-ucp-runtime-tests.php:158
+msgid "JavaScript minify"
+msgstr ""
+
+#: includes/core/class-ucp-runtime-tests.php:160
+msgid "Lazyload afbeeldingen"
+msgstr ""
+
+#: includes/core/class-ucp-runtime-tests.php:161
+msgid "Lazyload iframes"
+msgstr ""
+
+#: includes/core/class-ucp-runtime-tests.php:162
+msgid "REST cache"
+msgstr ""
+
+#: includes/core/class-ucp-runtime-tests.php:174
+msgid "Deze frontend-optimalisaties zijn actief en moeten op staging of met testmodus worden gecontroleerd: %s."
+msgstr ""
+
+#: includes/core/class-ucp-runtime-tests.php:179
+msgid "Delay JS safe mode staat uit terwijl Delay JS actief is."
+msgstr ""
+
+#: includes/core/class-ucp-runtime-tests.php:182
+msgid "CSS-artifactgeneratie staat aan zonder CSS-wachtrij; controleer of generatie niet tijdens frontendverkeer gebeurt."
+msgstr ""
+
+#: includes/core/class-ucp-runtime-tests.php:223
+msgid "Directe HTML-cache via .htaccess/Nginx staat uit."
+msgstr ""
+
+#: includes/core/class-ucp-runtime-tests.php:238
+msgid "Directe cache vereist mooie permalinks; die staan nu uit."
+msgstr ""
+
+#: includes/core/class-ucp-runtime-tests.php:241
+msgid "Nginx serveert directe cache niet vanzelf: voeg de gegenereerde server-rules-nginx.conf toe aan je serverconfiguratie en herlaad Nginx."
+msgstr ""
+
+#: includes/core/class-ucp-runtime-tests.php:243
+msgid "De serversoftware werd niet herkend als Apache/LiteSpeed. Controleer of de gegenereerde .htaccess-regels worden uitgevoerd."
+msgstr ""
+
+#: includes/core/class-ucp-runtime-tests.php:246
+msgid "Het bestand met serverregels is nog niet gegenereerd. Leeg en warm de cache opnieuw op om het aan te maken."
+msgstr ""
+
+#: includes/core/class-ucp-runtime-tests.php:254
+msgid "De headless render-bridge staat uit."
+msgstr ""
+
+#: includes/core/class-ucp-runtime-tests.php:268
+msgid "Er is nog geen endpoint-URL voor de render-bridge ingesteld."
+msgstr ""
+
+#: includes/core/class-ucp-runtime-tests.php:270
+msgid "De endpoint-URL van de render-bridge is geen geldige URL."
+msgstr ""
+
+#: includes/core/class-ucp-runtime-tests.php:273
+msgid "Er is nog geen gedeeld token voor de render-bridge ingesteld."
+msgstr ""
+
+#: includes/core/class-ucp-runtime-tests.php:276
+msgid "De render-bridge module kon niet worden geladen."
+msgstr ""
+
+#: includes/core/class-ucp-runtime-tests.php:299
+msgid "Plugin header version en UCP_VERSION komen niet overeen."
+msgstr ""
+
+#: includes/core/class-ucp-runtime-tests.php:307
+msgid "Readme stable tag en pluginversie komen niet overeen."
+msgstr ""
+
+#: includes/core/class-ucp-runtime-tests.php:310
+msgid "Readme stable tag kon niet worden gelezen."
+msgstr ""
+
+#: includes/core/class-ucp-runtime-tests.php:314
+msgid "De actieve PHP-versie is lager dan de plugin-eis."
+msgstr ""
+
+#: includes/core/class-ucp-runtime-tests.php:317
+msgid "Het classmap-manifest ontbreekt of is niet leesbaar."
+msgstr ""
+
+#: includes/core/class-ucp-runtime-tests.php:320
+msgid "Een of meer drop-in templates ontbreken in de release."
+msgstr ""
+
+#: includes/core/class-ucp-runtime-tests.php:323
+msgid "De vaste kwaliteitsscorecard ontbreekt in docs/QUALITY-SCORECARD.md."
+msgstr ""
+
+#: includes/core/class-ucp-site-health.php:38
+msgid "UltraCache runtime-tests"
+msgstr ""
+
+#: includes/core/class-ucp-site-health.php:42
+msgid "UltraCache Composer dependencies"
+msgstr ""
+
+#: includes/core/class-ucp-site-health.php:46
+msgid "UltraCache release-readiness"
+msgstr ""
+
+#: includes/core/class-ucp-site-health.php:50
+msgid "UltraCache security-verificatie"
+msgstr ""
+
+#: includes/core/class-ucp-site-health.php:54
+msgid "UltraCache WooCommerce checkout-veiligheid"
+msgstr ""
+
+#: includes/core/class-ucp-site-health.php:58
+msgid "UltraCache Core Web Vitals-readiness"
+msgstr ""
+
+#: includes/core/class-ucp-site-health.php:62
+msgid "UltraCache privacy en i18n"
+msgstr ""
+
+#: includes/core/class-ucp-site-health.php:80
+msgid "Draai eerst de UltraCache runtime-tests zodat dit onderdeel kan worden bevestigd."
+msgstr ""
+
+#: includes/core/class-ucp-site-health.php:87
+msgid "Geen aandachtspunten gevonden in de laatst opgeslagen runtime-check."
+msgstr ""
+
+#: includes/core/class-ucp-site-health.php:95
+msgid "UltraCache security-verificatie is compleet"
+msgstr ""
+
+#: includes/core/class-ucp-site-health.php:96
+msgid "UltraCache security-verificatie vraagt runtime bewijs"
+msgstr ""
+
+#: includes/core/class-ucp-site-health.php:97
+msgid "Security"
+msgstr ""
+
+#: includes/core/class-ucp-site-health.php:104
+msgid "UltraCache WooCommerce checkout-veiligheid is in orde"
+msgstr ""
+
+#: includes/core/class-ucp-site-health.php:105
+msgid "UltraCache WooCommerce checkout-veiligheid vraagt aandacht"
+msgstr ""
+
+#: includes/core/class-ucp-site-health.php:113
+msgid "UltraCache Core Web Vitals-readiness is in orde"
+msgstr ""
+
+#: includes/core/class-ucp-site-health.php:114
+msgid "UltraCache Core Web Vitals-readiness vraagt bewijs"
+msgstr ""
+
+#: includes/core/class-ucp-site-health.php:115
+msgid "Prestaties"
+msgstr ""
+
+#: includes/core/class-ucp-site-health.php:122
+msgid "UltraCache privacy en i18n zijn in orde"
+msgstr ""
+
+#: includes/core/class-ucp-site-health.php:123
+msgid "UltraCache privacy en i18n vragen aandacht"
+msgstr ""
+
+#: includes/core/class-ucp-site-health.php:124
+msgid "Privacy"
+msgstr ""
+
+#: includes/core/class-ucp-site-health.php:135
+msgid "Draai eerst de UltraCache runtime-tests zodat release-readiness kan worden bevestigd."
+msgstr ""
+
+#: includes/core/class-ucp-site-health.php:138
+msgid "UltraCache release-readiness is in orde"
+msgstr ""
+
+#: includes/core/class-ucp-site-health.php:138
+msgid "UltraCache release-readiness vraagt aandacht"
+msgstr ""
+
+#: includes/core/class-ucp-site-health.php:140
+msgid "Release"
+msgstr ""
+
+#: includes/core/class-ucp-site-health.php:141
+msgid "Versies, classmap, drop-in templates en kwaliteitsscorecard zijn consistent."
+msgstr ""
+
+#: includes/core/class-ucp-site-health.php:151
+msgid "UltraCache Composer dependencies zijn beschikbaar"
+msgstr ""
+
+#: includes/core/class-ucp-site-health.php:151
+msgid "UltraCache gebruikt native fallback-minifiers"
+msgstr ""
+
+#: includes/core/class-ucp-site-health.php:154
+msgid "De gebundelde CSS/JS parser- en minify-libraries zijn geladen."
+msgstr ""
+
+#: includes/core/class-ucp-site-health.php:154
+msgid "Optionele libraries niet geladen: %s. Dit pakket gebruikt de ingebouwde fallback-minifiers en parser; bundel vendor-scoped/autoload.php alleen voor een private build met Composer-dependencies."
+msgstr ""
+
+#: includes/core/class-ucp-site-health.php:240
+msgid "Runtime-tests zijn nog niet uitgevoerd. Draai het controlepakket in UltraCache Tools of via WP-CLI."
+msgstr ""
+
+#: includes/core/class-ucp-site-health.php:244
+msgid "Runtime-tests vragen aandacht: %s."
+msgstr ""
+
+#: includes/core/class-ucp-site-health.php:248
+msgid "De laatst opgeslagen UltraCache runtime-tests bevatten geen waarschuwingen."
+msgstr ""
+
+#: includes/core/class-ucp-site-health.php:253
+msgid "Laatste run: %s GMT."
+msgstr ""
+
+#: includes/core/class-ucp-site-health.php:259
+msgid "UltraCache runtime-tests zijn in orde"
+msgstr ""
+
+#: includes/core/class-ucp-site-health.php:259
+msgid "UltraCache runtime-tests vragen aandacht"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js
+msgid "Aanbevolen startinstelling"
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js
+msgid "Laat UltraCache één veilige aanbeveling tonen. Alle technische details blijven beschikbaar via Geavanceerde instellingen."
+msgstr ""
+
+#: assets/admin/react/js/app/ucp-react-admin.js
+msgid "Geavanceerd - open alleen als je dit nodig hebt"
+msgstr ""
+
+#: includes/admin/onboarding/class-ucp-onboarding-wizard.php:178
+msgid "Snelheid & SEO"
+msgstr ""
+
+#: includes/admin/onboarding/class-ucp-onboarding-wizard.php:179
+msgid "Maximale render-veilige snelheidswinst voor Core Web Vitals. Aanbevolen voor de meeste sites."
+msgstr ""
+
+#: includes/admin/onboarding/class-ucp-onboarding-wizard.php:183
+msgid "WooCommerce-winkel"
+msgstr ""
+
+#: includes/admin/onboarding/class-ucp-onboarding-wizard.php:184
+msgid "Snelheid met veilige cache-bypass voor winkelwagen, checkout en account."
+msgstr ""
+
+#: includes/admin/onboarding/class-ucp-onboarding-wizard.php:188
+msgid "Conservatief & veilig"
+msgstr ""
+
+#: includes/admin/onboarding/class-ucp-onboarding-wizard.php:189
+msgid "Alleen de meest veilige basis (cache, lazy-load, browser-cache). Niets dat layout kan raken."
+msgstr ""
+
+#: includes/admin/onboarding/class-ucp-onboarding-wizard.php:230
+msgid "Setup voltooid."
+msgstr ""
+
+#: assets/admin/js/onboarding/ucp-onboarding-wizard.js:65
+msgid "Omgeving controleren…"
+msgstr ""
+
+#: assets/admin/js/onboarding/ucp-onboarding-wizard.js:84
+msgid "WP_CACHE staat uit — UltraCache zet dit veilig aan bij activatie van cache"
+msgstr ""
+
+#: assets/admin/js/onboarding/ucp-onboarding-wizard.js:85
+msgid "Full-page cache kan worden geserveerd (WP_CACHE actief)"
+msgstr ""
+
+#: assets/admin/js/onboarding/ucp-onboarding-wizard.js:91
+msgid "Minify/used-CSS libraries beschikbaar"
+msgstr ""
+
+#: assets/admin/js/onboarding/ucp-onboarding-wizard.js:92
+msgid "Native fallbacks actief voor minify (prima, libraries optioneel)"
+msgstr ""
+
+#: assets/admin/js/onboarding/ucp-onboarding-wizard.js:104
+msgid "Wat wil je dat UltraCache voor je doet?"
+msgstr ""
+
+#: assets/admin/js/onboarding/ucp-onboarding-wizard.js:105
+msgid "Kies een doel. We zetten alleen render-veilige optimalisaties aan — geavanceerde CSS/JS blijft uit tot jij ze test."
+msgstr ""
+
+#: assets/admin/js/onboarding/ucp-onboarding-wizard.js:123
+msgid "Later"
+msgstr ""
+
+#: assets/admin/js/onboarding/ucp-onboarding-wizard.js:132
+msgid "Volgende"
+msgstr ""
+
+#: assets/admin/js/onboarding/ucp-onboarding-wizard.js:144
+msgid "Full-page cache"
+msgstr ""
+
+#: assets/admin/js/onboarding/ucp-onboarding-wizard.js:145
+msgid "Cache opwarmen (preload)"
+msgstr ""
+
+#: assets/admin/js/onboarding/ucp-onboarding-wizard.js:146
+msgid "Lazy-load afbeeldingen"
+msgstr ""
+
+#: assets/admin/js/onboarding/ucp-onboarding-wizard.js:147
+msgid "Lazy-load iframes"
+msgstr ""
+
+#: assets/admin/js/onboarding/ucp-onboarding-wizard.js:148
+msgid "Afbeeldingsdimensies toevoegen (CLS)"
+msgstr ""
+
+#: assets/admin/js/onboarding/ucp-onboarding-wizard.js:149
+msgid "WebP genereren"
+msgstr ""
+
+#: assets/admin/js/onboarding/ucp-onboarding-wizard.js:150
+msgid "AVIF genereren"
+msgstr ""
+
+#: assets/admin/js/onboarding/ucp-onboarding-wizard.js:153
+msgid "Gzip-precompressie"
+msgstr ""
+
+#: assets/admin/js/onboarding/ucp-onboarding-wizard.js:154
+msgid "Brotli-precompressie"
+msgstr ""
+
+#: assets/admin/js/onboarding/ucp-onboarding-wizard.js:155
+msgid "Browser-cache headers"
+msgstr ""
+
+#: assets/admin/js/onboarding/ucp-onboarding-wizard.js:156
+msgid "font-display: swap"
+msgstr ""
+
+#: assets/admin/js/onboarding/ucp-onboarding-wizard.js:157
+msgid "Fonts preloaden"
+msgstr ""
+
+#: assets/admin/js/onboarding/ucp-onboarding-wizard.js:158
+msgid "Resource hints"
+msgstr ""
+
+#: assets/admin/js/onboarding/ucp-onboarding-wizard.js:159
+msgid "Links prefetchen"
+msgstr ""
+
+#: assets/admin/js/onboarding/ucp-onboarding-wizard.js:160
+msgid "Heartbeat beperken"
+msgstr ""
+
+#: assets/admin/js/onboarding/ucp-onboarding-wizard.js:161
+msgid "Emoji-script verwijderen"
+msgstr ""
+
+#: assets/admin/js/onboarding/ucp-onboarding-wizard.js:162
+msgid "WooCommerce cache-regels"
+msgstr ""
+
+#: assets/admin/js/onboarding/ucp-onboarding-wizard.js:163
+msgid "WooCommerce veiligheidsmodus"
+msgstr ""
+
+#: assets/admin/js/onboarding/ucp-onboarding-wizard.js:164
+msgid "Cart-fragments optimaliseren"
+msgstr ""
+
+#: assets/admin/js/onboarding/ucp-onboarding-wizard.js:165
+msgid "Mobiel apart cachen"
+msgstr ""
+
+#: assets/admin/js/onboarding/ucp-onboarding-wizard.js:184
+msgid "Dit zetten we voor je aan"
+msgstr ""
+
+#: assets/admin/js/onboarding/ucp-onboarding-wizard.js:185
+msgid "Allemaal render-veilig. Je kunt elk punt later in de instellingen aanpassen."
+msgstr ""
+
+#: assets/admin/js/onboarding/ucp-onboarding-wizard.js:196
+msgid "Geavanceerd blijft uit."
+msgstr ""
+
+#: assets/admin/js/onboarding/ucp-onboarding-wizard.js:198
+msgid "Used CSS, Critical CSS, JS combineren en Delay JS blijven uitgeschakeld tot jij ze zelf aanzet en op staging test."
+msgstr ""
+
+#: assets/admin/js/onboarding/ucp-onboarding-wizard.js:204
+msgid "Terug"
+msgstr ""
+
+#: assets/admin/js/onboarding/ucp-onboarding-wizard.js:208
+msgid "Bezig met toepassen…"
+msgstr ""
+
+#: assets/admin/js/onboarding/ucp-onboarding-wizard.js:208
+msgid "Pas toe en ga door"
+msgstr ""
+
+#: assets/admin/js/onboarding/ucp-onboarding-wizard.js:244
+msgid "Je eerste resultaat"
+msgstr ""
+
+#: assets/admin/js/onboarding/ucp-onboarding-wizard.js:248
+msgid "Cache opwarmen en homepage meten…"
+msgstr ""
+
+#: assets/admin/js/onboarding/ucp-onboarding-wizard.js:254
+msgid "warme cache-respons"
+msgstr ""
+
+#: assets/admin/js/onboarding/ucp-onboarding-wizard.js:257
+msgid "Eerste (ongecachte) hit:"
+msgstr ""
+
+#: assets/admin/js/onboarding/ucp-onboarding-wizard.js:258
+msgid "daarna geserveerd in"
+msgstr ""
+
+#: assets/admin/js/onboarding/ucp-onboarding-wizard.js:264
+msgid "Cache opgewarmd. Je site serveert nu gecachte pagina’s aan bezoekers."
+msgstr ""
+
+#: assets/admin/js/onboarding/ucp-onboarding-wizard.js:266
+msgid "Wil je verder? Open Insights om je belangrijkste pagina’s te volgen en gerichte aanbevelingen te krijgen."
+msgstr ""
+
+#: assets/admin/js/onboarding/ucp-onboarding-wizard.js:310
+msgid "Toepassen lukte niet in één keer. Probeer opnieuw of stel het handmatig in via de instellingen."
 msgstr ""

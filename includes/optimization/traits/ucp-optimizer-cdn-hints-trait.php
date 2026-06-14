@@ -32,6 +32,9 @@ trait UCP_Optimizer_CDN_Hints_Trait {
         if (!UCP_Options::get('enable_cdn')) {
             return $src;
         }
+        if (!$this->cdn_rewrite_context_is_safe()) {
+            return $src;
+        }
         $cdn_host = UCP_Helpers::get_first_cdn_host();
         if (!$cdn_host || !$src || UCP_Helpers::should_skip_cdn_url($src) || !UCP_Helpers::is_local_url($src) || !UCP_Helpers::cdn_file_type_allows($src)) {
             return $src;
@@ -47,8 +50,21 @@ trait UCP_Optimizer_CDN_Hints_Trait {
         return $query ? $rewritten . '?' . $query : $rewritten;
     }
 
+    private function cdn_rewrite_context_is_safe() {
+        if (is_admin() || is_user_logged_in() || $this->should_skip_frontend_optimizations() || $this->html_context_is_sensitive()) {
+            return false;
+        }
+        if (class_exists('UCP_Optimization_Guards') && UCP_Optimization_Guards::is_woocommerce_critical_request()) {
+            return false;
+        }
+        return true;
+    }
+
     private function rewrite_html_assets_to_cdn($html) {
         if (!is_string($html) || '' === $html) {
+            return $html;
+        }
+        if (!$this->cdn_rewrite_context_is_safe() || (class_exists('UCP_Optimization_Guards') && UCP_Optimization_Guards::contains_sensitive_markup($html))) {
             return $html;
         }
         $html = preg_replace_callback("/\s(src|href)=(\"|\x27)([^\"\x27]+)(\2)/i", function ($matches) {
@@ -75,8 +91,15 @@ trait UCP_Optimizer_CDN_Hints_Trait {
             }
             $tokens = preg_split('/\s+/', $part, 2);
             $url = isset($tokens[0]) ? html_entity_decode($tokens[0], ENT_QUOTES) : '';
-            $descriptor = isset($tokens[1]) ? ' ' . trim($tokens[1]) : '';
-            $rewritten_parts[] = esc_url($this->rewrite_asset_to_cdn($url)) . $descriptor;
+            $descriptor = isset($tokens[1]) ? trim($tokens[1]) : '';
+            $width = preg_match('/^(\d+)w$/', $descriptor, $width_match) ? absint($width_match[1]) : 0;
+            $rewritten = class_exists('UCP_Image_Queue') && UCP_Image_Queue::cdn_active() && UCP_Options::get('enable_image_cdn_transforms')
+                ? UCP_Image_Queue::cdn_url($url, $width)
+                : $this->rewrite_asset_to_cdn($url);
+            if ('' === $rewritten) {
+                $rewritten = $url;
+            }
+            $rewritten_parts[] = esc_url($rewritten) . ('' !== $descriptor ? ' ' . $descriptor : '');
         }
         return implode(', ', $rewritten_parts);
     }
@@ -432,14 +455,21 @@ trait UCP_Optimizer_CDN_Hints_Trait {
         if (UCP_Options::get('enable_auto_font_preloads')) {
             $auto = get_option('ucp_local_font_preload_candidates', array());
             if (is_array($auto)) {
-                $fonts = array_merge($fonts, array_slice($auto, 0, $this->auto_font_preload_cap()));
+                $fonts = array_merge($fonts, $this->safe_auto_font_preload_candidates($auto));
             }
         }
 
         $seen = array();
+        foreach ((array) apply_filters('ucp_existing_font_preload_urls', array()) as $existing_font_url) {
+            $existing_font_url = esc_url_raw((string) $existing_font_url, array('http', 'https'));
+            if ($existing_font_url) {
+                $seen[$this->normalize_font_preload_url($existing_font_url)] = true;
+            }
+        }
         foreach ($fonts as $font_url) {
             $font_url = esc_url_raw((string) $font_url, array('http', 'https'));
-            if (!$font_url || isset($seen[$font_url]) || preg_match('/[\r\n<>]/', $font_url)) {
+            if (!$font_url || isset($seen[$font_url]) || preg_match('/[
+<>]/', $font_url)) {
                 continue;
             }
             if (!preg_match('/\.(woff2|woff)(\?|$)/i', $font_url)) {
@@ -448,10 +478,64 @@ trait UCP_Optimizer_CDN_Hints_Trait {
             if (!UCP_Helpers::is_local_url($font_url) && !wp_http_validate_url($font_url)) {
                 continue;
             }
-            $seen[$font_url] = true;
+            $seen[$dedupe_key] = true;
             $type = preg_match('/\.woff2(\?|$)/i', $font_url) ? 'font/woff2' : 'font/woff';
-            echo '<link rel="preload" href="' . esc_url($font_url) . '" as="font" type="' . esc_attr($type) . '" crossorigin data-ucp="font-preload">' . "\n";
+            echo '<link rel="preload" href="' . esc_url($font_url) . '" as="font" type="' . esc_attr($type) . '" crossorigin data-ucp="font-preload">' . "
+";
         }
+    }
+
+    private function normalize_font_preload_url($url) {
+        $url = esc_url_raw((string) $url, array('http', 'https'));
+        if (!$url) {
+            return '';
+        }
+        $parts = wp_parse_url($url);
+        $host = isset($parts['host']) ? strtolower((string) $parts['host']) : '';
+        $path = isset($parts['path']) ? (string) $parts['path'] : '';
+        return $host . $path;
+    }
+
+    private function safe_auto_font_preload_candidates($candidates) {
+        $cap = $this->auto_font_preload_cap();
+        if ($cap < 1) {
+            return array();
+        }
+
+        $ranked = array();
+        foreach ((array) $candidates as $candidate) {
+            $url = is_array($candidate) && !empty($candidate['url']) ? (string) $candidate['url'] : (string) $candidate;
+            $url = esc_url_raw($url, array('http', 'https'));
+            if (!$url || !preg_match('/\.woff2(\?|$)/i', $url) || preg_match('/[
+<>]/', $url)) {
+                continue;
+            }
+            $lower = strtolower(rawurldecode($url));
+            if (preg_match('/(icon|dashicons|fontawesome|fa-|icomoon|glyph|material-icons|elementor-icons)/', $lower)) {
+                continue;
+            }
+            if (!UCP_Helpers::is_local_url($url) && !wp_http_validate_url($url)) {
+                continue;
+            }
+
+            $score = 10;
+            if (preg_match('/(regular|normal|400|book)/', $lower)) {
+                $score += 20;
+            }
+            if (preg_match('/(bold|700)/', $lower)) {
+                $score += 10;
+            }
+            if (preg_match('/(italic|thin|100|200|300|800|900)/', $lower)) {
+                $score -= 20;
+            }
+            if (is_array($candidate) && !empty($candidate['count'])) {
+                $score += min(20, absint($candidate['count']));
+            }
+            $ranked[$url] = max(isset($ranked[$url]) ? $ranked[$url] : 0, $score);
+        }
+
+        arsort($ranked, SORT_NUMERIC);
+        return array_slice(array_keys($ranked), 0, $cap);
     }
 
     private function auto_font_preload_cap() {

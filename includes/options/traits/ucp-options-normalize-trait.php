@@ -290,11 +290,14 @@ trait UCP_Options_Normalize_Trait {
     }
 
     protected static function normalize_system_write_and_asset_settings($settings, $defaults) {
-        $settings = self::normalize_boolean_settings($settings, array(
-            'allow_wp_config_write', 'allow_dropin_writes', 'allow_dropin_takeover', 'allow_browser_cache_rule_writes',
-            'enable_stale_cache', 'purge_on_extension_change', 'purge_on_core_update', 'purge_on_global_change',
-            'css_artifact_rollback', 'enable_html_test_mode', 'autopilot_enabled', 'preload_homepage',
-        ));
+        $settings = self::normalize_boolean_settings(
+            $settings,
+            class_exists('UCP_Settings_Schema') ? UCP_Settings_Schema::boolean_keys('system_write_and_assets') : array(
+                'allow_wp_config_write', 'allow_dropin_writes', 'allow_dropin_takeover', 'allow_browser_cache_rule_writes',
+                'enable_stale_cache', 'purge_on_extension_change', 'purge_on_core_update', 'purge_on_global_change',
+                'css_artifact_rollback', 'enable_html_test_mode', 'autopilot_enabled', 'preload_homepage',
+            )
+        );
         $settings['stale_cache_lifespan'] = min(168, max(1, absint($settings['stale_cache_lifespan'])));
         $settings['css_artifact_min_bytes'] = min(5000, max(50, absint($settings['css_artifact_min_bytes'])));
         $settings['css_artifact_retry_limit'] = min(10, max(1, absint($settings['css_artifact_retry_limit'])));
@@ -317,16 +320,19 @@ trait UCP_Options_Normalize_Trait {
     }
 
     protected static function normalize_media_performance_settings($settings) {
-        $settings = self::normalize_boolean_settings($settings, array(
-            'compatibility_mode', 'woocommerce_safety_mode', 'wp_rocket_style_defaults', 'enable_admin_queue_runner',
-            'show_advanced_options', 'disable_logged_in_optimizations', 'accessibility_mode', 'clean_uninstall',
-            'delay_js_disable_click_delay', 'enable_lazy_youtube_preview', 'enable_add_image_dimensions',
-            'enable_image_optimization', 'enable_webp_generation', 'enable_avif_generation', 'enable_font_display_swap',
-            'enable_remove_query_strings', 'enable_light_preload_requests', 'preload_pause_on_high_load',
-            'enable_css_profiles', 'enable_lazy_render', 'enable_edge_html_cache', 'edge_html_cache_tags',
-            'enable_self_host_third_party_assets', 'enable_disable_dashicons', 'enable_disable_jquery_migrate',
-            'enable_move_module_scripts_footer', 'safe_settings_export',
-        ));
+        $settings = self::normalize_boolean_settings(
+            $settings,
+            class_exists('UCP_Settings_Schema') ? UCP_Settings_Schema::boolean_keys('media_performance') : array(
+                'compatibility_mode', 'woocommerce_safety_mode', 'wp_rocket_style_defaults', 'enable_admin_queue_runner',
+                'show_advanced_options', 'disable_logged_in_optimizations', 'accessibility_mode', 'clean_uninstall',
+                'delay_js_disable_click_delay', 'enable_lazy_images', 'enable_lazy_iframes', 'enable_lazy_youtube_preview', 'enable_add_image_dimensions',
+                'enable_image_optimization', 'enable_webp_generation', 'enable_avif_generation', 'enable_font_display_swap',
+                'enable_remove_query_strings', 'enable_light_preload_requests', 'preload_pause_on_high_load',
+                'enable_css_profiles', 'enable_lazy_render', 'enable_edge_html_cache', 'edge_html_cache_tags',
+                'enable_self_host_third_party_assets', 'enable_disable_dashicons', 'enable_disable_jquery_migrate',
+                'enable_move_module_scripts_footer', 'safe_settings_export',
+            )
+        );
         if (!empty($settings['enable_avif_generation'])) {
             $settings['enable_webp_generation'] = 1;
         }
@@ -348,7 +354,10 @@ trait UCP_Options_Normalize_Trait {
         $settings['edge_html_cache_stale'] = min(604800, max(0, absint(isset($settings['edge_html_cache_stale']) ? $settings['edge_html_cache_stale'] : 86400)));
         $settings['autosave_interval'] = min(600, max(15, absint(isset($settings['autosave_interval']) ? $settings['autosave_interval'] : 60)));
         $settings['lazyload_threshold'] = min(1000, max(0, absint(isset($settings['lazyload_threshold']) ? $settings['lazyload_threshold'] : 0)));
-        $settings = self::normalize_boolean_settings($settings, array('enable_disable_xmlrpc','enable_hide_wp_version','enable_remove_rsd_link','enable_remove_shortlink','enable_disable_rss_feeds','enable_remove_rss_feed_links','enable_disable_self_pingbacks','enable_disable_rest_api','enable_remove_rest_api_links','enable_disable_google_maps','enable_disable_password_strength_meter','enable_disable_comments','enable_remove_comment_links','enable_blank_favicon','enable_remove_global_styles','enable_separate_block_styles','enable_disable_google_fonts','enable_hide_toolbar_menu','enable_lazyload_fade_in','enable_lazyload_background_images'));
+        $settings = self::normalize_boolean_settings(
+            $settings,
+            class_exists('UCP_Settings_Schema') ? UCP_Settings_Schema::boolean_keys('hardening_and_ui') : array('enable_disable_xmlrpc','enable_hide_wp_version','enable_remove_rsd_link','enable_remove_shortlink','enable_disable_rss_feeds','enable_remove_rss_feed_links','enable_disable_self_pingbacks','enable_disable_rest_api','enable_remove_rest_api_links','enable_disable_google_maps','enable_disable_password_strength_meter','enable_disable_comments','enable_remove_comment_links','enable_blank_favicon','enable_remove_global_styles','enable_separate_block_styles','enable_disable_google_fonts','enable_hide_toolbar_menu','enable_lazyload_fade_in','enable_lazyload_background_images')
+        );
 
         return $settings;
     }

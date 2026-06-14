@@ -67,6 +67,7 @@ class UCP_Optimization_Center_Notices {
 
             if ($failed > 0) {
                 $messages[] = sprintf(
+                    /* translators: %d: number of items. */
                     _n('%d optimalisatiejob gebruikt fallback en kan opnieuw geprobeerd worden.', '%d optimalisatiejobs gebruiken fallback en kunnen opnieuw geprobeerd worden.', $failed, 'ultracache-pro'),
                     $failed
                 );

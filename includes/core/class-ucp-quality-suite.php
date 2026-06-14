@@ -37,7 +37,7 @@ trait UCP_Quality_Suite_Routing_Trait {
     }
 
     public static function permissions_check($request = null) {
-        return UCP_Helpers::rest_admin_permission_check($request);
+        return UCP_REST_Permissions::admin_permission_check($request);
     }
 
     protected static function action_success($message, $data = array()) {

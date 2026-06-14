@@ -80,6 +80,7 @@ class UCP_ESI {
         self::register('account_state', function () {
             if (is_user_logged_in()) {
                 $user = wp_get_current_user();
+                /* translators: %s: dynamic value. */
                 return '<span class="ucp-account ucp-account--in">' . esc_html(sprintf(__('Hallo, %s', 'ultracache-pro'), $user->display_name)) . '</span>';
             }
             return '<span class="ucp-account ucp-account--out"></span>';
@@ -353,6 +354,8 @@ class UCP_ESI {
         if ($ip_count >= 120 || $site_count >= 1200) {
             $response = new WP_REST_Response(array('ok' => false, 'code' => 'rate_limited'), 429);
             $response->header('Retry-After', '60');
+            $response->header('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+            $response->header('X-Robots-Tag', 'noindex, nofollow');
             return $response;
         }
 

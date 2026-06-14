@@ -202,7 +202,7 @@ trait UCP_Optimizer_Media_Image_Trait {
             return $attrs;
         }
         $src = html_entity_decode($src_match[1], ENT_QUOTES);
-        if ($this->image_src_is_unsafe_for_responsive_rewrite($src, $attrs)) {
+        if ($this->image_src_is_unsafe_for_responsive_rewrite($src, $attrs) || (class_exists('UCP_Image_Queue') && UCP_Image_Queue::should_skip_adaptive_image_tag('<img' . $attrs . '>'))) {
             return $this->apply_device_fetchpriority_rules($attrs);
         }
         $attachment_id = function_exists('attachment_url_to_postid') ? absint(attachment_url_to_postid($src)) : 0;
@@ -217,6 +217,16 @@ trait UCP_Optimizer_Media_Image_Trait {
                 $attrs .= ' sizes="auto, (max-width: 768px) 100vw, 768px"';
             }
         }
+        if (!preg_match('/\bsrcset\s*=/i', $attrs) && class_exists('UCP_Image_Queue')) {
+            $adaptive_srcset = UCP_Image_Queue::adaptive_srcset($src, '<img' . $attrs . '>');
+            if ('' !== $adaptive_srcset) {
+                $attrs .= ' srcset="' . esc_attr($adaptive_srcset) . '"';
+                if (!preg_match('/\bsizes\s*=/i', $attrs)) {
+                    $attrs .= ' sizes="(max-width: 768px) 100vw, 768px"';
+                }
+            }
+        }
+
         if (!preg_match('/\b(width|height)\s*=/i', $attrs)) {
             $dims = $this->image_dimensions_for_url($src, $attachment_id);
             if (!empty($dims['width']) && !preg_match('/\bwidth\s*=/i', $attrs)) {

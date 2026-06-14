@@ -36,7 +36,7 @@ class UCP_Asset_Inspector {
         $styles  = $this->collect($wp_styles);
         $path    = $this->current_path();
 
-        echo $this->render_overlay($path, $scripts, $styles); // phpcs:ignore WordPress.Security.EscapingOutput.OutputNotEscaped -- assembled below with per-field escaping.
+        echo $this->render_overlay($path, $scripts, $styles); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- assembled below with per-field escaping.
     }
 
     private function should_show() {

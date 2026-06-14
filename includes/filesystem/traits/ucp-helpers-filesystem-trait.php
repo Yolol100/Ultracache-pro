@@ -148,7 +148,7 @@ trait UCP_Helpers_Filesystem_Trait {
         }
 
         $mode = file_exists($path) ? fileperms($path) & 0777 : (defined('FS_CHMOD_FILE') ? FS_CHMOD_FILE : 0644);
-        // phpcs:ignore WordPress.WP.AlternativeFunctions.chmod_chmod -- keep the existing .htaccess permissions when replacing atomically.
+        // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_chmod -- keep the existing .htaccess permissions when replacing atomically.
         @chmod($tmp, $mode);
 
         // phpcs:ignore WordPress.WP.AlternativeFunctions.rename_rename -- atomic replace for validated root .htaccess marker management.
@@ -202,7 +202,7 @@ trait UCP_Helpers_Filesystem_Trait {
         }
 
         $mode = defined('FS_CHMOD_FILE') ? FS_CHMOD_FILE : 0644;
-        // phpcs:ignore WordPress.WP.AlternativeFunctions.chmod_chmod -- cache artifact permissions after atomic temp write.
+        // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_chmod -- cache artifact permissions after atomic temp write.
         @chmod($tmp, $mode);
 
         // phpcs:ignore WordPress.WP.AlternativeFunctions.rename_rename -- atomic replace for plugin-managed cache artifacts.

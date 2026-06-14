@@ -128,4 +128,41 @@ class UCP_Helpers {
         return $rel;
     }
 
+    /**
+     * Service facade for filesystem operations. Prefer this in new code.
+     *
+     * @return UCP_Filesystem_Service
+     */
+    public static function filesystem_service() {
+        return UCP_Filesystem_Service::instance();
+    }
+
+    /**
+     * Service facade for URL validation/normalization. Prefer this in new code.
+     *
+     * @return UCP_URL_Validator
+     */
+    public static function url_validator() {
+        return UCP_URL_Validator::instance();
+    }
+
+    /**
+     * Service facade for drop-in management. Prefer this in new code.
+     *
+     * @return UCP_Dropin_Manager
+     */
+    public static function dropin_manager() {
+        return UCP_Dropin_Manager::instance();
+    }
+
+    /**
+     * Service facade for minification/log helper methods. Prefer this in new code.
+     *
+     * @return UCP_Minify_Service
+     */
+    public static function minify_service() {
+        return UCP_Minify_Service::instance();
+    }
+
+
 }

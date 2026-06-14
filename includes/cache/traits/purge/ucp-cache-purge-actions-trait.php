@@ -6,6 +6,8 @@ if (!defined('ABSPATH')) {
 
 trait UCP_Cache_Purge_Actions_Trait {
     public static function queue_cache_toast($message = '') {
+        static $queued_in_request = false;
+
         if (function_exists('wp_doing_ajax') && wp_doing_ajax()) {
             return;
         }
@@ -17,15 +19,17 @@ trait UCP_Cache_Purge_Actions_Trait {
         }
 
         $message = '' !== (string) $message ? wp_strip_all_tags((string) $message) : __('Cache is geleegd.', 'ultracache-pro');
-        $toast = get_option('ucp_pending_cache_toast', array());
-        $count = 1;
-        if (is_array($toast) && !empty($toast['count'])) {
-            $count += absint($toast['count']);
+
+        // AI-PATCH: keep cache feedback calm; duplicate purge hooks in one request
+        // should not create a "2 keer" message or a louder toast.
+        if ($queued_in_request) {
+            return;
         }
+        $queued_in_request = true;
 
         update_option('ucp_pending_cache_toast', array(
             'message' => $message,
-            'count'   => $count,
+            'count'   => 1,
             'time'    => current_time('mysql'),
         ), false);
     }
@@ -36,6 +40,16 @@ trait UCP_Cache_Purge_Actions_Trait {
     }
 
     public function purge_all() {
+        static $purged_in_request = false;
+
+        // AI-PATCH: WordPress/admin hooks can call a full purge more than once in
+        // the same request. A full purge is idempotent, so skip duplicate file/CDN
+        // work and keep the UI from reporting the cache as cleared twice.
+        if ($purged_in_request) {
+            return;
+        }
+        $purged_in_request = true;
+
         UCP_Helpers::safe_glob_delete(UCP_CACHE_DIR . 'pages/*.html');
         UCP_Helpers::safe_glob_delete(UCP_CACHE_DIR . 'pages/*.html.gz');
         UCP_Helpers::safe_glob_delete(UCP_CACHE_DIR . 'pages/*.html.br');
@@ -44,6 +58,12 @@ trait UCP_Cache_Purge_Actions_Trait {
         UCP_Helpers::safe_glob_delete(UCP_CACHE_DIR . 'used-css-served/*.css');
         UCP_Helpers::safe_glob_delete(UCP_CACHE_DIR . 'critical-css/*.css');
         UCP_Helpers::safe_glob_delete(UCP_CACHE_DIR . 'diagnostics/*.json');
+        // Minified single assets (incl. their .skip negative-cache markers) and combined CSS/JS
+        // bundles are fingerprinted on source mtime/size/version, so they self-invalidate, but a
+        // manual "Clear cache" should still drop the orphans instead of letting them accumulate.
+        UCP_Helpers::safe_delete_cache_dir_contents(UCP_CACHE_DIR . 'min/');
+        UCP_Helpers::safe_delete_cache_dir_contents(UCP_CACHE_DIR . 'assets/');
+        UCP_Helpers::safe_delete_cache_dir_contents(UCP_CACHE_DIR . 'js/');
         if (class_exists('UCP_Cache_Tags') && UCP_Cache_Tags::enabled()) {
             UCP_Cache_Tags::clear_all();
         } else {

@@ -222,7 +222,11 @@ class UCP_CWV {
             ));
         }
 
-        return new WP_REST_Response(array('ok' => true), 202);
+        $response = new WP_REST_Response(array('ok' => true), 202);
+        $response->header('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+        $response->header('X-Robots-Tag', 'noindex, nofollow');
+        $response->header('X-UCP-CWV', 'accepted');
+        return $response;
     }
 
 

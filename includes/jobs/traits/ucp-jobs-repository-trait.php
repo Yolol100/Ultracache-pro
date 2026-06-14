@@ -8,15 +8,11 @@ if (!defined('ABSPATH')) {
 
 trait UCP_Jobs_Repository_Trait {
     protected static function jobs_table_name() {
-        $table = function_exists('ucp_table_name') ? ucp_table_name('jobs') : '';
-
-        return class_exists('UCP_Helpers') && UCP_Helpers::is_safe_table_name($table) ? $table : '';
+        return class_exists('UCP_Jobs_Repository') ? UCP_Jobs_Repository::table_name() : '';
     }
 
     protected static function jobs_table_sql() {
-        $table = self::jobs_table_name();
-
-        return '' !== $table ? UCP_Helpers::quote_table_name($table) : '';
+        return class_exists('UCP_Jobs_Repository') ? UCP_Jobs_Repository::table_sql() : '';
     }
 
     public static function enqueue_unique($type, $payload = array(), $priority = 10, $queue = 'default') {

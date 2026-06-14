@@ -52,16 +52,39 @@ trait UCP_Assets_Minify_Trait {
             if ($ext !== $type) {
                 return '';
             }
+            if (preg_match('/\.min\.' . preg_quote($type, '/') . '$/i', $path)) {
+                return '';
+            }
+
+            // Fingerprint the *source* (path + mtime + size + plugin version), not the minified
+            // output. This lets us decide the cache filename without reading or minifying the file
+            // first. A cache-miss page render runs this for every enqueued local asset, so the old
+            // approach paid a full parser+minify pass per asset on every miss just to compute the
+            // hash. Keying on the source means an already-minified asset costs a single stat().
+            $mtime = (int) @filemtime($path);
+            $size  = (int) @filesize($path);
+            if ($size < 2048) {
+                return '';
+            }
+            $hash   = substr(hash('sha256', $path . '|' . $mtime . '|' . $size . '|' . UCP_VERSION . '|' . $type), 0, 20);
+            $dir    = trailingslashit(UCP_CACHE_DIR) . 'min/';
+            $target = $dir . $hash . '.' . $type;
+            $skip   = $target . '.skip';
+
+            // Fast paths: a previous render already resolved this exact source fingerprint, either
+            // to a usable minified file or to a "not worth it" decision recorded in a .skip marker.
+            if (is_file($target)) {
+                return UCP_Helpers::file_url_from_path($target);
+            }
+            if (is_file($skip)) {
+                return '';
+            }
 
             $contents = UCP_Helpers::read_file($path);
             if (!is_string($contents) || '' === trim($contents)) {
                 return '';
             }
-
             $original_bytes = strlen($contents);
-            if ($original_bytes < 2048 || preg_match('/\.min\.' . preg_quote($type, '/') . '$/i', $path)) {
-                return '';
-            }
 
             if ('css' === $type) {
                 $contents = preg_replace_callback('/url\((["\']?)(?!data:|https?:|\/)([^)"\']+)\1\)/i', function ($matches) use ($path) {
@@ -71,6 +94,7 @@ trait UCP_Assets_Minify_Trait {
                 $minified = UCP_Helpers::minify_css($contents);
             } else {
                 if ($this->js_minify_candidate_is_risky($contents)) {
+                    $this->mark_minify_skipped($dir, $skip);
                     return '';
                 }
                 $minified = UCP_Helpers::minify_js($contents);
@@ -82,24 +106,41 @@ trait UCP_Assets_Minify_Trait {
                 return '';
             }
             if (($original_bytes - $min_bytes) < 2048 || $min_bytes > (int) floor($original_bytes * 0.90)) {
+                // The saving is too small to justify a separate request; remember that so the next
+                // cache-miss render does not re-read and re-minify an asset we already rejected.
+                $this->mark_minify_skipped($dir, $skip);
                 return '';
             }
 
-            $hash = substr(hash('sha256', $minified . '|' . UCP_VERSION . '|' . $type), 0, 20);
-            $dir = trailingslashit(UCP_CACHE_DIR) . 'min/';
             if (!is_dir($dir)) {
                 wp_mkdir_p($dir);
             }
             UCP_Helpers::write_file($dir . 'index.html', '');
-            $target = $dir . $hash . '.' . $type;
-            if (!file_exists($target)) {
-                $tmp = $target . '.tmp.' . wp_generate_password(8, false, false);
-                if (!UCP_Helpers::write_file($tmp, $minified) || !UCP_Helpers::move_file($tmp, $target)) {
-                    UCP_Helpers::safe_delete_file($tmp);
-                    return '';
-                }
+            $tmp = $target . '.tmp.' . wp_generate_password(8, false, false);
+            if (!UCP_Helpers::write_file($tmp, $minified) || !UCP_Helpers::move_file($tmp, $target)) {
+                UCP_Helpers::safe_delete_file($tmp);
+                return '';
             }
             return UCP_Helpers::file_url_from_path($target);
+        }
+
+        /**
+         * Persist a tiny negative-cache marker next to where the minified file would live, so a
+         * source we judged not worth minifying (saving too small, or JS that needs a full parser)
+         * is not re-read and re-minified on every subsequent cache-miss render. The marker shares
+         * the source fingerprint, so it is invalidated automatically when the source file changes
+         * and is removed whenever the min/ cache directory is purged.
+         *
+         * @param string $dir       Minified-asset cache directory (trailing-slashed).
+         * @param string $skip_path Absolute path of the marker file.
+         * @return void
+         */
+        private function mark_minify_skipped($dir, $skip_path) {
+            if (!is_dir($dir)) {
+                wp_mkdir_p($dir);
+            }
+            UCP_Helpers::write_file($dir . 'index.html', '');
+            UCP_Helpers::write_file($skip_path, '');
         }
 
 

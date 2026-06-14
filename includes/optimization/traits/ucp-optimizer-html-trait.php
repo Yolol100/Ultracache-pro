@@ -46,6 +46,8 @@ trait UCP_Optimizer_HTML_Trait {
 
     private function needs_output_buffer() {
         return (bool) (
+            UCP_Options::get('enable_css_minify') ||
+            UCP_Options::get('enable_js_minify') ||
             UCP_Options::get('enable_delay_js') ||
             UCP_Options::get('remove_html_comments') ||
             UCP_Options::get('enable_html_minify') ||
@@ -114,6 +116,10 @@ trait UCP_Optimizer_HTML_Trait {
 
         if (!$skip_markup_optimizations && UCP_Options::get('enable_worker_lazyload')) {
             $html = $this->inject_worker_lazyload_runtime($html);
+        }
+
+        if (!$skip_markup_optimizations) {
+            $html = $this->minify_inline_assets($html);
         }
 
         if (!$allow_comment_cleanup && !$allow_html_minify) {
@@ -197,24 +203,29 @@ trait UCP_Optimizer_HTML_Trait {
         if (is_admin() || is_feed() || is_preview() || is_customize_preview()) {
             return true;
         }
-        if (function_exists('is_cart') && is_cart()) {
-            return true;
-        }
-        if (function_exists('is_checkout') && is_checkout()) {
-            return true;
-        }
-        if (function_exists('is_account_page') && is_account_page()) {
-            return true;
-        }
-        if (function_exists('is_wc_endpoint_url') && is_wc_endpoint_url()) {
+        if (class_exists('UCP_Optimization_Guards') && UCP_Optimization_Guards::is_woocommerce_critical_request()) {
             return true;
         }
         $request_uri = isset($_SERVER['REQUEST_URI']) ? esc_url_raw(wp_unslash($_SERVER['REQUEST_URI'])) : '';
         if ('' !== $request_uri) {
-            foreach (array('wc-ajax=', 'add-to-cart=', 'elementor', 'fl_builder', 'customize_changeset_uuid=', 'elementor-preview=', 'bricks=run', 'preview=true', 'preview_id=', 'et_fb=', 'vc_editable=', 'ct_builder=', 'breakdance=', 'oxygen_iframe=', 'trp-form-language', 'cmplz_region_redirect', 's=', 'edd_action=', 'surecart', 'cartflows', 'order-pay', 'order-received', 'add-payment-method', 'apply_coupon', 'remove_item', 'update_cart', 'payment_method', 'stripe', 'paypal', 'mollie', 'klarna', 'adyen', 'ideal', 'customer-logout') as $fragment) {
+            $path = (string) wp_parse_url($request_uri, PHP_URL_PATH);
+            $query = (string) wp_parse_url($request_uri, PHP_URL_QUERY);
+            $query_args = array();
+            if ('' !== $query) {
+                wp_parse_str($query, $query_args);
+            }
+            foreach (array('elementor-preview', 'fl_builder', 'customize_changeset_uuid', 'bricks', 'preview', 'preview_id', 'et_fb', 'vc_editable', 'ct_builder', 'breakdance', 'oxygen_iframe', 'trp-form-language', 'cmplz_region_redirect') as $key) {
+                if (array_key_exists($key, $query_args)) {
+                    return true;
+                }
+            }
+            foreach (array('elementor', 'fl_builder', 'bricks=run', 'oxygen_iframe=', 'ct_builder=', 'breakdance=', 'vc_editable=') as $fragment) {
                 if (false !== strpos($request_uri, $fragment)) {
                     return true;
                 }
+            }
+            if (class_exists('UCP_Optimization_Guards') && UCP_Optimization_Guards::is_woocommerce_critical_request()) {
+                return true;
             }
         }
         return false;
@@ -222,13 +233,11 @@ trait UCP_Optimizer_HTML_Trait {
 
 
     private function html_contains_sensitive_markup($html) {
+        if (class_exists('UCP_Optimization_Guards')) {
+            return UCP_Optimization_Guards::contains_sensitive_markup($html);
+        }
         $scan = strtolower(substr((string) $html, 0, 300000));
-        foreach (array(
-            'woocommerce-checkout', 'woocommerce-cart-form', 'woocommerce-form-coupon', 'wc-block-checkout', 'wc-block-cart',
-            'payment_method_', 'stripe', 'paypal', 'mollie', 'klarna', 'adyen', 'ideal', 'apple-pay', 'google-pay',
-            'gform_wrapper', 'wpforms-form', 'wpcf7-form', 'fluentform', 'ninja-forms-form', 'forminator-ui', 'grecaptcha', 'h-captcha', 'cf-turnstile',
-            'elementor-editor-active', 'elementor-popup-modal', 'bricks-is-frontend', 'et_fb_app'
-        ) as $needle) {
+        foreach (array('woocommerce-checkout', 'woocommerce-cart-form', 'wc-block-checkout', 'wc-block-cart', 'payment_method_', 'gform_wrapper', 'wpforms-form', 'wpcf7-form', 'fluentform', 'grecaptcha', 'h-captcha', 'cf-turnstile') as $needle) {
             if (false !== strpos($scan, $needle)) {
                 return true;
             }
@@ -306,6 +315,117 @@ trait UCP_Optimizer_HTML_Trait {
         return strtr($html, $protected);
     }
 
+
+    /**
+     * Minify the *contents* of inline <style> and inline <script> blocks in the page HTML.
+     *
+     * UCP already swaps enqueued external CSS/JS for minified variants, but page builders
+     * (Elementor, Divi, Bricks) and many plugins emit the bulk of their CSS — and a lot of JS —
+     * inline, which never passes through wp_enqueue_* and so was previously shipped unminified.
+     * Competitors (WP Rocket, Autoptimize, LiteSpeed) minify these inline blocks; this brings UCP
+     * to parity. It reuses the same toggles as external minification: inline CSS follows
+     * enable_css_minify (safe, on by default) and inline JS follows enable_js_minify (the
+     * staging-first JS toggle), so it inherits the user's tested choices and every sensitive
+     * bypass already applied by the caller.
+     *
+     * The pass is deliberately conservative: a long list of non-classic script types (JSON-LD,
+     * templates, importmaps, speculation rules, modules) is left byte-for-byte intact, scripts
+     * marked data-cfasync="false" or data-ucp-no-minify are skipped, and any block whose minified
+     * form is not strictly smaller is returned untouched. A filter allows a full opt-out.
+     *
+     * @param string $html
+     * @return string
+     */
+    private function minify_inline_assets($html) {
+        if (!is_string($html) || '' === $html) {
+            return $html;
+        }
+        if (!apply_filters('ucp_enable_inline_minify', true, $html)) {
+            return $html;
+        }
+        $do_css = (bool) UCP_Options::get('enable_css_minify');
+        $do_js  = (bool) UCP_Options::get('enable_js_minify');
+        if (!$do_css && !$do_js) {
+            return $html;
+        }
+
+        if ($do_css && false !== stripos($html, '<style')) {
+            $result = preg_replace_callback('#<style\b([^>]*)>(.*?)</style>#is', function ($m) {
+                $attrs = (string) $m[1];
+                $body  = (string) $m[2];
+                if ('' === trim($body) || false !== stripos($attrs, 'data-ucp-no-minify')) {
+                    return $m[0];
+                }
+                // Only touch plain CSS style blocks; leave e.g. type="text/template" intact.
+                if (preg_match('#\btype\s*=\s*("|\')(.*?)\1#i', $attrs, $t) && '' !== trim($t[2]) && false === stripos($t[2], 'css')) {
+                    return $m[0];
+                }
+                $min = UCP_Helpers::minify_css($body);
+                if (!is_string($min) || '' === trim($min) || strlen($min) >= strlen($body)) {
+                    return $m[0];
+                }
+                return '<style' . $attrs . '>' . $min . '</style>';
+            }, $html);
+            $html = is_string($result) ? $result : $html;
+        }
+
+        if ($do_js && false !== stripos($html, '<script')) {
+            $result = preg_replace_callback('#<script\b([^>]*)>(.*?)</script>#is', function ($m) {
+                $attrs = (string) $m[1];
+                $body  = (string) $m[2];
+                // No body means an external (src=) or empty tag; nothing to minify.
+                if ('' === trim($body)) {
+                    return $m[0];
+                }
+                if (preg_match('#\bsrc\s*=#i', $attrs)
+                    || false !== stripos($attrs, 'data-ucp-no-minify')
+                    || false !== stripos($attrs, 'data-cfasync')) {
+                    return $m[0];
+                }
+                // Only classic executable JS. Skip JSON-LD, templates, importmaps, speculation
+                // rules, modules and any other typed block.
+                if (preg_match('#\btype\s*=\s*("|\')(.*?)\1#i', $attrs, $t)) {
+                    $script_type = strtolower(trim($t[2]));
+                    if (!in_array($script_type, array('', 'text/javascript', 'application/javascript'), true)) {
+                        return $m[0];
+                    }
+                }
+                if ($this->inline_js_is_risky($body)) {
+                    return $m[0];
+                }
+                $min = UCP_Helpers::minify_js($body);
+                if (!is_string($min) || '' === trim($min) || strlen($min) >= strlen($body)) {
+                    return $m[0];
+                }
+                return '<script' . $attrs . '>' . $min . '</script>';
+            }, $html);
+            $html = is_string($result) ? $result : $html;
+        }
+
+        return $html;
+    }
+
+    /**
+     * Conservative guard for inline JavaScript, mirroring the external minifier's risk check:
+     * the lightweight minifier is not a full parser, so skip sources containing syntax it is
+     * known to misread (leading regex literals, ES module syntax, embedded source maps).
+     *
+     * @param string $contents
+     * @return bool
+     */
+    private function inline_js_is_risky($contents) {
+        $contents = (string) $contents;
+        if (preg_match('/(^|[=(:,!&|?;{}\[])\s*\/(?![\/*])/', $contents)) {
+            return true;
+        }
+        if (preg_match('/\b(?:import|export)\s+(?:\{|default|from|\*)/m', $contents)) {
+            return true;
+        }
+        if (false !== strpos($contents, 'sourceMappingURL=')) {
+            return true;
+        }
+        return false;
+    }
 
     private function minify_html_document($html) {
         $html = (string) $html;

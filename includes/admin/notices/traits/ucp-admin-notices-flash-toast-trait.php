@@ -117,15 +117,6 @@ trait UCP_Admin_Notices_Flash_Toast_Trait {
         delete_option('ucp_pending_cache_toast');
 
         $message = wp_strip_all_tags((string) $toast['message']);
-        $count   = !empty($toast['count']) ? absint($toast['count']) : 1;
-        if ($count > 1) {
-            $message = sprintf(
-                /* translators: 1: cache clear message, 2: number of cache clear events. */
-                __('%1$s (%2$d keer)', 'ultracache-pro'),
-                $message,
-                $count
-            );
-        }
         ?>
         <div class="ucp-cache-toast" role="status" aria-live="polite" data-ucp-cache-toast>
             <span class="ucp-cache-toast__icon" aria-hidden="true">✓</span>

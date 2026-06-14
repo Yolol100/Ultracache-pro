@@ -274,7 +274,7 @@ class UCP_Admin_Sanitizer {
 
         $output['delay_js_mode'] = isset($input['delay_js_mode']) && in_array($input['delay_js_mode'], array('specified','all'), true) ? $input['delay_js_mode'] : 'specified';
         $output['css_delivery_mode'] = isset($input['css_delivery_mode']) && in_array($input['css_delivery_mode'], array('none','remove_unused','async'), true) ? $input['css_delivery_mode'] : (isset($current['css_delivery_mode']) ? $current['css_delivery_mode'] : 'none');
-        $output['used_css_delivery_method'] = isset($input['used_css_delivery_method']) && in_array($input['used_css_delivery_method'], array('inline','file'), true) ? $input['used_css_delivery_method'] : (isset($current['used_css_delivery_method']) ? $current['used_css_delivery_method'] : 'inline');
+        $output['used_css_delivery_method'] = isset($input['used_css_delivery_method']) && in_array($input['used_css_delivery_method'], array('inline','file'), true) ? $input['used_css_delivery_method'] : (isset($current['used_css_delivery_method']) ? $current['used_css_delivery_method'] : 'file');
         $output['css_artifact_scope'] = isset($input['css_artifact_scope']) && in_array($input['css_artifact_scope'], array('url','template'), true) ? $input['css_artifact_scope'] : (isset($current['css_artifact_scope']) ? $current['css_artifact_scope'] : 'url');
         $output['cdn_file_types'] = isset($input['cdn_file_types']) && in_array($input['cdn_file_types'], array('all','css_js','images'), true) ? $input['cdn_file_types'] : (isset($current['cdn_file_types']) ? $current['cdn_file_types'] : 'all');
 
@@ -292,6 +292,14 @@ class UCP_Admin_Sanitizer {
         $output['cdn_provider'] = isset($output['cdn_provider']) && in_array($output['cdn_provider'], array('none', 'cloudflare', 'bunny', 'generic'), true)
             ? $output['cdn_provider']
             : (isset($current['cdn_provider']) ? $current['cdn_provider'] : 'none');
+
+        $output['image_cdn_transform_provider'] = isset($output['image_cdn_transform_provider']) && in_array($output['image_cdn_transform_provider'], array('auto', 'bunny', 'cloudflare', 'generic'), true)
+            ? $output['image_cdn_transform_provider']
+            : (isset($current['image_cdn_transform_provider']) ? $current['image_cdn_transform_provider'] : 'auto');
+
+        $output['font_unicode_ranges'] = isset($output['font_unicode_ranges']) && in_array($output['font_unicode_ranges'], array('latin', 'latin-ext', 'latin-plus-ext'), true)
+            ? $output['font_unicode_ranges']
+            : (isset($current['font_unicode_ranges']) ? $current['font_unicode_ranges'] : 'latin');
         $output['speculative_loading_mode'] = isset($output['speculative_loading_mode']) && in_array($output['speculative_loading_mode'], array('core', 'enhanced', 'prerender', 'off'), true)
             ? $output['speculative_loading_mode']
             : (isset($current['speculative_loading_mode']) && in_array($current['speculative_loading_mode'], array('core', 'enhanced', 'prerender', 'off'), true) ? $current['speculative_loading_mode'] : 'core');
@@ -328,15 +336,15 @@ class UCP_Admin_Sanitizer {
             'enable_defer_js_fallback', 'defer_all_js', 'delay_js_temporary_safe_mode', 'delay_js_log_delayed_scripts', 'enable_delay_js_preload_delayed_scripts', 'enable_native_script_strategy', 'enable_remove_emojis', 'enable_disable_embeds', 'enable_prefetch_links',
             'enable_speculative_loading', 'show_advanced_options', 'disable_logged_in_optimizations', 'accessibility_mode', 'clean_uninstall', 'enable_font_display_swap', 'enable_lazy_images', 'enable_lazy_iframes', 'enable_lazy_youtube_preview', 'enable_add_image_dimensions', 'enable_image_optimization', 'enable_webp_generation', 'enable_avif_generation', 'enable_local_google_fonts', 'enable_cwv_monitoring', 'enable_fragment_cache', 'enable_rest_cache', 'enable_used_css', 'enable_used_css_delivery',
             'enable_critical_css', 'enable_css_queue', 'enable_remote_css_render', 'css_artifact_rollback', 'enable_cdn', 'browser_cache_headers', 'enable_remove_query_strings',
-            'enable_heartbeat_control', 'enable_db_cleanup', 'db_cleanup_post_revisions', 'db_cleanup_auto_drafts', 'db_cleanup_expired_transients', 'db_cleanup_all_transients',
-            'db_cleanup_spam_comments', 'db_cleanup_trashed_comments', 'db_cleanup_trashed_posts', 'db_cleanup_optimize_tables',
+            'enable_heartbeat_control', 'enable_db_cleanup', 'db_cleanup_post_revisions', 'db_cleanup_auto_drafts', 'db_cleanup_drafts', 'db_cleanup_expired_transients', 'db_cleanup_all_transients',
+            'db_cleanup_spam_comments', 'db_cleanup_trashed_comments', 'db_cleanup_trashed_posts', 'db_cleanup_optimize_tables', 'db_cleanup_optimize_all_tables',
             'db_cleanup_wc_sessions', 'enable_cloud', 'cloud_pull_used_css', 'cloud_pull_critical_css', 'enable_edge_cache_headers',
             'enable_cloudflare_apo_mode', 'enable_early_hints_links', 'enable_edge_html_cache', 'edge_html_cache_tags', 'enable_admin_bar', 'enable_asset_test_mode', 'enable_asset_manager_snapshot', 'purge_on_post_update', 'purge_on_comment',
             'purge_on_theme_switch', 'purge_on_extension_change', 'purge_on_core_update', 'purge_on_global_change', 'enable_cache_tags', 'enable_object_cache_support', 'object_cache_fail_safe', 'enable_diagnostics', 'enable_logs', 'enable_dynamic_compatibility_rules', 'enable_runtime_debug_headers', 'enable_health_checks', 'enable_admin_queue_runner', 'autopilot_enabled', 'onboarding_completed',
             'enable_local_critical_css', 'enable_brotli_precompression', 'enable_gzip_precompression', 'enable_cls_iframe_reservation', 'enable_expand_missing_srcset', 'enable_worker_lazyload', 'enable_apcu_object_cache', 'enable_redis_object_cache', 'db_allow_myisam_innodb_convert', 'allow_wp_config_write', 'allow_dropin_writes', 'allow_browser_cache_rule_writes', 'enable_preload_queue', 'enable_targeted_purge', 'enable_light_preload_requests', 'enable_lazy_render', 'enable_self_host_third_party_assets', 'enable_disable_dashicons', 'enable_disable_jquery_migrate', 'enable_move_module_scripts_footer', 'safe_settings_export', 'enable_disable_xmlrpc', 'enable_hide_wp_version', 'enable_remove_rsd_link', 'enable_remove_shortlink', 'enable_disable_rss_feeds', 'enable_remove_rss_feed_links', 'enable_disable_self_pingbacks', 'enable_disable_rest_api', 'enable_remove_rest_api_links', 'enable_disable_google_maps', 'enable_disable_password_strength_meter', 'allow_dropin_takeover', 'enable_disable_comments', 'enable_remove_comment_links', 'enable_blank_favicon', 'enable_remove_global_styles', 'enable_separate_block_styles', 'enable_disable_google_fonts', 'enable_hide_toolbar_menu', 'enable_lazyload_fade_in', 'enable_lazyload_background_images', 'enable_auto_resource_hints', 'enable_auto_font_preloads', 'enable_css_profiles', 'preload_pause_on_high_load', 'enable_sensitive_asset_unload_override',
             // Compatibility modules introduced in earlier 11.x releases.
-            'enable_headless_renderer', 'enable_direct_cache_htaccess', 'enable_async_image_optimization', 'enable_image_cdn', 'enable_esi', 'enable_compat_updates',
-            'enable_lqip', 'enable_rum', 'enable_viewport_images', 'enable_local_gravatar', 'enable_local_youtube_thumbnails', 'enable_asset_inspector',
+            'enable_headless_renderer', 'enable_direct_cache_htaccess', 'enable_async_image_optimization', 'enable_image_cdn', 'enable_image_cdn_transforms', 'enable_adaptive_image_srcset', 'enable_esi', 'enable_compat_updates',
+            'enable_lqip', 'enable_rum', 'enable_viewport_images', 'enable_local_gravatar', 'enable_local_youtube_thumbnails', 'enable_asset_inspector', 'enable_font_unicode_ranges',
             'enable_host_cache_purge', 'enable_html_parser'
         );
 
@@ -385,15 +393,16 @@ class UCP_Admin_Sanitizer {
             'cdn_exclude' => 'fragment',
             'html_exclude_urls' => 'path',
             'html_exclude_templates' => 'fragment',
+            'image_cdn_widths' => 'fragment',
         );
 
         $text_fields = array(
             'ui_mode', 'active_preset', 'cache_backend', 'css_delivery_mode', 'used_css_delivery_method', 'css_artifact_scope', 'delay_js_mode', 'speculative_loading_mode', 'speculation_mode', 'speculation_eagerness', 'cache_refresh_interval', 'db_cleanup_frequency', 'preload_content_scope', 'cloud_endpoint', 'cloud_site_id',
             'cloudflare_zone_id', 'onboarding_site_type', 'onboarding_goal', 'delay_js_presets', 'cdn_file_types', 'heartbeat_frontend_behavior', 'heartbeat_editor_behavior', 'heartbeat_backend_behavior', 'css_artifact_retry_backoff',
-            'headless_renderer_endpoint', 'image_cdn_base', 'image_cdn_query', 'cdn_provider', 'bunny_pull_zone_id', 'compat_update_url', 'cdn_purge_webhook'
+            'headless_renderer_endpoint', 'image_cdn_base', 'image_cdn_query', 'image_cdn_transform_provider', 'font_unicode_ranges', 'cdn_provider', 'bunny_pull_zone_id', 'compat_update_url', 'cdn_purge_webhook'
         );
 
-        $secret_fields = array('cloud_api_key', 'cloudflare_api_token', 'headless_renderer_token', 'bunny_api_key', 'cdn_purge_webhook_token');
+        $secret_fields = array('cloud_api_key', 'cloudflare_api_token', 'secret_cache_key', 'css_cache_key', 'js_cache_key', 'headless_renderer_token', 'bunny_api_key', 'cdn_purge_webhook_token');
 
         $output = self::apply_checkbox_fields($output, $input, $current, $checkbox_fields);
 

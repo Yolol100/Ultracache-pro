@@ -150,6 +150,7 @@ trait UCP_CSS_Delivery_Trait {
                 // LiteSpeed school). Falls back to inline when the file cannot be written.
                 $served = self::used_css_served_url($used_css);
                 if ('' !== $served) {
+                    // phpcs:ignore WordPress.WP.EnqueuedResources.NonEnqueuedStylesheet -- this tag is injected into optimized HTML output, not enqueued as an admin/theme asset.
                     $tag = '<link rel="stylesheet" id="ucp-used-css-file" data-ucp="remove-unused-css" href="' . esc_url($served) . '" media="all">';
                 }
             }

@@ -61,6 +61,8 @@ class UCP_Admin_Object_Cache_Page {
         $redis_opt     = class_exists('UCP_Options') && UCP_Options::get('enable_redis_object_cache');
         $apcu_opt      = class_exists('UCP_Options') && UCP_Options::get('enable_apcu_object_cache');
         $action_url    = admin_url('admin-post.php');
+        $support_mode  = isset($_GET['ucp_support']) && '1' === sanitize_text_field(wp_unslash($_GET['ucp_support']));
+        $show_apcu     = $support_mode || (!$has_redis_ext && $has_apcu_ext) || (!$redis_conn && $has_apcu_ext);
 
         // Render any queued flash notice from our admin-post handlers (the React notices
         // system only renders on the main plugin page, so we surface it here ourselves).
@@ -74,12 +76,33 @@ class UCP_Admin_Object_Cache_Page {
         }
         ?>
         <div class="wrap ucp-object-cache-page">
+            <style>
+                .ucp-object-cache-page .ucp-object-cache-intro {
+                    color: #50575e;
+                    max-width: none;
+                }
+                .ucp-object-cache-page .ucp-object-cache-card {
+                    width: 100%;
+                    max-width: none;
+                    box-sizing: border-box;
+                    padding: 4px 20px 16px;
+                }
+                .ucp-object-cache-page .ucp-object-cache-card.ucp-object-cache-card-spaced {
+                    margin-top: 16px;
+                }
+                .ucp-object-cache-page .ucp-object-cache-card pre {
+                    max-width: 100%;
+                    box-sizing: border-box;
+                    white-space: pre-wrap;
+                    word-break: break-word;
+                }
+            </style>
             <h1><?php esc_html_e('UltraCache Pro — Object Cache', 'ultracache-pro'); ?></h1>
-            <p style="max-width:760px;color:#50575e">
+            <p class="ucp-object-cache-intro">
                 <?php esc_html_e('Een persistente object cache bewaart database-resultaten tussen requests. Installeer één drop-in tegelijk. UltraCache overschrijft nooit automatisch een object-cache.php van een andere plugin.', 'ultracache-pro'); ?>
             </p>
 
-            <div class="card" style="max-width:760px;padding:4px 20px 16px">
+            <div class="card ucp-object-cache-card">
                 <h2 style="margin-top:16px"><?php esc_html_e('Huidige status', 'ultracache-pro'); ?></h2>
                 <table class="widefat striped" style="margin-bottom:8px">
                     <tbody>
@@ -119,16 +142,19 @@ class UCP_Admin_Object_Cache_Page {
                 </table>
             </div>
 
-            <div class="card" style="max-width:760px;padding:4px 20px 20px;margin-top:16px">
+            <div class="card ucp-object-cache-card ucp-object-cache-card-spaced" style="padding-bottom:20px">
                 <h2 style="margin-top:16px"><?php esc_html_e('Redis object cache', 'ultracache-pro'); ?></h2>
                 <p style="color:#50575e">
-                    <?php esc_html_e('Aanbevolen voor productie en multisite. Configureer de verbinding in wp-config.php:', 'ultracache-pro'); ?>
+                    <?php esc_html_e('Aanbevolen voor productie en multisite. Gebruik Redis alleen wanneer de hostingconfiguratie klopt en Redis bereikbaar is.', 'ultracache-pro'); ?>
                 </p>
+                <details class="ucp-object-cache-technical" style="margin:12px 0" <?php echo $support_mode ? ' open' : ''; ?>>
+                    <summary style="cursor:pointer;font-weight:600"><?php esc_html_e('Technische configuratie tonen', 'ultracache-pro'); ?></summary>
 <pre style="background:#f6f7f7;border:1px solid #c3c4c7;border-radius:4px;padding:12px;overflow:auto;font-size:12px">define( 'WP_REDIS_HOST', '127.0.0.1' );
 define( 'WP_REDIS_PORT', 6379 );
 // define( 'WP_REDIS_PASSWORD', '...' );
 // define( 'WP_REDIS_DATABASE', 0 );
 define( 'WP_CACHE_KEY_SALT', '<?php echo esc_html(substr(wp_hash('ucp-salt-' . home_url()), 0, 12)); ?>' );</pre>
+                </details>
 
                 <?php if (!$has_redis_ext) : ?>
                     <div class="notice notice-warning inline" style="margin:12px 0"><p><?php esc_html_e('De phpredis-extensie is niet geladen. Vraag je host om php-redis te installeren.', 'ultracache-pro'); ?></p></div>
@@ -163,7 +189,8 @@ define( 'WP_CACHE_KEY_SALT', '<?php echo esc_html(substr(wp_hash('ucp-salt-' . h
                 </div>
             </div>
 
-            <div class="card" style="max-width:760px;padding:4px 20px 20px;margin-top:16px">
+            <?php if ($show_apcu) : ?>
+            <div class="card ucp-object-cache-card ucp-object-cache-card-spaced" style="padding-bottom:20px">
                 <h2 style="margin-top:16px"><?php esc_html_e('APCu object cache', 'ultracache-pro'); ?></h2>
                 <p style="color:#50575e">
                     <?php esc_html_e('Alleen geschikt voor single-server omgevingen zonder Redis/Memcached. APCu is per-proces en vluchtig.', 'ultracache-pro'); ?>
@@ -182,6 +209,7 @@ define( 'WP_CACHE_KEY_SALT', '<?php echo esc_html(substr(wp_hash('ucp-salt-' . h
                     </button>
                 </form>
             </div>
+            <?php endif; ?>
         </div>
         <?php
     }

@@ -109,8 +109,20 @@ trait UCP_Quality_Suite_Runtime_Trait {
         $path_hash = substr(md5($raw_path), 0, 8);
         $query = isset($parts['query']) ? UCP_Helpers::normalized_cache_query($parts['query']) : '';
         $query_key = '' !== $query ? md5($query) : 'noq';
-        $host = isset($parts['host']) ? strtolower((string) $parts['host']) : strtolower((string) wp_parse_url(home_url('/'), PHP_URL_HOST));
-        $host_key = $host ? md5($host) : 'nohost';
+        $raw_host = isset($parts['host']) ? (string) $parts['host'] : (string) wp_parse_url(home_url('/'), PHP_URL_HOST);
+        // Independently mirror ucp_dropin_normalize_host() (strip port, keep IPv6 brackets, restrict
+        // to [a-z0-9.-]) so this drift-check validates against the canonical drop-in recipe, not the
+        // pre-normalization host string.
+        $host = strtolower(trim(wp_strip_all_tags($raw_host)));
+        if (preg_match('/^\[([a-f0-9:]+)\](?::\d+)?$/i', $host, $host_match)) {
+            $host = '[' . strtolower($host_match[1]) . ']';
+        } else {
+            if (preg_match('/^([^:]+):\d+$/', $host, $host_match)) {
+                $host = $host_match[1];
+            }
+            $host = preg_replace('/[^a-z0-9.-]/', '', $host);
+        }
+        $host_key = '' !== $host ? md5($host) : 'nohost';
         $is_mobile = UCP_Options::get('cache_mobile_separately') && UCP_Helpers::is_mobile_request();
         $suffix = 'guest' . ($is_mobile ? '-mobile' : '');
         return $host_key . '-' . $path . '-' . $path_hash . '-' . $suffix . '-' . $query_key;

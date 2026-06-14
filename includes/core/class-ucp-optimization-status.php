@@ -61,7 +61,10 @@ class UCP_Optimization_Status {
             'lazyMedia'     => self::feature(__('Lazy media', 'ultracache-pro'), !empty($settings['enable_lazy_images']) || !empty($settings['enable_lazy_iframes']) || !empty($settings['enable_lazy_youtube_preview']), $public_guard, __('Media-optimalisatie blijft uit op gevoelige of afgeschermde contexten.', 'ultracache-pro')),
             'restCache'     => self::feature(__('REST-cache', 'ultracache-pro'), !empty($settings['enable_rest_cache']), $public_guard, __('Alleen veilige GET-routes zonder persoonlijke context worden gecachet.', 'ultracache-pro')),
             'imageOptimize' => self::queued_feature(__('Afbeeldingen', 'ultracache-pro'), !empty($settings['enable_image_optimization']) || !empty($settings['enable_webp_generation']) || !empty($settings['enable_avif_generation']), $queue, __('Afbeeldingswerk hoort in de wachtrij, niet in de bezoekersrequest.', 'ultracache-pro')),
-            'fonts'         => self::feature(__('Fonts', 'ultracache-pro'), !empty($settings['enable_local_google_fonts']) || !empty($settings['enable_font_display_swap']) || !empty($settings['enable_disable_google_fonts']), $public_guard, __('Font-optimalisatie wordt alleen toegepast wanneer de frontend veilig is.', 'ultracache-pro')),
+            'adaptiveImages'=> self::adaptive_images_feature($settings, $public_guard),
+            'cdn'           => self::cdn_feature($settings, $public_guard),
+            'objectCache'   => self::object_cache_feature($settings),
+            'fonts'         => self::font_feature($settings, $public_guard),
         );
 
         return array(
@@ -217,6 +220,95 @@ class UCP_Optimization_Status {
 
         return self::feature(__('Asset Manager', 'ultracache-pro'), $enabled, $public_guard, __('Assetregels worden alleen toegepast waar ze expliciet matchen.', 'ultracache-pro'));
     }
+
+
+
+    /**
+     * CDN status should read like infrastructure, not a regular toggle.
+     *
+     * @param array $settings Settings.
+     * @param bool  $public_guard Public guard state.
+     * @return array
+     */
+    protected static function cdn_feature($settings, $public_guard) {
+        $enabled = !empty($settings['enable_cdn']);
+        $hosts = !empty($settings['cdn_cnames']) ? UCP_Helpers::normalize_multiline($settings['cdn_cnames']) : array();
+        $provider = !empty($settings['cdn_provider']) ? sanitize_key((string) $settings['cdn_provider']) : 'none';
+
+        if (!$enabled && 'none' === $provider && empty($hosts)) {
+            return self::item(__('CDN', 'ultracache-pro'), self::SKIPPED, __('Niet ingesteld', 'ultracache-pro'), __('Geen CDN-provider of CNAME actief.', 'ultracache-pro'));
+        }
+        if ($enabled && empty($hosts)) {
+            return self::item(__('CDN', 'ultracache-pro'), self::PENDING, __('Gedeeltelijk ingesteld', 'ultracache-pro'), __('CDN rewrite staat aan, maar er is nog geen CDN-domein ingevuld.', 'ultracache-pro'));
+        }
+        if ($public_guard) {
+            return self::item(__('CDN', 'ultracache-pro'), self::PENDING, __('Alleen zichtbaar in testmodus', 'ultracache-pro'), __('CDN rewrite wordt niet op gevoelige requests toegepast.', 'ultracache-pro'));
+        }
+        return self::item(__('CDN', 'ultracache-pro'), self::ACTIVE, __('Actief', 'ultracache-pro'), __('CDN rewrite gebruikt de ingestelde bestandstypes en uitsluitingen.', 'ultracache-pro'));
+    }
+
+    /**
+     * Adaptive images depend on image CDN transforms and safe image matching.
+     *
+     * @param array $settings Settings.
+     * @param bool  $public_guard Public guard state.
+     * @return array
+     */
+    protected static function adaptive_images_feature($settings, $public_guard) {
+        if (empty($settings['enable_adaptive_image_srcset'])) {
+            return self::item(__('Adaptive images', 'ultracache-pro'), self::SKIPPED, __('Uitgeschakeld', 'ultracache-pro'), __('WordPress srcsets blijven leidend.', 'ultracache-pro'));
+        }
+        if (empty($settings['enable_image_cdn']) || empty($settings['image_cdn_base'])) {
+            return self::item(__('Adaptive images', 'ultracache-pro'), self::PENDING, __('Handmatig controleren', 'ultracache-pro'), __('Adaptive srcsets hebben een werkende image-CDN basis-URL nodig.', 'ultracache-pro'));
+        }
+        if ($public_guard) {
+            return self::item(__('Adaptive images', 'ultracache-pro'), self::PENDING, __('Alleen zichtbaar in testmodus', 'ultracache-pro'), __('Image rewrites blijven uit voor gevoelige frontend-contexten.', 'ultracache-pro'));
+        }
+        return self::item(__('Adaptive images', 'ultracache-pro'), self::ACTIVE, __('Actief', 'ultracache-pro'), __('Alleen normale rasterafbeeldingen krijgen adaptive srcsets; logo’s, icons en kritieke beelden blijven beschermd.', 'ultracache-pro'));
+    }
+
+    /**
+     * Object cache status from runtime environment/drop-ins.
+     *
+     * @param array $settings Settings.
+     * @return array
+     */
+    protected static function object_cache_feature($settings) {
+        $enabled = !empty($settings['enable_redis_object_cache']) || !empty($settings['enable_apcu_object_cache']);
+        if (!$enabled) {
+            return self::item(__('Object cache', 'ultracache-pro'), self::SKIPPED, __('Optioneel', 'ultracache-pro'), __('Alleen nuttig wanneer Redis/APCu beschikbaar is en getest is op de hosting.', 'ultracache-pro'));
+        }
+        if (!class_exists('UCP_Object_Cache')) {
+            return self::item(__('Object cache', 'ultracache-pro'), self::PENDING, __('Handmatig controleren', 'ultracache-pro'), __('Object-cache status kon niet worden gelezen.', 'ultracache-pro'));
+        }
+        $status = UCP_Object_Cache::status();
+        if (empty($status['redis']) && empty($status['apcu'])) {
+            return self::item(__('Object cache', 'ultracache-pro'), self::FAILED, __('Niet beschikbaar', 'ultracache-pro'), __('Geen ondersteunde Redis/APCu-extensie gevonden.', 'ultracache-pro'));
+        }
+        if (!empty($status['enabled'])) {
+            return self::item(__('Object cache', 'ultracache-pro'), self::ACTIVE, __('Actief', 'ultracache-pro'), __('Een persistente object-cache drop-in is actief.', 'ultracache-pro'));
+        }
+        return self::item(__('Object cache', 'ultracache-pro'), self::PENDING, __('Beschikbaar', 'ultracache-pro'), __('Redis/APCu lijkt beschikbaar, maar de drop-in is nog niet actief.', 'ultracache-pro'));
+    }
+
+    /**
+     * Fonts status with guarded auto-preload behaviour.
+     *
+     * @param array $settings Settings.
+     * @param bool  $public_guard Public guard state.
+     * @return array
+     */
+    protected static function font_feature($settings, $public_guard) {
+        $enabled = !empty($settings['enable_local_google_fonts']) || !empty($settings['enable_font_display_swap']) || !empty($settings['enable_disable_google_fonts']) || !empty($settings['enable_auto_font_preloads']) || !empty($settings['preload_fonts']);
+        if (!$enabled) {
+            return self::item(__('Fonts', 'ultracache-pro'), self::SKIPPED, __('Uitgeschakeld', 'ultracache-pro'), __('Geen font-optimalisaties actief.', 'ultracache-pro'));
+        }
+        if ($public_guard) {
+            return self::item(__('Fonts', 'ultracache-pro'), self::PENDING, __('Alleen zichtbaar in testmodus', 'ultracache-pro'), __('Font-optimalisatie wordt alleen toegepast wanneer de frontend veilig is.', 'ultracache-pro'));
+        }
+        return self::item(__('Fonts', 'ultracache-pro'), self::ACTIVE, __('Actief', 'ultracache-pro'), __('Automatische font-preloads blijven beperkt tot enkele veilige WOFF2-kandidaten.', 'ultracache-pro'));
+    }
+
 
     /**
      * Queue-backed artifact feature status.

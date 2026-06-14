@@ -24,6 +24,12 @@ trait UCP_Jobs_Runner_Trait {
                 return 0;
             }
         }
+        /**
+         * Limit the number of jobs in one runner pass. The dashboard uses this to
+         * keep the manual "Verwerk taken" action responsive instead of blocking
+         * the admin screen on a large preload batch.
+         */
+        $limit = max(1, absint(apply_filters('ucp_jobs_run_queue_limit', $limit, $force)));
         $token = wp_generate_password(16, false);
         $ttl = max(60, absint(UCP_Options::get('job_lock_ttl', 300)));
         $previous_force_current_run = $this->force_current_run;
@@ -308,7 +314,7 @@ trait UCP_Jobs_Runner_Trait {
 
     protected function fetch_preload_url($url, $variant = 'desktop') {
         $response = wp_remote_get($url, array(
-            'timeout' => 20,
+            'timeout' => max(3, min(20, absint(apply_filters('ucp_preload_request_timeout', 20, $url, $variant, $this->force_current_run)))),
             'redirection' => 0,
             'reject_unsafe_urls' => true,
             'user-agent' => 'mobile' === $variant ? $this->mobile_preload_queue_user_agent() : 'UltraCache Preload Queue/' . UCP_VERSION,

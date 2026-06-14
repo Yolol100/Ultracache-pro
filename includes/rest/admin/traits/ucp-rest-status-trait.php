@@ -508,6 +508,15 @@ trait UCP_REST_Status_Trait {
             );
             $vpi_summary = class_exists('UCP_Viewport_Images') && method_exists('UCP_Viewport_Images', 'get_summary') ? UCP_Viewport_Images::get_summary() : array('profiles' => 0, 'images' => 0, 'latest' => '');
             $speculation_policy = isset($settings['speculative_loading_mode']) && in_array($settings['speculative_loading_mode'], array('core', 'enhanced', 'prerender', 'off'), true) ? $settings['speculative_loading_mode'] : 'core';
+            $dependency_report = function_exists('ucp_dependency_report') ? ucp_dependency_report() : array(
+                'available' => function_exists('ucp_dependency_status') ? ucp_dependency_status() : array(),
+                'missing' => array(),
+                'fallback_active' => false,
+                'autoloaders' => array(),
+                'fallback_features' => array(),
+            );
+            $dependency_status = isset($dependency_report['available']) && is_array($dependency_report['available']) ? $dependency_report['available'] : array();
+            $missing_dependencies = isset($dependency_report['missing']) && is_array($dependency_report['missing']) ? array_map('sanitize_key', $dependency_report['missing']) : array();
 
             return array(
                 'system' => array(
@@ -525,6 +534,14 @@ trait UCP_REST_Status_Trait {
                         'css' => UCP_Compat::combine_lock_reasons('css', $settings),
                         'js'  => UCP_Compat::combine_lock_reasons('js', $settings),
                     ) : array('css' => array(), 'js' => array()),
+                    'dependencies' => array(
+                        'available' => $dependency_status,
+                        'missing'   => $missing_dependencies,
+                        'usesFallbacks' => !empty($missing_dependencies),
+                        'fallbackActive' => !empty($dependency_report['fallback_active']),
+                        'autoloaders' => isset($dependency_report['autoloaders']) && is_array($dependency_report['autoloaders']) ? $dependency_report['autoloaders'] : array(),
+                        'fallbackFeatures' => isset($dependency_report['fallback_features']) && is_array($dependency_report['fallback_features']) ? array_map('sanitize_key', $dependency_report['fallback_features']) : array(),
+                    ),
                 ),
                 'cache' => array(
                     'enabled'        => !empty($settings['enable_cache']),
@@ -532,6 +549,7 @@ trait UCP_REST_Status_Trait {
                     'objectCache'    => wp_using_ext_object_cache(),
                     'objectCacheDetail' => class_exists('UCP_Object_Cache') ? UCP_Object_Cache::status() : array(),
                     'wooSafety'      => !empty($settings['woocommerce_safety_mode']),
+                    'woocommerceActive' => class_exists('WooCommerce'),
                     'compatibility'  => !empty($settings['compatibility_mode']),
                     'lastPurge'      => get_option('ucp_last_purge_at', ''),
                     'cachedPages'    => (int) $page_stats['files'],
@@ -574,6 +592,18 @@ trait UCP_REST_Status_Trait {
                     'summary'           => $vpi_summary,
                 ),
                 'proof' => self::build_proof_dashboard($settings, $cache_stats, $page_stats, $rum_summary, $renderer_readiness, $image_pipeline, $conflict_guard),
+                'databaseCleanup' => array(
+                    'enabled' => !empty($settings['enable_db_cleanup']),
+                    'frequency' => isset($settings['db_cleanup_frequency']) ? sanitize_key((string) $settings['db_cleanup_frequency']) : 'off',
+                    'selectedOperations' => class_exists('UCP_DB_Cleanup') && method_exists('UCP_DB_Cleanup', 'selected_operations') ? UCP_DB_Cleanup::selected_operations() : array(),
+                    'counts' => class_exists('UCP_DB_Cleanup') && method_exists('UCP_DB_Cleanup', 'get_counts') ? UCP_DB_Cleanup::get_counts() : array(),
+                    'requiresBackupConfirmation' => true,
+                    'requiresIrreversibleConfirmation' => true,
+                    'destructive' => true,
+                    'lastRunAt' => sanitize_text_field((string) get_option('ucp_last_db_cleanup_at', '')),
+                    'lastResults' => get_option('ucp_last_db_cleanup_results', array()),
+                    'nextScheduledAt' => class_exists('UCP_DB_Cleanup') ? (int) wp_next_scheduled(UCP_DB_Cleanup::CRON_HOOK) : 0,
+                ),
                 'autopilot' => array(
                     'safeMode' => !empty($settings['compatibility_mode']) && !empty($settings['woocommerce_safety_mode']),
                     'stagingRecommended' => !empty($conflict_guard['matches']) || !empty($settings['enable_delay_js']) || !empty($settings['enable_used_css']) || !empty($settings['enable_critical_css']),

@@ -19,22 +19,39 @@ final class UCP_CWV_Rate_Limiter {
      */
     public static function enforce($metric) {
         if (!self::bump(self::visitor_rate_key($metric), 1, MINUTE_IN_SECONDS)) {
-            return new WP_REST_Response(array('ok' => false, 'reason' => 'rate_limited'), 429);
+            return self::rate_limited_response('rate_limited');
         }
 
         if (!self::bump(self::daily_rate_key($metric), UCP_CWV::MAX_DAILY_SAMPLES_PER_METRIC, DAY_IN_SECONDS)) {
-            return new WP_REST_Response(array('ok' => false, 'reason' => 'daily_limit_reached'), 429);
+            return self::rate_limited_response('daily_limit_reached', HOUR_IN_SECONDS);
         }
 
         if (!self::bump(self::ip_minute_rate_key(), UCP_CWV::MAX_IP_SAMPLES_PER_MINUTE, MINUTE_IN_SECONDS)) {
-            return new WP_REST_Response(array('ok' => false, 'reason' => 'ip_rate_limited'), 429);
+            return self::rate_limited_response('ip_rate_limited');
         }
 
         if (!self::bump(self::site_minute_rate_key(), UCP_CWV::MAX_SITE_SAMPLES_PER_MINUTE, MINUTE_IN_SECONDS)) {
-            return new WP_REST_Response(array('ok' => false, 'reason' => 'site_rate_limited'), 429);
+            return self::rate_limited_response('site_rate_limited');
         }
 
         return null;
+    }
+
+
+
+    /**
+     * Build a consistent non-cacheable 429 response for public CWV beacon limits.
+     *
+     * @param string $reason      Machine-readable reason.
+     * @param int    $retry_after Suggested retry delay in seconds.
+     * @return WP_REST_Response
+     */
+    private static function rate_limited_response($reason, $retry_after = MINUTE_IN_SECONDS) {
+        $response = new WP_REST_Response(array('ok' => false, 'reason' => sanitize_key((string) $reason)), 429);
+        $response->header('Retry-After', (string) max(1, absint($retry_after)));
+        $response->header('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+        $response->header('X-Robots-Tag', 'noindex, nofollow');
+        return $response;
     }
 
     /**

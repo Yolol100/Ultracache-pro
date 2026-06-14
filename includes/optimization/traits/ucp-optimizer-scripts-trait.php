@@ -60,14 +60,17 @@ trait UCP_Optimizer_Scripts_Trait {
         $delay_mode = UCP_Options::get('delay_js_mode', 'specified');
         $specified = UCP_Helpers::normalize_multiline(UCP_Options::get('delay_js_specified_scripts', ''));
         $excluded = apply_filters('ucp_delay_js_exclusions', UCP_Helpers::normalize_multiline(UCP_Options::get('delay_js_exclusions', '')));
-        $excluded = $this->runtime_delay_js_exclusions($excluded, $html);
+        $hard_excluded = $this->hard_delay_js_exclusions($excluded, $html);
+        $soft_excluded = $this->soft_delay_js_exclusions($excluded);
         $safe_mode = (bool) UCP_Options::get('delay_js_safe_mode');
         $forced_delay_hints = class_exists('UCP_PageSpeed_Browser_Scan') ? UCP_PageSpeed_Browser_Scan::delay_script_hints_for_current_request() : array();
         $delayed = 0;
         $forced_delayed = 0;
         $delayed_handles = array();
         $delayed_preload_urls = array();
-        $html = preg_replace_callback('#<script\b([^>]*)>(.*?)</script>#is', function ($matches) use ($excluded, $safe_mode, $delay_mode, $specified, $forced_delay_hints, &$delayed, &$forced_delayed, &$delayed_handles, &$delayed_preload_urls) {
+        $protected_blocks = array();
+        $html = $this->mask_delay_js_protected_blocks($html, $protected_blocks);
+        $html = preg_replace_callback('#<script\b([^>]*)>(.*?)</script>#is', function ($matches) use ($hard_excluded, $soft_excluded, $safe_mode, $delay_mode, $specified, $forced_delay_hints, &$delayed, &$forced_delayed, &$delayed_handles, &$delayed_preload_urls) {
             $attrs = $matches[1];
             $body = $matches[2];
             if (!$this->is_delayable_script_type($attrs) || $this->script_has_no_delay_marker($attrs, $body) || false !== stripos($attrs, 'type="module"') || false !== stripos($attrs, "type='module'") || false !== stripos($attrs, 'importmap') || false !== stripos($attrs, 'nomodule') || preg_match('/\bdata-cfasync\s*=\s*(["\']?)false\1/i', $attrs)) {
@@ -78,8 +81,13 @@ trait UCP_Optimizer_Scripts_Trait {
                 $script_src_for_hint = html_entity_decode($hint_src_match[1], ENT_QUOTES);
             }
             $forced_by_browser_scan = $this->script_matches_browser_delay_hint($attrs, $body, $script_src_for_hint, $forced_delay_hints);
-            foreach ($excluded as $rule) {
-                if (!$forced_by_browser_scan && '' !== $rule && (false !== stripos($attrs, $rule) || false !== stripos($body, $rule))) {
+            foreach ($hard_excluded as $rule) {
+                if ('' !== $rule && (false !== stripos($attrs, $rule) || false !== stripos($body, $rule) || ('' !== $script_src_for_hint && false !== stripos($script_src_for_hint, $rule)))) {
+                    return $matches[0];
+                }
+            }
+            foreach ($soft_excluded as $rule) {
+                if (!$forced_by_browser_scan && '' !== $rule && (false !== stripos($attrs, $rule) || false !== stripos($body, $rule) || ('' !== $script_src_for_hint && false !== stripos($script_src_for_hint, $rule)))) {
                     return $matches[0];
                 }
             }
@@ -127,6 +135,7 @@ trait UCP_Optimizer_Scripts_Trait {
             return $matches[0];
         }, $html);
 
+        $html = $this->restore_delay_js_protected_blocks($html, $protected_blocks);
         if ($delayed < 1) {
             return $html;
         }
@@ -259,32 +268,54 @@ trait UCP_Optimizer_Scripts_Trait {
     }
 
     private function runtime_delay_js_exclusions($excluded, $html = '') {
+        return $this->hard_delay_js_exclusions($excluded, $html);
+    }
+
+    private function hard_delay_js_exclusions($excluded, $html = '') {
         $excluded = array_values(array_filter((array) $excluded, 'strlen'));
-        if ($this->html_context_is_sensitive()) {
-            return $excluded;
-        }
 
-        $transactional_markup = is_string($html) && preg_match('/(woocommerce-checkout|woocommerce-cart|payment_method|wc_payment|paypal-button|stripe|mollie|klarna|adyen|order-pay)/i', $html);
-        if ($transactional_markup) {
-            return $excluded;
-        }
+        $protected = array(
+            // WordPress/WooCommerce essentials.
+            'jquery', 'jquery-core', 'jquery-migrate', 'wp-hooks', 'wp-i18n', 'wp-polyfill', 'wp-util', 'wp-interactivity',
+            'wc-cart-fragments', 'wc-checkout', 'woocommerce', 'add-to-cart-variation', 'single-product.min.js', 'js-cookie',
+            'wc-blocks', 'wc-block-cart', 'wc-block-checkout', 'wc-price-format', 'cartflows', 'surecart',
 
-        $conditional = array(
-            'wc-cart-fragments', 'wc-checkout', 'woocommerce', 'add-to-cart-variation', 'single-product.min.js',
-            'stripe', 'paypal', 'mollie', 'klarna', 'adyen', 'ideal', 'apple-pay', 'google-pay',
-            'gtm', 'googletagmanager', 'gtag', 'google-analytics', 'fbevents', 'facebook',
-            'cookiebot', 'complianz', 'cookieyes', 'borlabs', 'joinchat', 'whatsapp', 'sticky-header',
-            'elementor-frontend', 'elementor-pro-frontend', 'frontend-modules', 'elements-handlers', 'jeg-', 'jet-',
+            // Payments and checkout widgets.
+            'stripe', 'js.stripe.com', 'stripe-elements', 'paypal', 'paypal.com/sdk/js', 'paypal-buttons', 'ppcp',
+            'mollie', 'klarna', 'afterpay', 'adyen', 'ideal', 'apple-pay', 'google-pay', 'wcpay', 'woocommerce-payments',
+            'amazon-pay', 'clearpay', 'braintree', 'razorpay', 'squareup', 'paddle', 'authorize.net',
+
+            // Forms, captcha and consent layers.
+            'contact-form-7', 'wpcf7', 'gravityforms', 'gform', 'wpforms', 'fluentform', 'ninja-forms', 'forminator',
+            'recaptcha', 'grecaptcha', 'hcaptcha', 'h-captcha', 'turnstile', 'cf-turnstile', 'challenges.cloudflare.com',
+            'cookiebot', 'complianz', 'cmplz', 'cookieyes', 'borlabs', 'CookieConsent', 'OneTrust', 'optanon', 'usercentrics', 'iubenda',
+
+            // Builders and interactive UI libraries that frequently own above-the-fold behaviour.
+            'elementor-frontend', 'elementor-pro-frontend', 'frontend-modules', 'elements-handlers', 'bricks', 'bricks.min.js',
+            'Divi/js/scripts.min.js', 'et-builder', 'fl-builder', 'oxygen', 'breakdance', 'vc_frontend_js',
+            'swiper', 'slick', 'flickity', 'splide', 'revslider', 'smart-slider', 'photoswipe', 'jquery.zoom.min.js',
         );
-        return array_values(array_filter($excluded, function ($rule) use ($conditional) {
-            $rule_l = strtolower((string) $rule);
-            foreach ($conditional as $fragment) {
-                if ('' !== $fragment && false !== strpos($rule_l, $fragment)) {
-                    return false;
-                }
-            }
-            return true;
-        }));
+
+        return array_values(array_unique(array_filter(array_merge($excluded, $protected), 'strlen')));
+    }
+
+    private function soft_delay_js_exclusions($excluded) {
+        $soft = array('gtm', 'googletagmanager', 'gtag', 'google-analytics', 'fbevents', 'facebook', 'hotjar', 'clarity', 'adsbygoogle', 'doubleclick');
+        return array_values(array_unique(array_filter(apply_filters('ucp_delay_js_soft_exclusions', $soft, $excluded), 'strlen')));
+    }
+
+    private function mask_delay_js_protected_blocks($html, &$protected) {
+        $pattern = '#<(svg|template|xmp|noscript|textarea|pre)\b[^>]*>.*?</\1>#is';
+        $masked = preg_replace_callback($pattern, function ($matches) use (&$protected) {
+            $token = '%%UCP_DELAY_PROTECTED_' . count($protected) . '%%';
+            $protected[$token] = $matches[0];
+            return $token;
+        }, (string) $html);
+        return is_string($masked) ? $masked : $html;
+    }
+
+    private function restore_delay_js_protected_blocks($html, $protected) {
+        return empty($protected) ? $html : strtr((string) $html, $protected);
     }
 
     private function prepare_delay_placeholder_attrs($attrs, $has_src) {

@@ -23,8 +23,15 @@ class UCP_Runtime_Tests {
             'elementor' => self::test_elementor_runtime(),
             'cloudflare' => self::test_cloudflare_runtime(),
             'html' => self::test_html_runtime(),
+            'frontend_optimization' => self::test_frontend_optimization_runtime(),
+            'security_verification' => self::test_security_verification_runtime(),
+            'stability_compatibility' => self::test_stability_compatibility_runtime(),
+            'woocommerce_checkout_safety' => self::test_woocommerce_checkout_safety_runtime(),
+            'core_web_vitals' => self::test_core_web_vitals_runtime(),
+            'privacy_i18n' => self::test_privacy_i18n_runtime(),
             'direct_cache' => self::test_direct_cache_runtime(),
             'headless_renderer' => self::test_headless_renderer_runtime(),
+            'release' => self::test_release_runtime(),
         );
         update_option(self::OPTION_KEY, $results, false);
         UCP_Logger::log('info', 'runtime', 'runtime_tests_ran', 'Runtime compatibility tests executed.', array(
@@ -32,8 +39,15 @@ class UCP_Runtime_Tests {
             'elementor' => $results['elementor']['status'],
             'cloudflare' => $results['cloudflare']['status'],
             'html' => $results['html']['status'],
+            'frontend_optimization' => $results['frontend_optimization']['status'],
+            'security_verification' => $results['security_verification']['status'],
+            'stability_compatibility' => $results['stability_compatibility']['status'],
+            'woocommerce_checkout_safety' => $results['woocommerce_checkout_safety']['status'],
+            'core_web_vitals' => $results['core_web_vitals']['status'],
+            'privacy_i18n' => $results['privacy_i18n']['status'],
             'direct_cache' => $results['direct_cache']['status'],
             'headless_renderer' => $results['headless_renderer']['status'],
+            'release' => $results['release']['status'],
         ));
         return $results;
     }
@@ -85,11 +99,12 @@ class UCP_Runtime_Tests {
                 $issues[] = sprintf(__('Deze WooCommerce pagina ontbreekt: %s.', 'ultracache-pro'), $key);
             }
         }
-        if (false === strpos((string) UCP_Options::get('exclude_urls', ''), 'cart')) {
-            $issues[] = __("De winkelwagen staat niet in uitgesloten URL's.", 'ultracache-pro');
+        $page_cache_risk = (bool) UCP_Options::get('enable_cache') || (bool) UCP_Options::get('enable_rest_cache');
+        if ($page_cache_risk && !UCP_Options::get('enable_woocommerce_rules') && false === strpos((string) UCP_Options::get('exclude_urls', ''), 'cart')) {
+            $issues[] = __("Page/REST cache staat aan, maar de winkelwagen staat niet in uitgesloten URL's en WooCommerce-regels staan uit.", 'ultracache-pro');
         }
-        if (false === strpos((string) UCP_Options::get('delay_js_exclusions', ''), 'wc-cart-fragments')) {
-            $issues[] = __('wc-cart-fragments staat niet in Uitgesteld JS.', 'ultracache-pro');
+        if (UCP_Options::get('enable_delay_js') && false === strpos((string) UCP_Options::get('delay_js_exclusions', ''), 'wc-cart-fragments')) {
+            $issues[] = __('Delay JS staat aan, maar wc-cart-fragments staat niet in de uitsluitingen.', 'ultracache-pro');
         }
         return self::format_result(empty($issues) ? 'pass' : 'warning', $issues, $details);
     }
@@ -109,8 +124,8 @@ class UCP_Runtime_Tests {
         if (!empty($details['css_combine'])) {
             $issues[] = __('CSS samenvoegen staat aan. Bij builders werkt uit vaak beter.', 'ultracache-pro');
         }
-        if (false === strpos((string) $details['delay_exclusions'], 'elementor')) {
-            $issues[] = __('Uitgesteld JS noemt Elementor nu niet.', 'ultracache-pro');
+        if (UCP_Options::get('enable_delay_js') && false === strpos((string) $details['delay_exclusions'], 'elementor')) {
+            $issues[] = __('Delay JS staat aan, maar de uitsluitingen noemen Elementor nu niet.', 'ultracache-pro');
         }
         return self::format_result(empty($issues) ? 'pass' : 'warning', $issues, $details);
     }
@@ -128,6 +143,52 @@ class UCP_Runtime_Tests {
             $issues[] = __('HTML kleiner maken staat live aan op een site met gevoelige plugins. Test dit eerst rustig op staging of handmatig.', 'ultracache-pro');
         }
         return self::format_result(empty($issues) ? 'pass' : 'warning', $issues, $details);
+    }
+
+    protected static function test_frontend_optimization_runtime() {
+        $settings = UCP_Options::get_all();
+        $risky_enabled = array();
+        $labels = array(
+            'enable_delay_js'        => __('Delay JS', 'ultracache-pro'),
+            'enable_used_css'        => __('Used CSS', 'ultracache-pro'),
+            'enable_used_css_delivery' => __('Used CSS delivery', 'ultracache-pro'),
+            'enable_critical_css'    => __('Critical CSS', 'ultracache-pro'),
+            'enable_js_combine'      => __('JavaScript samenvoegen', 'ultracache-pro'),
+            'enable_css_combine'     => __('CSS samenvoegen', 'ultracache-pro'),
+            'enable_js_minify'       => __('JavaScript minify', 'ultracache-pro'),
+            'enable_css_minify'      => __('CSS minify', 'ultracache-pro'),
+            'enable_lazy_images'     => __('Lazyload afbeeldingen', 'ultracache-pro'),
+            'enable_lazy_iframes'    => __('Lazyload iframes', 'ultracache-pro'),
+            'enable_rest_cache'      => __('REST cache', 'ultracache-pro'),
+        );
+        foreach ($labels as $key => $label) {
+            if (!empty($settings[$key])) {
+                $risky_enabled[] = $label;
+            }
+        }
+
+        $issues = array();
+        if (!empty($risky_enabled)) {
+            $issues[] = sprintf(
+                /* translators: %s: comma-separated optimization feature labels. */
+                __('Deze frontend-optimalisaties zijn actief en moeten op staging of met testmodus worden gecontroleerd: %s.', 'ultracache-pro'),
+                implode(', ', $risky_enabled)
+            );
+        }
+        if (!empty($settings['enable_delay_js']) && empty($settings['delay_js_safe_mode'])) {
+            $issues[] = __('Delay JS safe mode staat uit terwijl Delay JS actief is.', 'ultracache-pro');
+        }
+        if ((!empty($settings['enable_used_css']) || !empty($settings['enable_critical_css'])) && empty($settings['enable_css_queue'])) {
+            $issues[] = __('CSS-artifactgeneratie staat aan zonder CSS-wachtrij; controleer of generatie niet tijdens frontendverkeer gebeurt.', 'ultracache-pro');
+        }
+
+        return self::format_result(empty($issues) ? 'pass' : 'warning', $issues, array(
+            'risky_enabled' => $risky_enabled,
+            'delay_js_safe_mode' => !empty($settings['delay_js_safe_mode']),
+            'css_queue' => !empty($settings['enable_css_queue']),
+            'woocommerce_detected' => class_exists('WooCommerce'),
+            'forms_or_consent_detected' => class_exists('UCP_Integrations') ? (bool) (!empty(UCP_Integrations::detected()['forms']) || !empty(UCP_Integrations::detected()['consent'])) : false,
+        ));
     }
 
     protected static function test_cloudflare_runtime() {
@@ -214,6 +275,54 @@ class UCP_Runtime_Tests {
         if (!class_exists('UCP_Render_Bridge')) {
             $issues[] = __('De render-bridge module kon niet worden geladen.', 'ultracache-pro');
         }
+        return self::format_result(empty($issues) ? 'pass' : 'warning', $issues, $details);
+    }
+
+
+    protected static function test_release_runtime() {
+        $issues = array();
+        $details = array(
+            'plugin_version' => defined('UCP_VERSION') ? UCP_VERSION : '',
+            'header_version' => '',
+            'readme_stable_tag' => '',
+            'php_version' => PHP_VERSION,
+            'wp_version' => function_exists('get_bloginfo') ? get_bloginfo('version') : '',
+            'classmap_present' => is_readable(UCP_PATH . 'includes/bootstrap/ucp-classmap.php'),
+            'dropin_templates_present' => is_readable(UCP_PATH . 'advanced-cache.php') && is_readable(UCP_PATH . 'dropins/object-cache-apcu.php') && is_readable(UCP_PATH . 'dropins/object-cache-redis.php'),
+            'quality_scorecard_present' => is_readable(UCP_PATH . 'docs/QUALITY-SCORECARD.md'),
+        );
+
+        if (function_exists('get_plugin_data')) {
+            $plugin_data = get_plugin_data(UCP_FILE, false, false);
+            $details['header_version'] = isset($plugin_data['Version']) ? (string) $plugin_data['Version'] : '';
+            if ($details['header_version'] && $details['header_version'] !== $details['plugin_version']) {
+                $issues[] = __('Plugin header version en UCP_VERSION komen niet overeen.', 'ultracache-pro');
+            }
+        }
+
+        $readme = is_readable(UCP_PATH . 'readme.txt') ? (string) file_get_contents(UCP_PATH . 'readme.txt') : '';
+        if ('' !== $readme && preg_match('/^Stable tag:\s*(.+)$/mi', $readme, $matches)) {
+            $details['readme_stable_tag'] = trim((string) $matches[1]);
+            if ($details['readme_stable_tag'] !== $details['plugin_version']) {
+                $issues[] = __('Readme stable tag en pluginversie komen niet overeen.', 'ultracache-pro');
+            }
+        } else {
+            $issues[] = __('Readme stable tag kon niet worden gelezen.', 'ultracache-pro');
+        }
+
+        if (version_compare(PHP_VERSION, '8.0', '<')) {
+            $issues[] = __('De actieve PHP-versie is lager dan de plugin-eis.', 'ultracache-pro');
+        }
+        if (!$details['classmap_present']) {
+            $issues[] = __('Het classmap-manifest ontbreekt of is niet leesbaar.', 'ultracache-pro');
+        }
+        if (!$details['dropin_templates_present']) {
+            $issues[] = __('Een of meer drop-in templates ontbreken in de release.', 'ultracache-pro');
+        }
+        if (!$details['quality_scorecard_present']) {
+            $issues[] = __('De vaste kwaliteitsscorecard ontbreekt in docs/QUALITY-SCORECARD.md.', 'ultracache-pro');
+        }
+
         return self::format_result(empty($issues) ? 'pass' : 'warning', $issues, $details);
     }
 

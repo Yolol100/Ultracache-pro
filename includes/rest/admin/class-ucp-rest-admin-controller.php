@@ -149,39 +149,46 @@ class UCP_REST_Admin_Controller {
      * @return void
      */
     private static function register_action_routes() {
-        $actions = array(
-            'purge-all'          => 'purge_all',
-            'purge-page-cache'   => 'purge_page_cache',
-            'purge-url'          => 'purge_url',
-            'preload'            => 'run_preload',
-            'critical-css'       => 'generate_critical_css',
-            'used-css'           => 'generate_used_css',
-            'clear-minified-css' => 'clear_minified_css',
-            'clear-minified-js'  => 'clear_minified_js',
-            'database-cleanup'   => 'database_cleanup',
-            'health-check'       => 'run_health_check',
-            'runtime-cache-test' => 'runtime_cache_test',
-            'detect-conflicts'   => 'detect_conflicts',
-            'enable-debug-mode'  => 'enable_debug_mode',
-            'release-checklist'  => 'release_checklist',
-            'repair-cache-files' => 'repair_cache_files',
-            'retry-failed-jobs'  => 'retry_failed_jobs',
-            'run-due-jobs'       => 'run_due_jobs',
-            'browser-scan'       => 'browser_scan_save',
-            'renderer-test'      => 'renderer_test',
-            'clear-cwv-fielddata' => 'clear_cwv_fielddata',
-            // Backward-compatible alias for the 11.2.2/11.2.3 admin button.
-            'clear-rum'          => 'clear_cwv_fielddata',
-        );
+        $actions = class_exists('UCP_REST_Action_Registry') ? UCP_REST_Action_Registry::route_handlers() : array();
 
         foreach ($actions as $route => $method) {
             register_rest_route(self::REST_NAMESPACE, '/actions/' . $route, array(
                 'methods'             => WP_REST_Server::CREATABLE,
-                'callback'            => array(__CLASS__, $method),
+                'callback'            => self::guarded_action_callback((string) $route, (string) $method),
                 'permission_callback' => array(__CLASS__, 'permissions_check'),
                 'args'                => self::action_args($route),
             ));
         }
+    }
+
+    /**
+     * Wrap an action handler so an unexpected fatal/exception never reaches the
+     * browser as a bare 500. The handler keeps full control of its own success
+     * and WP_Error responses; this only adds a last-resort safety net that
+     * returns a calm, translatable message pointing the user back to Tools.
+     *
+     * @param string $route  Action route slug (for logging/diagnostics).
+     * @param string $method Handler method name on this controller.
+     * @return callable
+     */
+    private static function guarded_action_callback($route, $method) {
+        return function ($request = null) use ($route, $method) {
+            try {
+                return call_user_func(array(__CLASS__, $method), $request);
+            } catch (Throwable $e) {
+                if (class_exists('UCP_Logger')) {
+                    UCP_Logger::log('error', 'rest', 'action_exception', 'REST-actie liep op een onverwachte fout.', array(
+                        'route'   => sanitize_key($route),
+                        'message' => $e->getMessage(),
+                    ));
+                }
+                return new WP_Error(
+                    'ucp_action_failed',
+                    __('De actie kon niet worden afgerond. Probeer het opnieuw of controleer Tools voor logs en details.', 'ultracache-pro'),
+                    array('status' => 500, 'route' => sanitize_key($route))
+                );
+            }
+        };
     }
 
     /**
@@ -203,29 +210,7 @@ class UCP_REST_Admin_Controller {
      * @return array<string,array<string,mixed>>
      */
     private static function action_args($route) {
-        if ('database-cleanup' === $route) {
-            return array(
-                'confirmBackup' => array(
-                    'type'              => 'boolean',
-                    'required'          => true,
-                    'sanitize_callback' => 'rest_sanitize_boolean',
-                    'validate_callback' => 'rest_validate_request_arg',
-                ),
-            );
-        }
-
-        if (!in_array($route, array('purge-url', 'renderer-test'), true)) {
-            return array();
-        }
-
-        return array(
-            'url' => array(
-                'type'              => 'string',
-                'required'          => false,
-                'sanitize_callback' => 'esc_url_raw',
-                'validate_callback' => array('UCP_Helpers', 'validate_local_url_arg'),
-            ),
-        );
+        return class_exists('UCP_REST_Action_Registry') ? UCP_REST_Action_Registry::args($route) : array();
     }
 
     public static function get_optimization_lifecycle() {
@@ -234,7 +219,7 @@ class UCP_REST_Admin_Controller {
     }
 
     public static function permissions_check($request = null) {
-        return UCP_Helpers::rest_admin_permission_check($request);
+        return UCP_REST_Permissions::admin_permission_check($request);
     }
 
 }

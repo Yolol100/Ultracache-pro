@@ -194,6 +194,9 @@ class UCP_Image_Optimizer {
         if (!is_string($html) || '' === trim($html) || false === stripos($html, '<img')) {
             return $html;
         }
+        if ($this->current_request_is_sensitive_for_media_rewrite($html)) {
+            return $html;
+        }
         $want_picture = !empty(UCP_Options::get('enable_avif_generation')) || !empty(UCP_Options::get('enable_webp_generation'));
         $want_cdn     = class_exists('UCP_Image_Queue') && UCP_Image_Queue::cdn_active();
         if (!$want_picture && !$want_cdn) {
@@ -203,6 +206,9 @@ class UCP_Image_Optimizer {
         $rewritten = preg_replace_callback('#<img\b[^>]*>#i', function ($matches) use ($want_picture, $want_cdn) {
             $tag = $matches[0];
             if (false !== stripos($tag, 'data-no-optimize')) {
+                return $tag;
+            }
+            if ($this->image_tag_should_skip_cdn_rewrite($tag)) {
                 return $tag;
             }
             if (!preg_match('/\ssrc=("|\')(.*?)\1/i', $tag, $src_match)) {
@@ -233,6 +239,11 @@ class UCP_Image_Optimizer {
                 }
             }
 
+            // Add CDN-generated responsive candidates when WordPress did not print a srcset.
+            if ($want_cdn && false === stripos($tag, 'data-ucp-no-cdn')) {
+                $tag = $this->maybe_add_adaptive_cdn_srcset($tag);
+            }
+
             // Rewrite the <img> src/srcset through the CDN (skippable per-tag).
             if ($want_cdn && false === stripos($tag, 'data-ucp-no-cdn')) {
                 $tag = $this->cdn_rewrite_img_tag($tag);
@@ -248,6 +259,47 @@ class UCP_Image_Optimizer {
         return is_string($rewritten) ? $rewritten : $html;
     }
 
+
+
+    /**
+     * Do not rewrite media on transactional pages or pages with forms/payment widgets.
+     *
+     * @param string $html Full HTML snapshot.
+     * @return bool
+     */
+    protected function current_request_is_sensitive_for_media_rewrite($html) {
+        if (class_exists('UCP_Optimization_Guards')) {
+            return UCP_Optimization_Guards::is_woocommerce_critical_request() || UCP_Optimization_Guards::contains_sensitive_markup($html);
+        }
+        return false;
+    }
+
+    /**
+     * Skip CDN rewrites for images commonly controlled by theme/shop scripts.
+     *
+     * @param string $tag Image tag.
+     * @return bool
+     */
+    protected function image_tag_should_skip_cdn_rewrite($tag) {
+        return $this->image_tag_should_skip_adaptive_srcset($tag) || preg_match('/\b(data-zoom-image|data-large_image|data-gallery|data-product|data-variation|data-ucp-no-cdn)\b/i', (string) $tag);
+    }
+
+    /**
+     * Adaptive images are best for normal content images. Keep logos, icons,
+     * explicit LCP/hero images and product galleries untouched unless WordPress
+     * already printed its own srcset.
+     *
+     * @param string $tag Image tag.
+     * @return bool
+     */
+    protected function image_tag_should_skip_adaptive_srcset($tag) {
+        if (class_exists('UCP_Image_Queue')) {
+            return UCP_Image_Queue::should_skip_adaptive_image_tag((string) $tag);
+        }
+        return false;
+    }
+
+
     /**
      * Map a single URL through the image CDN when active, else return it unchanged.
      * Respects a per-tag data-ucp-no-cdn opt-out.
@@ -257,6 +309,34 @@ class UCP_Image_Optimizer {
             return $url;
         }
         return UCP_Image_Queue::cdn_url($url);
+    }
+
+
+    /**
+     * Add a CDN-backed srcset to upload images that do not already have one.
+     *
+     * @param string $tag Image tag.
+     * @return string
+     */
+    protected function maybe_add_adaptive_cdn_srcset($tag) {
+        if (!class_exists('UCP_Image_Queue') || !UCP_Options::get('enable_adaptive_image_srcset')) {
+            return $tag;
+        }
+        if ($this->image_tag_should_skip_adaptive_srcset($tag)) {
+            return $tag;
+        }
+        if (preg_match('/\bsrcset\s*=/i', $tag) || !preg_match('/\ssrc=("|\')(.*?)\1/i', $tag, $src_match)) {
+            return $tag;
+        }
+        $srcset = UCP_Image_Queue::adaptive_srcset(html_entity_decode($src_match[2], ENT_QUOTES), $tag);
+        if ('' === $srcset) {
+            return $tag;
+        }
+        $tag = preg_replace('/>$/', ' srcset="' . esc_attr($srcset) . '">', $tag, 1);
+        if (!preg_match('/\bsizes\s*=/i', $tag)) {
+            $tag = preg_replace('/>$/', ' sizes="(max-width: 768px) 100vw, 768px">', $tag, 1);
+        }
+        return is_string($tag) ? $tag : '';
     }
 
     /**
@@ -276,8 +356,10 @@ class UCP_Image_Optimizer {
                     continue;
                 }
                 $bits   = preg_split('/\s+/', $part, 2);
-                $mapped = UCP_Image_Queue::cdn_url($bits[0]);
-                $part   = esc_url($mapped) . (isset($bits[1]) ? ' ' . $bits[1] : '');
+                $descriptor = isset($bits[1]) ? trim($bits[1]) : '';
+                $width = preg_match('/^(\d+)w$/', $descriptor, $width_match) ? absint($width_match[1]) : 0;
+                $mapped = UCP_Image_Queue::cdn_url($bits[0], $width);
+                $part   = esc_url($mapped) . ('' !== $descriptor ? ' ' . $descriptor : '');
             }
             unset($part);
             return ' srcset=' . $a[2] . implode(', ', $parts) . $a[2];
