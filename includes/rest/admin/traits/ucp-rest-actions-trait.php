@@ -155,6 +155,19 @@ trait UCP_REST_Actions_Trait {
         }
     }
 
+    public static function clear_used_css() {
+        try {
+            UCP_Helpers::safe_glob_delete(UCP_CACHE_DIR . 'used-css/*.css');
+            UCP_Helpers::safe_glob_delete(UCP_CACHE_DIR . 'used-css-served/*.css');
+            UCP_Helpers::safe_glob_delete(UCP_CACHE_DIR . 'critical-css/*.css');
+            UCP_Helpers::safe_glob_delete(UCP_CACHE_DIR . 'css/status-*.json');
+            UCP_Logger::log('info', 'rest', 'used_css_artifacts_cleared', 'Used CSS and critical CSS artifacts cleared from REST admin action.');
+            return self::action_success(__('Gebruikte CSS en kritieke CSS zijn gewist.', 'ultracache-pro'));
+        } catch (Throwable $e) {
+            return self::action_error('ucp_used_css_clear_failed', $e->getMessage());
+        }
+    }
+
     public static function clear_minified_css() {
         UCP_Helpers::safe_glob_delete(UCP_CACHE_DIR . 'assets/minified-*.css');
         UCP_Helpers::safe_glob_delete(UCP_CACHE_DIR . 'assets/combined-*.css');

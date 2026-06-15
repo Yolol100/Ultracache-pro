@@ -157,7 +157,7 @@ trait UCP_CSS_Delivery_Trait {
             if ('' === $tag) {
                 $tag = '<style id="ucp-used-css" data-ucp="remove-unused-css">' . self::safe_style_css($used_css) . '</style>';
             }
-            $html = preg_replace_callback('#</head>#i', static function () use ($tag) {
+            $html = UCP_Helpers::safe_preg_replace_callback('#</head>#i', static function () use ($tag) {
                 return $tag . "\n</head>";
             }, $html, 1);
         }
@@ -223,7 +223,7 @@ trait UCP_CSS_Delivery_Trait {
             } else {
                 $style_tag = self::critical_css_style_tag($critical_css);
                 if ('' !== $style_tag && false === stripos($html, 'id="ucp-critical-css"')) {
-                    $html = preg_replace_callback('#</head>#i', static function () use ($style_tag) {
+                    $html = UCP_Helpers::safe_preg_replace_callback('#</head>#i', static function () use ($style_tag) {
                         return $style_tag . "\n</head>";
                     }, $html, 1);
                 }

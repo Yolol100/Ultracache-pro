@@ -192,7 +192,6 @@ class UCP_Image_Queue {
     }
 
 
-
     /**
      * Central skip helper for adaptive images. Keep this consistent across
      * buffered HTML rewrites, attachment filters and image optimizer paths.

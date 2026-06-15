@@ -58,61 +58,12 @@ final class UCP_Plugin {
     }
 
     /**
-     * Return true when any of the given UCP option keys evaluates as truthy.
-     * Used by bootstrap() to keep module-load conditions readable.
-     */
-    private static function any_option_enabled(array $keys) {
-        foreach ($keys as $key) {
-            if (UCP_Options::get($key)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /**
      * Determine whether modules that are admin/cron/CLI sensitive should be booted.
      *
      * @return bool
      */
     private static function is_backend_context() {
         return is_admin() || (function_exists('wp_doing_cron') && wp_doing_cron()) || (defined('WP_CLI') && WP_CLI);
-    }
-
-    /**
-     * Return true when any enabled feature can enqueue or process background jobs.
-     * This keeps the queue runner tied to the actual job producers instead of a
-     * small historic subset of CSS/preload/cloud options.
-     *
-     * @return bool
-     */
-    private static function needs_job_runner() {
-        return self::any_option_enabled(array(
-            'enable_css_queue',
-            'enable_preload_queue',
-            'enable_health_checks',
-            'enable_cloud',
-            'enable_cloudflare_apo_mode',
-            'enable_async_image_optimization',
-            'enable_lqip',
-            'enable_local_gravatar',
-            'enable_local_youtube_thumbnails',
-            'enable_headless_renderer',
-            'enable_compat_updates',
-        ));
-    }
-
-    /**
-     * Return true when UltraCache must actively alter WordPress Core speculation behavior.
-     *
-     * Core mode follows WordPress defaults and needs no runtime filter. Enhanced and prerender
-     * are covered by enable_speculative_loading. Off is special: WordPress 6.8+ only fully
-     * disables Core speculative loading when our configuration filter is registered.
-     *
-     * @return bool
-     */
-    private static function should_bootstrap_speculation_policy() {
-        return 'off' === UCP_Options::get('speculative_loading_mode', 'core');
     }
 
     /**

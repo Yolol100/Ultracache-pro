@@ -20,8 +20,7 @@ trait UCP_Cache_Purge_Actions_Trait {
 
         $message = '' !== (string) $message ? wp_strip_all_tags((string) $message) : __('Cache is geleegd.', 'ultracache-pro');
 
-        // AI-PATCH: keep cache feedback calm; duplicate purge hooks in one request
-        // should not create a "2 keer" message or a louder toast.
+        // Duplicate purge hooks in one request should not create repeated cache feedback or a louder toast.
         if ($queued_in_request) {
             return;
         }
@@ -42,9 +41,8 @@ trait UCP_Cache_Purge_Actions_Trait {
     public function purge_all() {
         static $purged_in_request = false;
 
-        // AI-PATCH: WordPress/admin hooks can call a full purge more than once in
-        // the same request. A full purge is idempotent, so skip duplicate file/CDN
-        // work and keep the UI from reporting the cache as cleared twice.
+        // WordPress/admin hooks can call a full purge more than once in the same request.
+        // A full purge is idempotent, so duplicate file/CDN work is skipped.
         if ($purged_in_request) {
             return;
         }

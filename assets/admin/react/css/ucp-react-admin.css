@@ -4890,12 +4890,15 @@ body.toplevel_page_ultracache-pro .wrap.ucp-react-admin-wrap, body.ultracache-pr
 }
 
 .ucp-react-admin-wrap .ucp-settings-page--optimization.ucp-opt-clean-page {
-  gap: 16px;
+  gap: 18px;
 }
 
 .ucp-react-admin-wrap .ucp-opt-clean-hero.components-card {
-  border-left: 4px solid var(--ucp-color-primary);
+  border: 1px solid var(--ucp-line);
+  border-radius: var(--ucp-card-radius);
+  background: #fff;
   box-shadow: var(--ucp-card-shadow);
+  overflow: hidden;
 }
 
 .ucp-react-admin-wrap .ucp-opt-clean-hero .components-card__body {
@@ -4903,7 +4906,7 @@ body.toplevel_page_ultracache-pro .wrap.ucp-react-admin-wrap, body.ultracache-pr
   grid-template-columns: minmax(0, 1fr) minmax(360px, 520px);
   align-items: end;
   gap: 20px;
-  padding: 22px 24px;
+  padding: 24px;
 }
 
 .ucp-react-admin-wrap .ucp-opt-clean-page .ucp-opt-section-head {
@@ -5040,22 +5043,19 @@ body.toplevel_page_ultracache-pro .wrap.ucp-react-admin-wrap, body.ultracache-pr
   }
 }
 
-@media (max-width: 900px) {
-}
-
-.ucp-react-admin-wrap .ucp-settings-page--preload.ucp-unified-admin-page {
+.ucp-react-admin-wrap .ucp-settings-page--preload.ucp-cache-tools-page {
   width: 100%;
   max-width: none;
   margin: 0;
-  gap: 22px;
+  gap: 18px;
 }
 
 .ucp-react-admin-wrap .ucp-settings-page--preload .ucp-preload-hero.components-card {
   border: 1px solid var(--ucp-line);
-  border-left: 4px solid var(--ucp-color-primary);
   border-radius: var(--ucp-card-radius);
   background: #fff;
-  box-shadow: none;
+  box-shadow: var(--ucp-card-shadow);
+  overflow: hidden;
 }
 
 .ucp-react-admin-wrap .ucp-settings-page--preload .ucp-preload-hero .components-card__body {
@@ -5282,15 +5282,6 @@ body[class*="ultracache"] #adminmenuwrap, body[class*="ultracache"] #adminmenuba
   }
 }
 
-.ucp-media-page--premium {
-  display: grid;
-  gap: 24px;
-}
-
-.ucp-media-page--premium .ucp-media-hero {
-  margin-bottom: 0;
-}
-
 .ucp-media-hero__inner {
   align-items: center;
 }
@@ -5403,51 +5394,6 @@ body[class*="ultracache"] #adminmenuwrap, body[class*="ultracache"] #adminmenuba
   width: 100%;
 }
 
-.ucp-media-page--premium .ucp-field, .ucp-media-page--premium .ucp-setting-field, .ucp-media-page--premium .ucp-compact-option, .ucp-media-page--premium .components-base-control {
-  min-width: 0;
-}
-
-.ucp-media-page--premium .ucp-compact-option, .ucp-media-page--premium .ucp-media-option .ucp-setting-field {
-  border: 1px solid #e5ebf1;
-  border-radius: 12px;
-  background: #fbfcfe;
-  padding: 16px;
-}
-
-.ucp-media-page--premium .components-base-control__label, .ucp-media-page--premium label, .ucp-media-page--premium .ucp-setting-label {
-  color: #172033;
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: .03em;
-  text-transform: uppercase;
-}
-
-.ucp-media-page--premium select, .ucp-media-page--premium input[type="text"], .ucp-media-page--premium input[type="number"], .ucp-media-page--premium textarea {
-  width: 100%;
-  max-width: none;
-  min-height: 40px;
-  border-color: #cfd8e3;
-  border-radius: 6px;
-  background: #fff;
-  box-shadow: none;
-}
-
-.ucp-media-page--premium textarea {
-  min-height: 92px;
-  resize: vertical;
-}
-
-.ucp-media-page--premium .components-form-toggle {
-  margin-top: 2px;
-}
-
-.ucp-media-page--premium .components-base-control__help, .ucp-media-page--premium .ucp-field-help, .ucp-media-page--premium .description, .ucp-media-page--premium .ucp-muted {
-  margin-top: 8px;
-  color: #64748b;
-  font-size: 12px;
-  line-height: 1.45;
-}
-
 .ucp-media-card--fonts .components-card__body, .ucp-media-card--adaptive .components-card__body {
   padding-top: 20px;
 }
@@ -5472,10 +5418,6 @@ body[class*="ultracache"] #adminmenuwrap, body[class*="ultracache"] #adminmenuba
   cursor: pointer;
   color: #172033;
   font-weight: 700;
-}
-
-.ucp-media-page--premium .ucp-compact-card--font-suggestions {
-  display: none;
 }
 
 @media (max-width: 1280px) {
@@ -6180,11 +6122,22 @@ body.toplevel_page_ultracache-pro #adminmenuwrap, body.toplevel_page_ultracache-
 }
 
 .ucp-react-admin-wrap .ucp-settings-page--server.ucp-server-dashboard-page {
+  width: 100%;
+  max-width: none;
+  margin: 0;
   gap: 18px;
 }
 
 .ucp-react-admin-wrap .ucp-server-dashboard-page .ucp-server-hero.components-card {
-  border-left: 4px solid var(--ucp-color-primary);
+  border: 1px solid var(--ucp-line);
+  border-radius: var(--ucp-card-radius);
+  background: #fff;
+  box-shadow: var(--ucp-card-shadow);
+  overflow: hidden;
+}
+
+.ucp-react-admin-wrap .ucp-server-dashboard-page .ucp-server-hero .components-card__body {
+  padding: 24px;
 }
 
 .ucp-react-admin-wrap .ucp-server-dashboard-page .ucp-server-hero__inner {
@@ -7398,24 +7351,6 @@ body.toplevel_page_ultracache-pro #adminmenuwrap, body.toplevel_page_ultracache-
   display: none;
 }
 
-.ucp-react-admin-wrap .ucp-media-page--premium .ucp-media-grid--top, .ucp-react-admin-wrap .ucp-media-page--premium .ucp-media-field-grid, .ucp-react-admin-wrap .ucp-media-page--premium .ucp-media-field-grid--fonts, .ucp-react-admin-wrap .ucp-media-page--premium .ucp-media-field-grid--adaptive {
-  gap: 18px;
-}
-
-.ucp-react-admin-wrap .ucp-media-page--premium .ucp-media-clean-card .components-card__header, .ucp-react-admin-wrap .ucp-media-page--premium .ucp-media-clean-card .components-card__body {
-  padding-left: 22px;
-  padding-right: 22px;
-}
-
-.ucp-react-admin-wrap .ucp-media-page--premium .ucp-media-clean-card .components-card__body {
-  padding-top: 18px;
-  padding-bottom: 20px;
-}
-
-.ucp-react-admin-wrap .ucp-media-page--premium .ucp-media-option .components-base-control__help, .ucp-react-admin-wrap .ucp-media-page--premium .ucp-media-option .description, .ucp-react-admin-wrap .ucp-media-page--premium .ucp-muted {
-  color: var(--ucp-tools-muted);
-}
-
 .ucp-react-admin-wrap .ucp-woo-page .ucp-woo-protection-item, .ucp-react-admin-wrap .ucp-woo-page .ucp-protection-item, .ucp-react-admin-wrap .ucp-woo-page .ucp-woo-value-card {
   background: #fff;
   border: 1px solid var(--ucp-tools-soft-border);
@@ -7591,248 +7526,6 @@ body.toplevel_page_ultracache-pro #adminmenuwrap, body.toplevel_page_ultracache-
   border-color: #007cba;
 }
 
-.ucp-react-admin-wrap .ucp-media-page--premium .ucp-media-card-head h2 {
-  margin: 0 0 5px;
-}
-
-.ucp-react-admin-wrap .ucp-media-page--premium .ucp-media-card-head p {
-  font-size: 13px;
-  line-height: 1.45;
-}
-
-.ucp-react-admin-wrap .ucp-media-page--premium .ucp-media-status-pill, .ucp-react-admin-wrap .ucp-media-page--premium .ucp-media-status-pill.is-safe {
-  background: #f0f6fc;
-  border: 0;
-  color: #0073aa;
-  min-height: 24px;
-  padding: 5px 10px;
-  font-size: 12px;
-  line-height: 1;
-}
-
-.ucp-react-admin-wrap .ucp-media-page--premium .ucp-media-field-grid, .ucp-react-admin-wrap .ucp-media-page--premium .ucp-media-field-grid--fonts, .ucp-react-admin-wrap .ucp-media-page--premium .ucp-media-field-grid--adaptive {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px 20px;
-  align-items: start;
-}
-
-.ucp-react-admin-wrap .ucp-media-page--premium .ucp-media-option, .ucp-react-admin-wrap .ucp-media-page--premium .ucp-media-option > .ucp-setting-field, .ucp-react-admin-wrap .ucp-media-page--premium .ucp-media-option > div {
-  min-height: 0;
-  height: auto;
-}
-
-.ucp-react-admin-wrap .ucp-media-page--premium .ucp-media-option .ucp-setting-field, .ucp-react-admin-wrap .ucp-media-page--premium .ucp-media-option .ucp-compact-option, .ucp-react-admin-wrap .ucp-media-page--premium .ucp-media-option .components-base-control {
-  border-radius: 0;
-}
-
-.ucp-react-admin-wrap .ucp-media-page--premium .ucp-media-option .components-base-control__field, .ucp-react-admin-wrap .ucp-media-page--premium .ucp-media-option .components-toggle-control .components-base-control__field {
-  margin: 0;
-}
-
-.ucp-react-admin-wrap .ucp-media-page--premium .ucp-media-option .components-form-toggle {
-  margin: 0;
-  flex: 0 0 auto;
-}
-
-.ucp-react-admin-wrap .ucp-media-page--premium select, .ucp-react-admin-wrap .ucp-media-page--premium input[type="text"], .ucp-react-admin-wrap .ucp-media-page--premium input[type="number"], .ucp-react-admin-wrap .ucp-media-page--premium textarea {
-  border: 1px solid #cfd8e3;
-  border-radius: 4px;
-  background: #fff;
-  min-height: 38px;
-}
-
-.ucp-react-admin-wrap .ucp-media-page--premium textarea.components-textarea-control__input {
-  min-height: 88px;
-  max-height: 130px;
-}
-
-.ucp-react-admin-wrap .ucp-media-page--premium .components-base-control__help, .ucp-react-admin-wrap .ucp-media-page--premium .ucp-field-help, .ucp-react-admin-wrap .ucp-media-page--premium .description, .ucp-react-admin-wrap .ucp-media-page--premium .ucp-muted {
-  margin-top: 6px;
-  font-size: 12px;
-  line-height: 1.35;
-  color: var(--ucp-tools-muted, #64748b);
-}
-
-.ucp-react-admin-wrap .ucp-media-page--premium .ucp-media-card--adaptive {
-  background: #fff;
-  border-color: var(--ucp-tools-border, #dde6ef);
-}
-
-.ucp-react-admin-wrap .ucp-media-page--premium .ucp-media-card--adaptive .ucp-eyebrow {
-  color: #0073aa;
-}
-
-.ucp-react-admin-wrap .ucp-media-page--premium {
-  gap: 20px;
-}
-
-.ucp-react-admin-wrap .ucp-media-page--premium .ucp-media-grid--top {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 20px;
-  align-items: stretch;
-}
-
-.ucp-react-admin-wrap .ucp-media-page--premium .ucp-media-card {
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-  height: 100%;
-  border-color: var(--ucp-tools-border, #dde6ef);
-  background: #fff;
-  box-shadow: none;
-}
-
-.ucp-react-admin-wrap .ucp-media-page--premium .ucp-media-card .components-card__header {
-  flex: 0 0 auto;
-  padding: 18px 22px 14px;
-  border-bottom: 1px solid #edf1f5;
-}
-
-.ucp-react-admin-wrap .ucp-media-page--premium .ucp-media-card .components-card__body {
-  flex: 1 1 auto;
-  padding: 18px 22px 20px;
-}
-
-.ucp-react-admin-wrap .ucp-media-page--premium .ucp-media-card-head {
-  align-items: flex-start;
-  gap: 16px;
-}
-
-.ucp-react-admin-wrap .ucp-media-page--premium .ucp-media-card-head h2 {
-  font-size: 17px;
-  line-height: 1.25;
-}
-
-.ucp-react-admin-wrap .ucp-media-page--premium .ucp-media-card-head p {
-  max-width: 680px;
-  color: var(--ucp-tools-muted, #536276);
-}
-
-.ucp-react-admin-wrap .ucp-media-page--premium .ucp-status-badge, .ucp-react-admin-wrap .ucp-media-page--premium .ucp-media-status-pill, .ucp-react-admin-wrap .ucp-media-page--premium .ucp-media-status-pill.is-safe {
-  background: #f0f6fc;
-  border: 0;
-  color: #0073aa;
-  box-shadow: none;
-}
-
-.ucp-react-admin-wrap .ucp-media-page--premium .ucp-media-field-grid, .ucp-react-admin-wrap .ucp-media-page--premium .ucp-media-field-grid--fonts {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px 22px;
-  align-items: start;
-}
-
-.ucp-react-admin-wrap .ucp-media-page--premium .ucp-media-field-grid--adaptive {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 16px 22px;
-  align-items: start;
-}
-
-.ucp-react-admin-wrap .ucp-media-page--premium .ucp-media-option--full, .ucp-react-admin-wrap .ucp-media-page--premium .ucp-media-option--quality {
-  grid-column: 1 / -1;
-}
-
-.ucp-react-admin-wrap .ucp-media-page--premium .ucp-media-option .ucp-setting-field, .ucp-react-admin-wrap .ucp-media-page--premium .ucp-media-option .ucp-compact-option, .ucp-react-admin-wrap .ucp-media-page--premium .ucp-media-option .components-base-control {
-  background: transparent;
-  border: 0;
-  box-shadow: none;
-  padding: 0;
-}
-
-.ucp-react-admin-wrap .ucp-media-page--premium .ucp-media-option .components-toggle-control .components-base-control__field {
-  display: inline-flex;
-  align-items: center;
-  gap: 9px;
-  min-height: 38px;
-  margin: 0;
-}
-
-.ucp-react-admin-wrap .ucp-media-page--premium .components-form-toggle {
-  margin: 0;
-  flex: 0 0 auto;
-}
-
-.ucp-react-admin-wrap .ucp-media-page--premium select, .ucp-react-admin-wrap .ucp-media-page--premium input[type="text"], .ucp-react-admin-wrap .ucp-media-page--premium input[type="number"] {
-  min-height: 38px;
-  border: 1px solid #cfd8e3;
-  border-radius: 4px;
-  box-shadow: none;
-}
-
-.ucp-react-admin-wrap .ucp-media-page--premium textarea, .ucp-react-admin-wrap .ucp-media-page--premium textarea.components-textarea-control__input {
-  min-height: 92px;
-  max-height: 125px;
-  border: 1px solid #cfd8e3;
-  border-radius: 4px;
-  box-shadow: none;
-  resize: vertical;
-}
-
-.ucp-react-admin-wrap .ucp-media-page--premium .ucp-media-card--fonts .components-card__body {
-  padding-top: 18px;
-}
-
-.ucp-react-admin-wrap .ucp-media-page--premium .ucp-media-card--fonts textarea.components-textarea-control__input {
-  min-height: 92px;
-}
-
-.ucp-react-admin-wrap .ucp-media-page--premium .ucp-media-advanced-accordion {
-  height: auto;
-  overflow: hidden;
-}
-
-.ucp-react-admin-wrap .ucp-media-page--premium .ucp-media-advanced-accordion .ucp-media-accordion-summary {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 18px;
-  padding: 18px 22px;
-  cursor: pointer;
-  list-style: none;
-}
-
-.ucp-react-admin-wrap .ucp-media-page--premium .ucp-media-advanced-accordion .ucp-media-accordion-summary::-webkit-details-marker {
-  display: none;
-}
-
-.ucp-react-admin-wrap .ucp-media-page--premium .ucp-media-accordion-chevron {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 26px;
-  height: 26px;
-  margin-top: 2px;
-  border-radius: 999px;
-  background: #f0f6fc;
-  color: #0073aa;
-  font-weight: 800;
-}
-
-.ucp-react-admin-wrap .ucp-media-page--premium .ucp-media-advanced-accordion[open] .ucp-media-accordion-summary {
-  border-bottom: 1px solid #edf1f5;
-}
-
-.ucp-react-admin-wrap .ucp-media-page--premium .ucp-media-advanced-accordion[open] .ucp-media-accordion-chevron {
-  transform: rotate(45deg);
-}
-
-.ucp-react-admin-wrap .ucp-media-page--premium .ucp-media-accordion-body {
-  padding: 18px 22px 22px;
-}
-
-.ucp-react-admin-wrap .ucp-media-page--premium .ucp-media-advanced-accordion:not([open]) .ucp-media-accordion-body {
-  display: none;
-}
-
-@media (max-width: 1280px) {
-  .ucp-react-admin-wrap .ucp-media-page--premium .ucp-media-grid--top, .ucp-react-admin-wrap .ucp-media-page--premium .ucp-media-field-grid, .ucp-react-admin-wrap .ucp-media-page--premium .ucp-media-field-grid--fonts, .ucp-react-admin-wrap .ucp-media-page--premium .ucp-media-field-grid--adaptive {
-    grid-template-columns: 1fr;
-  }
-}
-
 .ucp-react-admin-wrap .ucp-compact-page .components-base-control__label, .ucp-react-admin-wrap .ucp-compact-page .components-input-control__label, .ucp-react-admin-wrap .ucp-compact-page .components-toggle-control__label, .ucp-react-admin-wrap .ucp-compact-page .ucp-setting-field label, .ucp-react-admin-wrap .ucp-opt-clean-page .components-base-control__label, .ucp-react-admin-wrap .ucp-opt-clean-page .components-input-control__label, .ucp-react-admin-wrap .ucp-opt-clean-page .components-toggle-control__label, .ucp-react-admin-wrap .ucp-opt-clean-page .ucp-setting-field label {
   font-size: 13px;
   font-weight: 600;
@@ -7844,127 +7537,6 @@ body.toplevel_page_ultracache-pro #adminmenuwrap, body.toplevel_page_ultracache-
 .ucp-react-admin-wrap .ucp-compact-option .ucp-setting-field, .ucp-react-admin-wrap .ucp-opt-option .ucp-setting-field, .ucp-react-admin-wrap .ucp-preload-clean-page .ucp-setting-field {
   background: #fff;
   border-color: var(--ucp-line-soft);
-}
-
-.ucp-react-admin-wrap .ucp-media-unified-page .ucp-media-unified-card.components-card, .ucp-react-admin-wrap .ucp-media-unified-page .ucp-media-font-card.components-card {
-  grid-column: 1 / -1;
-}
-
-.ucp-react-admin-wrap .ucp-media-unified-sections {
-  display: grid;
-  gap: 0;
-}
-
-.ucp-react-admin-wrap .ucp-media-unified-section {
-  padding: 20px 0 22px;
-  border-top: 1px solid var(--ucp-line-soft, #edf1f5);
-}
-
-.ucp-react-admin-wrap .ucp-media-unified-section:first-child {
-  padding-top: 0;
-  border-top: 0;
-}
-
-.ucp-react-admin-wrap .ucp-media-unified-section:last-child {
-  padding-bottom: 0;
-}
-
-.ucp-react-admin-wrap .ucp-media-unified-section__head {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 14px;
-}
-
-.ucp-react-admin-wrap .ucp-media-unified-section__head h3 {
-  margin: 0 0 4px;
-  color: var(--ucp-color-heading, #172033);
-  font-size: 15px;
-  line-height: 1.3;
-  font-weight: 600;
-  letter-spacing: -0.01em;
-}
-
-.ucp-react-admin-wrap .ucp-media-unified-section__head p {
-  margin: 0;
-  max-width: 760px;
-  color: var(--ucp-color-muted, #526173);
-  font-size: 13px;
-  line-height: 1.45;
-}
-
-.ucp-react-admin-wrap .ucp-media-unified-page .ucp-cache-tools-fields--three {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
-.ucp-react-admin-wrap .ucp-media-unified-page .ucp-cache-tools-option--full {
-  grid-column: 1 / -1;
-}
-
-.ucp-react-admin-wrap .ucp-media-unified-page .ucp-cache-tools-option .components-base-control__label, .ucp-react-admin-wrap .ucp-media-unified-page .ucp-cache-tools-option .components-input-control__label, .ucp-react-admin-wrap .ucp-media-unified-page .ucp-cache-tools-option .components-toggle-control__label, .ucp-react-admin-wrap .ucp-media-unified-page .ucp-cache-tools-option .components-toggle-control .components-base-control__label {
-  color: var(--ucp-color-heading, #172033);
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0;
-  text-transform: none;
-}
-
-.ucp-react-admin-wrap .ucp-media-unified-page .ucp-cache-tools-option .ucp-setting-field {
-  min-height: 58px;
-}
-
-.ucp-react-admin-wrap .ucp-media-unified-page textarea.components-textarea-control__input {
-  min-height: 90px;
-  max-height: 132px;
-}
-
-.ucp-react-admin-wrap .ucp-media-unified-page .ucp-media-widths-control {
-  display: grid;
-  gap: 8px;
-}
-
-.ucp-react-admin-wrap .ucp-media-unified-page .ucp-media-widths-control .components-form-token-field__input-container {
-  min-height: 38px;
-  border-color: #b8c1cc;
-  border-radius: 3px;
-}
-
-.ucp-react-admin-wrap .ucp-media-unified-page .ucp-media-widths-control .components-form-token-field__token {
-  margin-top: 2px;
-  margin-bottom: 2px;
-}
-
-.ucp-react-admin-wrap .ucp-media-unified-page .ucp-media-widths-control .components-form-token-field__label {
-  color: var(--ucp-color-heading, #172033);
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0;
-  text-transform: none;
-}
-
-.ucp-react-admin-wrap .ucp-media-unified-note {
-  margin: 2px 0 0;
-  color: var(--ucp-tools-muted, #64748b);
-  font-size: 12px;
-  line-height: 1.45;
-}
-
-@media (max-width: 1280px) {
-  .ucp-react-admin-wrap .ucp-media-unified-page .ucp-cache-tools-fields--three {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-@media (max-width: 782px) {
-  .ucp-react-admin-wrap .ucp-media-unified-page .ucp-cache-tools-fields--two, .ucp-react-admin-wrap .ucp-media-unified-page .ucp-cache-tools-fields--three {
-    grid-template-columns: 1fr;
-  }
-
-  .ucp-react-admin-wrap .ucp-media-unified-section__head {
-    flex-direction: column;
-    gap: 10px;
-  }
 }
 
 .ucp-react-admin-wrap .ucp-media-calm-page .ucp-media-calm-card.components-card {
@@ -8657,318 +8229,120 @@ body.toplevel_page_ultracache-pro #adminmenuwrap, body.toplevel_page_ultracache-
   }
 }
 
-.ucp-react-admin-wrap .ucp-unified-admin-page {
-  display: flex;
-  flex-direction: column;
+.ucp-react-admin-wrap .ucp-settings-page--woocommerce.ucp-cache-tools-page,
+.ucp-react-admin-wrap .ucp-settings-page--preload.ucp-cache-tools-page,
+.ucp-react-admin-wrap .ucp-settings-page--optimization.ucp-cache-tools-page,
+.ucp-react-admin-wrap .ucp-settings-page--server.ucp-cache-tools-page {
   gap: 22px;
-  max-width: 1180px;
-  margin: 0 auto;
-  width: 100%;
 }
 
-.ucp-react-admin-wrap .ucp-unified-hero.components-card,
-.ucp-react-admin-wrap .ucp-unified-card.components-card {
-  border: 1px solid var(--ucp-border, #dcdcde);
-  border-radius: var(--ucp-card-radius, 8px);
-  background: var(--ucp-surface, #fff);
-  box-shadow: 0 1px 2px rgba(15, 23, 42, .04);
-  overflow: hidden;
-}
-
-.ucp-react-admin-wrap .ucp-unified-hero.components-card {
-  background: linear-gradient(180deg, #fff 0%, #fbfcfe 100%);
-}
-
-.ucp-react-admin-wrap .ucp-unified-hero .components-card__body {
-  padding: 22px 24px;
-}
-
-.ucp-react-admin-wrap .ucp-unified-card .components-card__header {
-  min-height: 0;
-  padding: 17px 20px;
-  border-bottom: 1px solid var(--ucp-border-soft, #edf0f2);
-  align-items: flex-start;
-  gap: 14px;
-}
-
-.ucp-react-admin-wrap .ucp-unified-card .components-card__body {
-  padding: 18px 20px 20px;
-}
-
-.ucp-react-admin-wrap .ucp-unified-admin-page .ucp-tools-hero__inner,
-.ucp-react-admin-wrap .ucp-unified-admin-page .ucp-compact-hero__inner,
-.ucp-react-admin-wrap .ucp-unified-admin-page .ucp-opt-section-head,
-.ucp-react-admin-wrap .ucp-unified-admin-page .ucp-section-heading,
-.ucp-react-admin-wrap .ucp-unified-admin-page .ucp-compact-section-head,
-.ucp-react-admin-wrap .ucp-unified-admin-page .ucp-layout-card__header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-  min-width: 0;
-}
-
-.ucp-react-admin-wrap .ucp-unified-admin-page h2 {
-  margin: 0;
-  color: var(--ucp-text, #1d2327);
-  font-size: 18px;
-  line-height: 1.25;
-  font-weight: 650;
-  letter-spacing: 0;
-}
-
-.ucp-react-admin-wrap .ucp-unified-hero h2 {
-  font-size: 22px;
-}
-
-.ucp-react-admin-wrap .ucp-unified-admin-page p {
-  margin: 6px 0 0;
-  color: var(--ucp-muted, #646970);
-  font-size: 13px;
-  line-height: 1.5;
-  max-width: 720px;
-}
-
-.ucp-react-admin-wrap .ucp-unified-admin-page .ucp-eyebrow {
-  display: inline-flex;
-  margin: 0 0 7px;
-  color: var(--ucp-accent, #2563eb);
-  font-size: 11px;
-  line-height: 1.2;
-  font-weight: 700;
-  letter-spacing: .06em;
-  text-transform: uppercase;
-}
-
-.ucp-react-admin-wrap .ucp-unified-admin-page .ucp-status-badge,
-.ucp-react-admin-wrap .ucp-unified-admin-page .ucp-risk-badge,
-.ucp-react-admin-wrap .ucp-unified-admin-page .ucp-priority-tag {
-  flex: 0 0 auto;
-  border-radius: 999px;
-  white-space: nowrap;
-}
-
-.ucp-react-admin-wrap .ucp-unified-admin-page .ucp-opt-clean-grid,
-.ucp-react-admin-wrap .ucp-unified-admin-page .ucp-woo-settings-grid,
-.ucp-react-admin-wrap .ucp-unified-admin-page .ucp-preload-settings-grid,
-.ucp-react-admin-wrap .ucp-unified-admin-page .ucp-server-config-grid,
-.ucp-react-admin-wrap .ucp-unified-admin-page .ucp-compact-card-grid,
-.ucp-react-admin-wrap .ucp-unified-admin-page .ucp-layout-grid--settings {
+.ucp-react-admin-wrap .ucp-settings-page--woocommerce .ucp-woo-settings-grid,
+.ucp-react-admin-wrap .ucp-settings-page--preload .ucp-preload-settings-grid,
+.ucp-react-admin-wrap .ucp-settings-page--optimization .ucp-opt-clean-grid,
+.ucp-react-admin-wrap .ucp-settings-page--server .ucp-server-status-grid,
+.ucp-react-admin-wrap .ucp-settings-page--server .ucp-server-config-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 18px;
   width: 100%;
 }
 
-.ucp-react-admin-wrap .ucp-unified-admin-page .ucp-server-status-grid,
-.ucp-react-admin-wrap .ucp-unified-admin-page .ucp-opt-quick-status-grid,
-.ucp-react-admin-wrap .ucp-unified-admin-page .ucp-woo-protection-grid {
-  display: grid;
+.ucp-react-admin-wrap .ucp-settings-page--server .ucp-server-status-grid,
+.ucp-react-admin-wrap .ucp-settings-page--optimization .ucp-opt-quick-status-grid {
   grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-  gap: 14px;
 }
 
-.ucp-react-admin-wrap .ucp-unified-admin-page .ucp-opt-clean-card--wide,
-.ucp-react-admin-wrap .ucp-unified-admin-page .ucp-compact-option--full,
-.ucp-react-admin-wrap .ucp-unified-admin-page .ucp-server-field--full,
-.ucp-react-admin-wrap .ucp-unified-admin-page .ucp-preload-exclusions-card,
-.ucp-react-admin-wrap .ucp-unified-admin-page .ucp-layout-grid--settings > .components-card {
+.ucp-react-admin-wrap .ucp-settings-page--woocommerce .ucp-woo-protection-card,
+.ucp-react-admin-wrap .ucp-settings-page--preload .ucp-preload-exclusions-card,
+.ucp-react-admin-wrap .ucp-settings-page--optimization .ucp-opt-clean-card--wide,
+.ucp-react-admin-wrap .ucp-settings-page--optimization .ucp-opt-option--full,
+.ucp-react-admin-wrap .ucp-settings-page--server .ucp-server-field--full {
   grid-column: 1 / -1;
 }
 
-.ucp-react-admin-wrap .ucp-unified-admin-page .ucp-opt-clean-field-grid,
-.ucp-react-admin-wrap .ucp-unified-admin-page .ucp-compact-field-grid,
-.ucp-react-admin-wrap .ucp-unified-admin-page .ucp-compact-field-grid--two,
-.ucp-react-admin-wrap .ucp-unified-admin-page .ucp-compact-field-grid--auto {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
+.ucp-react-admin-wrap .ucp-settings-page--woocommerce .ucp-woo-hero.components-card,
+.ucp-react-admin-wrap .ucp-settings-page--preload .ucp-preload-hero.components-card,
+.ucp-react-admin-wrap .ucp-settings-page--optimization .ucp-opt-clean-hero.components-card,
+.ucp-react-admin-wrap .ucp-settings-page--server .ucp-server-hero.components-card {
+  border: 1px solid var(--ucp-line);
+  border-radius: var(--ucp-card-radius);
+  background: #fff;
+  box-shadow: var(--ucp-card-shadow);
+  overflow: hidden;
 }
 
-.ucp-react-admin-wrap .ucp-unified-admin-page .ucp-opt-option,
-.ucp-react-admin-wrap .ucp-unified-admin-page .ucp-compact-option,
-.ucp-react-admin-wrap .ucp-unified-admin-page .ucp-woo-setting-row,
-.ucp-react-admin-wrap .ucp-unified-admin-page .ucp-server-field {
-  min-width: 0;
-}
-
-.ucp-react-admin-wrap .ucp-unified-admin-page .ucp-opt-option .ucp-setting-field,
-.ucp-react-admin-wrap .ucp-unified-admin-page .ucp-compact-option .ucp-setting-field,
-.ucp-react-admin-wrap .ucp-unified-admin-page .ucp-woo-setting-row .ucp-setting-field,
-.ucp-react-admin-wrap .ucp-unified-admin-page .ucp-server-field .ucp-setting-field,
-.ucp-react-admin-wrap .ucp-unified-admin-page .ucp-layout-card .components-card__body > .ucp-setting-field {
-  display: flex;
-  flex-direction: column;
-  gap: 9px;
-  min-height: 58px;
-  padding: 13px 14px;
-  border: 1px solid var(--ucp-border-soft, #edf0f2);
-  border-radius: 8px;
-  background: var(--ucp-tile-bg, #fbfcfe);
-  box-shadow: none;
-}
-
-.ucp-react-admin-wrap .ucp-unified-admin-page .ucp-setting-field:hover {
-  border-color: var(--ucp-border, #dcdcde);
+.ucp-react-admin-wrap .ucp-settings-page--woocommerce .ucp-cache-tools-card .components-card__header,
+.ucp-react-admin-wrap .ucp-settings-page--preload .ucp-cache-tools-card .components-card__header,
+.ucp-react-admin-wrap .ucp-settings-page--optimization .ucp-cache-tools-card .components-card__header,
+.ucp-react-admin-wrap .ucp-settings-page--server .ucp-cache-tools-card .components-card__header {
+  min-height: 0;
+  padding: 17px 20px 13px;
+  border-bottom: 1px solid var(--ucp-line-soft);
   background: #fff;
 }
 
-.ucp-react-admin-wrap .ucp-unified-admin-page .components-base-control,
-.ucp-react-admin-wrap .ucp-unified-admin-page .components-base-control__field,
-.ucp-react-admin-wrap .ucp-unified-admin-page .components-toggle-control {
-  margin: 0;
+.ucp-react-admin-wrap .ucp-settings-page--woocommerce .ucp-cache-tools-card .components-card__body,
+.ucp-react-admin-wrap .ucp-settings-page--preload .ucp-cache-tools-card .components-card__body,
+.ucp-react-admin-wrap .ucp-settings-page--optimization .ucp-cache-tools-card .components-card__body,
+.ucp-react-admin-wrap .ucp-settings-page--server .ucp-cache-tools-card .components-card__body {
+  padding: 16px 20px 18px;
+}
+
+.ucp-react-admin-wrap .ucp-settings-page--woocommerce .ucp-cache-tools-option,
+.ucp-react-admin-wrap .ucp-settings-page--preload .ucp-cache-tools-option,
+.ucp-react-admin-wrap .ucp-settings-page--optimization .ucp-cache-tools-option,
+.ucp-react-admin-wrap .ucp-settings-page--server .ucp-cache-tools-option {
   min-width: 0;
-  width: 100%;
-}
-
-.ucp-react-admin-wrap .ucp-unified-admin-page .components-base-control__label,
-.ucp-react-admin-wrap .ucp-unified-admin-page .components-input-control__label,
-.ucp-react-admin-wrap .ucp-unified-admin-page .components-toggle-control__label,
-.ucp-react-admin-wrap .ucp-unified-admin-page .components-toggle-control .components-base-control__label,
-.ucp-react-admin-wrap .ucp-unified-admin-page .ucp-setting-field label {
-  color: var(--ucp-text, #1d2327);
-  font-size: 13px;
-  line-height: 1.35;
-  font-weight: 600;
-  letter-spacing: 0;
-  text-transform: none;
-}
-
-.ucp-react-admin-wrap .ucp-unified-admin-page .components-base-control__help,
-.ucp-react-admin-wrap .ucp-unified-admin-page .description,
-.ucp-react-admin-wrap .ucp-unified-admin-page .ucp-muted,
-.ucp-react-admin-wrap .ucp-unified-admin-page .components-notice {
-  color: var(--ucp-muted, #646970);
-  font-size: 12px;
-  line-height: 1.45;
-}
-
-.ucp-react-admin-wrap .ucp-unified-admin-page select,
-.ucp-react-admin-wrap .ucp-unified-admin-page input[type="text"],
-.ucp-react-admin-wrap .ucp-unified-admin-page input[type="number"],
-.ucp-react-admin-wrap .ucp-unified-admin-page input[type="password"],
-.ucp-react-admin-wrap .ucp-unified-admin-page .components-input-control__input,
-.ucp-react-admin-wrap .ucp-unified-admin-page .components-select-control__input,
-.ucp-react-admin-wrap .ucp-unified-admin-page .components-text-control__input {
-  min-height: 34px;
-  max-width: 100%;
-  border-radius: 6px;
-}
-
-.ucp-react-admin-wrap .ucp-unified-admin-page textarea.components-textarea-control__input {
-  width: 100%;
-  min-height: 104px;
-  border-radius: 6px;
-  resize: vertical;
-}
-
-.ucp-react-admin-wrap .ucp-unified-admin-page .components-toggle-control .components-base-control__field {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.ucp-react-admin-wrap .ucp-unified-admin-page .components-form-toggle {
-  flex: 0 0 auto;
-}
-
-.ucp-react-admin-wrap .ucp-unified-admin-page .ucp-server-status-card__top,
-.ucp-react-admin-wrap .ucp-unified-admin-page .ucp-server-status-card__meta,
-.ucp-react-admin-wrap .ucp-unified-admin-page .ucp-woo-value,
-.ucp-react-admin-wrap .ucp-unified-admin-page .ucp-protection-item {
-  min-width: 0;
-}
-
-.ucp-react-admin-wrap .ucp-unified-admin-page .ucp-server-status-card__title,
-.ucp-react-admin-wrap .ucp-unified-admin-page .ucp-woo-value > div {
-  min-width: 0;
-}
-
-.ucp-react-admin-wrap .ucp-unified-admin-page .ucp-server-status-card__title strong,
-.ucp-react-admin-wrap .ucp-unified-admin-page .ucp-server-status-card__title span,
-.ucp-react-admin-wrap .ucp-unified-admin-page .ucp-woo-value strong,
-.ucp-react-admin-wrap .ucp-unified-admin-page .ucp-woo-value p {
-  overflow-wrap: anywhere;
-}
-
-@media (max-width: 960px) {
-  .ucp-react-admin-wrap .ucp-unified-admin-page .ucp-opt-clean-grid,
-  .ucp-react-admin-wrap .ucp-unified-admin-page .ucp-woo-settings-grid,
-  .ucp-react-admin-wrap .ucp-unified-admin-page .ucp-preload-settings-grid,
-  .ucp-react-admin-wrap .ucp-unified-admin-page .ucp-server-config-grid,
-  .ucp-react-admin-wrap .ucp-unified-admin-page .ucp-compact-card-grid,
-  .ucp-react-admin-wrap .ucp-unified-admin-page .ucp-layout-grid--settings,
-  .ucp-react-admin-wrap .ucp-unified-admin-page .ucp-opt-clean-field-grid,
-  .ucp-react-admin-wrap .ucp-unified-admin-page .ucp-compact-field-grid,
-  .ucp-react-admin-wrap .ucp-unified-admin-page .ucp-compact-field-grid--two,
-  .ucp-react-admin-wrap .ucp-unified-admin-page .ucp-compact-field-grid--auto {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 782px) {
-  .ucp-react-admin-wrap .ucp-unified-admin-page {
-    gap: 16px;
-  }
-
-  .ucp-react-admin-wrap .ucp-unified-hero .components-card__body,
-  .ucp-react-admin-wrap .ucp-unified-card .components-card__header,
-  .ucp-react-admin-wrap .ucp-unified-card .components-card__body {
-    padding: 16px;
-  }
-
-  .ucp-react-admin-wrap .ucp-unified-admin-page .ucp-tools-hero__inner,
-  .ucp-react-admin-wrap .ucp-unified-admin-page .ucp-compact-hero__inner,
-  .ucp-react-admin-wrap .ucp-unified-admin-page .ucp-opt-section-head,
-  .ucp-react-admin-wrap .ucp-unified-admin-page .ucp-section-heading,
-  .ucp-react-admin-wrap .ucp-unified-admin-page .ucp-compact-section-head,
-  .ucp-react-admin-wrap .ucp-unified-admin-page .ucp-layout-card__header {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .ucp-react-admin-wrap .ucp-unified-admin-page .ucp-status-badge,
-  .ucp-react-admin-wrap .ucp-unified-admin-page .ucp-risk-badge,
-  .ucp-react-admin-wrap .ucp-unified-admin-page .ucp-priority-tag {
-    width: fit-content;
-    max-width: 100%;
-    white-space: normal;
-  }
-}
-
-.ucp-react-admin-wrap .ucp-settings-page--woocommerce.ucp-unified-admin-page {
-  width: 100%;
-  max-width: none;
-  margin: 0;
-  gap: 22px;
-}
-
-.ucp-react-admin-wrap .ucp-settings-page--woocommerce .ucp-woo-hero.components-card {
-  border-left: 4px solid var(--ucp-color-primary);
-  background: #fff;
-  box-shadow: none;
-}
-
-.ucp-react-admin-wrap .ucp-settings-page--woocommerce .ucp-woo-settings-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 22px;
-  width: 100%;
-}
-
-.ucp-react-admin-wrap .ucp-settings-page--woocommerce .ucp-woo-protection-card {
-  grid-column: 1 / -1;
-}
-
-.ucp-react-admin-wrap .ucp-settings-page--woocommerce .ucp-woo-setting-row {
   padding: 0;
   border: 0;
   background: transparent;
 }
 
-.ucp-react-admin-wrap .ucp-settings-page--woocommerce .ucp-woo-setting-row .ucp-setting-field {
-  min-height: 70px;
+.ucp-react-admin-wrap .ucp-settings-page--woocommerce .ucp-cache-tools-option .ucp-setting-field,
+.ucp-react-admin-wrap .ucp-settings-page--preload .ucp-cache-tools-option .ucp-setting-field,
+.ucp-react-admin-wrap .ucp-settings-page--optimization .ucp-cache-tools-option .ucp-setting-field,
+.ucp-react-admin-wrap .ucp-settings-page--server .ucp-cache-tools-option .ucp-setting-field {
+  min-height: 54px;
+  padding: 12px 14px;
+  border: 1px solid var(--ucp-line-soft);
+  border-radius: 10px;
+  background: var(--ucp-tile-bg);
+  box-shadow: none;
+}
+
+.ucp-react-admin-wrap .ucp-settings-page--woocommerce .ucp-cache-tools-option .components-base-control,
+.ucp-react-admin-wrap .ucp-settings-page--woocommerce .ucp-cache-tools-option .components-base-control__field,
+.ucp-react-admin-wrap .ucp-settings-page--preload .ucp-cache-tools-option .components-base-control,
+.ucp-react-admin-wrap .ucp-settings-page--preload .ucp-cache-tools-option .components-base-control__field,
+.ucp-react-admin-wrap .ucp-settings-page--optimization .ucp-cache-tools-option .components-base-control,
+.ucp-react-admin-wrap .ucp-settings-page--optimization .ucp-cache-tools-option .components-base-control__field,
+.ucp-react-admin-wrap .ucp-settings-page--server .ucp-cache-tools-option .components-base-control,
+.ucp-react-admin-wrap .ucp-settings-page--server .ucp-cache-tools-option .components-base-control__field {
+  margin-bottom: 0;
+}
+
+.ucp-react-admin-wrap .ucp-settings-page--woocommerce .ucp-cache-tools-option .components-base-control__label,
+.ucp-react-admin-wrap .ucp-settings-page--woocommerce .ucp-cache-tools-option .components-input-control__label,
+.ucp-react-admin-wrap .ucp-settings-page--woocommerce .ucp-cache-tools-option .components-toggle-control__label,
+.ucp-react-admin-wrap .ucp-settings-page--woocommerce .ucp-cache-tools-option .components-toggle-control .components-base-control__label,
+.ucp-react-admin-wrap .ucp-settings-page--preload .ucp-cache-tools-option .components-base-control__label,
+.ucp-react-admin-wrap .ucp-settings-page--preload .ucp-cache-tools-option .components-input-control__label,
+.ucp-react-admin-wrap .ucp-settings-page--preload .ucp-cache-tools-option .components-toggle-control__label,
+.ucp-react-admin-wrap .ucp-settings-page--preload .ucp-cache-tools-option .components-toggle-control .components-base-control__label,
+.ucp-react-admin-wrap .ucp-settings-page--optimization .ucp-cache-tools-option .components-base-control__label,
+.ucp-react-admin-wrap .ucp-settings-page--optimization .ucp-cache-tools-option .components-input-control__label,
+.ucp-react-admin-wrap .ucp-settings-page--optimization .ucp-cache-tools-option .components-toggle-control__label,
+.ucp-react-admin-wrap .ucp-settings-page--optimization .ucp-cache-tools-option .components-toggle-control .components-base-control__label,
+.ucp-react-admin-wrap .ucp-settings-page--server .ucp-cache-tools-option .components-base-control__label,
+.ucp-react-admin-wrap .ucp-settings-page--server .ucp-cache-tools-option .components-input-control__label,
+.ucp-react-admin-wrap .ucp-settings-page--server .ucp-cache-tools-option .components-toggle-control__label,
+.ucp-react-admin-wrap .ucp-settings-page--server .ucp-cache-tools-option .components-toggle-control .components-base-control__label {
+  color: var(--ucp-color-heading, #172033);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: normal;
+  line-height: 1.35;
+  text-transform: none;
 }
 
 .ucp-react-admin-wrap .ucp-settings-page--woocommerce .ucp-woo-protection-list {
@@ -8978,7 +8352,7 @@ body.toplevel_page_ultracache-pro #adminmenuwrap, body.toplevel_page_ultracache-
 }
 
 .ucp-react-admin-wrap .ucp-settings-page--woocommerce .ucp-woo-protection-row {
-  min-height: 58px;
+  min-height: 54px;
   padding: 12px 0;
 }
 
@@ -8989,20 +8363,26 @@ body.toplevel_page_ultracache-pro #adminmenuwrap, body.toplevel_page_ultracache-
   min-width: 0;
 }
 
-.ucp-react-admin-wrap .ucp-settings-page--woocommerce .ucp-woo-protection-row strong {
-  color: var(--ucp-color-heading);
-  font-size: 14px;
-  line-height: 1.35;
-}
-
-.ucp-react-admin-wrap .ucp-settings-page--woocommerce .ucp-woo-protection-row small {
-  color: var(--ucp-color-muted);
-  font-size: 12px;
-  line-height: 1.45;
+.ucp-react-admin-wrap .ucp-settings-page--server .ucp-server-status-card.components-card {
+  box-shadow: var(--ucp-card-shadow);
 }
 
 @media (max-width: 960px) {
-  .ucp-react-admin-wrap .ucp-settings-page--woocommerce .ucp-woo-settings-grid {
+  .ucp-react-admin-wrap .ucp-settings-page--woocommerce .ucp-woo-settings-grid,
+  .ucp-react-admin-wrap .ucp-settings-page--preload .ucp-preload-settings-grid,
+  .ucp-react-admin-wrap .ucp-settings-page--optimization .ucp-opt-clean-grid,
+  .ucp-react-admin-wrap .ucp-settings-page--optimization .ucp-opt-clean-field-grid,
+  .ucp-react-admin-wrap .ucp-settings-page--server .ucp-server-status-grid,
+  .ucp-react-admin-wrap .ucp-settings-page--server .ucp-server-config-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 782px) {
+  .ucp-react-admin-wrap .ucp-settings-page--woocommerce.ucp-cache-tools-page,
+  .ucp-react-admin-wrap .ucp-settings-page--preload.ucp-cache-tools-page,
+  .ucp-react-admin-wrap .ucp-settings-page--optimization.ucp-cache-tools-page,
+  .ucp-react-admin-wrap .ucp-settings-page--server.ucp-cache-tools-page {
+    gap: 16px;
   }
 }

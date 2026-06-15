@@ -56,7 +56,6 @@ trait UCP_Compat_Combine_Trait {
         }
 
 
-
         public static function recommended_disabled_features() {
             $features = array();
             if (self::has_page_cache_conflict()) {

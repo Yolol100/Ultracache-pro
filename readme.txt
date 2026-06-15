@@ -4,7 +4,7 @@ Tags: cache, performance, core web vitals, critical css, used css
 Requires at least: 6.3
 Tested up to: 7.0
 Requires PHP: 8.0
-Stable tag: 11.4.23
+Stable tag: 11.4.25
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -69,6 +69,18 @@ UltraCache Pro may store cache metadata, diagnostic records, Core Web Vitals sam
 4. Diagnostics and Core Web Vitals overview.
 
 == Changelog ==
+
+= 11.4.25 =
+* advanced-cache.php drop-in: het 304 Not Modified-antwoord stuurde geen `Vary: Accept-Encoding` mee, terwijl het volledige HIT-antwoord (dat vooraf-gecomprimeerde brotli/gzip-varianten serveert) dat wél doet. RFC 7232 §4.1 vereist dat een 304 dezelfde validatie- en cache-headers draagt als de bijbehorende 200, inclusief `Vary`. Zonder dit konden gedeelde caches/CDN's een gevalideerde entry verkeerd keyen en een gecomprimeerde body teruggeven aan een client die geen `Accept-Encoding: gzip` stuurde. Het 304-pad stuurt nu `Vary: Accept-Encoding` mee, consistent met de HIT-tak.
+* Geen andere wijzigingen aan de drop-in; serveer-fast-path, ETags, conditionele requests en compressie-selectie blijven byte-identiek.
+
+= 11.4.24 =
+* Robuustheidsfix in de HTML-optimalisatiepijplijn: op zeer grote pagina's (lange inline JSON-LD, page-builder-output, grote inline data-scripts) kon PCRE de `pcre.backtrack_limit`/`pcre.recursion_limit` raken en `null` teruggeven uit een `preg_replace_callback`. Een aantal passes herwees `$html` direct toe, waardoor die `null` door de rest van de pijplijn propageerde — met als gevolg dat álle optimalisaties op die pagina stilletjes wegvielen plus PHP 8.1+ "passing null"-deprecations in de logs.
+* Nieuwe centrale helpers `UCP_Helpers::safe_preg_replace_callback()` en `safe_preg_replace()`: bij een PCRE-fout (null-resultaat of niet-nul `preg_last_error()`) wordt het oorspronkelijke onderwerp ongewijzigd teruggegeven, zodat een falende pass netjes degradeert tot een no-op i.p.v. het document te vernietigen. De optionele `$count`-by-reference blijft correct (0 bij falen, zodat bestaande `if (!$count)`-fallbacks blijven werken).
+* Toegepast op alle full-HTML-passes die `$html` direct herwezen: delay-JS scriptherschrijving en loader/preload-injectie, module-naar-footer, font-display swap, CDN- en self-host-rewrites, lazy-render-runtime, kritieke/used-CSS `<head>`-injectie, preload-link-injectie, YouTube-thumbnail-rewrite en background-image-modernisering. De bestaande `is_string()`-bewaakte passes (minify, link-rewrites, mask/restore) bleven ongewijzigd.
+* `rewrite_html_assets_to_cdn()` viel bij een PCRE-fout terug op een **lege string** (`return is_string($html) ? $html : ''`). Met CDN ingeschakeld kon dat op een te grote pagina een blanco buffer opleveren. Nu valt het terug op de oorspronkelijke HTML.
+* Extra vangnet in `optimize_html()`: het `ucp_process_html`-filterresultaat en de uiteindelijke return worden gegarandeerd als geldige, niet-lege string teruggegeven, anders de onbewerkte invoer. De buffer-callback kan dus nooit een niet-string aan PHP teruggeven.
+* Geen wijzigingen aan option keys, hooks, REST-routes, slugs of standaardgedrag. Op normale pagina's is de output byte-voor-byte identiek; de fix raakt uitsluitend het foutpad.
 
 = 11.4.23 =
 * Instellingen-navigatie: het langste tab-label (WooCommerce) werd bij krappere breedtes aan beide kanten afgekapt. Oorzaak was `justify-content: center` op een horizontaal scrollbare flex-balk — bij overloop duwt centreren de inhoud onbereikbaar naar buiten. Vervangen door een `flex-start` basis met `safe center` verfijning: gecentreerd zolang de tabs passen, anders netjes scrollen vanaf links zonder clipping.

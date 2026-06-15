@@ -64,10 +64,11 @@ trait UCP_Optimizer_CDN_Hints_Trait {
         if (!is_string($html) || '' === $html) {
             return $html;
         }
+        $source = $html;
         if (!$this->cdn_rewrite_context_is_safe() || (class_exists('UCP_Optimization_Guards') && UCP_Optimization_Guards::contains_sensitive_markup($html))) {
             return $html;
         }
-        $html = preg_replace_callback("/\s(src|href)=(\"|\x27)([^\"\x27]+)(\2)/i", function ($matches) {
+        $html = UCP_Helpers::safe_preg_replace_callback("/\s(src|href)=(\"|\x27)([^\"\x27]+)(\2)/i", function ($matches) {
             $url = html_entity_decode($matches[3], ENT_QUOTES);
             $rewritten = $this->rewrite_asset_to_cdn($url);
             if ($rewritten === $url) {
@@ -75,11 +76,11 @@ trait UCP_Optimizer_CDN_Hints_Trait {
             }
             return ' ' . $matches[1] . '=' . $matches[2] . esc_url($rewritten) . $matches[2];
         }, $html);
-        $html = preg_replace_callback("/\s(srcset)=(\"|\x27)([^\"\x27]+)(\2)/i", function ($matches) {
+        $html = UCP_Helpers::safe_preg_replace_callback("/\s(srcset)=(\"|\x27)([^\"\x27]+)(\2)/i", function ($matches) {
             $srcset = $this->rewrite_srcset_to_cdn($matches[3]);
             return ' ' . $matches[1] . '=' . $matches[2] . esc_attr($srcset) . $matches[2];
         }, $html);
-        return is_string($html) ? $html : '';
+        return is_string($html) ? $html : $source;
     }
 
     private function rewrite_srcset_to_cdn($srcset) {
@@ -243,7 +244,7 @@ trait UCP_Optimizer_CDN_Hints_Trait {
         if (empty($domains)) {
             return $html;
         }
-        return preg_replace_callback('/\s(src|href)=("|\')([^"\']+)(\2)/i', function ($matches) use ($domains) {
+        return UCP_Helpers::safe_preg_replace_callback('/\s(src|href)=("|\')([^"\']+)(\2)/i', function ($matches) use ($domains) {
             $url = html_entity_decode($matches[3], ENT_QUOTES);
             if (!$this->third_party_asset_is_allowed($url, $domains)) {
                 return $matches[0];
@@ -375,7 +376,7 @@ trait UCP_Optimizer_CDN_Hints_Trait {
         $js = "(function(){if(!('IntersectionObserver'in window)||!('contentVisibility'in document.documentElement.style))return;var qs=" . $selector_json . ";function c(e){e.style.contentVisibility='visible';e.style.containIntrinsicSize='auto';e.setAttribute('data-ucp-lazy-render-done','1');e.removeAttribute('data-ucp-lazy-render');e.classList&&e.classList.remove('ucp-lazy-render')}function safe(q){try{return document.querySelectorAll(q)}catch(x){return []}}function r(){qs.concat(['[data-ucp-lazy-render]','.ucp-lazy-render']).forEach(function(q){safe(q).forEach(function(e){if(e.__ucplr||e.getAttribute('data-ucp-lazy-render-done'))return;e.__ucplr=1;e.setAttribute('data-ucp-lazy-render','1');o.observe(e)})})}var o=new IntersectionObserver(function(es){es.forEach(function(x){if(x.isIntersecting||x.intersectionRatio>0){c(x.target);o.unobserve(x.target)}})},{rootMargin:'300px 0px'});if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',r,{once:true});else r();window.addEventListener('pageshow',r);})();";
         $tag = $this->inline_script_tag($js, array('id' => 'ucp-lazy-render-runtime'));
         $count = 0;
-        $html = preg_replace_callback('#</body>#i', static function () use ($tag) {
+        $html = UCP_Helpers::safe_preg_replace_callback('#</body>#i', static function () use ($tag) {
             return $tag . '</body>';
         }, $html, 1, $count);
         return $count ? $html : $html . $tag;

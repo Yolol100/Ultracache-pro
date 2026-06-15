@@ -106,6 +106,7 @@ trait UCP_Cache_Admin_Bar_Trait {
             . 'function bind(id,runner){var item=document.getElementById("wp-admin-bar-"+id);if(!item){return;}var link=item.querySelector("a");if(!link){return;}link.addEventListener("click",function(e){e.preventDefault();if(item.classList.contains("ucp-adminbar-busy")){return;}item.classList.add("ucp-adminbar-busy");runner().then(function(message){toast(message||"Actie uitgevoerd.",false);}).catch(function(err){toast((err&&err.message)?err.message:"Actie mislukt.",true);}).then(function(){item.classList.remove("ucp-adminbar-busy");});});}'
             . 'function ready(fn){if(document.readyState!=="loading"){fn();}else{document.addEventListener("DOMContentLoaded",fn);}}'
             . 'ready(function(){bind("ucp-purge-preload",function(){return action("purge-all").then(function(){return action("preload");}).then(function(){return "Cache geleegd en opwarmen gestart.";});});'
+            . 'bind("ucp-purge-url",function(){return action("purge-url",{url:window.location.href}).then(function(resp){return resp&&resp.message?resp.message:"Deze pagina is geleegd.";});});'
             . 'bind("ucp-clear-used-css",function(){return action("clear-used-css").then(function(resp){return resp&&resp.message?resp.message:"Gebruikte CSS is geleegd.";});});'
             . 'bind("ucp-clear-priority-elements",function(){return action("clear-priority-elements").then(function(resp){return resp&&resp.message?resp.message:"Priority elements zijn geleegd.";});});});'
             . '})();</script>';

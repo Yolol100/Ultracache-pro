@@ -15,6 +15,63 @@ class UCP_Helpers {
         return is_string($table) && '' !== $table && 1 === preg_match('/^[A-Za-z0-9_]+$/', $table);
     }
 
+    /**
+     * preg_replace_callback that never silently destroys the subject.
+     *
+     * On very large markup (long inline JSON-LD, page-builder pages, big inline
+     * data scripts) PCRE can hit pcre.backtrack_limit / pcre.recursion_limit and
+     * return null with a non-zero preg_last_error(). When that happens this helper
+     * returns the original subject unchanged instead of letting null cascade
+     * through the optimization pipeline (which would drop every optimization on
+     * that page and, in the CDN path, could even blank the buffer). The optional
+     * by-reference $count is preserved (0 on failure, since nothing was replaced).
+     *
+     * @param string|array $pattern
+     * @param callable     $callback
+     * @param string       $subject
+     * @param int          $limit
+     * @param int|null     $count
+     * @return string The replaced subject, or the original subject on PCRE failure.
+     */
+    public static function safe_preg_replace_callback($pattern, $callback, $subject, $limit = -1, &$count = null) {
+        $count = 0;
+        if (!is_string($subject)) {
+            return $subject;
+        }
+        $result = preg_replace_callback($pattern, $callback, $subject, $limit, $count);
+        if (null === $result || PREG_NO_ERROR !== preg_last_error()) {
+            $count = 0;
+            return $subject;
+        }
+        return $result;
+    }
+
+    /**
+     * preg_replace counterpart of {@see safe_preg_replace_callback()}.
+     *
+     * Returns the original subject unchanged when PCRE fails, so a backtrack-limit
+     * error on large markup degrades to a no-op instead of nulling the document.
+     *
+     * @param string|array $pattern
+     * @param string|array $replacement
+     * @param string       $subject
+     * @param int          $limit
+     * @param int|null     $count
+     * @return string The replaced subject, or the original subject on PCRE failure.
+     */
+    public static function safe_preg_replace($pattern, $replacement, $subject, $limit = -1, &$count = null) {
+        $count = 0;
+        if (!is_string($subject)) {
+            return $subject;
+        }
+        $result = preg_replace($pattern, $replacement, $subject, $limit, $count);
+        if (null === $result || PREG_NO_ERROR !== preg_last_error()) {
+            $count = 0;
+            return $subject;
+        }
+        return $result;
+    }
+
     public static function quote_table_name($table) {
         return '`' . str_replace('`', '``', (string) $table) . '`';
     }

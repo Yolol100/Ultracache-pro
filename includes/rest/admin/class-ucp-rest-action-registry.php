@@ -21,6 +21,7 @@ final class UCP_REST_Action_Registry {
             'preload'             => array('handler' => 'run_preload'),
             'critical-css'        => array('handler' => 'generate_critical_css'),
             'used-css'            => array('handler' => 'generate_used_css'),
+            'clear-used-css'      => array('handler' => 'clear_used_css'),
             'clear-minified-css'  => array('handler' => 'clear_minified_css'),
             'clear-minified-js'   => array('handler' => 'clear_minified_js'),
             'clear-priority-elements' => array('handler' => 'clear_priority_elements'),

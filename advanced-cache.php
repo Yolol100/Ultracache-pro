@@ -431,6 +431,9 @@ if (is_file($cache_file) && is_readable($cache_file) && (0 === $ttl || (filemtim
             header('ETag: ' . $etag);
             header('Last-Modified: ' . $last_modified);
             header('Cache-Control: public, max-age=' . (int) $remaining_ttl . ', stale-while-revalidate=60, stale-if-error=3600');
+            // RFC 7232 §4.1: a 304 must carry the same Vary the 200 would, so shared/CDN
+            // caches key the validated entry on Accept-Encoding just like the full HIT below.
+            header('Vary: Accept-Encoding');
             http_response_code(304);
             exit;
         }

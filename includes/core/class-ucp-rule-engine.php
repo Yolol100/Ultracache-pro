@@ -48,7 +48,6 @@ class UCP_Rule_Engine {
     }
 
 
-
     public static function rules_enabled_for_current_user() {
         if (!UCP_Options::get('enable_asset_test_mode')) {
             return true;

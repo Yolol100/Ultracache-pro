@@ -1,224 +1,117 @@
-.ucp-react-admin-wrap .ucp-unified-admin-page .ucp-opt-clean-grid,
-.ucp-react-admin-wrap .ucp-unified-admin-page .ucp-woo-settings-grid,
-.ucp-react-admin-wrap .ucp-unified-admin-page .ucp-preload-settings-grid,
-.ucp-react-admin-wrap .ucp-unified-admin-page .ucp-server-config-grid,
-.ucp-react-admin-wrap .ucp-unified-admin-page .ucp-compact-card-grid,
-.ucp-react-admin-wrap .ucp-unified-admin-page .ucp-layout-grid--settings {
+.ucp-react-admin-wrap .ucp-settings-page--woocommerce.ucp-cache-tools-page,
+.ucp-react-admin-wrap .ucp-settings-page--preload.ucp-cache-tools-page,
+.ucp-react-admin-wrap .ucp-settings-page--optimization.ucp-cache-tools-page,
+.ucp-react-admin-wrap .ucp-settings-page--server.ucp-cache-tools-page {
+  gap: 22px;
+}
+
+.ucp-react-admin-wrap .ucp-settings-page--woocommerce .ucp-woo-settings-grid,
+.ucp-react-admin-wrap .ucp-settings-page--preload .ucp-preload-settings-grid,
+.ucp-react-admin-wrap .ucp-settings-page--optimization .ucp-opt-clean-grid,
+.ucp-react-admin-wrap .ucp-settings-page--server .ucp-server-status-grid,
+.ucp-react-admin-wrap .ucp-settings-page--server .ucp-server-config-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 18px;
   width: 100%;
 }
 
-.ucp-react-admin-wrap .ucp-unified-admin-page .ucp-server-status-grid,
-.ucp-react-admin-wrap .ucp-unified-admin-page .ucp-opt-quick-status-grid,
-.ucp-react-admin-wrap .ucp-unified-admin-page .ucp-woo-protection-grid {
-  display: grid;
+.ucp-react-admin-wrap .ucp-settings-page--server .ucp-server-status-grid,
+.ucp-react-admin-wrap .ucp-settings-page--optimization .ucp-opt-quick-status-grid {
   grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-  gap: 14px;
 }
 
-.ucp-react-admin-wrap .ucp-unified-admin-page .ucp-opt-clean-card--wide,
-.ucp-react-admin-wrap .ucp-unified-admin-page .ucp-compact-option--full,
-.ucp-react-admin-wrap .ucp-unified-admin-page .ucp-server-field--full,
-.ucp-react-admin-wrap .ucp-unified-admin-page .ucp-preload-exclusions-card,
-.ucp-react-admin-wrap .ucp-unified-admin-page .ucp-layout-grid--settings > .components-card {
+.ucp-react-admin-wrap .ucp-settings-page--woocommerce .ucp-woo-protection-card,
+.ucp-react-admin-wrap .ucp-settings-page--preload .ucp-preload-exclusions-card,
+.ucp-react-admin-wrap .ucp-settings-page--optimization .ucp-opt-clean-card--wide,
+.ucp-react-admin-wrap .ucp-settings-page--optimization .ucp-opt-option--full,
+.ucp-react-admin-wrap .ucp-settings-page--server .ucp-server-field--full {
   grid-column: 1 / -1;
 }
 
-.ucp-react-admin-wrap .ucp-unified-admin-page .ucp-opt-clean-field-grid,
-.ucp-react-admin-wrap .ucp-unified-admin-page .ucp-compact-field-grid,
-.ucp-react-admin-wrap .ucp-unified-admin-page .ucp-compact-field-grid--two,
-.ucp-react-admin-wrap .ucp-unified-admin-page .ucp-compact-field-grid--auto {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
+.ucp-react-admin-wrap .ucp-settings-page--woocommerce .ucp-woo-hero.components-card,
+.ucp-react-admin-wrap .ucp-settings-page--preload .ucp-preload-hero.components-card,
+.ucp-react-admin-wrap .ucp-settings-page--optimization .ucp-opt-clean-hero.components-card,
+.ucp-react-admin-wrap .ucp-settings-page--server .ucp-server-hero.components-card {
+  border: 1px solid var(--ucp-line);
+  border-radius: var(--ucp-card-radius);
+  background: #fff;
+  box-shadow: var(--ucp-card-shadow);
+  overflow: hidden;
 }
 
-.ucp-react-admin-wrap .ucp-unified-admin-page .ucp-opt-option,
-.ucp-react-admin-wrap .ucp-unified-admin-page .ucp-compact-option,
-.ucp-react-admin-wrap .ucp-unified-admin-page .ucp-woo-setting-row,
-.ucp-react-admin-wrap .ucp-unified-admin-page .ucp-server-field {
-  min-width: 0;
-}
-
-.ucp-react-admin-wrap .ucp-unified-admin-page .ucp-opt-option .ucp-setting-field,
-.ucp-react-admin-wrap .ucp-unified-admin-page .ucp-compact-option .ucp-setting-field,
-.ucp-react-admin-wrap .ucp-unified-admin-page .ucp-woo-setting-row .ucp-setting-field,
-.ucp-react-admin-wrap .ucp-unified-admin-page .ucp-server-field .ucp-setting-field,
-.ucp-react-admin-wrap .ucp-unified-admin-page .ucp-layout-card .components-card__body > .ucp-setting-field {
-  display: flex;
-  flex-direction: column;
-  gap: 9px;
-  min-height: 58px;
-  padding: 13px 14px;
-  border: 1px solid var(--ucp-border-soft, #edf0f2);
-  border-radius: 8px;
-  background: var(--ucp-tile-bg, #fbfcfe);
-  box-shadow: none;
-}
-
-.ucp-react-admin-wrap .ucp-unified-admin-page .ucp-setting-field:hover {
-  border-color: var(--ucp-border, #dcdcde);
+.ucp-react-admin-wrap .ucp-settings-page--woocommerce .ucp-cache-tools-card .components-card__header,
+.ucp-react-admin-wrap .ucp-settings-page--preload .ucp-cache-tools-card .components-card__header,
+.ucp-react-admin-wrap .ucp-settings-page--optimization .ucp-cache-tools-card .components-card__header,
+.ucp-react-admin-wrap .ucp-settings-page--server .ucp-cache-tools-card .components-card__header {
+  min-height: 0;
+  padding: 17px 20px 13px;
+  border-bottom: 1px solid var(--ucp-line-soft);
   background: #fff;
 }
 
-.ucp-react-admin-wrap .ucp-unified-admin-page .components-base-control,
-.ucp-react-admin-wrap .ucp-unified-admin-page .components-base-control__field,
-.ucp-react-admin-wrap .ucp-unified-admin-page .components-toggle-control {
-  margin: 0;
+.ucp-react-admin-wrap .ucp-settings-page--woocommerce .ucp-cache-tools-card .components-card__body,
+.ucp-react-admin-wrap .ucp-settings-page--preload .ucp-cache-tools-card .components-card__body,
+.ucp-react-admin-wrap .ucp-settings-page--optimization .ucp-cache-tools-card .components-card__body,
+.ucp-react-admin-wrap .ucp-settings-page--server .ucp-cache-tools-card .components-card__body {
+  padding: 16px 20px 18px;
+}
+
+.ucp-react-admin-wrap .ucp-settings-page--woocommerce .ucp-cache-tools-option,
+.ucp-react-admin-wrap .ucp-settings-page--preload .ucp-cache-tools-option,
+.ucp-react-admin-wrap .ucp-settings-page--optimization .ucp-cache-tools-option,
+.ucp-react-admin-wrap .ucp-settings-page--server .ucp-cache-tools-option {
   min-width: 0;
-  width: 100%;
-}
-
-.ucp-react-admin-wrap .ucp-unified-admin-page .components-base-control__label,
-.ucp-react-admin-wrap .ucp-unified-admin-page .components-input-control__label,
-.ucp-react-admin-wrap .ucp-unified-admin-page .components-toggle-control__label,
-.ucp-react-admin-wrap .ucp-unified-admin-page .components-toggle-control .components-base-control__label,
-.ucp-react-admin-wrap .ucp-unified-admin-page .ucp-setting-field label {
-  color: var(--ucp-text, #1d2327);
-  font-size: 13px;
-  line-height: 1.35;
-  font-weight: 600;
-  letter-spacing: 0;
-  text-transform: none;
-}
-
-.ucp-react-admin-wrap .ucp-unified-admin-page .components-base-control__help,
-.ucp-react-admin-wrap .ucp-unified-admin-page .description,
-.ucp-react-admin-wrap .ucp-unified-admin-page .ucp-muted,
-.ucp-react-admin-wrap .ucp-unified-admin-page .components-notice {
-  color: var(--ucp-muted, #646970);
-  font-size: 12px;
-  line-height: 1.45;
-}
-
-.ucp-react-admin-wrap .ucp-unified-admin-page select,
-.ucp-react-admin-wrap .ucp-unified-admin-page input[type="text"],
-.ucp-react-admin-wrap .ucp-unified-admin-page input[type="number"],
-.ucp-react-admin-wrap .ucp-unified-admin-page input[type="password"],
-.ucp-react-admin-wrap .ucp-unified-admin-page .components-input-control__input,
-.ucp-react-admin-wrap .ucp-unified-admin-page .components-select-control__input,
-.ucp-react-admin-wrap .ucp-unified-admin-page .components-text-control__input {
-  min-height: 34px;
-  max-width: 100%;
-  border-radius: 6px;
-}
-
-.ucp-react-admin-wrap .ucp-unified-admin-page textarea.components-textarea-control__input {
-  width: 100%;
-  min-height: 104px;
-  border-radius: 6px;
-  resize: vertical;
-}
-
-.ucp-react-admin-wrap .ucp-unified-admin-page .components-toggle-control .components-base-control__field {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.ucp-react-admin-wrap .ucp-unified-admin-page .components-form-toggle {
-  flex: 0 0 auto;
-}
-
-.ucp-react-admin-wrap .ucp-unified-admin-page .ucp-server-status-card__top,
-.ucp-react-admin-wrap .ucp-unified-admin-page .ucp-server-status-card__meta,
-.ucp-react-admin-wrap .ucp-unified-admin-page .ucp-woo-value,
-.ucp-react-admin-wrap .ucp-unified-admin-page .ucp-protection-item {
-  min-width: 0;
-}
-
-.ucp-react-admin-wrap .ucp-unified-admin-page .ucp-server-status-card__title,
-.ucp-react-admin-wrap .ucp-unified-admin-page .ucp-woo-value > div {
-  min-width: 0;
-}
-
-.ucp-react-admin-wrap .ucp-unified-admin-page .ucp-server-status-card__title strong,
-.ucp-react-admin-wrap .ucp-unified-admin-page .ucp-server-status-card__title span,
-.ucp-react-admin-wrap .ucp-unified-admin-page .ucp-woo-value strong,
-.ucp-react-admin-wrap .ucp-unified-admin-page .ucp-woo-value p {
-  overflow-wrap: anywhere;
-}
-
-@media (max-width: 960px) {
-  .ucp-react-admin-wrap .ucp-unified-admin-page .ucp-opt-clean-grid,
-  .ucp-react-admin-wrap .ucp-unified-admin-page .ucp-woo-settings-grid,
-  .ucp-react-admin-wrap .ucp-unified-admin-page .ucp-preload-settings-grid,
-  .ucp-react-admin-wrap .ucp-unified-admin-page .ucp-server-config-grid,
-  .ucp-react-admin-wrap .ucp-unified-admin-page .ucp-compact-card-grid,
-  .ucp-react-admin-wrap .ucp-unified-admin-page .ucp-layout-grid--settings,
-  .ucp-react-admin-wrap .ucp-unified-admin-page .ucp-opt-clean-field-grid,
-  .ucp-react-admin-wrap .ucp-unified-admin-page .ucp-compact-field-grid,
-  .ucp-react-admin-wrap .ucp-unified-admin-page .ucp-compact-field-grid--two,
-  .ucp-react-admin-wrap .ucp-unified-admin-page .ucp-compact-field-grid--auto {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 782px) {
-  .ucp-react-admin-wrap .ucp-unified-admin-page {
-    gap: 16px;
-  }
-
-  .ucp-react-admin-wrap .ucp-unified-hero .components-card__body,
-  .ucp-react-admin-wrap .ucp-unified-card .components-card__header,
-  .ucp-react-admin-wrap .ucp-unified-card .components-card__body {
-    padding: 16px;
-  }
-
-  .ucp-react-admin-wrap .ucp-unified-admin-page .ucp-tools-hero__inner,
-  .ucp-react-admin-wrap .ucp-unified-admin-page .ucp-compact-hero__inner,
-  .ucp-react-admin-wrap .ucp-unified-admin-page .ucp-opt-section-head,
-  .ucp-react-admin-wrap .ucp-unified-admin-page .ucp-section-heading,
-  .ucp-react-admin-wrap .ucp-unified-admin-page .ucp-compact-section-head,
-  .ucp-react-admin-wrap .ucp-unified-admin-page .ucp-layout-card__header {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .ucp-react-admin-wrap .ucp-unified-admin-page .ucp-status-badge,
-  .ucp-react-admin-wrap .ucp-unified-admin-page .ucp-risk-badge,
-  .ucp-react-admin-wrap .ucp-unified-admin-page .ucp-priority-tag {
-    width: fit-content;
-    max-width: 100%;
-    white-space: normal;
-  }
-}
-
-.ucp-react-admin-wrap .ucp-settings-page--woocommerce.ucp-unified-admin-page {
-  width: 100%;
-  max-width: none;
-  margin: 0;
-  gap: 22px;
-}
-
-.ucp-react-admin-wrap .ucp-settings-page--woocommerce .ucp-woo-hero.components-card {
-  border-left: 4px solid var(--ucp-color-primary);
-  background: #fff;
-  box-shadow: none;
-}
-
-.ucp-react-admin-wrap .ucp-settings-page--woocommerce .ucp-woo-settings-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 22px;
-  width: 100%;
-}
-
-.ucp-react-admin-wrap .ucp-settings-page--woocommerce .ucp-woo-protection-card {
-  grid-column: 1 / -1;
-}
-
-.ucp-react-admin-wrap .ucp-settings-page--woocommerce .ucp-woo-setting-row {
   padding: 0;
   border: 0;
   background: transparent;
 }
 
-.ucp-react-admin-wrap .ucp-settings-page--woocommerce .ucp-woo-setting-row .ucp-setting-field {
-  min-height: 70px;
+.ucp-react-admin-wrap .ucp-settings-page--woocommerce .ucp-cache-tools-option .ucp-setting-field,
+.ucp-react-admin-wrap .ucp-settings-page--preload .ucp-cache-tools-option .ucp-setting-field,
+.ucp-react-admin-wrap .ucp-settings-page--optimization .ucp-cache-tools-option .ucp-setting-field,
+.ucp-react-admin-wrap .ucp-settings-page--server .ucp-cache-tools-option .ucp-setting-field {
+  min-height: 54px;
+  padding: 12px 14px;
+  border: 1px solid var(--ucp-line-soft);
+  border-radius: 10px;
+  background: var(--ucp-tile-bg);
+  box-shadow: none;
+}
+
+.ucp-react-admin-wrap .ucp-settings-page--woocommerce .ucp-cache-tools-option .components-base-control,
+.ucp-react-admin-wrap .ucp-settings-page--woocommerce .ucp-cache-tools-option .components-base-control__field,
+.ucp-react-admin-wrap .ucp-settings-page--preload .ucp-cache-tools-option .components-base-control,
+.ucp-react-admin-wrap .ucp-settings-page--preload .ucp-cache-tools-option .components-base-control__field,
+.ucp-react-admin-wrap .ucp-settings-page--optimization .ucp-cache-tools-option .components-base-control,
+.ucp-react-admin-wrap .ucp-settings-page--optimization .ucp-cache-tools-option .components-base-control__field,
+.ucp-react-admin-wrap .ucp-settings-page--server .ucp-cache-tools-option .components-base-control,
+.ucp-react-admin-wrap .ucp-settings-page--server .ucp-cache-tools-option .components-base-control__field {
+  margin-bottom: 0;
+}
+
+.ucp-react-admin-wrap .ucp-settings-page--woocommerce .ucp-cache-tools-option .components-base-control__label,
+.ucp-react-admin-wrap .ucp-settings-page--woocommerce .ucp-cache-tools-option .components-input-control__label,
+.ucp-react-admin-wrap .ucp-settings-page--woocommerce .ucp-cache-tools-option .components-toggle-control__label,
+.ucp-react-admin-wrap .ucp-settings-page--woocommerce .ucp-cache-tools-option .components-toggle-control .components-base-control__label,
+.ucp-react-admin-wrap .ucp-settings-page--preload .ucp-cache-tools-option .components-base-control__label,
+.ucp-react-admin-wrap .ucp-settings-page--preload .ucp-cache-tools-option .components-input-control__label,
+.ucp-react-admin-wrap .ucp-settings-page--preload .ucp-cache-tools-option .components-toggle-control__label,
+.ucp-react-admin-wrap .ucp-settings-page--preload .ucp-cache-tools-option .components-toggle-control .components-base-control__label,
+.ucp-react-admin-wrap .ucp-settings-page--optimization .ucp-cache-tools-option .components-base-control__label,
+.ucp-react-admin-wrap .ucp-settings-page--optimization .ucp-cache-tools-option .components-input-control__label,
+.ucp-react-admin-wrap .ucp-settings-page--optimization .ucp-cache-tools-option .components-toggle-control__label,
+.ucp-react-admin-wrap .ucp-settings-page--optimization .ucp-cache-tools-option .components-toggle-control .components-base-control__label,
+.ucp-react-admin-wrap .ucp-settings-page--server .ucp-cache-tools-option .components-base-control__label,
+.ucp-react-admin-wrap .ucp-settings-page--server .ucp-cache-tools-option .components-input-control__label,
+.ucp-react-admin-wrap .ucp-settings-page--server .ucp-cache-tools-option .components-toggle-control__label,
+.ucp-react-admin-wrap .ucp-settings-page--server .ucp-cache-tools-option .components-toggle-control .components-base-control__label {
+  color: var(--ucp-color-heading, #172033);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: normal;
+  line-height: 1.35;
+  text-transform: none;
 }
 
 .ucp-react-admin-wrap .ucp-settings-page--woocommerce .ucp-woo-protection-list {
@@ -228,7 +121,7 @@
 }
 
 .ucp-react-admin-wrap .ucp-settings-page--woocommerce .ucp-woo-protection-row {
-  min-height: 58px;
+  min-height: 54px;
   padding: 12px 0;
 }
 
@@ -239,20 +132,26 @@
   min-width: 0;
 }
 
-.ucp-react-admin-wrap .ucp-settings-page--woocommerce .ucp-woo-protection-row strong {
-  color: var(--ucp-color-heading);
-  font-size: 14px;
-  line-height: 1.35;
-}
-
-.ucp-react-admin-wrap .ucp-settings-page--woocommerce .ucp-woo-protection-row small {
-  color: var(--ucp-color-muted);
-  font-size: 12px;
-  line-height: 1.45;
+.ucp-react-admin-wrap .ucp-settings-page--server .ucp-server-status-card.components-card {
+  box-shadow: var(--ucp-card-shadow);
 }
 
 @media (max-width: 960px) {
-  .ucp-react-admin-wrap .ucp-settings-page--woocommerce .ucp-woo-settings-grid {
+  .ucp-react-admin-wrap .ucp-settings-page--woocommerce .ucp-woo-settings-grid,
+  .ucp-react-admin-wrap .ucp-settings-page--preload .ucp-preload-settings-grid,
+  .ucp-react-admin-wrap .ucp-settings-page--optimization .ucp-opt-clean-grid,
+  .ucp-react-admin-wrap .ucp-settings-page--optimization .ucp-opt-clean-field-grid,
+  .ucp-react-admin-wrap .ucp-settings-page--server .ucp-server-status-grid,
+  .ucp-react-admin-wrap .ucp-settings-page--server .ucp-server-config-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 782px) {
+  .ucp-react-admin-wrap .ucp-settings-page--woocommerce.ucp-cache-tools-page,
+  .ucp-react-admin-wrap .ucp-settings-page--preload.ucp-cache-tools-page,
+  .ucp-react-admin-wrap .ucp-settings-page--optimization.ucp-cache-tools-page,
+  .ucp-react-admin-wrap .ucp-settings-page--server.ucp-cache-tools-page {
+    gap: 16px;
   }
 }

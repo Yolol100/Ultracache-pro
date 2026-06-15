@@ -230,7 +230,6 @@ class UCP_CWV {
     }
 
 
-
     /**
      * Apply CWV beacon rate limits in the same order as the legacy inline checks.
      *

@@ -37,7 +37,6 @@ trait UCP_Admin_Notices_Flash_Toast_Trait {
     }
 
 
-
     public function enqueue_cache_toast_assets($hook = '') {
         if (!current_user_can('manage_options')) {
             return;

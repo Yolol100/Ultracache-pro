@@ -425,7 +425,7 @@ trait UCP_Optimizer_Media_Image_Trait {
         if (!is_string($html) || false === stripos($html, 'url(')) {
             return $html;
         }
-        return preg_replace_callback('/url\(([^)]+)\)/i', function ($matches) {
+        return UCP_Helpers::safe_preg_replace_callback('/url\(([^)]+)\)/i', function ($matches) {
             $raw = trim(html_entity_decode((string) $matches[1], ENT_QUOTES), " \t\n\r\0\x0B'\"");
             $url = $this->normalize_lcp_image_candidate_url($raw);
             if (!$url) {

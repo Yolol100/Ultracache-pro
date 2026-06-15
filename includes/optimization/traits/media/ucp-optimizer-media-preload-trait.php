@@ -69,7 +69,7 @@ trait UCP_Optimizer_Media_Preload_Trait {
             return $html;
         }
         $count = 0;
-        $html = preg_replace_callback('#</head>#i', static function () use ($links) {
+        $html = UCP_Helpers::safe_preg_replace_callback('#</head>#i', static function () use ($links) {
             return $links . '</head>';
         }, $html, 1, $count);
         return $count ? $html : $links . $html;

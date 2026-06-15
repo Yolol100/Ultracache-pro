@@ -349,7 +349,6 @@ trait UCP_REST_Status_Trait {
         }
 
 
-
         protected static function build_renderer_readiness($settings, $queue, $headless_status) {
             $enabled = !empty($settings['enable_headless_renderer']);
             $endpoint = trim((string) (isset($settings['headless_renderer_endpoint']) ? $settings['headless_renderer_endpoint'] : ''));

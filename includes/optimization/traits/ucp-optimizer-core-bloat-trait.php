@@ -35,7 +35,6 @@ trait UCP_Optimizer_Core_Bloat_Trait {
     }
 
 
-
     public function maybe_disable_embeds() {
         if (!UCP_Options::get('enable_disable_embeds')) {
             return;

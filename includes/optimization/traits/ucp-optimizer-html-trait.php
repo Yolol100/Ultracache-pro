@@ -76,7 +76,9 @@ trait UCP_Optimizer_HTML_Trait {
         if (!is_string($html) || '' === trim($html)) {
             return $html;
         }
-        $html = apply_filters('ucp_process_html', $html);
+        $source = $html;
+        $filtered = apply_filters('ucp_process_html', $html);
+        $html = is_string($filtered) && '' !== $filtered ? $filtered : $source;
         $skip_markup_optimizations = $this->should_skip_markup_optimizations($html);
         if (!$skip_markup_optimizations && UCP_Options::get('enable_self_host_third_party_assets')) {
             $html = $this->self_host_third_party_assets($html);
@@ -148,9 +150,8 @@ trait UCP_Optimizer_HTML_Trait {
             return $html;
         }
 
-        return $optimized;
+        return is_string($optimized) && '' !== $optimized ? $optimized : $source;
     }
-
 
 
     private function should_run_delay_js_markup_rewrite() {
@@ -471,7 +472,7 @@ trait UCP_Optimizer_HTML_Trait {
         if (!is_string($html) || false === stripos($html, '@font-face')) {
             return $html;
         }
-        return preg_replace_callback('/@font-face\\s*\\{[^}]*\\}/is', function ($matches) {
+        return UCP_Helpers::safe_preg_replace_callback('/@font-face\\s*\\{[^}]*\\}/is', function ($matches) {
             $block = $matches[0];
             if (false !== stripos($block, 'font-display')) {
                 return $block;
@@ -485,7 +486,7 @@ trait UCP_Optimizer_HTML_Trait {
             return $html;
         }
         $modules = array();
-        $html = preg_replace_callback('#<script\\b(?=[^>]*\\btype=("|\\\')module\\1)[^>]*>.*?</script>#is', function ($matches) use (&$modules) {
+        $html = UCP_Helpers::safe_preg_replace_callback('#<script\\b(?=[^>]*\\btype=("|\\\')module\\1)[^>]*>.*?</script>#is', function ($matches) use (&$modules) {
             $tag = $matches[0];
             if (false !== stripos($tag, 'data-ucp-no-move')) {
                 return $tag;
@@ -498,7 +499,7 @@ trait UCP_Optimizer_HTML_Trait {
         }
         $bundle = "\n" . implode("\n", $modules) . "\n";
         $count = 0;
-        $html = preg_replace_callback('#</body>#i', static function () use ($bundle) {
+        $html = UCP_Helpers::safe_preg_replace_callback('#</body>#i', static function () use ($bundle) {
             return $bundle . '</body>';
         }, $html, 1, $count);
         return $count ? $html : $html . $bundle;

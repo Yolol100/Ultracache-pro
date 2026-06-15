@@ -222,7 +222,6 @@ class UCP_Optimization_Status {
     }
 
 
-
     /**
      * CDN status should read like infrastructure, not a regular toggle.
      *

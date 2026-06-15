@@ -43,6 +43,6 @@ A static audit cannot honestly prove full production readiness for a cache/perfo
 
 ## Recommended interpretation
 
-- Static package/code score after this evidence pass: 96/100.
+- Static package/code score after this evidence pass: 94/100.
 - Production-package readiness after clean validation: yes.
 - Full production confidence: requires recorded staging proof.

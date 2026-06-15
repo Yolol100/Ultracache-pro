@@ -1214,12 +1214,15 @@ body.toplevel_page_ultracache-pro .wrap.ucp-react-admin-wrap, body.ultracache-pr
 }
 
 .ucp-react-admin-wrap .ucp-settings-page--optimization.ucp-opt-clean-page {
-  gap: 16px;
+  gap: 18px;
 }
 
 .ucp-react-admin-wrap .ucp-opt-clean-hero.components-card {
-  border-left: 4px solid var(--ucp-color-primary);
+  border: 1px solid var(--ucp-line);
+  border-radius: var(--ucp-card-radius);
+  background: #fff;
   box-shadow: var(--ucp-card-shadow);
+  overflow: hidden;
 }
 
 .ucp-react-admin-wrap .ucp-opt-clean-hero .components-card__body {
@@ -1227,7 +1230,7 @@ body.toplevel_page_ultracache-pro .wrap.ucp-react-admin-wrap, body.ultracache-pr
   grid-template-columns: minmax(0, 1fr) minmax(360px, 520px);
   align-items: end;
   gap: 20px;
-  padding: 22px 24px;
+  padding: 24px;
 }
 
 .ucp-react-admin-wrap .ucp-opt-clean-page .ucp-opt-section-head {

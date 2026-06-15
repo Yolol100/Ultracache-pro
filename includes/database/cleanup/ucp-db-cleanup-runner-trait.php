@@ -50,7 +50,7 @@ trait UCP_DB_Cleanup_Runner_Trait {
         } elseif (isset($_GET['confirm_irreversible'])) {
             $confirmed_irreversible = rest_sanitize_boolean(wp_unslash($_GET['confirm_irreversible']));
         }
-        // AI-PATCH: Legacy admin-post cleanup now requires the same two explicit confirmations as REST.
+        // Legacy admin-post cleanup requires the same two explicit confirmations as REST.
         if (!$confirmed_backup || !$confirmed_irreversible) {
             wp_safe_redirect(admin_url('admin.php?page=ultracache-pro&tab=database&db_cleanup_confirm=1&db_cleanup_error=confirmation_required'));
             exit;

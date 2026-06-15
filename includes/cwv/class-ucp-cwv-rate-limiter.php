@@ -38,7 +38,6 @@ final class UCP_CWV_Rate_Limiter {
     }
 
 
-
     /**
      * Build a consistent non-cacheable 429 response for public CWV beacon limits.
      *

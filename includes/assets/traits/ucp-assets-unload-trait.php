@@ -162,7 +162,6 @@ trait UCP_Assets_Unload_Trait {
     }
 
 
-
     private function asset_unload_risk($handle, $kind, $src = '') {
         $handle = sanitize_key($handle);
         $kind = 'script' === $kind ? 'script' : 'style';

@@ -66,7 +66,6 @@ class UCP_Site_Health {
     }
 
 
-
     protected static function latest_runtime_result($key) {
         $latest = class_exists('UCP_Runtime_Tests') ? UCP_Runtime_Tests::latest() : array();
         return isset($latest[$key]) && is_array($latest[$key]) ? $latest[$key] : array();

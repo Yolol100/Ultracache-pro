@@ -70,7 +70,7 @@ trait UCP_Optimizer_Scripts_Trait {
         $delayed_preload_urls = array();
         $protected_blocks = array();
         $html = $this->mask_delay_js_protected_blocks($html, $protected_blocks);
-        $html = preg_replace_callback('#<script\b([^>]*)>(.*?)</script>#is', function ($matches) use ($hard_excluded, $soft_excluded, $safe_mode, $delay_mode, $specified, $forced_delay_hints, &$delayed, &$forced_delayed, &$delayed_handles, &$delayed_preload_urls) {
+        $html = UCP_Helpers::safe_preg_replace_callback('#<script\b([^>]*)>(.*?)</script>#is', function ($matches) use ($hard_excluded, $soft_excluded, $safe_mode, $delay_mode, $specified, $forced_delay_hints, &$delayed, &$forced_delayed, &$delayed_handles, &$delayed_preload_urls) {
             $attrs = $matches[1];
             $body = $matches[2];
             if (!$this->is_delayable_script_type($attrs) || $this->script_has_no_delay_marker($attrs, $body) || false !== stripos($attrs, 'type="module"') || false !== stripos($attrs, "type='module'") || false !== stripos($attrs, 'importmap') || false !== stripos($attrs, 'nomodule') || preg_match('/\bdata-cfasync\s*=\s*(["\']?)false\1/i', $attrs)) {
@@ -146,7 +146,7 @@ trait UCP_Optimizer_Scripts_Trait {
         $timeout = max(1, absint(UCP_Options::get('delay_js_timeout', 4)) * 1000);
         $loader = $this->inline_script_tag($this->delay_loader_script($timeout, (bool) UCP_Options::get('delay_js_disable_click_delay')), array('id' => 'ucp-delay-loader'));
         $count = 0;
-        $html = preg_replace_callback('#</body>#i', static function () use ($loader) {
+        $html = UCP_Helpers::safe_preg_replace_callback('#</body>#i', static function () use ($loader) {
             return $loader . '</body>';
         }, $html, 1, $count);
         if (!$count) {
@@ -154,9 +154,6 @@ trait UCP_Optimizer_Scripts_Trait {
         }
         return $html;
     }
-
-
-
 
 
     private function should_preload_delayed_script($src) {
@@ -184,7 +181,7 @@ trait UCP_Optimizer_Scripts_Trait {
             return $html;
         }
         $count = 0;
-        $html = preg_replace_callback('#</head>#i', static function () use ($links) {
+        $html = UCP_Helpers::safe_preg_replace_callback('#</head>#i', static function () use ($links) {
             return $links . '</head>';
         }, (string) $html, 1, $count);
         if (!$count) {

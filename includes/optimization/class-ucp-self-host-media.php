@@ -46,7 +46,7 @@ class UCP_Self_Host_Media {
         if (false === stripos($html, 'ytimg.com') && false === stripos($html, 'img.youtube.com')) {
             return $html;
         }
-        return preg_replace_callback('#https?://(?:i\.ytimg\.com|img\.youtube\.com)/[^"\'\s)]+\.(?:jpg|webp)#i', function ($m) {
+        return UCP_Helpers::safe_preg_replace_callback('#https?://(?:i\.ytimg\.com|img\.youtube\.com)/[^"\'\s)]+\.(?:jpg|webp)#i', function ($m) {
             $local = self::local_url_for($m[0], 'ythumb');
             return $local ? $local : $m[0];
         }, $html);

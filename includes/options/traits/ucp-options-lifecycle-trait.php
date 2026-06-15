@@ -462,7 +462,6 @@ trait UCP_Options_Lifecycle_Trait {
     }
 
 
-
     /**
      * Upgrade PageSpeed Auto with CSS/LCP profile infrastructure and preload v2 safety defaults.
      * Keeps aggressive CSS removal disabled unless the existing delivery mode already enables it.

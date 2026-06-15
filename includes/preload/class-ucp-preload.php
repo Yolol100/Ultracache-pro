@@ -23,7 +23,7 @@ trait UCP_Preload_Schedule_Trait {
     }
 
     public static function sync_schedule($settings = null) {
-        // AI-PATCH: Static settings saves can call this before an instance registers custom schedules.
+        // Static settings saves can call this before an instance registers custom schedules.
         add_filter('cron_schedules', array(__CLASS__, 'cron_schedules'));
         wp_get_schedules();
         $settings = is_array($settings) ? $settings : UCP_Options::get_all();
@@ -43,7 +43,7 @@ trait UCP_Preload_Schedule_Trait {
         $event = function_exists('wp_get_scheduled_event') ? wp_get_scheduled_event('ucp_preload_event') : false;
 
         if ($enabled) {
-            // AI-PATCH: Reschedule when the preload interval changes; otherwise WordPress keeps the old cron interval.
+            // Reschedule when the preload interval changes; otherwise WordPress keeps the old cron interval.
             if ($event && isset($event->schedule) && $schedule !== $event->schedule) {
                 wp_unschedule_event($event->timestamp, 'ucp_preload_event', (array) $event->args);
                 $event = false;

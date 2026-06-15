@@ -260,7 +260,6 @@ class UCP_Image_Optimizer {
     }
 
 
-
     /**
      * Do not rewrite media on transactional pages or pages with forms/payment widgets.
      *

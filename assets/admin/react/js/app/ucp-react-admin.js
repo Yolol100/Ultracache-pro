@@ -1679,7 +1679,6 @@
         );
     }
 
-
     function getGroupField(groups, key) {
         var found = null;
         (groups || []).some(function(group){
@@ -1773,7 +1772,6 @@
         );
     }
 
-
     function OptimizationSettingsPage(props) {
         var rawGroups = settingsGroups.optimization || [];
         var supportMode = window.location && /(?:[?&])ucp_support=1(?:&|$)/.test(window.location.search || '');
@@ -1807,8 +1805,8 @@
                 el('strong', {}, state)
             );
         }
-        return el('div', {className:'ucp-settings-page ucp-settings-page--optimization ucp-opt-premium-page ucp-opt-clean-page ucp-unified-admin-page ucp-cache-tools-page'},
-            el(Card, {className:'ucp-card ucp-opt-premium-card ucp-opt-premium-card--intro ucp-opt-clean-hero ucp-unified-hero ucp-tools-hero ucp-cache-tools-hero'},
+        return el('div', {className:'ucp-settings-page ucp-settings-page--optimization ucp-opt-premium-page ucp-opt-clean-page ucp-cache-tools-page'},
+            el(Card, {className:'ucp-card ucp-opt-premium-card ucp-opt-premium-card--intro ucp-opt-clean-hero ucp-tools-hero ucp-cache-tools-hero'},
                 el(CardBody, {},
                     sectionHeader(__('Optimalisatie','ultracache-pro'), __('CSS & JS optimalisatie','ultracache-pro'), __('Kerninstellingen voor veilige front-end optimalisatie. Geavanceerde combinaties staan alleen in supportmodus.','ultracache-pro'), __('Rustige basis','ultracache-pro'), 'ucp-status-badge--good'),
                     el('div', {className:'ucp-opt-quick-status-grid'},
@@ -1819,18 +1817,18 @@
                 )
             ),
             el('div', {className:'ucp-opt-clean-grid'},
-                el(Card, {className:'ucp-card ucp-opt-premium-card ucp-opt-clean-card ucp-unified-card ucp-cache-tools-card'},
+                el(Card, {className:'ucp-card ucp-opt-premium-card ucp-opt-clean-card ucp-cache-tools-card'},
                     el(CardHeader, {}, sectionHeader(null, __('HTML','ultracache-pro'), __('Kleine HTML-opschoning.','ultracache-pro'))),
                     el(CardBody, {}, renderField('html_optimization_mode'))
                 ),
-                el(Card, {className:'ucp-card ucp-opt-premium-card ucp-opt-clean-card ucp-unified-card ucp-cache-tools-card'},
+                el(Card, {className:'ucp-card ucp-opt-premium-card ucp-opt-clean-card ucp-cache-tools-card'},
                     el(CardHeader, {}, sectionHeader(null, __('CSS','ultracache-pro'), __('Verkleinen aan; levering alleen testen.','ultracache-pro'))),
                     el(CardBody, {},
                         renderField('enable_css_minify'),
                         renderField('css_delivery_mode')
                     )
                 ),
-                el(Card, {className:'ucp-card ucp-opt-premium-card ucp-opt-clean-card ucp-opt-clean-card--wide ucp-unified-card ucp-cache-tools-card ucp-cache-tools-card--wide'},
+                el(Card, {className:'ucp-card ucp-opt-premium-card ucp-opt-clean-card ucp-opt-clean-card--wide ucp-cache-tools-card ucp-cache-tools-card--wide'},
                     el(CardHeader, {}, sectionHeader(null, __('JavaScript','ultracache-pro'), __('Alleen aanpassen na frontend-test.','ultracache-pro'), __('Testen','ultracache-pro'), 'ucp-status-badge--warning')),
                     el(CardBody, {},
                         el('div', {className:'ucp-opt-clean-field-grid'},
@@ -1848,7 +1846,7 @@
                     el('span', {}, __('Geavanceerde optimalisaties','ultracache-pro')),
                     el('small', {}, __('Combineren en uitsluitingen alleen gebruiken bij support of staging-tests.','ultracache-pro'))
                 ),
-                el(Card, {className:'ucp-card ucp-opt-premium-card ucp-unified-card ucp-cache-tools-card'},
+                el(Card, {className:'ucp-card ucp-opt-premium-card ucp-cache-tools-card'},
                     el(CardBody, {},
                         el('div', {className:'ucp-opt-grid ucp-opt-grid--two'},
                             renderField('enable_css_combine'),
@@ -1864,7 +1862,6 @@
             ) : null
         );
     }
-
 
     function PremiumSettingsPage(props) {
         var supportMode = window.location && /(?:[?&])ucp_support=1(?:&|$)/.test(window.location.search || '');
@@ -1951,7 +1948,7 @@
         function supplementalCards() {
             if (props.kind !== 'media' || supportMode) { return null; }
             return el(Fragment, {},
-                    el(Card, {className:'ucp-card ucp-compact-card ucp-compact-card--advanced ucp-compact-card--adaptive-images ucp-unified-card ucp-cache-tools-card'},
+                    el(Card, {className:'ucp-card ucp-compact-card ucp-compact-card--advanced ucp-compact-card--adaptive-images ucp-cache-tools-card'},
                     el(CardHeader, {}, el('div', {className:'ucp-compact-section-head'},
                         el('div', {},
                             el('span', {className:'ucp-eyebrow'}, __('Geavanceerd — eerst testen','ultracache-pro')),
@@ -1971,7 +1968,7 @@
                         )
                     )
                 ),
-                el(Card, {className:'ucp-card ucp-compact-card ucp-compact-card--font-suggestions ucp-unified-card ucp-cache-tools-card'},
+                el(Card, {className:'ucp-card ucp-compact-card ucp-compact-card--font-suggestions ucp-cache-tools-card'},
                     el(CardHeader, {}, el('div', {className:'ucp-compact-section-head'},
                         el('div', {},
                             el('h2', {}, __('Boven-de-vouw fonts','ultracache-pro')),
@@ -2007,7 +2004,7 @@
             var description = {
                 'Afbeeldingen': __('Optimaliseer uploads zonder andere image optimizers te kruisen.','ultracache-pro'),
                 'Lazyload & LCP': __('Bescherm belangrijke beelden en laat alleen offscreen media later laden.','ultracache-pro'),
-                
+
                 'Geavanceerde media-rendering': __('Gebruik dit alleen na visuele controle op staging.','ultracache-pro'),
                 'Font details': __('Gebruik dit alleen als lokale font-ranges bewust zijn ingericht.','ultracache-pro'),
                 'Fonts': __('Maak fonts voorspelbaar en voorkom onnodige vertraging.','ultracache-pro'),
@@ -2046,7 +2043,7 @@
         function cardClass(group) {
             var fields = group.fields || [];
             var hasTextarea = fields.some(function(field){ return field[2] === 'textarea'; });
-            var cls = 'ucp-card ucp-compact-card ucp-unified-card ucp-cache-tools-card components-card';
+            var cls = 'ucp-card ucp-compact-card ucp-cache-tools-card components-card';
             if (hasTextarea) { cls += ' ucp-compact-card--textarea'; }
             if (group.advanced) { cls += ' ucp-compact-card--advanced'; }
             return cls;
@@ -2191,7 +2188,7 @@
         }
         if (props.kind === 'media') { return renderMediaCleanPage(); }
         var meta = pageMeta(props.kind);
-        return el('div', {className:'ucp-settings-page ucp-settings-page--' + props.kind + ' ucp-compact-page ucp-compact-page--' + props.kind + ' ucp-unified-admin-page ucp-cache-tools-page'},
+        return el('div', {className:'ucp-settings-page ucp-settings-page--' + props.kind + ' ucp-compact-page ucp-compact-page--' + props.kind + ' ucp-cache-tools-page'},
             el(Card, {className:'ucp-card ucp-compact-hero'},
                 el(CardBody, {},
                     el('div', {className:'ucp-compact-hero__inner'},
@@ -2215,7 +2212,6 @@
             )
         );
     }
-
 
     function WooCommerceSettingsPage(props) {
         var groups = settingsGroups.cache || [];
@@ -2242,7 +2238,7 @@
             ['payment', __('Betalingen','ultracache-pro'), __('Betaalscripts blijven beschikbaar.','ultracache-pro')],
             ['gallery', __('Productmedia','ultracache-pro'), __('Galerijen en productbeelden blijven beschermd.','ultracache-pro')]
         ];
-        return el('div', {className:'ucp-settings-page ucp-settings-page--woocommerce ucp-compact-page ucp-woo-page ucp-unified-admin-page ucp-cache-tools-page'},
+        return el('div', {className:'ucp-settings-page ucp-settings-page--woocommerce ucp-compact-page ucp-woo-page ucp-cache-tools-page'},
             el(Card, {className:'ucp-card ucp-compact-hero ucp-woo-hero ucp-tools-hero ucp-cache-tools-hero'}, el(CardBody, {},
                 el('div', {className:'ucp-compact-hero__inner'},
                     el('div', {},
@@ -2254,14 +2250,14 @@
                 )
             )),
             el('div', {className:'ucp-woo-settings-grid'},
-                el(Card, {className:'ucp-card ucp-compact-card ucp-woo-settings-card ucp-unified-card ucp-cache-tools-card'},
+                el(Card, {className:'ucp-card ucp-compact-card ucp-woo-settings-card ucp-cache-tools-card'},
                     el(CardHeader, {}, el('div', {className:'ucp-compact-section-head'}, el('div', {}, el('h2', {}, __('Veilige cache','ultracache-pro')), el('p', {}, __('Houd dynamische webshoproutes betrouwbaar.','ultracache-pro'))))),
                     el(CardBody, {}, el('div', {className:'ucp-woo-setting-list'},
                         renderSetting('enable_woocommerce_rules', {label:__('WooCommerce bescherming','ultracache-pro'), help:__('Sluit winkelwagen, checkout en account automatisch uit van agressieve cache.','ultracache-pro')}),
                         renderSetting('disable_logged_in_optimizations', {label:__('Ingelogde gebruikers beschermen','ultracache-pro'), help:__('Voorkomt storende optimalisaties tijdens beheer, accountgebruik en aankopen.','ultracache-pro')})
                     ))
                 ),
-                el(Card, {className:'ucp-card ucp-compact-card ucp-woo-settings-card ucp-unified-card ucp-cache-tools-card'},
+                el(Card, {className:'ucp-card ucp-compact-card ucp-woo-settings-card ucp-cache-tools-card'},
                     el(CardHeader, {}, el('div', {className:'ucp-compact-section-head'}, el('div', {}, el('h2', {}, __('Winkelwagen-performance','ultracache-pro')), el('p', {}, __('Versnel lege winkelwagens zonder gevulde manden te verstoren.','ultracache-pro'))))),
                     el(CardBody, {}, el('div', {className:'ucp-woo-setting-list'},
                         renderSetting('optimize_cart_fragments', {label:__('Cart fragments optimaliseren','ultracache-pro'), help:__('Minder onnodige requests bij bezoekers zonder actieve winkelwagen.','ultracache-pro')}),
@@ -2269,7 +2265,7 @@
                     ))
                 )
             ),
-            el(Card, {className:'ucp-card ucp-woo-protection-card ucp-unified-card ucp-cache-tools-card'},
+            el(Card, {className:'ucp-card ucp-woo-protection-card ucp-cache-tools-card'},
                 el(CardHeader, {}, el('div', {className:'ucp-section-heading ucp-woo-section-heading'},
                     el('div', {}, el('h2', {}, __('Bescherming','ultracache-pro')), el('p', {}, __('UltraCache houdt gevoelige webshoponderdelen buiten risicovolle optimalisaties.','ultracache-pro'))),
                     el(StatusBadge,{state:'good'}, fragmentsOn ? __('Cart geoptimaliseerd','ultracache-pro') : __('Veilig','ultracache-pro'))
@@ -2339,7 +2335,7 @@
 
         function serverCard(card){
             var activeClass = card.active ? 'is-active' : (card.warning ? 'needs-attention' : 'is-passive');
-            return el(Card, {key:card.key, className:'ucp-card ucp-server-status-card ucp-unified-card ucp-cache-tools-card ' + activeClass},
+            return el(Card, {key:card.key, className:'ucp-card ucp-server-status-card ucp-cache-tools-card ' + activeClass},
                 el(CardBody, {},
                     el('div', {className:'ucp-server-status-card__top'},
                         el('span', {className:'ucp-server-status-card__icon dashicons ' + card.icon, 'aria-hidden':'true'}),
@@ -2365,8 +2361,8 @@
             {key:'apcu', icon:'dashicons-admin-generic', title:__('APCu','ultracache-pro'), text:__('Lokale object cache voor geschikte servers.','ultracache-pro'), active:apcuOn, status:apcuOn ? __('Aan','ultracache-pro') : __('Uit','ultracache-pro'), priority:__('Optioneel','ultracache-pro'), priorityType:'info', switchKey:'enable_apcu_object_cache', toggleLabel:__('APCu inschakelen','ultracache-pro'), tooltip:__('Alleen gebruiken als APCu beschikbaar is in PHP en past bij de hostingconfiguratie.','ultracache-pro')}
         ];
 
-        return el('div', {className:'ucp-settings-page ucp-settings-page--server ucp-compact-page ucp-server-dashboard-page ucp-unified-admin-page ucp-cache-tools-page'},
-            el(Card, {className:'ucp-card ucp-compact-hero ucp-server-hero ucp-unified-hero ucp-tools-hero ucp-cache-tools-hero'}, el(CardBody, {},
+        return el('div', {className:'ucp-settings-page ucp-settings-page--server ucp-compact-page ucp-server-dashboard-page ucp-cache-tools-page'},
+            el(Card, {className:'ucp-card ucp-compact-hero ucp-server-hero ucp-tools-hero ucp-cache-tools-hero'}, el(CardBody, {},
                 el('div', {className:'ucp-compact-hero__inner ucp-server-hero__inner'},
                     el('div', {}, el('span', {className:'ucp-eyebrow'}, __('Server & CDN','ultracache-pro')), el('h2', {}, headline), el('p', {}, subline)),
                     el('div', {className:'ucp-server-hero__badges'},
@@ -2376,7 +2372,7 @@
                 )
             )),
             el('div', {className:'ucp-server-status-grid'}, cards.map(serverCard)),
-            el(Card, {className:'ucp-card ucp-server-config-card ucp-server-cdn-panel ucp-unified-card ucp-cache-tools-card'},
+            el(Card, {className:'ucp-card ucp-server-config-card ucp-server-cdn-panel ucp-cache-tools-card'},
                 el(CardHeader, {},
                     el('div', {className:'ucp-section-heading'},
                         el('h2', {}, __('CDN-instellingen','ultracache-pro')),
@@ -2422,7 +2418,7 @@
         var settings = props.settings || {};
         var mode = preloadMode(settings);
         var preloadLabel = mode === 'off' ? __('Uit','ultracache-pro') : (mode === 'homepage' ? __('Homepage','ultracache-pro') : (mode === 'manual' ? __('Handmatig','ultracache-pro') : __('Aanbevolen','ultracache-pro')));
-        return el('div', {className:'ucp-settings-page ucp-settings-page--preload ucp-compact-page ucp-preload-clean-page ucp-unified-admin-page ucp-cache-tools-page'},
+        return el('div', {className:'ucp-settings-page ucp-settings-page--preload ucp-compact-page ucp-preload-clean-page ucp-cache-tools-page'},
             el(Card, {className:'ucp-card ucp-compact-hero ucp-preload-hero ucp-tools-hero ucp-cache-tools-hero'}, el(CardBody, {},
                 el('div', {className:'ucp-compact-hero__inner'},
                     el('div', {},
@@ -2433,7 +2429,7 @@
                     el(StatusBadge,{state: mode === 'off' ? 'info' : 'good'}, preloadLabel)
                 )
             )),
-            el(Card, {className:'ucp-card ucp-compact-card ucp-preload-control-card ucp-unified-card ucp-cache-tools-card'},
+            el(Card, {className:'ucp-card ucp-compact-card ucp-preload-control-card ucp-cache-tools-card'},
                 el(CardHeader, {}, el('div', {className:'ucp-compact-section-head'},
                     el('div', {}, el('h2', {}, __('Preload instellingen','ultracache-pro')), el('p', {}, __('De veilige basis staat vooraan; extra browsergedrag blijft beperkt en controleerbaar.','ultracache-pro'))),
                     el(StatusBadge,{state: mode === 'off' ? 'info' : 'good'}, mode === 'off' ? __('Uit','ultracache-pro') : __('Actief','ultracache-pro'))
@@ -2444,7 +2440,7 @@
                     renderField('speculative_loading_mode', '', {label:__('Browser-navigatie','ultracache-pro'), help:__('Gebruik de veilige browsermodus; prerender blijft verborgen voor support.','ultracache-pro')})
                 ))
             ),
-            el(Card, {className:'ucp-card ucp-compact-card ucp-preload-exclusions-card ucp-unified-card ucp-cache-tools-card'},
+            el(Card, {className:'ucp-card ucp-compact-card ucp-preload-exclusions-card ucp-cache-tools-card'},
                 el(CardHeader, {}, el('div', {className:'ucp-compact-section-head'},
                     el('div', {}, el('h2', {}, __('Uitsluitingen','ultracache-pro')), el('p', {}, __('Sluit dynamische of persoonlijke pagina’s uit van preload.','ultracache-pro'))),
                     el(StatusBadge,{state:'info'}, __('Veilig afbakenen','ultracache-pro'))
@@ -2453,7 +2449,6 @@
             )
         );
     }
-
 
     function SettingsPage(props) {
         if (props.kind === 'cache') {
@@ -2489,7 +2484,7 @@
         function renderSettingsCard(group){
             return el(Card, {
                 key:group.__id,
-                className:'ucp-card ucp-layout-card ucp-settings-card ucp-unified-card ucp-cache-tools-card'
+                className:'ucp-card ucp-layout-card ucp-settings-card ucp-cache-tools-card'
             },
                 el(CardHeader, {},
                     el('div', {className:'ucp-layout-card__header'},
@@ -2503,7 +2498,7 @@
                 }))
             );
         }
-        return el('div', {className:'ucp-settings-page ucp-settings-page--' + props.kind + ' ucp-unified-admin-page ucp-cache-tools-page'},
+        return el('div', {className:'ucp-settings-page ucp-settings-page--' + props.kind + ' ucp-cache-tools-page'},
             el('div', {className:'screen-reader-text', 'aria-live':'polite'}, layoutAnnouncement),
             props.kind === 'advanced' ? el(SettingsIntro, {kind:'advanced'}) : null,
             el('div', {className:'ucp-layout-grid ucp-layout-grid--settings ucp-layout-grid--simple', style:{'--ucp-grid-columns': columns}}, orderedGroups.map(function(group){
@@ -2806,7 +2801,6 @@
         return payload;
     }
 
-
     function LcpImagesControl(props) {
         var lcpDraftState = useState({
             preload:parseInt((props.settings || {}).preload_critical_images || 0, 10),
@@ -2918,7 +2912,6 @@
         );
     }
 
-
     function SettingField(props) {
         var key = props.field[0], label = props.field[1], type = props.field[2], help = props.field[3] || '', options = props.field[4] || [];
         var savingState = useState(false), saving = savingState[0], setSaving = savingState[1];
@@ -2976,7 +2969,6 @@
         var layoutClass = isCompactSettingField(props.field, props.kind) ? ' is-rowable' : ' is-stacked';
         return el('div',{className:'ucp-setting-field ucp-setting-field--' + type + layoutClass, 'data-ucp-field-key':key}, badge, control, warning, type !== 'toggle' && saving ? el('span',{className:'ucp-saving-text'},__('Opslaan…','ultracache-pro')) : null);
     }
-
 
     function CssDeliveryControl(props) {
         var options = props.options || [];
@@ -3053,7 +3045,6 @@
         if (!meta) { return null; }
         return el('span', {className:'ucp-risk-badge ucp-risk-badge--' + meta.level}, meta.label);
     }
-
 
     function ToolsPage(props) {
         var supportMode = window.location && /(?:[?&])ucp_support=1(?:&|$)/.test(window.location.search || '');

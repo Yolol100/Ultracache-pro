@@ -28,7 +28,7 @@ trait UCP_DB_Cleanup_Schedule_Trait {
     }
 
     public static function sync_schedule($settings = null) {
-        // AI-PATCH: Static settings saves can call this before an instance registers custom schedules.
+        // Static settings saves can call this before an instance registers custom schedules.
         add_filter('cron_schedules', array(__CLASS__, 'cron_schedules'));
         wp_get_schedules();
         $settings = is_array($settings) ? $settings : UCP_Options::get_all();
@@ -38,7 +38,7 @@ trait UCP_DB_Cleanup_Schedule_Trait {
         $event = function_exists('wp_get_scheduled_event') ? wp_get_scheduled_event(self::CRON_HOOK) : false;
 
         if ($enabled) {
-            // AI-PATCH: Reschedule when the cleanup frequency changes; wp_next_scheduled() alone keeps the old interval.
+            // Reschedule when the cleanup frequency changes; wp_next_scheduled() alone keeps the old interval.
             if ($event && isset($event->schedule) && $schedule !== $event->schedule) {
                 wp_unschedule_event($event->timestamp, self::CRON_HOOK, (array) $event->args);
                 $event = false;

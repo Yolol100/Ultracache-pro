@@ -102,7 +102,6 @@ trait UCP_Compat_Detection_Trait {
         }
 
 
-
         protected static function compatibility_rules_bucket($bucket) {
             if (class_exists('UCP_Options') && !UCP_Options::get('enable_dynamic_compatibility_rules', 1)) {
                 return array();
@@ -292,7 +291,6 @@ trait UCP_Compat_Detection_Trait {
         }
 
 
-
         protected static function feature_conflicts_for_slug($slug, $type = 'plugin') {
             $slug = (string) $slug;
             $map = array(
@@ -405,7 +403,6 @@ trait UCP_Compat_Detection_Trait {
         }
 
 
-
         public static function has_known_html_sensitive_plugins() {
             if (class_exists('UCP_Integrations')) {
                 $detected = UCP_Integrations::detected();
@@ -417,7 +414,6 @@ trait UCP_Compat_Detection_Trait {
             }
             return false;
         }
-
 
 
         public static function is_modern_http_request() {

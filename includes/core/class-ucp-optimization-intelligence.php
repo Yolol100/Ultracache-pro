@@ -264,7 +264,6 @@ class UCP_Optimization_Intelligence {
     }
 
 
-
     public static function pagespeed_readiness() {
         $css = self::css_status_summary();
         $css_profiles = class_exists('UCP_CSS_Profile') ? UCP_CSS_Profile::summary() : array();
