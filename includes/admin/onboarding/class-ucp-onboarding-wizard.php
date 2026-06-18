@@ -89,20 +89,33 @@ class UCP_Onboarding_Wizard {
 
         $script_src = 'assets/admin/js/onboarding/ucp-onboarding-wizard.js';
         $style_src  = 'assets/admin/css/onboarding/ucp-onboarding-wizard.css';
+        $tokens_src = 'assets/admin/css/ucp-admin-tokens.css';
 
         // Prefer the production .min variant through the shared helper (honours
         // SCRIPT_DEBUG and falls back to source when no .min file is present).
         $has_helper = class_exists('UCP_Helpers') && method_exists('UCP_Helpers', 'asset_path');
         $script_rel = $has_helper ? UCP_Helpers::asset_path($script_src) : $script_src;
         $style_rel  = $has_helper ? UCP_Helpers::asset_path($style_src) : $style_src;
+        $tokens_rel = $has_helper ? UCP_Helpers::asset_path($tokens_src) : $tokens_src;
 
         $script_ver = file_exists($path . $script_rel) ? (string) filemtime($path . $script_rel) : (defined('UCP_VERSION') ? UCP_VERSION : '1');
         $style_ver  = file_exists($path . $style_rel) ? (string) filemtime($path . $style_rel) : (defined('UCP_VERSION') ? UCP_VERSION : '1');
+        $style_deps = array('wp-components');
+
+        if (file_exists($path . $tokens_rel)) {
+            wp_enqueue_style(
+                'ucp-admin-tokens',
+                $base . $tokens_rel,
+                array(),
+                (string) filemtime($path . $tokens_rel)
+            );
+            $style_deps[] = 'ucp-admin-tokens';
+        }
 
         wp_enqueue_style(
             self::STYLE_HANDLE,
             $base . $style_rel,
-            array('wp-components'),
+            $style_deps,
             $style_ver
         );
 

@@ -40,11 +40,8 @@ trait UCP_Admin_Render_Trait {
         }
 
         if (!class_exists('UCP_Admin_React_App') || !UCP_Admin_React_App::should_render()) {
-            wp_die(
-                esc_html__('UltraCache Pro admin kan niet laden omdat de React admin assets ontbreken.', 'ultracache-pro'),
-                esc_html__('UltraCache Pro', 'ultracache-pro'),
-                array('response' => 500)
-            );
+            $this->render_asset_fallback();
+            return;
         }
 
         UCP_Admin_React_App::render_root();
@@ -52,6 +49,76 @@ trait UCP_Admin_Render_Trait {
 
     protected function tabs() {
         return UCP_Admin_Config::tabs();
+    }
+
+
+    protected function render_asset_fallback() {
+        $settings = class_exists('UCP_Options') ? UCP_Options::get_all() : array();
+        $cache_enabled = !empty($settings['enable_cache']);
+        $react_script = class_exists('UCP_Helpers') ? UCP_Helpers::asset_path('assets/admin/react/js/app/ucp-react-admin.js') : 'assets/admin/react/js/app/ucp-react-admin.js';
+        $react_style = class_exists('UCP_Helpers') ? UCP_Helpers::asset_path('assets/admin/react/css/ucp-react-admin.css') : 'assets/admin/react/css/ucp-react-admin.css';
+        $tools_url = admin_url('admin.php?page=ultracache-pro&tab=tools');
+        ?>
+        <div class="wrap ucp-admin-fallback">
+            <h1><?php echo esc_html__('UltraCache Pro', 'ultracache-pro'); ?></h1>
+            <div class="notice notice-warning inline">
+                <p><strong><?php echo esc_html__('Admin assets ontbreken.', 'ultracache-pro'); ?></strong></p>
+                <p><?php echo esc_html__('De volledige React-admin kon niet worden geladen. Deze veilige fallback voorkomt een lege beheerpagina en houdt de belangrijkste onderhoudsacties bereikbaar.', 'ultracache-pro'); ?></p>
+                <p>
+                    <?php echo esc_html__('Ontbrekende verwachte bestanden:', 'ultracache-pro'); ?>
+                    <code><?php echo esc_html($react_script); ?></code>,
+                    <code><?php echo esc_html($react_style); ?></code>
+                </p>
+            </div>
+
+            <div class="card">
+                <h2><?php echo esc_html__('Status', 'ultracache-pro'); ?></h2>
+                <table class="widefat striped" role="presentation">
+                    <tbody>
+                        <tr>
+                            <th scope="row"><?php echo esc_html__('Versie', 'ultracache-pro'); ?></th>
+                            <td><?php echo esc_html(defined('UCP_VERSION') ? UCP_VERSION : ''); ?></td>
+                        </tr>
+                        <tr>
+                            <th scope="row"><?php echo esc_html__('Page cache', 'ultracache-pro'); ?></th>
+                            <td><?php echo esc_html($cache_enabled ? __('Ingeschakeld', 'ultracache-pro') : __('Uitgeschakeld', 'ultracache-pro')); ?></td>
+                        </tr>
+                        <tr>
+                            <th scope="row"><?php echo esc_html__('Build', 'ultracache-pro'); ?></th>
+                            <td><?php echo esc_html(defined('UCP_BUILD_PROFILE') ? UCP_BUILD_PROFILE : ''); ?></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="card">
+                <h2><?php echo esc_html__('Veilige acties', 'ultracache-pro'); ?></h2>
+                <p><?php echo esc_html__('Gebruik deze acties alleen na een stagingcontrole wanneer cache-, CSS- of JS-instellingen invloed kunnen hebben op formulieren, checkout of dynamische pagina’s.', 'ultracache-pro'); ?></p>
+                <div>
+                    <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" style="display:inline-block;margin:0 8px 8px 0;">
+                        <input type="hidden" name="action" value="ucp_purge_all">
+                        <?php wp_nonce_field('ucp_purge_all'); ?>
+                        <?php submit_button(__('Cache legen', 'ultracache-pro'), 'secondary', 'submit', false); ?>
+                    </form>
+                    <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" style="display:inline-block;margin:0 8px 8px 0;">
+                        <input type="hidden" name="action" value="ucp_purge_and_preload">
+                        <?php wp_nonce_field('ucp_purge_and_preload'); ?>
+                        <?php submit_button(__('Cache legen en preload starten', 'ultracache-pro'), 'secondary', 'submit', false); ?>
+                    </form>
+                    <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" style="display:inline-block;margin:0 8px 8px 0;">
+                        <input type="hidden" name="action" value="ucp_run_health_check">
+                        <?php wp_nonce_field('ucp_run_health_check'); ?>
+                        <?php submit_button(__('Health check uitvoeren', 'ultracache-pro'), 'secondary', 'submit', false); ?>
+                    </form>
+                    <a class="button button-secondary" href="<?php echo esc_url(wp_nonce_url(admin_url('admin-post.php?action=ucp_export_settings'), 'ucp_export_settings')); ?>"><?php echo esc_html__('Instellingen exporteren', 'ultracache-pro'); ?></a>
+                </div>
+            </div>
+
+            <p>
+                <a class="button button-primary" href="<?php echo esc_url($tools_url); ?>"><?php echo esc_html__('Fallback opnieuw laden', 'ultracache-pro'); ?></a>
+            </p>
+        </div>
+        <?php
     }
 }
 

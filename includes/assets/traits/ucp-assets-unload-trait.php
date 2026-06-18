@@ -295,7 +295,7 @@ trait UCP_Assets_Unload_Trait {
             }
         }
         $url = class_exists('UCP_Helpers') ? UCP_Helpers::current_full_url() : '';
-        return (bool) preg_match('#/(cart|checkout|my-account|account|order-pay|order-received|add-payment-method|customer-logout|wp-login\.php|wp-admin)(/|$)#i', (string) $url);
+        return (bool) preg_match('#/(cart|checkout|my-account|account|order-pay|order-received|add-payment-method|customer-logout|winkelwagen|afrekenen|mijn-account|wp-login\.php|wp-admin)(/|$)#i', (string) $url);
     }
 
     private function asset_owner_from_src($src) {

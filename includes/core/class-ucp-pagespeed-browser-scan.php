@@ -366,7 +366,7 @@ class UCP_PageSpeed_Browser_Scan {
             }
         }
         $uri = isset($_SERVER['REQUEST_URI']) ? sanitize_text_field(wp_unslash($_SERVER['REQUEST_URI'])) : '';
-        return (bool) preg_match('#/(cart|checkout|my-account|order-pay|order-received|wc-api|wc-ajax)(/|$|\?)#i', $uri);
+        return (bool) preg_match('#/(cart|checkout|my-account|account|order-pay|order-received|add-payment-method|customer-logout|winkelwagen|afrekenen|mijn-account|wc-api|wc-ajax)(/|$|\?)#i', $uri);
     }
 
     protected static function current_url_without_query() {

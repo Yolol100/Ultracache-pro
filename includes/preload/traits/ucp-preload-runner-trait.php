@@ -68,7 +68,7 @@ trait UCP_Preload_Runner_Trait {
         } elseif ($code >= 200 && $code < 300) {
             self::mark_preload_status($url, 'skipped', 'unsupported_content_type', array('http_status' => $code, 'content_type' => $content_type));
         } else {
-            self::mark_preload_status($url, 'skipped', 'http_' . $code, array('http_status' => $code));
+            self::mark_preload_status($url, 'failed', 'http_' . $code, array('http_status' => $code));
         }
         UCP_Logger::log('info', 'jobs', 'preload_direct_request', 'Preload URL direct opgevraagd.', array('url' => $url));
     }
@@ -250,9 +250,9 @@ trait UCP_Preload_Runner_Trait {
     }
 
     private function request_args($variant = 'desktop') {
-        $user_agent = 'mobile' === $variant ? $this->mobile_preload_user_agent() : 'UltraCache Preloader/' . UCP_VERSION;
+        $user_agent = 'mobile' === $variant ? $this->mobile_preload_user_agent() : 'UltraCachePro-Preloader/' . UCP_VERSION;
         return array(
-            'timeout' => 20,
+            'timeout' => max(3, min(8, absint(apply_filters('ucp_preload_request_timeout', 6)))),
             'redirection' => 0,
             'reject_unsafe_urls' => true,
             'user-agent' => $user_agent,

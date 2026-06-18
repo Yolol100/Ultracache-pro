@@ -76,6 +76,10 @@ final class UCP_CWV_Metric_Summary {
         unset($row);
 
         update_option(UCP_CWV::OPTION_KEY, $data, false);
+
+        if (class_exists('UCP_CWV_Timeseries')) {
+            UCP_CWV_Timeseries::record($metric, $value, $device);
+        }
     }
 
     /**

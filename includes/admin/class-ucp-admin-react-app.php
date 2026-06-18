@@ -37,18 +37,22 @@ class UCP_Admin_React_App {
         if (!empty($modules) && is_array($modules)) {
             sort($modules, SORT_NATURAL);
             $assets = array();
+            $seen = array();
             foreach ($modules as $module) {
-                if (false !== strpos((string) $module, '.min.css')) {
+                $relative = str_replace(wp_normalize_path(UCP_PATH), '', wp_normalize_path((string) $module));
+                $source_relative = preg_replace('/\.min\.css$/', '.css', (string) $relative);
+                if (!is_string($source_relative) || '' === $source_relative || isset($seen[$source_relative])) {
                     continue;
                 }
-                $assets[] = self::asset_path(str_replace(wp_normalize_path(UCP_PATH), '', wp_normalize_path((string) $module)));
+                $seen[$source_relative] = true;
+                $assets[] = self::asset_path($source_relative);
             }
             if (!empty($assets)) {
-                return $assets;
+                return apply_filters('ucp_react_admin_style_assets', $assets);
             }
         }
 
-        return array(self::asset_path('assets/admin/react/css/ucp-react-admin.css'));
+        return apply_filters('ucp_react_admin_style_assets', array(self::asset_path('assets/admin/react/css/ucp-react-admin.css')));
     }
 
     public static function should_render() {

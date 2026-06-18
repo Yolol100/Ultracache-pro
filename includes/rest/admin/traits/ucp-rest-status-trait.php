@@ -583,6 +583,11 @@ trait UCP_REST_Status_Trait {
                     'enabled'    => !empty($settings['enable_cwv_monitoring']),
                     'sampleRate' => $rum_sample_rate,
                     'summary'    => $rum_summary,
+                    'timeseries' => array(
+                        'retentionDays' => max(1, min(30, absint(isset($settings['cwv_timeseries_retention_days']) ? $settings['cwv_timeseries_retention_days'] : 7))),
+                        'bucketCount'   => class_exists('UCP_CWV_Timeseries') ? UCP_CWV_Timeseries::bucket_count() : 0,
+                        'series'        => class_exists('UCP_CWV_Timeseries') ? UCP_CWV_Timeseries::get_series(null, null, max(1, min(30, absint(isset($settings['cwv_timeseries_retention_days']) ? $settings['cwv_timeseries_retention_days'] : 7)))) : array(),
+                    ),
                 ),
                 'vpi' => array(
                     'enabled'           => !empty($settings['enable_viewport_images']),

@@ -108,7 +108,7 @@ if (false !== strpos($cache_control, 'no-cache') || false !== strpos($cache_cont
 $config_file = WP_CONTENT_DIR . '/cache/ultracache-pro/dropin-config.php';
 $config = is_readable($config_file) ? include $config_file : array();
 $config = is_array($config) ? $config : array();
-$enable_cache = array_key_exists('enable_cache', $config) ? !empty($config['enable_cache']) : true;
+$enable_cache = array_key_exists('enable_cache', $config) ? !empty($config['enable_cache']) : false;
 if (!$enable_cache) {
     return;
 }
@@ -126,7 +126,7 @@ if ($is_litespeed_server && ('litespeed' === $cache_backend || 'auto' === $cache
     // Auto-detected LiteSpeed bridge: stand down so server-level LSCache can own full-page cache.
     return;
 }
-$exclude_paths = !empty($config['exclude_paths']) && is_array($config['exclude_paths']) ? $config['exclude_paths'] : array('cart', 'checkout', 'my-account', 'account', 'order-pay', 'order-received', 'add-payment-method', 'wc-api', 'wc-ajax', 'wp-json', 'wp-admin', 'wp-login.php', 'xmlrpc.php', 'customer-logout');
+$exclude_paths = !empty($config['exclude_paths']) && is_array($config['exclude_paths']) ? $config['exclude_paths'] : array('cart', 'checkout', 'winkelwagen', 'afrekenen', 'my-account', 'mijn-account', 'account', 'order-pay', 'order-received', 'add-payment-method', 'wc-api', 'wc-ajax', 'wp-json', 'wp-admin', 'wp-login.php', 'xmlrpc.php', 'customer-logout');
 $exclude_cookies = !empty($config['exclude_cookies']) && is_array($config['exclude_cookies']) ? $config['exclude_cookies'] : array(
     'wordpress_logged_in_',
     'wordpress_sec_',

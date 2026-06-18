@@ -153,7 +153,7 @@ class UCP_Optimization_Guards {
             wp_parse_str($query, $query_args);
         }
 
-        if (self::path_has_segment($path, array('cart', 'checkout', 'my-account', 'order-pay', 'order-received', 'add-payment-method'))) {
+        if (self::path_has_segment($path, array('cart', 'checkout', 'my-account', 'account', 'order-pay', 'order-received', 'add-payment-method', 'customer-logout', 'winkelwagen', 'afrekenen', 'mijn-account'))) {
             return true;
         }
 

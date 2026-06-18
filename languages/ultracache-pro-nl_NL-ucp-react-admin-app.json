@@ -33,8 +33,8 @@
       "Stale cache": [
         "Stale cache"
       ],
-      "Gebruik uitsluitingen voor dynamische of persoonlijke paginaâs, zoals cart, checkout, account, zoek- en filterpaginaâs.": [
-        "Gebruik uitsluitingen voor dynamische of persoonlijke paginaâs, zoals cart, checkout, account, zoek- en filterpaginaâs."
+      "Gebruik uitsluitingen voor dynamische of persoonlijke pagina’s, zoals cart, checkout, account, zoek- en filterpagina’s.": [
+        "Gebruik uitsluitingen voor dynamische of persoonlijke pagina’s, zoals cart, checkout, account, zoek- en filterpagina’s."
       ],
       "URL-regels": [
         "URL-regels"
@@ -45,8 +45,8 @@
       "User-agents": [
         "User-agents"
       ],
-      "Standaard worden URLâs met query strings voorzichtig behandeld. Cache alleen bekende parameters die geen persoonlijke content veranderen.": [
-        "Standaard worden URLâs met query strings voorzichtig behandeld. Cache alleen bekende parameters die geen persoonlijke content veranderen."
+      "Standaard worden URL’s met query strings voorzichtig behandeld. Cache alleen bekende parameters die geen persoonlijke content veranderen.": [
+        "Standaard worden URL’s met query strings voorzichtig behandeld. Cache alleen bekende parameters die geen persoonlijke content veranderen."
       ],
       "Status": [
         "Status"
@@ -156,8 +156,8 @@
       "Aangepaste intervallen opslaan": [
         "Aangepaste intervallen opslaan"
       ],
-      "Opslaanâ¦": [
-        "Opslaanâ¦"
+      "Opslaan…": [
+        "Opslaan…"
       ],
       "Laat CSS normaal laden. Gebruik dit voor maximale compatibiliteit of als de layout gevoelig is.": [
         "Laat CSS normaal laden. Gebruik dit voor maximale compatibiliteit of als de layout gevoelig is."
@@ -225,8 +225,8 @@
       "Cachetest uitvoeren": [
         "Cachetest uitvoeren"
       ],
-      "Controleert of de cache actief is en paginaâs correct worden overgeslagen waar dat nodig is.": [
-        "Controleert of de cache actief is en paginaâs correct worden overgeslagen waar dat nodig is."
+      "Controleert of de cache actief is en pagina’s correct worden overgeslagen waar dat nodig is.": [
+        "Controleert of de cache actief is en pagina’s correct worden overgeslagen waar dat nodig is."
       ],
       "Snelheidsscan uitvoeren": [
         "Snelheidsscan uitvoeren"
@@ -342,9 +342,6 @@
       "Ingesteld": [
         "Ingesteld"
       ],
-      "Optimalisatie": [
-        "Optimalisatie"
-      ],
       "Queue": [
         "Queue"
       ],
@@ -426,8 +423,8 @@
       "Volgende geplande run: ": [
         "Volgende geplande run: "
       ],
-      "Geen geplande runner â wordt automatisch aangemaakt zodra er taken zijn.": [
-        "Geen geplande runner â wordt automatisch aangemaakt zodra er taken zijn."
+      "Geen geplande runner — wordt automatisch aangemaakt zodra er taken zijn.": [
+        "Geen geplande runner — wordt automatisch aangemaakt zodra er taken zijn."
       ],
       "Websitecontrole": [
         "Websitecontrole"
@@ -480,8 +477,8 @@
       "Slimme scan": [
         "Slimme scan"
       ],
-      "UltraCache kijkt naar actieve plugins, thema, WooCommerce/LMS, builders, cache-plugins, WordPress-omgeving en veiligheidsrisicoâs en adviseert daarna de beste preset of een veilige maatwerkpreset.": [
-        "UltraCache kijkt naar actieve plugins, thema, WooCommerce/LMS, builders, cache-plugins, WordPress-omgeving en veiligheidsrisicoâs en adviseert daarna de beste preset of een veilige maatwerkpreset."
+      "UltraCache kijkt naar actieve plugins, thema, WooCommerce/LMS, builders, cache-plugins, WordPress-omgeving en veiligheidsrisico’s en adviseert daarna de beste preset of een veilige maatwerkpreset.": [
+        "UltraCache kijkt naar actieve plugins, thema, WooCommerce/LMS, builders, cache-plugins, WordPress-omgeving en veiligheidsrisico’s en adviseert daarna de beste preset of een veilige maatwerkpreset."
       ],
       "Plugins gecontroleerd": [
         "Plugins gecontroleerd"
@@ -489,8 +486,8 @@
       "actieve plugins": [
         "actieve plugins"
       ],
-      "Scannenâ¦": [
-        "Scannenâ¦"
+      "Scannen…": [
+        "Scannen…"
       ],
       "Site scannen": [
         "Site scannen"
@@ -525,8 +522,8 @@
       "Actie mislukt.": [
         "Actie mislukt."
       ],
-      "Bezigâ¦": [
-        "Bezigâ¦"
+      "Bezig…": [
+        "Bezig…"
       ],
       "Actie uitvoeren": [
         "Actie uitvoeren"
@@ -657,8 +654,8 @@
       "Verplaats kaart. Gebruik pijltoetsen, Home of End.": [
         "Verplaats kaart. Gebruik pijltoetsen, Home of End."
       ],
-      "Instellingen geÃ«xporteerd.": [
-        "Instellingen geÃ«xporteerd."
+      "Instellingen geëxporteerd.": [
+        "Instellingen geëxporteerd."
       ],
       "Export mislukt.": [
         "Export mislukt."
@@ -669,8 +666,8 @@
       "Import overschrijft bestaande UltraCache-instellingen. Maak eerst een export of database-back-up. Doorgaan?": [
         "Import overschrijft bestaande UltraCache-instellingen. Maak eerst een export of database-back-up. Doorgaan?"
       ],
-      "JSON-instellingen geÃ¯mporteerd.": [
-        "JSON-instellingen geÃ¯mporteerd."
+      "JSON-instellingen geïmporteerd.": [
+        "JSON-instellingen geïmporteerd."
       ],
       "Import mislukt.": [
         "Import mislukt."
@@ -753,8 +750,8 @@
       "Link preload": [
         "Link preload"
       ],
-      "Preload maakt cachebestanden klaar voordat bezoekers paginaâs openen. Gebruik de queue en sitemap als veilige basis; stuur snelheid met batchgrootte en pauze.": [
-        "Preload maakt cachebestanden klaar voordat bezoekers paginaâs openen. Gebruik de queue en sitemap als veilige basis; stuur snelheid met batchgrootte en pauze."
+      "Preload maakt cachebestanden klaar voordat bezoekers pagina’s openen. Gebruik de queue en sitemap als veilige basis; stuur snelheid met batchgrootte en pauze.": [
+        "Preload maakt cachebestanden klaar voordat bezoekers pagina’s openen. Gebruik de queue en sitemap als veilige basis; stuur snelheid met batchgrootte en pauze."
       ],
       "Preload overzicht": [
         "Preload overzicht"
@@ -771,8 +768,8 @@
       "Geavanceerde regels overzicht": [
         "Geavanceerde regels overzicht"
       ],
-      "Gebruik deze pagina alleen voor uitzonderingen: paginaâs die nooit gecachet mogen worden, cookies die gepersonaliseerde content tonen en query parameters. Laat velden leeg wanneer je geen specifieke uitzondering nodig hebt.": [
-        "Gebruik deze pagina alleen voor uitzonderingen: paginaâs die nooit gecachet mogen worden, cookies die gepersonaliseerde content tonen en query parameters. Laat velden leeg wanneer je geen specifieke uitzondering nodig hebt."
+      "Gebruik deze pagina alleen voor uitzonderingen: pagina’s die nooit gecachet mogen worden, cookies die gepersonaliseerde content tonen en query parameters. Laat velden leeg wanneer je geen specifieke uitzondering nodig hebt.": [
+        "Gebruik deze pagina alleen voor uitzonderingen: pagina’s die nooit gecachet mogen worden, cookies die gepersonaliseerde content tonen en query parameters. Laat velden leeg wanneer je geen specifieke uitzondering nodig hebt."
       ],
       "Query strings": [
         "Query strings"
@@ -963,8 +960,8 @@
       "Importeren, exporteren, terugzetten": [
         "Importeren, exporteren, terugzetten"
       ],
-      "Alles op Ã©Ã©n plek.": [
-        "Alles op Ã©Ã©n plek."
+      "Alles op één plek.": [
+        "Alles op één plek."
       ],
       "Volgorde": [
         "Volgorde"
@@ -1335,8 +1332,8 @@
       "Deze stijlbestanden overslaan": [
         "Deze stijlbestanden overslaan"
       ],
-      "ÃÃ©n handle of deel van de naam per regel.": [
-        "ÃÃ©n handle of deel van de naam per regel."
+      "Één handle of deel van de naam per regel.": [
+        "Één handle of deel van de naam per regel."
       ],
       "Waarde voor de regel": [
         "Waarde voor de regel"
@@ -1491,17 +1488,17 @@
       "Deze scriptbestanden overal uitzetten": [
         "Deze scriptbestanden overal uitzetten"
       ],
-      "EÃ©n handle per regel. Voorbeeld: wc-cart-fragments": [
-        "EÃ©n handle per regel. Voorbeeld: wc-cart-fragments"
+      "Eén handle per regel. Voorbeeld: wc-cart-fragments": [
+        "Eén handle per regel. Voorbeeld: wc-cart-fragments"
       ],
-      "EÃ©n regel per keer. Voorbeeld: /afrekenen/ => theme-checkout": [
-        "EÃ©n regel per keer. Voorbeeld: /afrekenen/ => theme-checkout"
+      "Eén regel per keer. Voorbeeld: /afrekenen/ => theme-checkout": [
+        "Eén regel per keer. Voorbeeld: /afrekenen/ => theme-checkout"
       ],
       "Stijlbestanden per pagina uitzetten": [
         "Stijlbestanden per pagina uitzetten"
       ],
-      "EÃ©n regel per keer. Voorbeeld: /account/ => reviews-loader": [
-        "EÃ©n regel per keer. Voorbeeld: /account/ => reviews-loader"
+      "Eén regel per keer. Voorbeeld: /account/ => reviews-loader": [
+        "Eén regel per keer. Voorbeeld: /account/ => reviews-loader"
       ],
       "Scriptbestanden per pagina uitzetten": [
         "Scriptbestanden per pagina uitzetten"
@@ -1533,8 +1530,8 @@
       "Deze stijlbestanden overal uitzetten": [
         "Deze stijlbestanden overal uitzetten"
       ],
-      "EÃ©n handle per regel. Voorbeeld: contact-form-7": [
-        "EÃ©n handle per regel. Voorbeeld: contact-form-7"
+      "Eén handle per regel. Voorbeeld: contact-form-7": [
+        "Eén handle per regel. Voorbeeld: contact-form-7"
       ],
       "UltraCache onderdelen": [
         "UltraCache onderdelen"
@@ -1578,8 +1575,8 @@
       "Cachebestand herstellen": [
         "Cachebestand herstellen"
       ],
-      "Maakt paginaâs sneller voor bezoekers.": [
-        "Maakt paginaâs sneller voor bezoekers."
+      "Maakt pagina’s sneller voor bezoekers.": [
+        "Maakt pagina’s sneller voor bezoekers."
       ],
       "Pagina-cache inschakelen": [
         "Pagina-cache inschakelen"
@@ -1611,29 +1608,29 @@
       "Serveer tijdelijk oude cache als vernieuwen mislukt.": [
         "Serveer tijdelijk oude cache als vernieuwen mislukt."
       ],
-      "Alleen gewijzigde paginaâs legen": [
-        "Alleen gewijzigde paginaâs legen"
+      "Alleen gewijzigde pagina’s legen": [
+        "Alleen gewijzigde pagina’s legen"
       ],
       "Veilige en snelle standaard voor de meeste sites.": [
         "Veilige en snelle standaard voor de meeste sites."
       ],
-      "Handig voor blogs, categorieÃ«n en archieven.": [
-        "Handig voor blogs, categorieÃ«n en archieven."
+      "Handig voor blogs, categorieën en archieven.": [
+        "Handig voor blogs, categorieën en archieven."
       ],
-      "Ook gerelateerde paginaâs legen": [
-        "Ook gerelateerde paginaâs legen"
+      "Ook gerelateerde pagina’s legen": [
+        "Ook gerelateerde pagina’s legen"
       ],
-      "Gebruik dit voor gevoelige of dynamische paginaâs zoals checkout, account en persoonlijke content.": [
-        "Gebruik dit voor gevoelige of dynamische paginaâs zoals checkout, account en persoonlijke content."
+      "Gebruik dit voor gevoelige of dynamische pagina’s zoals checkout, account en persoonlijke content.": [
+        "Gebruik dit voor gevoelige of dynamische pagina’s zoals checkout, account en persoonlijke content."
       ],
       "Nooit URL(s) cachen": [
         "Nooit URL(s) cachen"
       ],
-      "EÃ©n pad of URL-fragment per regel. Bijvoorbeeld /checkout/ of ?preview=true.": [
-        "EÃ©n pad of URL-fragment per regel. Bijvoorbeeld /checkout/ of ?preview=true."
+      "Eén pad of URL-fragment per regel. Bijvoorbeeld /checkout/ of ?preview=true.": [
+        "Eén pad of URL-fragment per regel. Bijvoorbeeld /checkout/ of ?preview=true."
       ],
-      "Specificeer URLâs of paginaâs die nooit gecached mogen worden": [
-        "Specificeer URLâs of paginaâs die nooit gecached mogen worden"
+      "Specificeer URL’s of pagina’s die nooit gecached mogen worden": [
+        "Specificeer URL’s of pagina’s die nooit gecached mogen worden"
       ],
       "Nooit cookies cachen": [
         "Nooit cookies cachen"
@@ -1641,11 +1638,11 @@
       "Voorkom caching wanneer specifieke cookies aanwezig zijn.": [
         "Voorkom caching wanneer specifieke cookies aanwezig zijn."
       ],
-      "Cookie-IDâs die caching moeten overslaan": [
-        "Cookie-IDâs die caching moeten overslaan"
+      "Cookie-ID’s die caching moeten overslaan": [
+        "Cookie-ID’s die caching moeten overslaan"
       ],
-      "EÃ©n volledige of gedeeltelijke cookie-ID per regel.": [
-        "EÃ©n volledige of gedeeltelijke cookie-ID per regel."
+      "Eén volledige of gedeeltelijke cookie-ID per regel.": [
+        "Eén volledige of gedeeltelijke cookie-ID per regel."
       ],
       "Gebruik dit voor bots, apps of browsers die eigen cachegedrag nodig hebben.": [
         "Gebruik dit voor bots, apps of browsers die eigen cachegedrag nodig hebben."
@@ -1653,8 +1650,8 @@
       "Nooit user agent(s) cachen": [
         "Nooit user agent(s) cachen"
       ],
-      "EÃ©n user-agent fragment per regel. Gebruik (.*) wildcards.": [
-        "EÃ©n user-agent fragment per regel. Gebruik (.*) wildcards."
+      "Eén user-agent fragment per regel. Gebruik (.*) wildcards.": [
+        "Eén user-agent fragment per regel. Gebruik (.*) wildcards."
       ],
       "User-agent strings die nooit cache mogen zien": [
         "User-agent strings die nooit cache mogen zien"
@@ -1662,14 +1659,14 @@
       "Altijd URL(s) legen": [
         "Altijd URL(s) legen"
       ],
-      "Deze URLâs worden extra geleegd wanneer content wijzigt.": [
-        "Deze URLâs worden extra geleegd wanneer content wijzigt."
+      "Deze URL’s worden extra geleegd wanneer content wijzigt.": [
+        "Deze URL’s worden extra geleegd wanneer content wijzigt."
       ],
-      "EÃ©n pad of URL per regel. Wildcardregels legen minimaal de homepage mee.": [
-        "EÃ©n pad of URL per regel. Wildcardregels legen minimaal de homepage mee."
+      "Eén pad of URL per regel. Wildcardregels legen minimaal de homepage mee.": [
+        "Eén pad of URL per regel. Wildcardregels legen minimaal de homepage mee."
       ],
-      "URLâs die altijd mee geleegd moeten worden": [
-        "URLâs die altijd mee geleegd moeten worden"
+      "URL’s die altijd mee geleegd moeten worden": [
+        "URL’s die altijd mee geleegd moeten worden"
       ],
       "Query string(s) cachen": [
         "Query string(s) cachen"
@@ -1692,14 +1689,14 @@
       "Aparte cache voor mobiel": [
         "Aparte cache voor mobiel"
       ],
-      "EÃ©n parameter per regel. Bijvoorbeeld lang, currency, orderby, filter_*.": [
-        "EÃ©n parameter per regel. Bijvoorbeeld lang, currency, orderby, filter_*."
+      "Eén parameter per regel. Bijvoorbeeld lang, currency, orderby, filter_*.": [
+        "Eén parameter per regel. Bijvoorbeeld lang, currency, orderby, filter_*."
       ],
       "Specificeer query strings voor caching": [
         "Specificeer query strings voor caching"
       ],
-      "EÃ©n keuze vervangt CDN inschakelen en bestandstypen herschrijven.": [
-        "EÃ©n keuze vervangt CDN inschakelen en bestandstypen herschrijven."
+      "Eén keuze vervangt CDN inschakelen en bestandstypen herschrijven.": [
+        "Eén keuze vervangt CDN inschakelen en bestandstypen herschrijven."
       ],
       "Statische bestanden herschrijven": [
         "Statische bestanden herschrijven"
@@ -1710,11 +1707,11 @@
       "CDN CNAME(s)": [
         "CDN CNAME(s)"
       ],
-      "EÃ©n host per regel. Voorbeeld: cdn.example.com. Gebruik geen volledige asset-URL met /wp-content/.": [
-        "EÃ©n host per regel. Voorbeeld: cdn.example.com. Gebruik geen volledige asset-URL met /wp-content/."
+      "Eén host per regel. Voorbeeld: cdn.example.com. Gebruik geen volledige asset-URL met /wp-content/.": [
+        "Eén host per regel. Voorbeeld: cdn.example.com. Gebruik geen volledige asset-URL met /wp-content/."
       ],
-      "Test na opslaan altijd een pagina in een privÃ©venster en controleer in DevTools of CSS, JS en afbeeldingen nog zonder 404 of CORS-fouten laden.": [
-        "Test na opslaan altijd een pagina in een privÃ©venster en controleer in DevTools of CSS, JS en afbeeldingen nog zonder 404 of CORS-fouten laden."
+      "Test na opslaan altijd een pagina in een privévenster en controleer in DevTools of CSS, JS en afbeeldingen nog zonder 404 of CORS-fouten laden.": [
+        "Test na opslaan altijd een pagina in een privévenster en controleer in DevTools of CSS, JS en afbeeldingen nog zonder 404 of CORS-fouten laden."
       ],
       "Alle statische bestanden": [
         "Alle statische bestanden"
@@ -1725,8 +1722,8 @@
       "Alleen CSS en JavaScript": [
         "Alleen CSS en JavaScript"
       ],
-      "EÃ©n URL, domein, pad of bestand per regel. Voorbeelden: /wp-json/, .php, /wp-content/plugins/some-plugin/(.*).css.": [
-        "EÃ©n URL, domein, pad of bestand per regel. Voorbeelden: /wp-json/, .php, /wp-content/plugins/some-plugin/(.*).css."
+      "Eén URL, domein, pad of bestand per regel. Voorbeelden: /wp-json/, .php, /wp-content/plugins/some-plugin/(.*).css.": [
+        "Eén URL, domein, pad of bestand per regel. Voorbeelden: /wp-json/, .php, /wp-content/plugins/some-plugin/(.*).css."
       ],
       "Niet via CDN laden": [
         "Niet via CDN laden"
@@ -1758,8 +1755,8 @@
       "Browser-cache statische bestanden": [
         "Browser-cache statische bestanden"
       ],
-      "EÃ©n keuze vervangt browser-cache headers en bewaartijd.": [
-        "EÃ©n keuze vervangt browser-cache headers en bewaartijd."
+      "Eén keuze vervangt browser-cache headers en bewaartijd.": [
+        "Eén keuze vervangt browser-cache headers en bewaartijd."
       ],
       "Aangepaste bewaartijd": [
         "Aangepaste bewaartijd"
@@ -1983,8 +1980,8 @@
       "Maandelijks": [
         "Maandelijks"
       ],
-      "Kies hieronder per locatie Behouden, Verminderen of Uitschakelen. UltraCache zet de interne Heartbeat-controle automatisch aan zodra Ã©Ã©n locatie wordt aangepast, en uit wanneer alles op Behouden staat.": [
-        "Kies hieronder per locatie Behouden, Verminderen of Uitschakelen. UltraCache zet de interne Heartbeat-controle automatisch aan zodra Ã©Ã©n locatie wordt aangepast, en uit wanneer alles op Behouden staat."
+      "Kies hieronder per locatie Behouden, Verminderen of Uitschakelen. UltraCache zet de interne Heartbeat-controle automatisch aan zodra één locatie wordt aangepast, en uit wanneer alles op Behouden staat.": [
+        "Kies hieronder per locatie Behouden, Verminderen of Uitschakelen. UltraCache zet de interne Heartbeat-controle automatisch aan zodra één locatie wordt aangepast, en uit wanneer alles op Behouden staat."
       ],
       "Behouden": [
         "Behouden"
@@ -2016,8 +2013,8 @@
       "Aangepast per locatie": [
         "Aangepast per locatie"
       ],
-      "EÃ©n keuze vervangt de drie losse intervalvelden. Kies Aangepast voor verschillende waarden per locatie.": [
-        "EÃ©n keuze vervangt de drie losse intervalvelden. Kies Aangepast voor verschillende waarden per locatie."
+      "Eén keuze vervangt de drie losse intervalvelden. Kies Aangepast voor verschillende waarden per locatie.": [
+        "Eén keuze vervangt de drie losse intervalvelden. Kies Aangepast voor verschillende waarden per locatie."
       ],
       "Heartbeat interval bij verminderen": [
         "Heartbeat interval bij verminderen"
@@ -2055,8 +2052,8 @@
       "Afbeeldingsoptimalisatie": [
         "Afbeeldingsoptimalisatie"
       ],
-      "EÃ©n keuze vervangt de losse optimalisatie-, WebP- en AVIF-knoppen. Laat uit als ShortPixel, Imagify, LiteSpeed, CDN-transforms of een andere image optimizer dit al doet.": [
-        "EÃ©n keuze vervangt de losse optimalisatie-, WebP- en AVIF-knoppen. Laat uit als ShortPixel, Imagify, LiteSpeed, CDN-transforms of een andere image optimizer dit al doet."
+      "Eén keuze vervangt de losse optimalisatie-, WebP- en AVIF-knoppen. Laat uit als ShortPixel, Imagify, LiteSpeed, CDN-transforms of een andere image optimizer dit al doet.": [
+        "Eén keuze vervangt de losse optimalisatie-, WebP- en AVIF-knoppen. Laat uit als ShortPixel, Imagify, LiteSpeed, CDN-transforms of een andere image optimizer dit al doet."
       ],
       "Nieuwe uploads optimaliseren": [
         "Nieuwe uploads optimaliseren"
@@ -2070,8 +2067,8 @@
       "Aanbevolen: 2 preloaden + 4 beschermen": [
         "Aanbevolen: 2 preloaden + 4 beschermen"
       ],
-      "EÃ©n keuze vervangt kritieke afbeeldingen preloaden en bovenste afbeeldingen niet lazyloaden.": [
-        "EÃ©n keuze vervangt kritieke afbeeldingen preloaden en bovenste afbeeldingen niet lazyloaden."
+      "Eén keuze vervangt kritieke afbeeldingen preloaden en bovenste afbeeldingen niet lazyloaden.": [
+        "Eén keuze vervangt kritieke afbeeldingen preloaden en bovenste afbeeldingen niet lazyloaden."
       ],
       "Hero beschermen: niet lazyloaden": [
         "Hero beschermen: niet lazyloaden"
@@ -2109,8 +2106,8 @@
       "Alleen font-display swap": [
         "Alleen font-display swap"
       ],
-      "EÃ©n keuze vervangt lokaal hosten, font-display swap en Google Fonts uitschakelen.": [
-        "EÃ©n keuze vervangt lokaal hosten, font-display swap en Google Fonts uitschakelen."
+      "Eén keuze vervangt lokaal hosten, font-display swap en Google Fonts uitschakelen.": [
+        "Eén keuze vervangt lokaal hosten, font-display swap en Google Fonts uitschakelen."
       ],
       "Google Fonts gedrag": [
         "Google Fonts gedrag"
@@ -2121,14 +2118,14 @@
       "Lokaal hosten + swap": [
         "Lokaal hosten + swap"
       ],
-      "EÃ©n .woff2 URL per regel.": [
-        "EÃ©n .woff2 URL per regel."
+      "Eén .woff2 URL per regel.": [
+        "Eén .woff2 URL per regel."
       ],
       "Fonts vooraf laden": [
         "Fonts vooraf laden"
       ],
-      "EÃ©n vroege externe origin per regel, bijvoorbeeld https://fonts.gstatic.com.": [
-        "EÃ©n vroege externe origin per regel, bijvoorbeeld https://fonts.gstatic.com."
+      "Eén vroege externe origin per regel, bijvoorbeeld https://fonts.gstatic.com.": [
+        "Eén vroege externe origin per regel, bijvoorbeeld https://fonts.gstatic.com."
       ],
       "Preconnect URLs": [
         "Preconnect URLs"
@@ -2136,8 +2133,8 @@
       "DNS prefetch domeinen": [
         "DNS prefetch domeinen"
       ],
-      "EÃ©n domein per regel, bijvoorbeeld fonts.googleapis.com.": [
-        "EÃ©n domein per regel, bijvoorbeeld fonts.googleapis.com."
+      "Eén domein per regel, bijvoorbeeld fonts.googleapis.com.": [
+        "Eén domein per regel, bijvoorbeeld fonts.googleapis.com."
       ],
       "Lokale lettertypes wissen": [
         "Lokale lettertypes wissen"
@@ -2151,8 +2148,8 @@
       "Gebruik dit pas nadat lazy load en de basisinstellingen goed werken.": [
         "Gebruik dit pas nadat lazy load en de basisinstellingen goed werken."
       ],
-      "EÃ©n keuze vervangt speculative loading, modus en snelheid. Test menu's, formulieren en winkelpagina's.": [
-        "EÃ©n keuze vervangt speculative loading, modus en snelheid. Test menu's, formulieren en winkelpagina's."
+      "Eén keuze vervangt speculative loading, modus en snelheid. Test menu's, formulieren en winkelpagina's.": [
+        "Eén keuze vervangt speculative loading, modus en snelheid. Test menu's, formulieren en winkelpagina's."
       ],
       "Prefetch normaal": [
         "Prefetch normaal"
@@ -2169,8 +2166,8 @@
       "Deze paden overslaan": [
         "Deze paden overslaan"
       ],
-      "EÃ©n pad per regel. Gebruik dit voor checkout, account, login, formulieren en dynamische paginaâs.": [
-        "EÃ©n pad per regel. Gebruik dit voor checkout, account, login, formulieren en dynamische paginaâs."
+      "Eén pad per regel. Gebruik dit voor checkout, account, login, formulieren en dynamische pagina’s.": [
+        "Eén pad per regel. Gebruik dit voor checkout, account, login, formulieren en dynamische pagina’s."
       ],
       "Afbeeldingen en lazy load": [
         "Afbeeldingen en lazy load"
@@ -2193,20 +2190,20 @@
       "Afbeeldingen + iframes/video + YouTube preview": [
         "Afbeeldingen + iframes/video + YouTube preview"
       ],
-      "EÃ©n keuze vervangt lazyload voor afbeeldingen, iframes/video en YouTube preview.": [
-        "EÃ©n keuze vervangt lazyload voor afbeeldingen, iframes/video en YouTube preview."
+      "Eén keuze vervangt lazyload voor afbeeldingen, iframes/video en YouTube preview.": [
+        "Eén keuze vervangt lazyload voor afbeeldingen, iframes/video en YouTube preview."
       ],
       "Media lazyload": [
         "Media lazyload"
       ],
-      "Geef trefwoorden op, zoals bestandsnaam, CSS-klasse, domein of iframe-bron. EÃ©n per regel.": [
-        "Geef trefwoorden op, zoals bestandsnaam, CSS-klasse, domein of iframe-bron. EÃ©n per regel."
+      "Geef trefwoorden op, zoals bestandsnaam, CSS-klasse, domein of iframe-bron. Eén per regel.": [
+        "Geef trefwoorden op, zoals bestandsnaam, CSS-klasse, domein of iframe-bron. Eén per regel."
       ],
       "Uitgesloten afbeeldingen of iframes": [
         "Uitgesloten afbeeldingen of iframes"
       ],
-      "EÃ©n selector per regel, zoals .hero of .product-gallery.": [
-        "EÃ©n selector per regel, zoals .hero of .product-gallery."
+      "Eén selector per regel, zoals .hero of .product-gallery.": [
+        "Eén selector per regel, zoals .hero of .product-gallery."
       ],
       "Lazyload uitsluiten binnen selectors": [
         "Lazyload uitsluiten binnen selectors"
@@ -2289,8 +2286,8 @@
       "Alleen opgegeven scripts": [
         "Alleen opgegeven scripts"
       ],
-      "EÃ©n keuze vervangt Delay JS, modus en veilige modus. Test altijd formulieren, sliders, cookie banners en checkout op staging.": [
-        "EÃ©n keuze vervangt Delay JS, modus en veilige modus. Test altijd formulieren, sliders, cookie banners en checkout op staging."
+      "Eén keuze vervangt Delay JS, modus en veilige modus. Test altijd formulieren, sliders, cookie banners en checkout op staging.": [
+        "Eén keuze vervangt Delay JS, modus en veilige modus. Test altijd formulieren, sliders, cookie banners en checkout op staging."
       ],
       "JavaScript uitstellen": [
         "JavaScript uitstellen"
@@ -2304,8 +2301,8 @@
       "UltraCache zet JavaScript samenvoegen automatisch uit zodra Delay JS actief is. Als JavaScript samenvoegen aan staat, blijft JS verkleinen automatisch aan. Defer JS blijft een losse, veiligere keuze met uitsluitingen.": [
         "UltraCache zet JavaScript samenvoegen automatisch uit zodra Delay JS actief is. Als JavaScript samenvoegen aan staat, blijft JS verkleinen automatisch aan. Defer JS blijft een losse, veiligere keuze met uitsluitingen."
       ],
-      "Delay JS, uitzonderingen en expertopties staan samen in Ã©Ã©n overzichtelijk blok.": [
-        "Delay JS, uitzonderingen en expertopties staan samen in Ã©Ã©n overzichtelijk blok."
+      "Delay JS, uitzonderingen en expertopties staan samen in één overzichtelijk blok.": [
+        "Delay JS, uitzonderingen en expertopties staan samen in één overzichtelijk blok."
       ],
       "JavaScript extra opties": [
         "JavaScript extra opties"
@@ -2325,8 +2322,8 @@
       "Scripts uitsluiten van Delay JS": [
         "Scripts uitsluiten van Delay JS"
       ],
-      "Voeg hier eigen handles, URL-fragmenten of delen van bestandsnamen toe. De automatische detectie blijft daarnaast actief. EÃ©n regel per item.": [
-        "Voeg hier eigen handles, URL-fragmenten of delen van bestandsnamen toe. De automatische detectie blijft daarnaast actief. EÃ©n regel per item."
+      "Voeg hier eigen handles, URL-fragmenten of delen van bestandsnamen toe. De automatische detectie blijft daarnaast actief. Eén regel per item.": [
+        "Voeg hier eigen handles, URL-fragmenten of delen van bestandsnamen toe. De automatische detectie blijft daarnaast actief. Eén regel per item."
       ],
       "Aanbevolen op basis van je actieve site-stack.": [
         "Aanbevolen op basis van je actieve site-stack."
@@ -2334,8 +2331,8 @@
       "Alleen deze scripts delayen": [
         "Alleen deze scripts delayen"
       ],
-      "EÃ©n handle, URL-fragment of scriptnaam per regel. Alleen actief bij Alleen opgegeven scripts.": [
-        "EÃ©n handle, URL-fragment of scriptnaam per regel. Alleen actief bij Alleen opgegeven scripts."
+      "Eén handle, URL-fragment of scriptnaam per regel. Alleen actief bij Alleen opgegeven scripts.": [
+        "Eén handle, URL-fragment of scriptnaam per regel. Alleen actief bij Alleen opgegeven scripts."
       ],
       "Fallback als er geen interactie komt.": [
         "Fallback als er geen interactie komt."
@@ -2376,11 +2373,11 @@
       "Domeinen lokaal hosten": [
         "Domeinen lokaal hosten"
       ],
-      "EÃ©n domein per regel. Bijvoorbeeld fonts.googleapis.com of www.googletagmanager.com.": [
-        "EÃ©n domein per regel. Bijvoorbeeld fonts.googleapis.com of www.googletagmanager.com."
+      "Eén domein per regel. Bijvoorbeeld fonts.googleapis.com of www.googletagmanager.com.": [
+        "Eén domein per regel. Bijvoorbeeld fonts.googleapis.com of www.googletagmanager.com."
       ],
-      "Geef URLs, handles, domeinen of trefwoorden op die uitgesloten worden van minify, combineren en defer. Automatische detectie blijft daarnaast actief. EÃ©n per regel.": [
-        "Geef URLs, handles, domeinen of trefwoorden op die uitgesloten worden van minify, combineren en defer. Automatische detectie blijft daarnaast actief. EÃ©n per regel."
+      "Geef URLs, handles, domeinen of trefwoorden op die uitgesloten worden van minify, combineren en defer. Automatische detectie blijft daarnaast actief. Eén per regel.": [
+        "Geef URLs, handles, domeinen of trefwoorden op die uitgesloten worden van minify, combineren en defer. Automatische detectie blijft daarnaast actief. Eén per regel."
       ],
       "JavaScript-bestanden uitsluiten": [
         "JavaScript-bestanden uitsluiten"
@@ -2400,8 +2397,8 @@
       "HTML en CSS": [
         "HTML en CSS"
       ],
-      "De belangrijkste optimalisaties staan overzichtelijk in Ã©Ã©n scherm.": [
-        "De belangrijkste optimalisaties staan overzichtelijk in Ã©Ã©n scherm."
+      "De belangrijkste optimalisaties staan overzichtelijk in één scherm.": [
+        "De belangrijkste optimalisaties staan overzichtelijk in één scherm."
       ],
       "HTML": [
         "HTML"
@@ -2412,8 +2409,8 @@
       "Alleen comments verwijderen": [
         "Alleen comments verwijderen"
       ],
-      "EÃ©n duidelijke keuze. HTML verkleinen zet comments verwijderen automatisch aan en slaat gevoelige WooCommerce-, builder- en previewpaginaâs over.": [
-        "EÃ©n duidelijke keuze. HTML verkleinen zet comments verwijderen automatisch aan en slaat gevoelige WooCommerce-, builder- en previewpaginaâs over."
+      "Eén duidelijke keuze. HTML verkleinen zet comments verwijderen automatisch aan en slaat gevoelige WooCommerce-, builder- en previewpagina’s over.": [
+        "Eén duidelijke keuze. HTML verkleinen zet comments verwijderen automatisch aan en slaat gevoelige WooCommerce-, builder- en previewpagina’s over."
       ],
       "HTML optimalisatie": [
         "HTML optimalisatie"
@@ -2433,14 +2430,14 @@
       "Deze URLs nooit aanpassen": [
         "Deze URLs nooit aanpassen"
       ],
-      "EÃ©n URL-fragment of pad per regel. Bijvoorbeeld /checkout of ?elementor-preview=.": [
-        "EÃ©n URL-fragment of pad per regel. Bijvoorbeeld /checkout of ?elementor-preview=."
+      "Eén URL-fragment of pad per regel. Bijvoorbeeld /checkout of ?elementor-preview=.": [
+        "Eén URL-fragment of pad per regel. Bijvoorbeeld /checkout of ?elementor-preview=."
       ],
       "Deze templates nooit aanpassen": [
         "Deze templates nooit aanpassen"
       ],
-      "EÃ©n templatebestand of slug per regel.": [
-        "EÃ©n templatebestand of slug per regel."
+      "Eén templatebestand of slug per regel.": [
+        "Eén templatebestand of slug per regel."
       ],
       "Laat alleen de hoofdkeuzes direct zien. Alles met meer risico staat in het uitklapblok.": [
         "Laat alleen de hoofdkeuzes direct zien. Alles met meer risico staat in het uitklapblok."
@@ -2454,14 +2451,14 @@
       "CSS-levering optimaliseren": [
         "CSS-levering optimaliseren"
       ],
-      "Elimineert render-blocking CSS. Er kan maar Ã©Ã©n methode actief zijn. Ongebruikte CSS verwijderen is staging-first en gebruikt de AST-parser wanneer vendor libraries aanwezig zijn; CSS asynchroon laden is de veiligere fallback als layout breekt.": [
-        "Elimineert render-blocking CSS. Er kan maar Ã©Ã©n methode actief zijn. Ongebruikte CSS verwijderen is staging-first en gebruikt de AST-parser wanneer vendor libraries aanwezig zijn; CSS asynchroon laden is de veiligere fallback als layout breekt."
+      "Elimineert render-blocking CSS. Er kan maar één methode actief zijn. Ongebruikte CSS verwijderen is staging-first en gebruikt de AST-parser wanneer vendor libraries aanwezig zijn; CSS asynchroon laden is de veiligere fallback als layout breekt.": [
+        "Elimineert render-blocking CSS. Er kan maar één methode actief zijn. Ongebruikte CSS verwijderen is staging-first en gebruikt de AST-parser wanneer vendor libraries aanwezig zijn; CSS asynchroon laden is de veiligere fallback als layout breekt."
       ],
       "CSS asynchroon laden": [
         "CSS asynchroon laden"
       ],
-      "Kies Ã©Ã©n methode. Ongebruikte CSS gebruikt de AST-parser wanneer vendor libraries aanwezig zijn en valt anders veilig terug. Test grondig op staging, vooral met Elementor, sticky headers, sliders en WooCommerce.": [
-        "Kies Ã©Ã©n methode. Ongebruikte CSS gebruikt de AST-parser wanneer vendor libraries aanwezig zijn en valt anders veilig terug. Test grondig op staging, vooral met Elementor, sticky headers, sliders en WooCommerce."
+      "Kies één methode. Ongebruikte CSS gebruikt de AST-parser wanneer vendor libraries aanwezig zijn en valt anders veilig terug. Test grondig op staging, vooral met Elementor, sticky headers, sliders en WooCommerce.": [
+        "Kies één methode. Ongebruikte CSS gebruikt de AST-parser wanneer vendor libraries aanwezig zijn en valt anders veilig terug. Test grondig op staging, vooral met Elementor, sticky headers, sliders en WooCommerce."
       ],
       "Ongebruikte CSS verwijderen - staging": [
         "Ongebruikte CSS verwijderen - staging"
@@ -2493,14 +2490,14 @@
       "CSS-bestanden uitsluiten": [
         "CSS-bestanden uitsluiten"
       ],
-      "Geef URLs, handles, domeinen of padfragmenten op. Wildcards zoals (.*).css worden ondersteund. EÃ©n per regel.": [
-        "Geef URLs, handles, domeinen of padfragmenten op. Wildcards zoals (.*).css worden ondersteund. EÃ©n per regel."
+      "Geef URLs, handles, domeinen of padfragmenten op. Wildcards zoals (.*).css worden ondersteund. Eén per regel.": [
+        "Geef URLs, handles, domeinen of padfragmenten op. Wildcards zoals (.*).css worden ondersteund. Eén per regel."
       ],
       "CSS veilige lijst": [
         "CSS veilige lijst"
       ],
-      "Geef CSS-bestandsnamen, IDs of klassen op die niet verwijderd/asynchroon gemaakt mogen worden. EÃ©n per regel, bijvoorbeeld elementor, jeg-elementor-kit of sticky-header.": [
-        "Geef CSS-bestandsnamen, IDs of klassen op die niet verwijderd/asynchroon gemaakt mogen worden. EÃ©n per regel, bijvoorbeeld elementor, jeg-elementor-kit of sticky-header."
+      "Geef CSS-bestandsnamen, IDs of klassen op die niet verwijderd/asynchroon gemaakt mogen worden. Eén per regel, bijvoorbeeld elementor, jeg-elementor-kit of sticky-header.": [
+        "Geef CSS-bestandsnamen, IDs of klassen op die niet verwijderd/asynchroon gemaakt mogen worden. Eén per regel, bijvoorbeeld elementor, jeg-elementor-kit of sticky-header."
       ],
       "Minimumgrootte CSS-artifact": [
         "Minimumgrootte CSS-artifact"
@@ -2535,8 +2532,8 @@
       "Lazy render selectors inschakelen": [
         "Lazy render selectors inschakelen"
       ],
-      "EÃ©n CSS-selector per regel. Bijvoorbeeld .site-footer of .related-products.": [
-        "EÃ©n CSS-selector per regel. Bijvoorbeeld .site-footer of .related-products."
+      "Eén CSS-selector per regel. Bijvoorbeeld .site-footer of .related-products.": [
+        "Eén CSS-selector per regel. Bijvoorbeeld .site-footer of .related-products."
       ],
       "Lazy render selectors": [
         "Lazy render selectors"
@@ -2568,8 +2565,8 @@
       "Import, export, supportrapport en onderhoud.": [
         "Import, export, supportrapport en onderhoud."
       ],
-      "Kies Ã©Ã©n preset en beheer daarna alleen cache, optimalisatie en expertinstellingen als dat nodig is.": [
-        "Kies Ã©Ã©n preset en beheer daarna alleen cache, optimalisatie en expertinstellingen als dat nodig is."
+      "Kies één preset en beheer daarna alleen cache, optimalisatie en expertinstellingen als dat nodig is.": [
+        "Kies één preset en beheer daarna alleen cache, optimalisatie en expertinstellingen als dat nodig is."
       ],
       "%d aandachtspunt": [
         "%d aandachtspunt"
@@ -2616,8 +2613,8 @@
       "Verwijder bestaande cachebestanden zodat bezoekers de nieuwste versie van de site zien.": [
         "Verwijder bestaande cachebestanden zodat bezoekers de nieuwste versie van de site zien."
       ],
-      "Leeg de cache en bouw belangrijke paginaâs opnieuw op, zodat ze sneller klaarstaan.": [
-        "Leeg de cache en bouw belangrijke paginaâs opnieuw op, zodat ze sneller klaarstaan."
+      "Leeg de cache en bouw belangrijke pagina’s opnieuw op, zodat ze sneller klaarstaan.": [
+        "Leeg de cache en bouw belangrijke pagina’s opnieuw op, zodat ze sneller klaarstaan."
       ],
       "Kies je preset": [
         "Kies je preset"
@@ -2649,8 +2646,8 @@
       "Cache preloaden": [
         "Cache preloaden"
       ],
-      "Preload bouwt cachebestanden vooraf op zodat bezoekers direct gecachte paginaâs krijgen.": [
-        "Preload bouwt cachebestanden vooraf op zodat bezoekers direct gecachte paginaâs krijgen."
+      "Preload bouwt cachebestanden vooraf op zodat bezoekers direct gecachte pagina’s krijgen.": [
+        "Preload bouwt cachebestanden vooraf op zodat bezoekers direct gecachte pagina’s krijgen."
       ],
       "Cache legen en preloaden": [
         "Cache legen en preloaden"
@@ -2664,8 +2661,8 @@
       "Cache preload": [
         "Cache preload"
       ],
-      "EÃ©n keuze vervangt preload aan/uit, queue, sitemap en homepage meenemen.": [
-        "EÃ©n keuze vervangt preload aan/uit, queue, sitemap en homepage meenemen."
+      "Eén keuze vervangt preload aan/uit, queue, sitemap en homepage meenemen.": [
+        "Eén keuze vervangt preload aan/uit, queue, sitemap en homepage meenemen."
       ],
       "Handmatig / geavanceerd": [
         "Handmatig / geavanceerd"
@@ -2682,8 +2679,8 @@
       "Taken": [
         "Taken"
       ],
-      "Wacht: %1$d Â· Bezig: %2$d Â· Opnieuw: %3$d Â· Mislukt: %4$d": [
-        "Wacht: %1$d Â· Bezig: %2$d Â· Opnieuw: %3$d Â· Mislukt: %4$d"
+      "Wacht: %1$d · Bezig: %2$d · Opnieuw: %3$d · Mislukt: %4$d": [
+        "Wacht: %1$d · Bezig: %2$d · Opnieuw: %3$d · Mislukt: %4$d"
       ],
       "Link preloaden bereidt een pagina voor wanneer een bezoeker over een interne link beweegt.": [
         "Link preloaden bereidt een pagina voor wanneer een bezoeker over een interne link beweegt."
@@ -2700,11 +2697,11 @@
       "Geavanceerde preload instellingen": [
         "Geavanceerde preload instellingen"
       ],
-      "Paginaâs per batch": [
-        "Paginaâs per batch"
+      "Pagina’s per batch": [
+        "Pagina’s per batch"
       ],
-      "Veilige start: 15 paginaâs per batch.": [
-        "Veilige start: 15 paginaâs per batch."
+      "Veilige start: 15 pagina’s per batch.": [
+        "Veilige start: 15 pagina’s per batch."
       ],
       "Dagelijks": [
         "Dagelijks"
@@ -2721,11 +2718,11 @@
       "Wekelijks": [
         "Wekelijks"
       ],
-      "Maximaal aantal paginaâs": [
-        "Maximaal aantal paginaâs"
+      "Maximaal aantal pagina’s": [
+        "Maximaal aantal pagina’s"
       ],
-      "Veilige start: maximaal 250 paginaâs.": [
-        "Veilige start: maximaal 250 paginaâs."
+      "Veilige start: maximaal 250 pagina’s.": [
+        "Veilige start: maximaal 250 pagina’s."
       ],
       "Aanbevolen: 500 ms tussen aanvragen.": [
         "Aanbevolen: 500 ms tussen aanvragen."
@@ -2739,11 +2736,11 @@
       "Preload inhoud": [
         "Preload inhoud"
       ],
-      "EÃ©n URL of pad per regel. Gebruik (.*) wildcards, bijvoorbeeld /author/(.*).": [
-        "EÃ©n URL of pad per regel. Gebruik (.*) wildcards, bijvoorbeeld /author/(.*)."
+      "Eén URL of pad per regel. Gebruik (.*) wildcards, bijvoorbeeld /author/(.*).": [
+        "Eén URL of pad per regel. Gebruik (.*) wildcards, bijvoorbeeld /author/(.*)."
       ],
-      "URLâs uitsluiten van preload": [
-        "URLâs uitsluiten van preload"
+      "URL’s uitsluiten van preload": [
+        "URL’s uitsluiten van preload"
       ],
       "Cache legen en opwarmen": [
         "Cache legen en opwarmen"
@@ -2790,8 +2787,8 @@
       "Insluitingen uitschakelen": [
         "Insluitingen uitschakelen"
       ],
-      "Alleen gebruiken na testen met oudere themaâs/plugins.": [
-        "Alleen gebruiken na testen met oudere themaâs/plugins."
+      "Alleen gebruiken na testen met oudere thema’s/plugins.": [
+        "Alleen gebruiken na testen met oudere thema’s/plugins."
       ],
       "jQuery Migrate verwijderen voor bezoekers": [
         "jQuery Migrate verwijderen voor bezoekers"
@@ -2835,8 +2832,8 @@
       "Instellingen-back-ups": [
         "Instellingen-back-ups"
       ],
-      "UltraCache bewaart automatisch de laatste 5 instellingen vÃ³Ã³r wijzigingen. Maak ook handmatig een snapshot voordat je agressiever optimaliseert.": [
-        "UltraCache bewaart automatisch de laatste 5 instellingen vÃ³Ã³r wijzigingen. Maak ook handmatig een snapshot voordat je agressiever optimaliseert."
+      "UltraCache bewaart automatisch de laatste 5 instellingen vóór wijzigingen. Maak ook handmatig een snapshot voordat je agressiever optimaliseert.": [
+        "UltraCache bewaart automatisch de laatste 5 instellingen vóór wijzigingen. Maak ook handmatig een snapshot voordat je agressiever optimaliseert."
       ],
       "Snapshot maken": [
         "Snapshot maken"
@@ -2916,8 +2913,8 @@
       "Deze site lijkt via HTTP/2 of HTTP/3 te draaien. Bestanden samenvoegen levert dan meestal weinig op en kan caching/debugging lastiger maken.": [
         "Deze site lijkt via HTTP/2 of HTTP/3 te draaien. Bestanden samenvoegen levert dan meestal weinig op en kan caching/debugging lastiger maken."
       ],
-      "Er is al een optimalisatieplugin actief. Voorkom dubbele CSS/JS-combinatie en kies Ã©Ã©n plugin die dit beheert.": [
-        "Er is al een optimalisatieplugin actief. Voorkom dubbele CSS/JS-combinatie en kies Ã©Ã©n plugin die dit beheert."
+      "Er is al een optimalisatieplugin actief. Voorkom dubbele CSS/JS-combinatie en kies één plugin die dit beheert.": [
+        "Er is al een optimalisatieplugin actief. Voorkom dubbele CSS/JS-combinatie en kies één plugin die dit beheert."
       ],
       "CSS-levering optimaliseren is actief. UltraCache zet CSS samenvoegen uit omdat dit conflicteert met Used/Critical CSS per pagina.": [
         "CSS-levering optimaliseren is actief. UltraCache zet CSS samenvoegen uit omdat dit conflicteert met Used/Critical CSS per pagina."
@@ -2961,8 +2958,8 @@
       "Laat Redis/Memcached object cache als aparte laag werken en voorkom dubbele object-cache drop-ins.": [
         "Laat Redis/Memcached object cache als aparte laag werken en voorkom dubbele object-cache drop-ins."
       ],
-      "Schakel overlappende CSS/JS combine, delay of asset-unload opties in Ã©Ã©n van beide plugins uit.": [
-        "Schakel overlappende CSS/JS combine, delay of asset-unload opties in Ã©Ã©n van beide plugins uit."
+      "Schakel overlappende CSS/JS combine, delay of asset-unload opties in één van beide plugins uit.": [
+        "Schakel overlappende CSS/JS combine, delay of asset-unload opties in één van beide plugins uit."
       ],
       "Gebruik UltraCache als applicatielaag en purge de server/CDN-laag expliciet na wijzigingen.": [
         "Gebruik UltraCache als applicatielaag en purge de server/CDN-laag expliciet na wijzigingen."
@@ -3009,8 +3006,8 @@
       "UltraCache pagina-uitzonderingen": [
         "UltraCache pagina-uitzonderingen"
       ],
-      "Gebruik dit alleen voor paginaâs met formulier-, checkout-, builder- of scriptsproblemen.": [
-        "Gebruik dit alleen voor paginaâs met formulier-, checkout-, builder- of scriptsproblemen."
+      "Gebruik dit alleen voor pagina’s met formulier-, checkout-, builder- of scriptsproblemen.": [
+        "Gebruik dit alleen voor pagina’s met formulier-, checkout-, builder- of scriptsproblemen."
       ],
       "Maatwerk preset": [
         "Maatwerk preset"
@@ -3471,8 +3468,8 @@
       "PageSpeed browser scan opgeslagen.": [
         "PageSpeed browser scan opgeslagen."
       ],
-      "Instellingen konden niet worden geÃ¯mporteerd. Controleer de serverlog voor details.": [
-        "Instellingen konden niet worden geÃ¯mporteerd. Controleer de serverlog voor details."
+      "Instellingen konden niet worden geïmporteerd. Controleer de serverlog voor details.": [
+        "Instellingen konden niet worden geïmporteerd. Controleer de serverlog voor details."
       ],
       "Snapshot niet gevonden.": [
         "Snapshot niet gevonden."
@@ -3492,8 +3489,8 @@
       "Instellingen konden niet worden opgeslagen. Controleer de serverlog voor details.": [
         "Instellingen konden niet worden opgeslagen. Controleer de serverlog voor details."
       ],
-      "Bevestig eerst dat je een recente export of database-back-up hebt voordat instellingen worden geÃ¯mporteerd.": [
-        "Bevestig eerst dat je een recente export of database-back-up hebt voordat instellingen worden geÃ¯mporteerd."
+      "Bevestig eerst dat je een recente export of database-back-up hebt voordat instellingen worden geïmporteerd.": [
+        "Bevestig eerst dat je een recente export of database-back-up hebt voordat instellingen worden geïmporteerd."
       ],
       "Ongeldige import ontvangen.": [
         "Ongeldige import ontvangen."
@@ -3501,11 +3498,11 @@
       "Geen geldige UltraCache instellingen gevonden.": [
         "Geen geldige UltraCache instellingen gevonden."
       ],
-      "Instellingen geÃ¯mporteerd.": [
-        "Instellingen geÃ¯mporteerd."
+      "Instellingen geïmporteerd.": [
+        "Instellingen geïmporteerd."
       ],
-      "LMS/membership-functionaliteit gevonden: ingelogde en persoonlijke paginaâs vragen veilige cache-regels.": [
-        "LMS/membership-functionaliteit gevonden: ingelogde en persoonlijke paginaâs vragen veilige cache-regels."
+      "LMS/membership-functionaliteit gevonden: ingelogde en persoonlijke pagina’s vragen veilige cache-regels.": [
+        "LMS/membership-functionaliteit gevonden: ingelogde en persoonlijke pagina’s vragen veilige cache-regels."
       ],
       "Formulierplugin gevonden: Delay JS moet voorzichtig blijven zodat formulieren betrouwbaar werken.": [
         "Formulierplugin gevonden: Delay JS moet voorzichtig blijven zodat formulieren betrouwbaar werken."
@@ -3513,8 +3510,8 @@
       "Multisite gedetecteerd. Test wijzigingen per site en voorkom netwerkbrede verrassingen.": [
         "Multisite gedetecteerd. Test wijzigingen per site en voorkom netwerkbrede verrassingen."
       ],
-      "Geen duidelijke shop-, builder- of membership-risicoâs gevonden.": [
-        "Geen duidelijke shop-, builder- of membership-risicoâs gevonden."
+      "Geen duidelijke shop-, builder- of membership-risico’s gevonden.": [
+        "Geen duidelijke shop-, builder- of membership-risico’s gevonden."
       ],
       "Maatwerk veilig": [
         "Maatwerk veilig"
@@ -3624,11 +3621,11 @@
       "Kon de APCu object-cache drop-in niet installeren.": [
         "Kon de APCu object-cache drop-in niet installeren."
       ],
-      "APCu object-cache drop-in geÃ¯nstalleerd.": [
-        "APCu object-cache drop-in geÃ¯nstalleerd."
+      "APCu object-cache drop-in geïnstalleerd.": [
+        "APCu object-cache drop-in geïnstalleerd."
       ],
-      "Kies Ã©Ã©n methode. Ongebruikte CSS gebruikt de parser-first flow wanneer de Composer-library beschikbaar is en valt veilig terug op de lokale scanner. Test grondig op staging, vooral met Elementor, sticky headers, sliders en WooCommerce.": [
-        "Kies Ã©Ã©n methode. Ongebruikte CSS gebruikt de parser-first flow wanneer de Composer-library beschikbaar is en valt veilig terug op de lokale scanner. Test grondig op staging, vooral met Elementor, sticky headers, sliders en WooCommerce."
+      "Kies één methode. Ongebruikte CSS gebruikt de parser-first flow wanneer de Composer-library beschikbaar is en valt veilig terug op de lokale scanner. Test grondig op staging, vooral met Elementor, sticky headers, sliders en WooCommerce.": [
+        "Kies één methode. Ongebruikte CSS gebruikt de parser-first flow wanneer de Composer-library beschikbaar is en valt veilig terug op de lokale scanner. Test grondig op staging, vooral met Elementor, sticky headers, sliders en WooCommerce."
       ],
       "wp_options engine: %s": [
         "wp_options engine: %s"
@@ -3636,8 +3633,8 @@
       "Mogelijke ontbrekende indexen: %s": [
         "Mogelijke ontbrekende indexen: %s"
       ],
-      "Sta expliciete MyISAM â InnoDB conversie van wp_options toe": [
-        "Sta expliciete MyISAM â InnoDB conversie van wp_options toe"
+      "Sta expliciete MyISAM → InnoDB conversie van wp_options toe": [
+        "Sta expliciete MyISAM → InnoDB conversie van wp_options toe"
       ],
       "Staging-first: alleen gebruiken met recente database-back-up.": [
         "Staging-first: alleen gebruiken met recente database-back-up."

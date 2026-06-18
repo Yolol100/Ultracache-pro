@@ -188,7 +188,7 @@ trait UCP_Options_Lifecycle_Trait {
             $settings = array_merge($settings, UCP_Presets::pagespeed_auto_overrides());
         }
         $settings['enable_diagnostics'] = 1;
-        $settings['enable_admin_queue_runner'] = 1;
+        $settings['enable_admin_queue_runner'] = !empty($settings['enable_admin_queue_runner']) ? 1 : 0;
 
         $preload_exclusions = UCP_Helpers::normalize_multiline(isset($settings['preload_exclude_urls']) ? $settings['preload_exclude_urls'] : '');
         $preload_exclusions = array_merge($preload_exclusions, array(

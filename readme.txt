@@ -2,24 +2,24 @@
 Contributors: ultracache-pro
 Tags: cache, performance, core web vitals, critical css, used css
 Requires at least: 6.3
-Tested up to: 7.0
+Tested up to: 6.9
 Requires PHP: 8.0
-Stable tag: 11.4.25
+Stable tag: 11.4.36
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-A modern caching and frontend optimization suite for WordPress.
+A modern caching and frontend optimization suite for WordPress with conservative defaults for predictable production use.
 
 == Description ==
 
 UltraCache Pro provides:
 - Static page caching
-- Scheduled preload
+- Scheduled preload with conservative queue defaults
 - CSS minify and optional experimental JavaScript minify/combine
 - Optional staging-first Delay JavaScript engine
 - Basic local Used CSS generation per URL (staging-first)
 - Critical CSS generation
-- Lazy loading for images and iframes
+- Lazy loading for images, with iframe lazy loading kept opt-in for safer visual output
 - Browser cache header helpers
 - WooCommerce smart cache rules
 - Database cleanup tools
@@ -69,6 +69,32 @@ UltraCache Pro may store cache metadata, diagnostic records, Core Web Vitals sam
 4. Diagnostics and Core Web Vitals overview.
 
 == Changelog ==
+
+= 11.4.36 =
+* Veiliger defaults: database-cleanup sub-opties (verlopen transients, spam-reacties, verwijderde reacties en verwijderde berichten) staan op een nieuwe installatie nu standaard uit i.p.v. voorgevinkt. De hoofd-schakelaar `enable_db_cleanup` en `db_cleanup_frequency` stonden al uit; het inschakelen van cleanup is nu een bewuste keuze per categorie. Geen effect op bestaande installaties (defaults vullen alleen nieuwe sites) en geen runtime-gedragswijziging zolang cleanup uit staat.
+
+= 11.4.35 =
+* Release hygiene: plugin header, `UCP_VERSION` en readme stable tag weer gelijkgetrokken (waren uiteengelopen op 11.4.33/11.4.34).
+* Packaging: interne audit-/release-documentatie (`docs/`) verwijderd uit de productiezip conform het eigen release-readiness-criterium; deze bestanden blijven in de repo en horen niet in een klantbuild.
+* Packaging: productiezip wordt nu opgebouwd met een `ultracache-pro/`-rootmap zodat installatie via wp-admin en de GitHub-updater consistent naar de juiste plugin-slug uitpakt.
+* Changelog: onderstaande tussenliggende fixes (11.4.26–11.4.34) samengevat die eerder wel zijn uitgebracht maar nog niet in de changelog stonden. Geen functionele of gedragswijzigingen in deze release; uitsluitend hygiëne en documentatie.
+
+= 11.4.31 =
+* advanced-cache.php drop-in: faalt nu expliciet "closed" wanneer `wp-content/cache/ultracache-pro/dropin-config.php` ontbreekt, onleesbaar of ongeldig is. Bij twijfel wordt niets geserveerd uit cache i.p.v. een onbedoelde HIT. Versie verhoogd zodat het gerepareerde pakket traceerbaar is.
+
+= 11.4.26 – 11.4.30 =
+* Consistentie- en consolidatiefixes rond admin-UI-tabunificatie, cache-key-normalisatie tussen drop-in en PHP-helper, used-CSS file-based delivery als standaard leveringsmethode, en WooCommerce-routebescherming consistent doorgetrokken in cache-, preload-, asset-unload-, browser-scan- en prefetch/speculation-lijsten. Risicovolle CSS/JS-opties blijven standaard uit; veilige opties (page cache, browser cache, preload, CSS-minify, lazy images, image dimensions, WooCommerce safety) blijven standaard aan.
+
+= 11.4.25 production-fix =
+* Packaging: productiebuild opgeschoond naar minified runtime assets; overbodige React fallback/source-assets uit de zip verwijderd.
+* Admin performance: centrale asset-resolutie valt veilig terug op `.min` wanneer source-assets niet in de lightweight build aanwezig zijn.
+* Admin performance: React-admin CSS-module discovery ondersteunt min-only modulebestanden zonder terug te vallen op de monolithische stylesheet.
+* wp-admin overhead: cache-toast assets worden alleen nog op relevante UltraCache admin-schermen overwogen.
+* WooCommerce safety: Nederlandse en standaard WooCommerce-routes worden nu consistent beschermd in cache, preload, asset-unload, browser-scan, prefetch/speculation en advanced-cache fallbacklijsten.
+* Prefetch/speculation safety: cart, checkout, account, coupon, cart-update, order, logout, `wc-ajax`, `wc-api`, nonce- en preview-URL's worden uitgesloten van speculative/prefetch requests.
+* Vertaling: Nederlandse React-admin script-translation JSON opnieuw als UTF-8 taalbron opgebouwd zodat mojibake in adminteksten is verwijderd zonder de minified React-bundle te wijzigen.
+* Release clarity: lightweight buildprofiel toegevoegd aan dependency-report; externe Composer parser/minifier-libraries blijven optioneel met native fallbacks.
+* Documentatie: release-audit toegevoegd met probleem, oplossing, aangepaste bestanden, risico en verificatiestap.
 
 = 11.4.25 =
 * advanced-cache.php drop-in: het 304 Not Modified-antwoord stuurde geen `Vary: Accept-Encoding` mee, terwijl het volledige HIT-antwoord (dat vooraf-gecomprimeerde brotli/gzip-varianten serveert) dat wél doet. RFC 7232 §4.1 vereist dat een 304 dezelfde validatie- en cache-headers draagt als de bijbehorende 200, inclusief `Vary`. Zonder dit konden gedeelde caches/CDN's een gevalideerde entry verkeerd keyen en een gecomprimeerde body teruggeven aan een client die geen `Accept-Encoding: gzip` stuurde. Het 304-pad stuurt nu `Vary: Accept-Encoding` mee, consistent met de HIT-tak.

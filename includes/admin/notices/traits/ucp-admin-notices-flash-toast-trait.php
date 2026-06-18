@@ -41,32 +41,21 @@ trait UCP_Admin_Notices_Flash_Toast_Trait {
         if (!current_user_can('manage_options')) {
             return;
         }
+        if (class_exists('UCP_Admin_Router') && !UCP_Admin_Router::is_plugin_hook_suffix($hook)) {
+            $page = /* phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only admin routing parameter. */ isset($_GET['page']) ? sanitize_key(wp_unslash($_GET['page'])) : '';
+            if (UCP_Admin_Router::page_slug() !== $page) {
+                return;
+            }
+        }
 
         $toast = get_option('ucp_pending_cache_toast', array());
         if (empty($toast) || !is_array($toast) || empty($toast['message'])) {
             return;
         }
 
-        $use_debug = defined('SCRIPT_DEBUG') && SCRIPT_DEBUG;
-        $style_rel  = 'assets/admin/css/ucp-cache-toast.css';
-        $script_rel = 'assets/admin/js/core/cache-toast.js';
-        if (!$use_debug) {
-            $style_min  = 'assets/admin/css/ucp-cache-toast.min.css';
-            $script_min = 'assets/admin/js/core/cache-toast.min.js';
-            if (file_exists(UCP_PATH . $style_min)) {
-                $style_rel = $style_min;
-            }
-            if (file_exists(UCP_PATH . $script_min)) {
-                $script_rel = $script_min;
-            }
-        }
-        $tokens_rel = 'assets/admin/css/ucp-admin-tokens.css';
-        if (!$use_debug) {
-            $tokens_min = 'assets/admin/css/ucp-admin-tokens.min.css';
-            if (file_exists(UCP_PATH . $tokens_min)) {
-                $tokens_rel = $tokens_min;
-            }
-        }
+        $style_rel  = class_exists('UCP_Helpers') ? UCP_Helpers::asset_path('assets/admin/css/ucp-cache-toast.css') : 'assets/admin/css/ucp-cache-toast.css';
+        $script_rel = class_exists('UCP_Helpers') ? UCP_Helpers::asset_path('assets/admin/js/core/cache-toast.js') : 'assets/admin/js/core/cache-toast.js';
+        $tokens_rel = class_exists('UCP_Helpers') ? UCP_Helpers::asset_path('assets/admin/css/ucp-admin-tokens.css') : 'assets/admin/css/ucp-admin-tokens.css';
 
         $style_path  = UCP_PATH . $style_rel;
         $script_path = UCP_PATH . $script_rel;

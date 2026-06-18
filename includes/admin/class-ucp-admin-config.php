@@ -11,12 +11,12 @@ class UCP_Admin_Config {
 
     public static function tabs() {
         return array(
-            'overview'      => array('label' => __('Overzicht', 'ultracache-pro'), 'icon' => 'dashicons-dashboard', 'meta' => __('Status, bescherming en belangrijkste acties', 'ultracache-pro')),
+            'overview'      => array('label' => __('Overzicht', 'ultracache-pro'), 'icon' => 'dashicons-dashboard', 'meta' => __('Status, bescherming en veilige hoofdacties', 'ultracache-pro')),
             'cache'         => array('label' => __('Cache', 'ultracache-pro'), 'icon' => 'dashicons-admin-generic', 'meta' => __('Page cache, preload en purge', 'ultracache-pro')),
             'media'         => array('label' => __('Afbeeldingen', 'ultracache-pro'), 'icon' => 'dashicons-format-image', 'meta' => __('Lazy load, dimensies en media-veiligheid', 'ultracache-pro')),
             'woocommerce'   => array('label' => __('WooCommerce', 'ultracache-pro'), 'icon' => 'dashicons-cart', 'meta' => __('Cart, checkout, account en betalingen beschermen', 'ultracache-pro')),
             'preload'       => array('label' => __('Preload', 'ultracache-pro'), 'icon' => 'dashicons-update', 'meta' => __('Cache vooraf opbouwen', 'ultracache-pro')),
-            'optimization'  => array('label' => __('CSS & JS', 'ultracache-pro'), 'icon' => 'dashicons-performance', 'meta' => __('Delay JS, Used CSS en optimalisaties', 'ultracache-pro')),
+            'optimization'  => array('label' => __('CSS & JS', 'ultracache-pro'), 'icon' => 'dashicons-performance', 'meta' => __('Geavanceerde CSS/JS-opties met staging-first gedrag', 'ultracache-pro')),
             'server'        => array('label' => __('Server & CDN', 'ultracache-pro'), 'icon' => 'dashicons-cloud', 'meta' => __('CDN, object cache en infrastructuur', 'ultracache-pro')),
             'advanced'      => array('label' => __('Regels', 'ultracache-pro'), 'icon' => 'dashicons-editor-ul', 'meta' => __('Uitsluitingen, cookies en query strings', 'ultracache-pro')),
             'tools'         => array('label' => __('Tools', 'ultracache-pro'), 'icon' => 'dashicons-admin-tools', 'meta' => __('Diagnose, logs, import en export', 'ultracache-pro')),
@@ -45,9 +45,9 @@ class UCP_Admin_Config {
         );
         $map = array(
             'overview' => array('title' => __('Overzicht', 'ultracache-pro'), 'description' => __('Bekijk wat werkt, wat beschermd is en welke actie logisch is.', 'ultracache-pro'), 'focus' => __('Status eerst', 'ultracache-pro')),
-            'optimization' => array('title' => __('CSS & JS', 'ultracache-pro'), 'description' => __('Beheer Delay JS, Used CSS en scripts met duidelijke veiligheidslabels.', 'ultracache-pro'), 'focus' => __('Geavanceerd testen', 'ultracache-pro')),
+            'optimization' => array('title' => __('CSS & JS', 'ultracache-pro'), 'description' => __('Beheer Delay JS, Used CSS en scripts als bewuste Advanced-opties met veiligheidslabels.', 'ultracache-pro'), 'focus' => __('Geavanceerd testen', 'ultracache-pro')),
             'media' => array('title' => __('Afbeeldingen', 'ultracache-pro'), 'description' => __('Beheer lazy load, dimensies en visuele media-optimalisaties.', 'ultracache-pro'), 'focus' => __('Visuele controle', 'ultracache-pro')),
-            'preload' => array('title' => __('Preload', 'ultracache-pro'), 'description' => __('Bouw belangrijke cachebestanden rustig vooraf op.', 'ultracache-pro'), 'focus' => __('Rustige queue', 'ultracache-pro')),
+            'preload' => array('title' => __('Preload', 'ultracache-pro'), 'description' => __('Bouw cache rustig vooraf op met veilige batchgrootte en foutstatus.', 'ultracache-pro'), 'focus' => __('Rustige queue', 'ultracache-pro')),
             'cache' => array('title' => __('Cache', 'ultracache-pro'), 'description' => __('Page cache, bewaartijd, stale cache en purge-gedrag.', 'ultracache-pro'), 'focus' => __('Algemene cache', 'ultracache-pro')),
             'advanced' => array('title' => __('Regels', 'ultracache-pro'), 'description' => __('Beheer uitzonderingen voor URL’s, cookies, user-agents en query strings.', 'ultracache-pro'), 'focus' => __('Afbakenen', 'ultracache-pro')),
             'server' => array('title' => __('Server & CDN', 'ultracache-pro'), 'description' => __('Beheer CDN, providerstatus en object-cache als infrastructuur.', 'ultracache-pro'), 'focus' => __('Advanced', 'ultracache-pro')),

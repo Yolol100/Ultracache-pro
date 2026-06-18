@@ -59,13 +59,7 @@ class UCP_Page_Overrides {
         if (!in_array($screen->post_type, $post_types, true)) {
             return;
         }
-        $rel = 'assets/admin/css/ucp-page-overrides.css';
-        if (!(defined('SCRIPT_DEBUG') && SCRIPT_DEBUG)) {
-            $min_rel = 'assets/admin/css/ucp-page-overrides.min.css';
-            if (file_exists(UCP_PATH . $min_rel)) {
-                $rel = $min_rel;
-            }
-        }
+        $rel = class_exists('UCP_Helpers') ? UCP_Helpers::asset_path('assets/admin/css/ucp-page-overrides.css') : 'assets/admin/css/ucp-page-overrides.css';
         $asset = UCP_PATH . $rel;
         if (!file_exists($asset)) {
             return;

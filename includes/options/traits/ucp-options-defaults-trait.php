@@ -34,7 +34,7 @@ trait UCP_Options_Defaults_Trait {
             'cdn_file_types', 'enable_heartbeat_control', 'heartbeat_frontend_behavior', 'heartbeat_editor_behavior', 'heartbeat_backend_behavior', 'browser_cache_headers', 'enable_db_cleanup', 'db_cleanup_frequency', 'db_cleanup_post_revisions', 'db_cleanup_auto_drafts', 'db_cleanup_drafts', 'enable_cdn',
             'enable_cloudflare_apo_mode', 'enable_edge_cache_headers', 'enable_cloud', 'enable_local_google_fonts',
             'enable_image_optimization', 'compatibility_mode', 'woocommerce_safety_mode', 'wp_rocket_style_defaults', 'enable_delay_js_preload_delayed_scripts',
-            'enable_auto_resource_hints', 'enable_auto_font_preloads', 'resource_hints_preconnect_limit', 'resource_hints_dns_limit', 'enable_css_profiles', 'css_profile_max_age_days', 'lcp_profile_min_confidence', 'lcp_profile_max_age_days', 'lcp_profile_allowed_hosts', 'preload_pause_on_high_load', 'preload_max_server_load', 'preload_menu_urls_limit', 'preload_recent_purge_limit', 'enable_sensitive_asset_unload_override'
+            'enable_auto_resource_hints', 'enable_auto_font_preloads', 'resource_hints_preconnect_limit', 'resource_hints_dns_limit', 'enable_css_profiles', 'css_profile_max_age_days', 'lcp_profile_min_confidence', 'lcp_profile_max_age_days', 'lcp_profile_allowed_hosts', 'preload_pause_on_high_load', 'preload_max_server_load', 'preload_menu_urls_limit', 'preload_recent_purge_limit', 'safe_cart_fragments_mode', 'enable_sensitive_asset_unload_override'
         );
 
         return array_intersect_key($defaults, array_flip($keys));
@@ -61,8 +61,9 @@ trait UCP_Options_Defaults_Trait {
             'cache_query_string_inclusions'  => "lang\ncurrency\nv\norderby\nmin_price\nmax_price\nrating_filter\nfilter_*\nquery_type_*\n_paged\nproduct-page\nproduct-page-*",
             'enable_woocommerce_rules'        => 1,
             'serve_cache_to_shoppers'         => 0,
-            'optimize_cart_fragments'         => 1,
+            'optimize_cart_fragments'         => 0,
             'limit_cart_fragments_to_woo'     => 0,
+            'safe_cart_fragments_mode'        => 0,
             'enable_preload'                  => 1,
             'enable_preload_queue'            => 1,
             'preload_homepage'                => 1,
@@ -79,17 +80,17 @@ trait UCP_Options_Defaults_Trait {
             'enable_critical_css'             => 0,
             'enable_css_queue'                => 0,
             'enable_lazy_images'              => 1,
-            'enable_lazy_iframes'             => 1,
-            'enable_lazy_youtube_preview'     => 1,
+            'enable_lazy_iframes'             => 0,
+            'enable_lazy_youtube_preview'     => 0,
             'enable_add_image_dimensions'     => 1,
             'enable_html_parser'              => 0,
             'enable_font_display_swap'        => 1,
             'enable_local_google_fonts'       => 1,
             'enable_remove_emojis'            => 1,
             'enable_disable_embeds'           => 1,
-            'enable_prefetch_links'           => 1,
+            'enable_prefetch_links'           => 0,
             'enable_auto_resource_hints'      => 1,
-            'enable_auto_font_preloads'       => 1,
+            'enable_auto_font_preloads'       => 0,
             'browser_cache_headers'           => 1,
             'cache_control_max_age'           => 31536000,
             'enable_gzip_precompression'      => 1,
@@ -112,7 +113,7 @@ trait UCP_Options_Defaults_Trait {
             'enable_diagnostics'              => 1,
             'enable_logs'                     => 1,
             'enable_health_checks'            => 1,
-            'enable_admin_queue_runner'       => 1,
+            'enable_admin_queue_runner'       => 0,
         );
 
         if (class_exists('UCP_Compat') && UCP_Compat::has_page_cache_conflict()) {

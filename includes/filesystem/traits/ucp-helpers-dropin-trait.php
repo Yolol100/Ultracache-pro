@@ -294,7 +294,7 @@ trait UCP_Helpers_Dropin_Trait {
             'mobile_user_agent_regex' => self::mobile_user_agent_regex(),
             'exclude_paths' => apply_filters('ucp_dropin_exclude_paths', array_values(array_unique(array_filter(array_merge(
                 self::normalize_multiline(UCP_Options::get('exclude_urls', '')),
-                array('cart', 'checkout', 'my-account', 'account', 'order-pay', 'order-received', 'add-payment-method', 'wc-api', 'wc-ajax', 'wp-json', 'wp-admin', 'wp-login.php', 'xmlrpc.php', 'customer-logout')
+                array('cart', 'checkout', 'winkelwagen', 'afrekenen', 'my-account', 'mijn-account', 'account', 'order-pay', 'order-received', 'add-payment-method', 'wc-api', 'wc-ajax', 'wp-json', 'wp-admin', 'wp-login.php', 'xmlrpc.php', 'customer-logout')
             ))))),
             'exclude_cookies' => apply_filters('ucp_dropin_exclude_cookies', array_values(array_unique(array_filter(array_merge(
                 self::normalize_multiline(UCP_Options::get('exclude_cookies', '')),

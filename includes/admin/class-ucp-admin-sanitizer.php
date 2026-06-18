@@ -5,6 +5,23 @@ if (!defined('ABSPATH')) {
 }
 
 class UCP_Admin_Sanitizer {
+    protected static $last_validation_notices = array();
+
+    public static function get_last_validation_notices() {
+        return self::$last_validation_notices;
+    }
+
+    protected static function reset_validation_notices() {
+        self::$last_validation_notices = array();
+    }
+
+    protected static function add_validation_notice($field, $message) {
+        self::$last_validation_notices[] = array(
+            'field'   => sanitize_key((string) $field),
+            'message' => wp_strip_all_tags((string) $message),
+        );
+    }
+
     protected static function sanitize_multiline($value, $mode = 'fragment') {
         $lines = preg_split('/\r\n|\r|\n/', (string) $value);
         $clean = array();
@@ -118,6 +135,74 @@ class UCP_Admin_Sanitizer {
                 continue;
             }
             $output[$field] = sanitize_text_field($input[$field]);
+        }
+        return $output;
+    }
+
+    protected static function sanitize_public_https_endpoint($value) {
+        $value = is_scalar($value) ? trim((string) wp_unslash($value)) : '';
+        if ('' === $value) {
+            return '';
+        }
+
+        if (class_exists('UCP_Helpers') && method_exists('UCP_Helpers', 'validate_public_https_url')) {
+            return UCP_Helpers::validate_public_https_url($value, array('resolve_dns' => false));
+        }
+
+        $url = esc_url_raw($value, array('https'));
+        $parts = wp_parse_url($url);
+        if (!is_array($parts)) {
+            return '';
+        }
+
+        $scheme = isset($parts['scheme']) ? strtolower((string) $parts['scheme']) : '';
+        $host = isset($parts['host']) ? strtolower((string) $parts['host']) : '';
+        if ('https' !== $scheme || '' === $host || !empty($parts['user']) || !empty($parts['pass'])) {
+            return '';
+        }
+
+        if (in_array($host, array('localhost', '127.0.0.1', '::1'), true)) {
+            return '';
+        }
+
+        foreach (array('.local', '.test', '.invalid') as $suffix) {
+            if ($host === ltrim($suffix, '.') || substr($host, -strlen($suffix)) === $suffix) {
+                return '';
+            }
+        }
+
+        if (filter_var($host, FILTER_VALIDATE_IP) && false === filter_var($host, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
+            return '';
+        }
+
+        return $url;
+    }
+
+    protected static function public_https_endpoint_labels() {
+        return array(
+            'cloud_endpoint'             => __('Cloud endpoint', 'ultracache-pro'),
+            'headless_renderer_endpoint' => __('Headless renderer endpoint', 'ultracache-pro'),
+            'image_cdn_base'             => __('Image CDN basis-URL', 'ultracache-pro'),
+            'compat_update_url'          => __('Compatibiliteitslijst endpoint', 'ultracache-pro'),
+            'cdn_purge_webhook'          => __('CDN purge webhook', 'ultracache-pro'),
+        );
+    }
+
+    protected static function apply_public_https_endpoint_fields($output, $fields) {
+        $labels = self::public_https_endpoint_labels();
+        foreach ($fields as $field) {
+            $raw_value = isset($output[$field]) ? trim((string) $output[$field]) : '';
+            $clean_value = self::sanitize_public_https_endpoint($raw_value);
+            $output[$field] = $clean_value;
+
+            if ('' !== $raw_value && '' === $clean_value) {
+                $label = isset($labels[$field]) ? $labels[$field] : $field;
+                self::add_validation_notice($field, sprintf(
+                    /* translators: %s: settings field label. */
+                    __('%s is genegeerd omdat dit geen publieke HTTPS-URL is.', 'ultracache-pro'),
+                    $label
+                ));
+            }
         }
         return $output;
     }
@@ -322,6 +407,8 @@ class UCP_Admin_Sanitizer {
     }
 
     public static function sanitize($input) {
+        self::reset_validation_notices();
+
         $defaults = UCP_Options::defaults();
         $current  = UCP_Options::get_all();
         $output   = $current;
@@ -330,7 +417,7 @@ class UCP_Admin_Sanitizer {
         $input = self::apply_virtual_control_aliases($input);
 
         $checkbox_fields = array(
-            'enable_cache', 'cache_logged_in', 'cache_mobile_separately', 'cache_query_strings', 'block_unknown_request_cookies', 'serve_cache_to_shoppers', 'optimize_cart_fragments', 'limit_cart_fragments_to_woo', 'enable_stale_cache', 'enable_woocommerce_rules', 'compatibility_mode', 'woocommerce_safety_mode',
+            'enable_cache', 'cache_logged_in', 'cache_mobile_separately', 'cache_query_strings', 'block_unknown_request_cookies', 'serve_cache_to_shoppers', 'optimize_cart_fragments', 'limit_cart_fragments_to_woo', 'safe_cart_fragments_mode', 'enable_stale_cache', 'enable_woocommerce_rules', 'compatibility_mode', 'woocommerce_safety_mode',
             'enable_preload', 'preload_homepage', 'preload_sitemaps', 'enable_html_minify', 'enable_html_test_mode', 'remove_html_comments', 'wp_rocket_style_defaults',
             'enable_css_minify', 'enable_css_combine', 'allow_experimental_js_minify', 'enable_js_minify', 'enable_js_combine', 'enable_delay_js', 'delay_js_safe_mode', 'delay_js_disable_click_delay',
             'enable_defer_js_fallback', 'defer_all_js', 'delay_js_temporary_safe_mode', 'delay_js_log_delayed_scripts', 'enable_delay_js_preload_delayed_scripts', 'enable_native_script_strategy', 'enable_remove_emojis', 'enable_disable_embeds', 'enable_prefetch_links',
@@ -352,7 +439,7 @@ class UCP_Admin_Sanitizer {
             'cache_lifespan', 'stale_cache_lifespan', 'preload_delay_ms', 'delay_js_timeout', 'lazyload_exclude_leading_images', 'preload_critical_images', 'used_css_max_rules', 'critical_css_max_bytes', 'css_artifact_min_bytes', 'css_artifact_retry_limit',
             'cache_control_max_age', 'heartbeat_frequency', 'heartbeat_frontend_frequency', 'heartbeat_editor_frequency', 'heartbeat_backend_frequency', 'db_keep_post_revisions', 'job_batch_size', 'job_max_attempts', 'job_lock_ttl', 'log_retention_days', 'diagnostics_retention_days', 'job_retention_days',
             'preload_batch_size', 'preload_max_urls', 'preload_max_server_load', 'headless_renderer_timeout', 'headless_renderer_max_response_bytes', 'preload_menu_urls_limit', 'preload_recent_purge_limit', 'css_profile_max_age_days', 'lcp_profile_min_confidence', 'lcp_profile_max_age_days', 'image_quality', 'fragment_cache_ttl', 'rest_cache_ttl', 'autosave_interval', 'lazyload_threshold', 'resource_hints_preconnect_limit', 'resource_hints_dns_limit', 'edge_html_cache_ttl', 'edge_html_cache_stale',
-            'used_css_auto_refresh_days', 'rum_sample_rate'
+            'used_css_auto_refresh_days', 'rum_sample_rate', 'cwv_timeseries_retention_days'
         );
 
         $textarea_modes = array(
@@ -421,6 +508,8 @@ class UCP_Admin_Sanitizer {
         $output = self::apply_textarea_fields($output, $input, $current, $textarea_modes);
 
         $output = self::apply_text_fields($output, $input, $current, $text_fields);
+
+        $output = self::apply_public_https_endpoint_fields($output, array('cloud_endpoint', 'headless_renderer_endpoint', 'image_cdn_base', 'compat_update_url', 'cdn_purge_webhook'));
 
         $output = self::apply_secret_fields($output, $input, $current, $secret_fields);
 

@@ -24,6 +24,26 @@ trait UCP_REST_Settings_Trait {
         return UCP_Options::normalize($allowed, UCP_Options::get_all());
     }
 
+    protected static function settings_validation_notices() {
+        if (class_exists('UCP_Admin_Sanitizer') && method_exists('UCP_Admin_Sanitizer', 'get_last_validation_notices')) {
+            return UCP_Admin_Sanitizer::get_last_validation_notices();
+        }
+
+        return array();
+    }
+
+    protected static function settings_success_message($default_message, $warnings) {
+        if (empty($warnings)) {
+            return $default_message;
+        }
+
+        return sprintf(
+            /* translators: %s: default success message. */
+            __('%s Eén of meer endpointvelden zijn genegeerd. Gebruik alleen publieke HTTPS-URL’s.', 'ultracache-pro'),
+            $default_message
+        );
+    }
+
     public static function update_settings(WP_REST_Request $request) {
         $params = $request->get_json_params();
         if (!is_array($params)) {
@@ -36,7 +56,8 @@ trait UCP_REST_Settings_Trait {
         try {
             $current = UCP_Options::get_all();
             $merged  = array_merge($current, $params);
-            $clean   = self::sanitize_settings_payload($merged);
+            $clean    = self::sanitize_settings_payload($merged);
+            $warnings = self::settings_validation_notices();
             UCP_Options::update($clean);
             if (class_exists('UCP_Helpers')) {
                 UCP_Helpers::invalidate_cache_dirs_check();
@@ -44,7 +65,8 @@ trait UCP_REST_Settings_Trait {
 
             return rest_ensure_response(array(
                 'success'   => true,
-                'message'   => __('Instellingen opgeslagen.', 'ultracache-pro'),
+                'message'   => self::settings_success_message(__('Instellingen opgeslagen.', 'ultracache-pro'), $warnings),
+                'warnings'  => $warnings,
                 'settings'  => UCP_Options::redact_sensitive_settings(UCP_Options::get_all()),
                 'status'    => self::build_status(),
                 'timestamp' => time(),
@@ -87,7 +109,8 @@ trait UCP_REST_Settings_Trait {
         }
 
         try {
-            $clean = self::sanitize_settings_payload(array_merge(UCP_Options::get_all(), $settings));
+            $clean    = self::sanitize_settings_payload(array_merge(UCP_Options::get_all(), $settings));
+            $warnings = self::settings_validation_notices();
             UCP_Options::update($clean);
             if (class_exists('UCP_Helpers')) {
                 UCP_Helpers::invalidate_cache_dirs_check();
@@ -99,7 +122,8 @@ trait UCP_REST_Settings_Trait {
 
             return rest_ensure_response(array(
                 'success'   => true,
-                'message'   => __('Instellingen geïmporteerd.', 'ultracache-pro'),
+                'message'   => self::settings_success_message(__('Instellingen geïmporteerd.', 'ultracache-pro'), $warnings),
+                'warnings'  => $warnings,
                 'settings'  => UCP_Options::redact_sensitive_settings(UCP_Options::get_all()),
                 'status'    => self::build_status(),
                 'timestamp' => time(),

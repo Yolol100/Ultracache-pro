@@ -163,9 +163,11 @@ class UCP_Helpers {
     }
 
     /**
-     * Return the relative asset path with `.min` inserted when a production
-     * variant exists and SCRIPT_DEBUG is not active. Falls back to the
-     * unminified path otherwise. Relative to UCP_PATH.
+     * Return the best available relative asset path.
+     *
+     * Production builds prefer `.min` variants when SCRIPT_DEBUG is off. Lightweight
+     * release zips may omit readable source assets, so this helper also falls back
+     * to the `.min` variant when the requested source file is absent.
      *
      * @param string $relative Relative path under the plugin root.
      * @return string The chosen relative path (with or without `.min`).
@@ -173,13 +175,11 @@ class UCP_Helpers {
     public static function asset_path($relative) {
         $rel = ltrim((string) $relative, '/');
         $use_debug = defined('SCRIPT_DEBUG') && SCRIPT_DEBUG;
-        if (!$use_debug) {
-            $dot = strrpos($rel, '.');
-            if (false !== $dot) {
-                $min_rel = substr($rel, 0, $dot) . '.min' . substr($rel, $dot);
-                if (file_exists(UCP_PATH . $min_rel)) {
-                    return $min_rel;
-                }
+        $dot = strrpos($rel, '.');
+        if (false !== $dot) {
+            $min_rel = substr($rel, 0, $dot) . '.min' . substr($rel, $dot);
+            if ((!$use_debug || !file_exists(UCP_PATH . $rel)) && file_exists(UCP_PATH . $min_rel)) {
+                return $min_rel;
             }
         }
         return $rel;

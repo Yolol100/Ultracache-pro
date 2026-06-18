@@ -111,8 +111,8 @@ class UCP_Safe_Autopilot {
 
             // Media: lazyload + layout-stability dimensions (no format conversion).
             'enable_lazy_images'           => 1,
-            'enable_lazy_iframes'          => 1,
-            'enable_lazy_youtube_preview'  => 1,
+            'enable_lazy_iframes'          => 0,
+            'enable_lazy_youtube_preview'  => 0,
             'enable_add_image_dimensions'  => 1,
 
             // LCP protection: never lazy-load the leading above-the-fold images and preload the

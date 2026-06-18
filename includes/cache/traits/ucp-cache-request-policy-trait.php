@@ -6,6 +6,48 @@ if (!defined('ABSPATH')) {
 }
 
 trait UCP_Cache_Request_Policy_Trait {
+
+    protected function should_bypass_cache_for_woocommerce() {
+        if (!function_exists('WC') && !class_exists('WooCommerce')) {
+            return '';
+        }
+
+        $method = isset($_SERVER['REQUEST_METHOD']) ? strtoupper(sanitize_text_field(wp_unslash($_SERVER['REQUEST_METHOD']))) : 'GET';
+        if ('POST' === $method) {
+            return 'woocommerce_post';
+        }
+
+        if (function_exists('is_cart') && is_cart()) {
+            return 'woocommerce_cart';
+        }
+        if (function_exists('is_checkout') && is_checkout()) {
+            return 'woocommerce_checkout';
+        }
+        if (function_exists('is_account_page') && is_account_page()) {
+            return 'woocommerce_account';
+        }
+
+        $request_uri = isset($_SERVER['REQUEST_URI']) ? strtolower(rawurldecode(sanitize_text_field(wp_unslash($_SERVER['REQUEST_URI'])))) : '';
+        $query_string = isset($_SERVER['QUERY_STRING']) ? strtolower(rawurldecode(sanitize_text_field(wp_unslash($_SERVER['QUERY_STRING'])))) : '';
+        $haystack = $request_uri . '?' . $query_string;
+        foreach (array('order-pay', 'add-payment-method', 'wc-ajax', 'wc-api', 'add-to-cart', 'apply_coupon', 'remove_item', 'update_cart') as $needle) {
+            if (false !== strpos($haystack, $needle)) {
+                return 'woocommerce_' . sanitize_key(str_replace('-', '_', $needle));
+            }
+        }
+
+        foreach ($_COOKIE as $cookie_name => $cookie_value) {
+            $name = strtolower((string) $cookie_name);
+            foreach (array('woocommerce_items_in_cart', 'woocommerce_cart_hash', 'wp_woocommerce_session_', 'woocommerce_recently_viewed', 'woocommerce_checkout_', 'woocommerce_pay') as $fragment) {
+                if (false !== strpos($name, $fragment)) {
+                    return 'woocommerce_cookie';
+                }
+            }
+        }
+
+        return '';
+    }
+
     protected function request_has_auth_headers() {
         foreach (array('HTTP_AUTHORIZATION', 'REDIRECT_HTTP_AUTHORIZATION') as $key) {
             if (!empty($_SERVER[$key]) && is_string($_SERVER[$key])) {
@@ -316,6 +358,9 @@ trait UCP_Cache_Request_Policy_Trait {
         header('X-UltraCache: ' . strtoupper($status));
         if ('' !== $reason) {
             header('X-UltraCache-Reason: ' . $reason);
+            if (0 === strpos($reason, 'woocommerce_')) {
+                header('X-UCP-Cache-Bypass: ' . $reason);
+            }
         }
     }
 
@@ -387,6 +432,12 @@ trait UCP_Cache_Request_Policy_Trait {
                 return $this->bypass_cache($reason);
             }
         }
+        $woocommerce_bypass_reason = $this->should_bypass_cache_for_woocommerce();
+        if ('' !== $woocommerce_bypass_reason) {
+            UCP_Diagnostics::record('cache', 'Bypassed cache by hard WooCommerce guard', array('reason' => $woocommerce_bypass_reason));
+            return $this->bypass_cache($woocommerce_bypass_reason);
+        }
+
         if (defined('DONOTCACHEPAGE') && DONOTCACHEPAGE) {
             UCP_Diagnostics::record('cache', 'Bypassed cache because DONOTCACHEPAGE is active');
             return $this->bypass_cache('donotcachepage');

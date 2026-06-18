@@ -47,9 +47,9 @@ class UCP_ESI {
         }
 
         $meta = is_array($args) ? $args : array();
-        $visibility = !empty($meta['visibility']) ? sanitize_key((string) $meta['visibility']) : 'public';
+        $visibility = !empty($meta['visibility']) ? sanitize_key((string) $meta['visibility']) : 'auth_required';
         if (!in_array($visibility, array('public', 'guest_session', 'auth_required'), true)) {
-            $visibility = 'public';
+            $visibility = 'auth_required';
         }
 
         self::$fragments[$id] = $callback;
@@ -132,9 +132,9 @@ class UCP_ESI {
             if ('' === $id || !is_array($args)) {
                 continue;
             }
-            $visibility = !empty($args['visibility']) ? sanitize_key((string) $args['visibility']) : 'public';
+            $visibility = !empty($args['visibility']) ? sanitize_key((string) $args['visibility']) : 'auth_required';
             if (!in_array($visibility, array('public', 'guest_session', 'auth_required'), true)) {
-                $visibility = 'public';
+                $visibility = 'auth_required';
             }
             $clean[$id] = array('visibility' => $visibility);
         }
@@ -224,7 +224,7 @@ class UCP_ESI {
      */
     protected function fragment_meta_for($id) {
         $meta = self::fragment_meta();
-        return isset($meta[$id]) ? $meta[$id] : array('visibility' => 'public');
+        return isset($meta[$id]) ? $meta[$id] : array('visibility' => 'auth_required');
     }
 
     /**
@@ -303,10 +303,10 @@ class UCP_ESI {
         wp_register_script('ucp-esi-loader', $asset['url'], array(), $asset['version'], true);
         wp_add_inline_script(
             'ucp-esi-loader',
-            'window.ucpEsiLoader=' . wp_json_encode(array(
+            'window.UCP=window.UCP||{};window.UCP.esiLoader=' . wp_json_encode(array(
                 'endpoint' => esc_url_raw(rest_url('ultracache-pro/v1/esi')),
                 'nonce'    => is_user_logged_in() ? wp_create_nonce('wp_rest') : '',
-            )) . ';',
+            )) . ';window.ucpEsiLoader=window.UCP.esiLoader;',
             'before'
         );
         wp_enqueue_script('ucp-esi-loader');
@@ -351,7 +351,10 @@ class UCP_ESI {
         $ip_count = (int) get_transient($ip_key);
         $site_count = (int) get_transient($site_key);
 
-        if ($ip_count >= 120 || $site_count >= 1200) {
+        $ip_limit = min(120, max(10, (int) apply_filters('ucp_esi_ip_rate_limit_per_minute', 60)));
+        $site_limit = min(1200, max(100, (int) apply_filters('ucp_esi_site_rate_limit_per_minute', 600)));
+
+        if ($ip_count >= $ip_limit || $site_count >= $site_limit) {
             $response = new WP_REST_Response(array('ok' => false, 'code' => 'rate_limited'), 429);
             $response->header('Retry-After', '60');
             $response->header('Cache-Control', 'no-store, no-cache, must-revalidate, private');

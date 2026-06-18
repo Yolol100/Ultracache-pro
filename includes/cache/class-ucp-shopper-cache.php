@@ -50,15 +50,16 @@ class UCP_Shopper_Cache {
                 add_action('wp_footer', array($this, 'output_cart_hydration_script'), 99);
             }
 
-            if (UCP_Options::get('optimize_cart_fragments')) {
+            if (UCP_Options::get('optimize_cart_fragments') && UCP_Options::get('safe_cart_fragments_mode')) {
                 // Capture the empty-cart fragment payload so we can replay it cheaply,
                 // and short-circuit the refresh request when the cart is empty.
                 add_filter('woocommerce_add_to_cart_fragments', array($this, 'capture_empty_cart_fragments'), 999);
                 add_action('wc_ajax_get_refreshed_fragments', array($this, 'maybe_serve_cached_empty_fragments'), 0);
                 add_action('woocommerce_ajax_get_refreshed_fragments', array($this, 'maybe_serve_cached_empty_fragments'), 0);
+                add_filter('woocommerce_get_script_data', array($this, 'filter_cart_fragments_script_data'), 10, 2);
             }
 
-            if (UCP_Options::get('limit_cart_fragments_to_woo')) {
+            if (UCP_Options::get('limit_cart_fragments_to_woo') && UCP_Options::get('safe_cart_fragments_mode')) {
                 add_action('wp_enqueue_scripts', array($this, 'maybe_dequeue_cart_fragments'), 99);
             }
         }
@@ -323,6 +324,40 @@ class UCP_Shopper_Cache {
     }
 
     /**
+     * Disable wc-cart-fragments script data only in explicit safe mode and only
+     * outside WooCommerce/cart/account contexts where no mini-cart is detected.
+     *
+     * @param array|null $script_data
+     * @param string     $handle
+     * @return array|null
+     */
+    public function filter_cart_fragments_script_data($script_data, $handle) {
+        if ('wc-cart-fragments' !== $handle || !UCP_Options::get('safe_cart_fragments_mode')) {
+            return $script_data;
+        }
+        if ($this->is_woocommerce_runtime_context() || $this->page_has_mini_cart()) {
+            return $script_data;
+        }
+        return null;
+    }
+
+    private function is_woocommerce_runtime_context() {
+        if (function_exists('is_cart') && is_cart()) {
+            return true;
+        }
+        if (function_exists('is_checkout') && is_checkout()) {
+            return true;
+        }
+        if (function_exists('is_account_page') && is_account_page()) {
+            return true;
+        }
+        if (function_exists('is_woocommerce') && is_woocommerce()) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * Dequeue wc-cart-fragments on pages that have no mini-cart, mirroring (and
      * extending to older WooCommerce / themes) the WooCommerce 7.8+ behaviour of
      * only loading the script when a Cart Widget block is present.
@@ -350,7 +385,7 @@ class UCP_Shopper_Cache {
      */
     private function page_has_mini_cart() {
         // Transactional pages always keep fragments.
-        if (function_exists('is_cart') && (is_cart() || (function_exists('is_checkout') && is_checkout()))) {
+        if ($this->is_woocommerce_runtime_context()) {
             return true;
         }
         if (is_active_widget(false, false, 'woocommerce_widget_cart', true)) {
@@ -408,11 +443,11 @@ class UCP_Shopper_Cache {
             );
         }
 
-        if (!UCP_Options::get('optimize_cart_fragments')) {
+        if (!UCP_Options::get('optimize_cart_fragments') || !UCP_Options::get('safe_cart_fragments_mode')) {
             $recommendations[] = array(
                 'id'       => 'cart_fragments',
                 'severity' => 'tip',
-                'message'  => __('Optimaliseer de cart-fragments AJAX: de lege-mand respons wordt gecachet en de mini-cart wordt alleen geladen waar die nodig is.', 'ultracache-pro'),
+                'message'  => __('Cart-fragments optimalisatie is standaard uit. Schakel dit alleen in met veilige modus en test mini-cart, cart en checkout op staging.', 'ultracache-pro'),
             );
         }
 

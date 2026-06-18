@@ -18,7 +18,7 @@ trait UCP_Jobs_Runner_Trait {
         $limit = max(1, absint(UCP_Options::get('job_batch_size', 5)));
         $started_at = time();
         if (UCP_Options::get('enable_preload_queue')) {
-            $limit = max(1, absint(UCP_Options::get('preload_batch_size', 15)));
+            $limit = max(1, min(20, absint(UCP_Options::get('preload_batch_size', 5))));
             if (class_exists('UCP_Preload') && UCP_Preload::server_load_too_high()) {
                 UCP_Logger::log('warning', 'jobs', 'preload_queue_paused_high_load', 'Preload wachtrij gepauzeerd door hoge serverbelasting.', array('limit' => $limit));
                 return 0;
@@ -314,10 +314,10 @@ trait UCP_Jobs_Runner_Trait {
 
     protected function fetch_preload_url($url, $variant = 'desktop') {
         $response = wp_remote_get($url, array(
-            'timeout' => max(3, min(20, absint(apply_filters('ucp_preload_request_timeout', 20, $url, $variant, $this->force_current_run)))),
+            'timeout' => max(3, min(8, absint(apply_filters('ucp_preload_request_timeout', 6, $url, $variant, $this->force_current_run)))),
             'redirection' => 0,
             'reject_unsafe_urls' => true,
-            'user-agent' => 'mobile' === $variant ? $this->mobile_preload_queue_user_agent() : 'UltraCache Preload Queue/' . UCP_VERSION,
+            'user-agent' => 'mobile' === $variant ? $this->mobile_preload_queue_user_agent() : 'UltraCachePro-Preload-Queue/' . UCP_VERSION,
             'sslverify' => apply_filters('https_local_ssl_verify', true),
             'headers' => UCP_Options::get('enable_light_preload_requests') ? array('Range' => 'bytes=0-0') : array(),
         ));
@@ -385,10 +385,10 @@ trait UCP_Jobs_Runner_Trait {
             return true;
         }
         if (class_exists('UCP_Preload')) {
-            UCP_Preload::mark_preload_status($url, 'skipped', 'http_' . $code, array('http_status' => $code));
+            UCP_Preload::mark_preload_status($url, 'failed', 'http_' . $code, array('http_status' => $code, 'error_message' => 'HTTP ' . $code));
         }
-        // Note: een preload mag de wachtrij niet blijven vervuilen wanneer de pagina zelf een HTTP-foutstatus teruggeeft.
-        UCP_Logger::log('warning', 'preload', 'preload_url_skipped_http_status', 'Preload overgeslagen door HTTP-foutstatus van de pagina.', array('url' => esc_url_raw($url), 'http_status' => $code));
+        // Note: een HTTP-foutstatus wordt als mislukte URL gelogd, maar hoeft niet eindeloos opnieuw in de wachtrij te blijven.
+        UCP_Logger::log('warning', 'preload', 'preload_url_failed_http_status', 'Preload mislukt door HTTP-foutstatus van de pagina.', array('url' => esc_url_raw($url), 'http_status' => $code));
         return true;
     }
 }

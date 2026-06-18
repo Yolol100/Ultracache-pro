@@ -51,18 +51,29 @@ function ucp_safe_remove_local_font_cache() {
         return;
     }
 
+    $uploads_base = realpath($uploads['basedir']);
     $dir = trailingslashit($uploads['basedir']) . 'ultracache-pro/fonts';
     $real_dir = realpath($dir);
-    if (!$real_dir) {
+    if (!$uploads_base || !$real_dir) {
         return;
     }
 
+    $uploads_base = trailingslashit(wp_normalize_path($uploads_base));
     $base = trailingslashit(wp_normalize_path($real_dir));
+    $expected_base = trailingslashit($uploads_base . 'ultracache-pro/fonts');
+    if ($base !== $expected_base) {
+        return;
+    }
+
     $items = glob(trailingslashit($real_dir) . '*');
     if ($items) {
         foreach ($items as $item) {
-            $normalized = wp_normalize_path((string) $item);
-            if (is_file($item) && 0 === strpos($normalized, $base)) {
+            if (is_link($item) || !is_file($item)) {
+                continue;
+            }
+            $real_item = realpath($item);
+            $normalized = $real_item ? wp_normalize_path($real_item) : '';
+            if ('' !== $normalized && 0 === strpos($normalized, $base)) {
                 wp_delete_file($item);
             }
         }
@@ -70,8 +81,11 @@ function ucp_safe_remove_local_font_cache() {
 
     // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_rmdir -- final empty plugin-owned upload cache directory cleanup during uninstall.
     @rmdir($real_dir);
-    // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_rmdir -- remove empty plugin-owned parent directory when possible.
-    @rmdir(dirname($real_dir));
+    $parent = trailingslashit(wp_normalize_path(dirname($real_dir)));
+    if ($parent === trailingslashit($uploads_base . 'ultracache-pro')) {
+        // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_rmdir -- remove empty plugin-owned parent directory when possible.
+        @rmdir(dirname($real_dir));
+    }
 }
 
 function ucp_uninstall_site() {

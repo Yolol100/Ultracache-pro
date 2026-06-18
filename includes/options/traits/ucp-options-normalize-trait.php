@@ -194,6 +194,7 @@ trait UCP_Options_Normalize_Trait {
         $settings['block_unknown_request_cookies'] = !empty($settings['block_unknown_request_cookies']) ? 1 : 0;
         $settings['optimize_cart_fragments'] = !empty($settings['optimize_cart_fragments']) ? 1 : 0;
         $settings['limit_cart_fragments_to_woo'] = !empty($settings['limit_cart_fragments_to_woo']) ? 1 : 0;
+        $settings['safe_cart_fragments_mode'] = !empty($settings['safe_cart_fragments_mode']) ? 1 : 0;
         if (isset($settings['cache_vary_cookies'])) {
             $settings['cache_vary_cookies'] = (string) $settings['cache_vary_cookies'];
         }
@@ -418,9 +419,10 @@ trait UCP_Options_Normalize_Trait {
         // UCP: normalize structured self-host and fetchpriority settings before storing.
         $settings = self::normalize_structured_settings($settings);
 
-        // Keep the WP Rocket-style baseline automatic, even after REST/import saves.
+        // Use the safe baseline as fallback only. Explicit admin/REST values must not be
+        // overwritten, otherwise visible toggles appear to save and then immediately revert.
         $automatic = self::automatic_managed_settings();
-        $settings = array_merge($settings, $automatic);
+        $settings = wp_parse_args($settings, $automatic);
 
         unset($settings['enable_guest_mode'], $settings['guest_mode_optimize_first_visit']);
 

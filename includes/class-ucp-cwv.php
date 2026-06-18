@@ -178,11 +178,11 @@ class UCP_CWV {
         wp_register_script('ucp-cwv-monitor', $asset['url'], array(), $asset['version'], true);
         wp_add_inline_script(
             'ucp-cwv-monitor',
-            'window.ucpCwvMonitor=' . wp_json_encode(array(
+            'window.UCP=window.UCP||{};window.UCP.cwvMonitor=' . wp_json_encode(array(
                 'endpoint' => $endpoint,
                 'token' => $this->cwv_token(),
                 'sampleRate' => $sample_rate,
-            )) . ';',
+            )) . ';window.ucpCwvMonitor=window.UCP.cwvMonitor;',
             'before'
         );
         wp_enqueue_script('ucp-cwv-monitor');

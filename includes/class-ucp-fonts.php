@@ -15,8 +15,9 @@ class UCP_Fonts {
             return $html;
         }
 
+        $scheme = strtolower((string) wp_parse_url($href, PHP_URL_SCHEME));
         $host = strtolower((string) wp_parse_url($href, PHP_URL_HOST));
-        if ('fonts.googleapis.com' !== $host || !wp_http_validate_url($href)) {
+        if ('https' !== $scheme || 'fonts.googleapis.com' !== $host || !wp_http_validate_url($href)) {
             return $html;
         }
 
@@ -56,8 +57,9 @@ class UCP_Fonts {
         }
 
         $href = esc_url_raw((string) $href);
+        $scheme = strtolower((string) wp_parse_url($href, PHP_URL_SCHEME));
         $host = strtolower((string) wp_parse_url($href, PHP_URL_HOST));
-        if ('fonts.googleapis.com' !== $host || !wp_http_validate_url($href)) {
+        if ('https' !== $scheme || 'fonts.googleapis.com' !== $host || !wp_http_validate_url($href)) {
             return false;
         }
 
@@ -248,9 +250,10 @@ class UCP_Fonts {
 
     protected function normalize_font_url($raw_url) {
         $font_url = trim((string) $raw_url, '\'" ');
+        $font_scheme = strtolower((string) wp_parse_url($font_url, PHP_URL_SCHEME));
         $font_host = strtolower((string) wp_parse_url($font_url, PHP_URL_HOST));
 
-        if ('fonts.gstatic.com' !== $font_host || !wp_http_validate_url($font_url)) {
+        if ('https' !== $font_scheme || 'fonts.gstatic.com' !== $font_host || !wp_http_validate_url($font_url)) {
             return false;
         }
 

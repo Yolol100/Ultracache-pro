@@ -27,7 +27,7 @@ trait UCP_Preload_Collector_Trait {
             }
         }
         if (UCP_Options::get('preload_sitemaps') && count($items) < $max_urls) {
-            foreach ($this->get_urls_from_sitemap(home_url('/wp-sitemap.xml'), $max_urls - count($items)) as $url) {
+            foreach ($this->get_urls_from_sitemap($this->primary_sitemap_url(), $max_urls - count($items)) as $url) {
                 $items[] = $this->preload_item($url, 'sitemap', 30);
             }
         }
@@ -216,6 +216,34 @@ trait UCP_Preload_Collector_Trait {
         return $urls;
     }
 
+
+    private function primary_sitemap_url() {
+        if (function_exists('get_sitemap_url')) {
+            $core_sitemap = get_sitemap_url('index');
+            if (is_string($core_sitemap) && '' !== $core_sitemap) {
+                return $core_sitemap;
+            }
+        }
+        return home_url('/wp-sitemap.xml');
+    }
+
+    private function sitemap_request($url) {
+        return wp_safe_remote_get($url, array(
+            'timeout' => max(3, min(8, absint(apply_filters('ucp_preload_sitemap_timeout', 6)))),
+            'redirection' => 0,
+            'reject_unsafe_urls' => true,
+            'user-agent' => 'UltraCachePro-Preloader/' . UCP_VERSION,
+        ));
+    }
+
+    private function sitemap_url_is_same_host($url, $home_host) {
+        if (!$url || !wp_http_validate_url($url)) {
+            return false;
+        }
+        $parts = wp_parse_url($url);
+        return !empty($parts['host']) && strtolower($parts['host']) === $home_host;
+    }
+
     private function get_urls_from_sitemap($sitemap_url, $max_urls = 250) {
         $found = array();
         $max_urls = max(1, absint($max_urls));
@@ -223,12 +251,7 @@ trait UCP_Preload_Collector_Trait {
         $sub_sitemaps_checked = 0;
         $home = wp_parse_url(home_url('/'));
         $home_host = !empty($home['host']) ? strtolower($home['host']) : '';
-        $response = wp_remote_get($sitemap_url, array(
-            'timeout' => 15,
-            'redirection' => 0,
-            'reject_unsafe_urls' => true,
-            'user-agent' => 'UltraCache Preloader/' . UCP_VERSION,
-        ));
+        $response = $this->sitemap_request($sitemap_url);
         if (is_wp_error($response) || 200 !== (int) wp_remote_retrieve_response_code($response)) {
             return $found;
         }
@@ -242,7 +265,7 @@ trait UCP_Preload_Collector_Trait {
                     break;
                 }
                 $url = esc_url_raw(html_entity_decode(trim($match), ENT_QUOTES | ENT_HTML5));
-                if (!$url || !wp_http_validate_url($url)) {
+                if (!$this->sitemap_url_is_same_host($url, $home_host)) {
                     continue;
                 }
                 $parts = wp_parse_url($url);
@@ -254,12 +277,7 @@ trait UCP_Preload_Collector_Trait {
                         continue;
                     }
                     $sub_sitemaps_checked++;
-                    $sub = wp_remote_get($url, array(
-                        'timeout' => 15,
-                        'redirection' => 0,
-                        'reject_unsafe_urls' => true,
-                        'user-agent' => 'UltraCache Preloader/' . UCP_VERSION,
-                    ));
+                    $sub = $this->sitemap_request($url);
                     if (is_wp_error($sub) || 200 !== (int) wp_remote_retrieve_response_code($sub)) {
                         continue;
                     }
@@ -273,7 +291,7 @@ trait UCP_Preload_Collector_Trait {
                             break 2;
                         }
                         $sub_url = esc_url_raw(html_entity_decode(trim($sub_url), ENT_QUOTES | ENT_HTML5));
-                        if (!$sub_url || !wp_http_validate_url($sub_url)) {
+                        if (!$this->sitemap_url_is_same_host($sub_url, $home_host)) {
                             continue;
                         }
                         $sub_parts = wp_parse_url($sub_url);
