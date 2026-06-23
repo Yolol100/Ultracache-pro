@@ -39,8 +39,10 @@ class UCP_Fonts {
 
         $file = trailingslashit($dir) . md5($href) . '.css';
         if (!file_exists($file)) {
-            $this->schedule_refresh($href);
-            return false;
+            if (!$this->refresh_cached_css($href) || !file_exists($file)) {
+                $this->schedule_refresh($href);
+                return false;
+            }
         }
 
         if (filemtime($file) < (time() - WEEK_IN_SECONDS)) {
@@ -123,24 +125,33 @@ class UCP_Fonts {
             return;
         }
 
-        // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents -- static directory index in the plugin-owned public font cache.
-        file_put_contents($index, '', LOCK_EX);
+        $this->write_cached_file($index, '', $dir);
     }
 
     protected function write_cached_file($path, $body, $base_dir) {
         $normalized_path = wp_normalize_path((string) $path);
         $normalized_base = trailingslashit(wp_normalize_path((string) $base_dir));
-        if (0 !== strpos($normalized_path, $normalized_base)) {
+        if ('' === $normalized_path || 0 !== strpos($normalized_path, $normalized_base)) {
             return false;
         }
 
-        if (!is_string($body) || '' === $body || !wp_is_writable($base_dir)) {
+        if (!is_string($body) || !is_dir($base_dir) || !wp_is_writable($base_dir)) {
+            return false;
+        }
+
+        $real_base = realpath($base_dir);
+        $real_dir  = realpath(dirname($path));
+        if (!$real_base || !$real_dir || wp_normalize_path($real_base) !== wp_normalize_path($real_dir)) {
             return false;
         }
 
         $tmp = $path . '.tmp.' . wp_generate_password(8, false, false);
         // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents -- cache-only write under wp-content/uploads with path allow-list and LOCK_EX.
-        if (false === file_put_contents($tmp, $body, LOCK_EX)) {
+        $bytes = file_put_contents($tmp, $body, LOCK_EX);
+        if (false === $bytes || $bytes < strlen($body)) {
+            if (file_exists($tmp)) {
+                wp_delete_file($tmp);
+            }
             return false;
         }
 

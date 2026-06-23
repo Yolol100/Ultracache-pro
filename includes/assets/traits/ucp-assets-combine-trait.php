@@ -68,6 +68,7 @@ trait UCP_Assets_Combine_Trait {
                 }
                 if (!file_exists($target)) {
                     $contents = '';
+                    $headers = '';
                     foreach ($items as $handle => $path) {
                         $css = UCP_Helpers::read_file($path);
                         if (!is_string($css) || '' === $css) {
@@ -77,8 +78,11 @@ trait UCP_Assets_Combine_Trait {
                             $resolved = $this->rewrite_relative_css_url($path, $matches[2]);
                             return '' !== $resolved ? $resolved : $matches[0];
                         }, $css);
-                        $contents .= "\n" . $css;
+                        $parts = $this->split_css_header_at_rules($css);
+                        $headers .= $parts['header'];
+                        $contents .= "\n" . $parts['body'];
                     }
+                    $contents = $headers . $contents;
                     if (UCP_Options::get('enable_css_minify')) {
                         $contents = UCP_Helpers::minify_css($contents);
                     }
@@ -100,6 +104,29 @@ trait UCP_Assets_Combine_Trait {
                 }
                 wp_enqueue_style('ucp-combined-' . md5($hash . $media), UCP_Helpers::file_url_from_path($target), array(), filemtime($target), $media);
             }
+        }
+
+        private function split_css_header_at_rules($css) {
+            $body = (string) $css;
+            $header = '';
+            $charset_seen = false;
+
+            while (preg_match('/\A\s*(?:\/\*.*?\*\/\s*)*((?:@charset\s+(["\'][^"\']+["\'])|@import\s+(?:url\([^)]+\)|["\'][^"\']+["\'])(?:\s+[^;]+)?)\s*;)/is', $body, $match)) {
+                $rule = trim((string) $match[1]);
+                $is_charset = 0 === stripos($rule, '@charset');
+                if (!$is_charset || !$charset_seen) {
+                    $header .= $rule . "\n";
+                }
+                if ($is_charset) {
+                    $charset_seen = true;
+                }
+                $body = substr($body, strlen($match[0]));
+            }
+
+            return array(
+                'header' => $header,
+                'body'   => $body,
+            );
         }
 
 

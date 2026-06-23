@@ -21,6 +21,7 @@ trait UCP_Cache_Storage_Trait {
             if (0 === $ttl || ($modified + $ttl) > time()) {
                 $remaining = $ttl > 0 ? max(0, ($modified + $ttl) - time()) : 31536000;
                 $this->serve_cached_html_file($file, $modified, $remaining, 'HIT');
+                return;
             }
 
             $stale_ttl = absint(UCP_Options::get('stale_cache_lifespan', 24)) * HOUR_IN_SECONDS;
@@ -67,7 +68,7 @@ trait UCP_Cache_Storage_Trait {
         $accept_encoding = isset($_SERVER['HTTP_ACCEPT_ENCODING']) ? strtolower(sanitize_text_field(wp_unslash($_SERVER['HTTP_ACCEPT_ENCODING']))) : '';
         $variant_file = '';
         $variant_encoding = '';
-        if (false !== strpos($accept_encoding, 'br') && is_file($file . '.br') && is_readable($file . '.br')) {
+        if ($this->request_allows_brotli_cache_variant() && false !== strpos($accept_encoding, 'br') && is_file($file . '.br') && is_readable($file . '.br')) {
             $variant_file = $file . '.br';
             $variant_encoding = 'br';
         } elseif (false !== strpos($accept_encoding, 'gzip') && is_file($file . '.gz') && is_readable($file . '.gz')) {
@@ -221,7 +222,7 @@ trait UCP_Cache_Storage_Trait {
         $brotli_level = max(0, min(11, absint(apply_filters('ucp_brotli_precompression_level', 9))));
         $gzip_level   = max(1, min(9, absint(apply_filters('ucp_gzip_precompression_level', 9))));
 
-        if (UCP_Options::get('enable_brotli_precompression') && function_exists('brotli_compress')) {
+        if (UCP_Options::get('enable_brotli_precompression') && $this->request_allows_brotli_cache_variant() && function_exists('brotli_compress')) {
             try {
                 $br = brotli_compress($html, $brotli_level);
             } catch (\Throwable $e) {
@@ -256,6 +257,18 @@ trait UCP_Cache_Storage_Trait {
         } else {
             UCP_Helpers::safe_delete_file($gzip_path);
         }
+    }
+
+    private function request_allows_brotli_cache_variant() {
+        if (function_exists('is_ssl') && is_ssl()) {
+            return true;
+        }
+        $https = isset($_SERVER['HTTPS']) ? strtolower((string) sanitize_text_field(wp_unslash($_SERVER['HTTPS']))) : '';
+        if (in_array($https, array('on', '1'), true)) {
+            return true;
+        }
+        $forwarded_proto = isset($_SERVER['HTTP_X_FORWARDED_PROTO']) ? strtolower((string) sanitize_text_field(wp_unslash($_SERVER['HTTP_X_FORWARDED_PROTO']))) : '';
+        return 'https' === $forwarded_proto;
     }
 
     private function write_direct_cache_mirror($url, $html) {

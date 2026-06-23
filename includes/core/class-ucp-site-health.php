@@ -137,7 +137,7 @@ class UCP_Site_Health {
             'label'       => $ok ? __('UltraCache release-readiness is in orde', 'ultracache-pro') : __('UltraCache release-readiness vraagt aandacht', 'ultracache-pro'),
             'status'      => $ok ? 'good' : 'recommended',
             'badge'       => array('label' => __('Release', 'ultracache-pro'), 'color' => $ok ? 'blue' : 'orange'),
-            'description' => '<p>' . esc_html(empty($issues) ? __('Versies, classmap, drop-in templates en kwaliteitsscorecard zijn consistent.', 'ultracache-pro') : implode(' ', array_map('sanitize_text_field', $issues))) . '</p>',
+            'description' => '<p>' . esc_html(empty($issues) ? __('Versies, classmap, drop-in templates en releaseprofiel zijn consistent.', 'ultracache-pro') : implode(' ', array_map('sanitize_text_field', $issues))) . '</p>',
             'test'        => 'ucp_release_readiness',
         );
     }

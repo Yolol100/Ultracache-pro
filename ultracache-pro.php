@@ -3,7 +3,7 @@
 /**
  * Plugin Name: UltraCache Pro
  * Description: Premium modular WordPress performance suite with cache, optimization, automation, edge integrations and visual asset control.
- * Version: 11.4.36
+ * Version: 11.4.43
  * Author: UltraCache Pro
  * Text Domain: ultracache-pro
  * Domain Path: /languages
@@ -20,7 +20,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('UCP_VERSION', '11.4.36');
+define('UCP_VERSION', '11.4.43');
 define('UCP_BUILD_PROFILE', 'lightweight');
 define('UCP_FILE', __FILE__);
 define('UCP_PATH', plugin_dir_path(__FILE__));

@@ -258,8 +258,11 @@ trait UCP_Optimizer_CDN_Hints_Trait {
     }
 
     private function third_party_asset_is_allowed($url, $domains) {
-        $url = esc_url_raw((string) $url, array('http', 'https'));
+        $url = esc_url_raw((string) $url, array('https'));
         if (!$url || UCP_Helpers::is_local_url($url)) {
+            return false;
+        }
+        if ('https' !== strtolower((string) wp_parse_url($url, PHP_URL_SCHEME))) {
             return false;
         }
         $host = strtolower((string) wp_parse_url($url, PHP_URL_HOST));
@@ -277,7 +280,10 @@ trait UCP_Optimizer_CDN_Hints_Trait {
     }
 
     private function local_third_party_asset_url($url) {
-        $url = esc_url_raw((string) $url, array('http', 'https'));
+        $url = esc_url_raw((string) $url, array('https'));
+        if ('https' !== strtolower((string) wp_parse_url($url, PHP_URL_SCHEME))) {
+            return '';
+        }
         $host = strtolower((string) wp_parse_url($url, PHP_URL_HOST));
         if ($this->host_resolves_to_private_network($host)) {
             return '';
@@ -423,7 +429,7 @@ trait UCP_Optimizer_CDN_Hints_Trait {
             $clean
         );
         $css = '@supports (content-visibility:auto){' . implode(',', $clean) . '{content-visibility:auto;contain-intrinsic-size:auto 600px;}' . implode(',', $done_selectors) . '{content-visibility:visible;contain-intrinsic-size:auto;}}';
-        echo '<style id="ucp-lazy-render">' . esc_html(str_replace('</', '<\/', $css)) . '</style>' . "\n";
+        echo '<style id="ucp-lazy-render">' . str_replace('</', '<\/', $css) . '</style>' . "\n";
     }
 
     private function lazy_render_selector_is_critical($selector) {
@@ -469,8 +475,7 @@ trait UCP_Optimizer_CDN_Hints_Trait {
         }
         foreach ($fonts as $font_url) {
             $font_url = esc_url_raw((string) $font_url, array('http', 'https'));
-            if (!$font_url || isset($seen[$font_url]) || preg_match('/[
-<>]/', $font_url)) {
+            if (!$font_url || isset($seen[$this->normalize_font_preload_url($font_url)]) || preg_match('/[\n<>]/', $font_url)) {
                 continue;
             }
             if (!preg_match('/\.(woff2|woff)(\?|$)/i', $font_url)) {
@@ -479,7 +484,7 @@ trait UCP_Optimizer_CDN_Hints_Trait {
             if (!UCP_Helpers::is_local_url($font_url) && !wp_http_validate_url($font_url)) {
                 continue;
             }
-            $seen[$dedupe_key] = true;
+            $seen[$this->normalize_font_preload_url($font_url)] = true;
             $type = preg_match('/\.woff2(\?|$)/i', $font_url) ? 'font/woff2' : 'font/woff';
             echo '<link rel="preload" href="' . esc_url($font_url) . '" as="font" type="' . esc_attr($type) . '" crossorigin data-ucp="font-preload">' . "
 ";
@@ -507,8 +512,7 @@ trait UCP_Optimizer_CDN_Hints_Trait {
         foreach ((array) $candidates as $candidate) {
             $url = is_array($candidate) && !empty($candidate['url']) ? (string) $candidate['url'] : (string) $candidate;
             $url = esc_url_raw($url, array('http', 'https'));
-            if (!$url || !preg_match('/\.woff2(\?|$)/i', $url) || preg_match('/[
-<>]/', $url)) {
+            if (!$url || !preg_match('/\.woff2(\?|$)/i', $url) || preg_match('/[\n<>]/', $url)) {
                 continue;
             }
             $lower = strtolower(rawurldecode($url));

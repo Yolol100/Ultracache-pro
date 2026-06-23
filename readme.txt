@@ -4,7 +4,7 @@ Tags: cache, performance, core web vitals, critical css, used css
 Requires at least: 6.3
 Tested up to: 6.9
 Requires PHP: 8.0
-Stable tag: 11.4.36
+Stable tag: 11.4.43
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -69,6 +69,36 @@ UltraCache Pro may store cache metadata, diagnostic records, Core Web Vitals sam
 4. Diagnostics and Core Web Vitals overview.
 
 == Changelog ==
+
+= 11.4.43 =
+* Improvement: admin-status toont nu een UltraCache readiness-score die cache, preload, compressie, media, fonts, WooCommerce safety, wachtrij en plugin-overlap weegt en vertaalt naar een concreet volgend advies.
+* Improvement: Conflict Guard herkent meer performance- en cacheplugins, waaronder SpeedyCache, WP Fastest Cache, Cache Enabler, Jetpack Boost, Async JavaScript, Swift Performance, Seraphinite Accelerator, 10Web Booster, Debloat, Powered Cache en Airlift.
+* Hardening: Smart Safe Mode status en guardrails houden Delay JS safe mode, CSS-artifact rollback, queue-verwerking en WooCommerce/shop-bescherming automatisch actief wanneer riskantere CSS/JS-opties worden gekozen.
+* UX: conflict-items in de React-admin krijgen een eigen compacte kaartstijl zodat overlapmeldingen beter scannen binnen het bestaande dashboarddesign.
+
+= 11.4.42 =
+* Fix: CSS combineren bewaart `@charset` en `@import` regels nu bovenaan de gecombineerde stylesheet, zodat imports uit latere stylesheets niet ongeldig midden in de CSS terechtkomen.
+
+= 11.4.41 =
+* Hardening: Brotli page-cache variants worden nu alleen geschreven en geserveerd wanneer de huidige request via HTTPS loopt. Gzip blijft beschikbaar voor HTTP en HTTPS.
+
+= 11.4.40 =
+* Compatibility: JS Delay/Defer respecteert nu ook de veelgebruikte `data-no-defer` markup-marker, naast de bestaande `nowprocket`, `data-no-delay`, `data-ucp-no-delay` en `data-no-optimize` markers.
+* Hardening: generieke third-party self-hosting volgt nu hetzelfde HTTPS-only localisatiepatroon als volwassen cacheplugins; onveilige `http` assets worden niet langer lokaal opgehaald.
+
+= 11.4.39 =
+* Improvement: Delay JS event-dekking verder gelijkgetrokken met het brede interactiepatroon van gevestigde cacheplugins: extra muis-, focus-, blur-, contextmenu- en mousewheel-signalen starten nu ook de bestaande uitgestelde scriptketen.
+* Improvement: replay van vastgelegde interacties gebruikt nu specifiekere browser-events voor pointer-, mouse-, wheel- en contextmenu-gebeurtenissen waar de browser die constructors ondersteunt.
+
+= 11.4.38 =
+* Improvement: Delay JS reageert nu op een bredere set eerste-interactie signalen (keyboard, mouse, pointer, touch, wheel, scroll, input en submit), zodat uitgestelde scripts sneller vrijkomen bij echte gebruikersinteractie zonder nieuwe instelling toe te voegen.
+* Improvement: lokale Google Fonts proberen de lokale stylesheet direct op de eerste geldige request/cache-pass op te bouwen voordat er wordt teruggevallen op de geplande refresh. Dit vermindert de kans dat een eerste bezoek alsnog naar `fonts.googleapis.com` blijft wijzen.
+* Hardening: de font-cache gebruikt nu dezelfde uploads-afgebakende atomic write-controle als de media-cache, inclusief realpath-validatie en veilige cleanup van tijdelijke bestanden.
+
+= 11.4.37 =
+* Fix: lokale Gravatar/YouTube self-hosting schreef cachebestanden naar `uploads/ultracache-pro/remote/`, maar gebruikte daarvoor de algemene managed-file writer die uploads-paden terecht weigert. De media-module heeft nu een eigen uploads-afgebakende atomic writer met padvalidatie en `index.html`, zodat cache-misses daadwerkelijk lokaal worden opgeslagen.
+* Fix: release-readiness runtimetest markeert `docs/QUALITY-SCORECARD.md` niet langer als ontbrekend probleem in het `lightweight` productiebuildprofiel. Die documentatiemap wordt bewust niet meegeleverd in klantzips; custom/dev builds blijven de scorecard wel controleren.
+* Packaging: deze gecontroleerde build wordt opnieuw als `ultracache-pro/` rootmap verpakt, zodat installatie via wp-admin de juiste plugin-slug behoudt.
 
 = 11.4.36 =
 * Veiliger defaults: database-cleanup sub-opties (verlopen transients, spam-reacties, verwijderde reacties en verwijderde berichten) staan op een nieuwe installatie nu standaard uit i.p.v. voorgevinkt. De hoofd-schakelaar `enable_db_cleanup` en `db_cleanup_frequency` stonden al uit; het inschakelen van cleanup is nu een bewuste keuze per categorie. Geen effect op bestaande installaties (defaults vullen alleen nieuwe sites) en geen runtime-gedragswijziging zolang cleanup uit staat.

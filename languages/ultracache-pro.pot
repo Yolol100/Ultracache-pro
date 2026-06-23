@@ -2,7 +2,7 @@
 # This file is distributed under the GPLv2 or later.
 msgid ""
 msgstr ""
-"Project-Id-Version: UltraCache Pro 11.4.36\n"
+"Project-Id-Version: UltraCache Pro 11.4.43\n"
 "Report-Msgid-Bugs-To: https://webactueel.nl\n"
 "POT-Creation-Date: 2026-06-12 00:00+0000\n"
 "MIME-Version: 1.0\n"
@@ -5385,7 +5385,7 @@ msgid "Release"
 msgstr ""
 
 #: includes/core/class-ucp-site-health.php:141
-msgid "Versies, classmap, drop-in templates en kwaliteitsscorecard zijn consistent."
+msgid "Versies, classmap, drop-in templates en releaseprofiel zijn consistent."
 msgstr ""
 
 #: includes/core/class-ucp-site-health.php:151

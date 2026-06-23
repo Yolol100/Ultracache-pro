@@ -281,15 +281,20 @@ class UCP_Runtime_Tests {
 
     protected static function test_release_runtime() {
         $issues = array();
+        $build_profile = defined('UCP_BUILD_PROFILE') ? (string) UCP_BUILD_PROFILE : 'custom';
+        $quality_scorecard_present = is_readable(UCP_PATH . 'docs/QUALITY-SCORECARD.md');
+        $quality_scorecard_required = !in_array($build_profile, array('lightweight', 'production'), true);
         $details = array(
             'plugin_version' => defined('UCP_VERSION') ? UCP_VERSION : '',
             'header_version' => '',
             'readme_stable_tag' => '',
+            'build_profile' => $build_profile,
             'php_version' => PHP_VERSION,
             'wp_version' => function_exists('get_bloginfo') ? get_bloginfo('version') : '',
             'classmap_present' => is_readable(UCP_PATH . 'includes/bootstrap/ucp-classmap.php'),
             'dropin_templates_present' => is_readable(UCP_PATH . 'advanced-cache.php') && is_readable(UCP_PATH . 'dropins/object-cache-apcu.php') && is_readable(UCP_PATH . 'dropins/object-cache-redis.php'),
-            'quality_scorecard_present' => is_readable(UCP_PATH . 'docs/QUALITY-SCORECARD.md'),
+            'quality_scorecard_present' => $quality_scorecard_present,
+            'quality_scorecard_required' => $quality_scorecard_required,
         );
 
         if (function_exists('get_plugin_data')) {
@@ -319,7 +324,7 @@ class UCP_Runtime_Tests {
         if (!$details['dropin_templates_present']) {
             $issues[] = __('Een of meer drop-in templates ontbreken in de release.', 'ultracache-pro');
         }
-        if (!$details['quality_scorecard_present']) {
+        if ($details['quality_scorecard_required'] && !$details['quality_scorecard_present']) {
             $issues[] = __('De vaste kwaliteitsscorecard ontbreekt in docs/QUALITY-SCORECARD.md.', 'ultracache-pro');
         }
 

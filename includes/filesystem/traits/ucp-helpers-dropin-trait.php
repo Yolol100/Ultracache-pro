@@ -117,8 +117,7 @@ trait UCP_Helpers_Dropin_Trait {
                 }
             }
         }
-        if (preg_match('/Plugin\s*:\s*([^
-]+)/i', $content, $match)) {
+        if (preg_match('/Plugin\s*:\s*([^\r\n]+)/i', $content, $match)) {
             return sanitize_text_field($match[1]);
         }
         return __('Onbekende cachelaag', 'ultracache-pro');

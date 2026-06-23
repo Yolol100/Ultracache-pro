@@ -38,6 +38,7 @@ class UCP_Optimization_Guards {
         $value = self::sync_testing_mode_aliases($value);
         $value = self::guard_css_delivery($value);
         $value = self::guard_js_delivery($value);
+        $value = self::guard_smart_safe_mode($value);
         $value = self::guard_advanced_combine_modes($value);
 
         return apply_filters('ucp_optimization_guarded_settings', $value, $old_value, $option);
@@ -87,9 +88,40 @@ class UCP_Optimization_Guards {
             $settings['enable_js_combine'] = 0;
         }
 
+        if (!empty($settings['enable_delay_js'])) {
+            $settings['delay_js_safe_mode'] = 1;
+        }
+
         if (!empty($settings['enable_js_combine'])) {
             $settings['enable_js_minify'] = 1;
             $settings['allow_experimental_js_minify'] = 1;
+        }
+
+        return $settings;
+    }
+
+    /**
+     * Preserve safe-mode primitives whenever high-risk optimizations are enabled.
+     *
+     * @param array $settings Settings.
+     * @return array
+     */
+    protected static function guard_smart_safe_mode(array $settings) {
+        $uses_css_artifacts = !empty($settings['enable_used_css']) || !empty($settings['enable_used_css_delivery']) || !empty($settings['enable_critical_css']) || (isset($settings['css_delivery_mode']) && 'none' !== (string) $settings['css_delivery_mode']);
+        if ($uses_css_artifacts) {
+            $settings['css_artifact_rollback'] = 1;
+            $settings['enable_css_queue'] = 1;
+        }
+
+        if (!empty($settings['woocommerce_safety_mode']) || !empty($settings['enable_woocommerce_rules'])) {
+            $settings['serve_cache_to_shoppers'] = 0;
+            if (isset($settings['speculative_loading_mode']) && 'prerender' === (string) $settings['speculative_loading_mode']) {
+                $settings['speculative_loading_mode'] = 'core';
+            }
+        }
+
+        if (!empty($settings['enable_delay_js']) || $uses_css_artifacts || !empty($settings['enable_js_combine']) || !empty($settings['enable_css_combine'])) {
+            $settings['compatibility_mode'] = 1;
         }
 
         return $settings;

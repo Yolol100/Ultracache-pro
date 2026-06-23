@@ -123,7 +123,8 @@ class UCP_Self_Host_Media {
         if (!is_dir($paths['dir'])) {
             wp_mkdir_p($paths['dir']);
         }
-        return false !== UCP_Helpers::write_file($paths['path'], $body);
+        self::ensure_cache_index($paths['dir']);
+        return self::write_cached_file($paths['path'], $body, $paths['dir']);
     }
 
     protected static function cache_paths($name) {
@@ -137,6 +138,53 @@ class UCP_Self_Host_Media {
             'path' => $dir . $name,
             'url'  => trailingslashit($uploads['baseurl']) . self::SUBDIR . $name,
         );
+    }
+
+    protected static function ensure_cache_index($dir) {
+        $index = trailingslashit((string) $dir) . 'index.html';
+        if (file_exists($index) || !wp_is_writable($dir)) {
+            return;
+        }
+        self::write_cached_file($index, '', $dir);
+    }
+
+    protected static function write_cached_file($path, $body, $base_dir) {
+        if (!is_string($path) || !is_string($body) || false !== strpos($path, "\0")) {
+            return false;
+        }
+
+        $normalized_path = wp_normalize_path($path);
+        $normalized_base = trailingslashit(wp_normalize_path((string) $base_dir));
+        if ('' === $normalized_base || 0 !== strpos($normalized_path, $normalized_base)) {
+            return false;
+        }
+
+        if (!is_dir($base_dir) || !wp_is_writable($base_dir)) {
+            return false;
+        }
+        $base_real = realpath($base_dir);
+        $dir_real  = realpath(dirname($path));
+        if (false === $base_real || false === $dir_real || wp_normalize_path($base_real) !== wp_normalize_path($dir_real)) {
+            return false;
+        }
+
+        $tmp = $path . '.tmp.' . wp_generate_password(8, false, false);
+        // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents -- cache-only write under validated uploads cache path; LOCK_EX avoids partial writes.
+        $bytes = file_put_contents($tmp, $body, LOCK_EX);
+        if (false === $bytes || $bytes !== strlen($body)) {
+            if (is_file($tmp)) {
+                wp_delete_file($tmp);
+            }
+            return false;
+        }
+
+        // phpcs:ignore WordPress.WP.AlternativeFunctions.rename_rename -- atomic cache-file replace inside validated uploads cache path.
+        if (!@rename($tmp, $path)) {
+            wp_delete_file($tmp);
+            return false;
+        }
+
+        return true;
     }
 
     protected static function host_allowed($url) {
