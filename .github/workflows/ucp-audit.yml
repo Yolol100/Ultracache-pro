@@ -1,0 +1,73 @@
+name: UltraCache audit
+
+on:
+  push:
+    branches:
+      - audit/ultracache-pro-20260817
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ultracache-audit-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  php-syntax-and-release-hygiene:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout exact source
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+
+      - name: Show PHP runtime
+        run: php -v
+
+      - name: Lint all PHP files
+        shell: bash
+        run: |
+          set -euo pipefail
+          find . -type f -name '*.php' -not -path './vendor/*' -not -path './vendor-scoped/*' -print0 \
+            | xargs -0 -n1 php -l
+
+      - name: Verify release metadata alignment
+        shell: bash
+        run: |
+          set -euo pipefail
+          plugin_version="$(sed -n 's/^[[:space:]]*\*[[:space:]]*Version:[[:space:]]*//p; s/^[[:space:]]*Version:[[:space:]]*//p' ultracache-pro.php | head -n1 | tr -d '\r')"
+          stable_tag="$(sed -n 's/^Stable tag:[[:space:]]*//p' readme.txt | head -n1 | tr -d '\r')"
+          if [ -z "$plugin_version" ] || [ -z "$stable_tag" ] || [ "$plugin_version" != "$stable_tag" ]; then
+            echo "Version mismatch: plugin=$plugin_version stable=$stable_tag"
+            exit 1
+          fi
+          echo "Version metadata aligned: $plugin_version"
+
+      - name: Reject nested release archives from source tree
+        shell: bash
+        run: |
+          set -euo pipefail
+          mapfile -t archives < <(find . -type f \( -iname '*.zip' -o -iname '*.tar' -o -iname '*.tar.gz' -o -iname '*.tgz' \) -not -path './.git/*' -print)
+          if [ "${#archives[@]}" -gt 0 ]; then
+            printf 'Unexpected release/archive artifacts in source tree:\n'
+            printf '%s\n' "${archives[@]}"
+            exit 1
+          fi
+
+  wordpress-plugin-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout exact source
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+
+      - name: Run official WordPress Plugin Check
+        uses: WordPress/plugin-check-action@98a1788320d0add90df2d8183934ecccbc4e05d2
+        with:
+          build-dir: '.'
+          categories: |
+            general
+            security
+            performance
+            accessibility
+            plugin_repo
