@@ -7,7 +7,10 @@ if (!defined('ABSPATH')) {
 /** Loads bundled compatibility JSON lists with per-request caching. */
 final class UCP_Compat_List_Loader {
 public static function compat_json_raw($name) {
-        $safe_name = preg_replace('/[^a-z0-9_-]/i', '', (string) $name);
+        if (!is_scalar($name) && null !== $name) {
+            $name = '';
+        }
+        $safe_name = UCP_Helpers::sanitize_preg_replace('/[^a-z0-9_-]/i', '', (string) $name);
         if ('' === $safe_name) {
             return array();
         }
@@ -20,13 +23,16 @@ public static function compat_json_raw($name) {
             $cache[$safe_name] = array();
             return array();
         }
-        $data = json_decode(UCP_Helpers::read_file($path), true);
+        $data = UCP_Helpers::safe_json_decode(UCP_Helpers::read_file($path, 512 * KB_IN_BYTES), true);
         $cache[$safe_name] = is_array($data) ? $data : array();
         return $cache[$safe_name];
     }
 
 public static function compat_json_list($name) {
-        $safe_name = preg_replace('/[^a-z0-9_-]/i', '', (string) $name);
+        if (!is_scalar($name) && null !== $name) {
+            $name = '';
+        }
+        $safe_name = UCP_Helpers::sanitize_preg_replace('/[^a-z0-9_-]/i', '', (string) $name);
         $data = self::compat_json_raw($safe_name);
         if (empty($data)) {
             $list = array();

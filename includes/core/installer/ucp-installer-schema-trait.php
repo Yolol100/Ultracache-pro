@@ -37,7 +37,8 @@ trait UCP_Installer_Schema_Trait {
             UNIQUE KEY job_uuid (job_uuid),
             UNIQUE KEY job_signature (job_signature),
             KEY status_available (status, available_at),
-            KEY queue_status (queue, status)
+            KEY queue_status (queue, status),
+            KEY status_updated (status, updated_at)
         ) $charset";
 
         $logs = 'CREATE TABLE ' . ucp_table_name('logs') . " (
@@ -51,7 +52,8 @@ trait UCP_Installer_Schema_Trait {
             created_at datetime NOT NULL,
             PRIMARY KEY  (id),
             KEY component_created (component, created_at),
-            KEY level_created (level, created_at)
+            KEY level_created (level, created_at),
+            KEY created_at (created_at)
         ) $charset";
 
         $lcp = 'CREATE TABLE ' . ucp_table_name('lcp') . " (
@@ -78,6 +80,26 @@ trait UCP_Installer_Schema_Trait {
             KEY confidence_status (profile_status, confidence)
         ) $charset";
 
+        $cache_events = 'CREATE TABLE ' . ucp_table_name('cache_events') . " (
+            id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+            event_type varchar(20) NOT NULL,
+            status varchar(30) NOT NULL DEFAULT '',
+            reason varchar(80) NOT NULL DEFAULT '',
+            url_hash varchar(64) NOT NULL,
+            path varchar(255) NOT NULL DEFAULT '/',
+            source varchar(80) NOT NULL DEFAULT '',
+            scope varchar(80) NOT NULL DEFAULT '',
+            actor_id bigint(20) unsigned NOT NULL DEFAULT 0,
+            sample_weight smallint(5) unsigned NOT NULL DEFAULT 1,
+            context longtext NULL,
+            created_at datetime NOT NULL,
+            PRIMARY KEY  (id),
+            KEY type_created (event_type, created_at),
+            KEY status_created (status, created_at),
+            KEY reason_created (reason, created_at),
+            KEY created_at (created_at)
+        ) $charset";
+
         $diagnostics = 'CREATE TABLE ' . ucp_table_name('diagnostics') . " (
             id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
             request_hash varchar(64) NOT NULL,
@@ -92,12 +114,30 @@ trait UCP_Installer_Schema_Trait {
             generated_at datetime NOT NULL,
             PRIMARY KEY  (id),
             KEY request_hash (request_hash),
-            KEY path_generated (path, generated_at)
+            KEY path_generated (path, generated_at),
+            KEY generated_at (generated_at)
         ) $charset";
 
         dbDelta($jobs);
         dbDelta($logs);
         dbDelta($diagnostics);
+        dbDelta($cache_events);
         dbDelta($lcp);
+
+        foreach (array(
+            ucp_table_name('jobs'),
+            ucp_table_name('logs'),
+            ucp_table_name('diagnostics'),
+            ucp_table_name('cache_events'),
+            ucp_table_name('lcp'),
+        ) as $table) {
+            // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- exact post-dbDelta verification of plugin-owned tables.
+            $found = $wpdb->get_var($wpdb->prepare('SHOW TABLES LIKE %s', $wpdb->esc_like($table)));
+            if ((string) $found !== (string) $table) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }

@@ -26,7 +26,7 @@ class UCP_ESI {
     protected static $fragment_meta = array();
 
     public function __construct() {
-        add_action('init', array($this, 'register_default_fragments'), 5);
+        $this->register_default_fragments();
         add_shortcode('ucp_esi', array($this, 'shortcode'));
         add_action('rest_api_init', array($this, 'register_routes'));
         add_action('wp_enqueue_scripts', array($this, 'enqueue_loader'));
@@ -56,6 +56,9 @@ class UCP_ESI {
         self::$fragment_meta[$id] = array(
             'visibility' => $visibility,
         );
+        if (class_exists('UCP_Fragment_Cache')) {
+            UCP_Fragment_Cache::register($id, $callback, array('mode' => 'client', 'visibility' => $visibility, 'ttl' => MINUTE_IN_SECONDS));
+        }
     }
 
     /**
@@ -101,6 +104,9 @@ class UCP_ESI {
      */
     protected static function fragments() {
         $map = self::$fragments;
+        if (class_exists('UCP_Fragment_Cache')) {
+            $map = array_merge($map, UCP_Fragment_Cache::registered_callbacks('client'));
+        }
         /**
          * Filter the active ESI fragment map.
          *
@@ -124,6 +130,9 @@ class UCP_ESI {
      */
     protected static function fragment_meta() {
         $meta = self::$fragment_meta;
+        if (class_exists('UCP_Fragment_Cache')) {
+            $meta = array_merge($meta, UCP_Fragment_Cache::registered_meta('client'));
+        }
         $meta = apply_filters('ucp_esi_fragment_meta', $meta);
 
         $clean = array();
@@ -182,6 +191,7 @@ class UCP_ESI {
                     'items'             => array(
                         'type'      => 'string',
                         'maxLength' => 80,
+                        'pattern'   => '^[A-Za-z0-9_-]+$',
                     ),
                 ),
             ),
@@ -202,8 +212,10 @@ class UCP_ESI {
 
         $nonce = $request instanceof WP_REST_Request ? (string) $request->get_header('X-WP-Nonce') : '';
         if ('' === $nonce && $request instanceof WP_REST_Request) {
-            $nonce = (string) $request->get_param('_wpnonce');
+            $nonce_value = $request->get_param('_wpnonce');
+            $nonce = is_scalar($nonce_value) ? (string) $nonce_value : '';
         }
+        $nonce = sanitize_text_field(wp_unslash($nonce));
 
         if ('' !== $nonce && wp_verify_nonce($nonce, 'wp_rest')) {
             return true;
@@ -217,7 +229,7 @@ class UCP_ESI {
     }
 
     /**
-     * Return metadata for one fragment.
+     * Resolve visibility metadata for a registered fragment.
      *
      * @param string $id Fragment id.
      * @return array<string,mixed>
@@ -225,6 +237,36 @@ class UCP_ESI {
     protected function fragment_meta_for($id) {
         $meta = self::fragment_meta();
         return isset($meta[$id]) ? $meta[$id] : array('visibility' => 'auth_required');
+    }
+
+    /**
+     * Detect a real anonymous shopper/session context without creating one.
+     * Extensions can add their own session signal through the filter.
+     *
+     * @return bool
+     */
+    protected function has_guest_session_cookie() {
+        $has_session = false;
+        if (function_exists('WC')) {
+            try {
+                $woocommerce = WC();
+                $session = is_object($woocommerce) && isset($woocommerce->session) ? $woocommerce->session : null;
+                if (is_object($session) && method_exists($session, 'get_session_cookie')) {
+                    $cookie = $session->get_session_cookie();
+                    $has_session = is_array($cookie)
+                        && !empty($cookie[0])
+                        && isset($cookie[1], $cookie[2], $cookie[3])
+                        && is_numeric($cookie[1])
+                        && is_numeric($cookie[2])
+                        && is_scalar($cookie[3])
+                        && '' !== (string) $cookie[3];
+                }
+            } catch (\Throwable $e) {
+                $has_session = false;
+            }
+        }
+
+        return (bool) apply_filters('ucp_esi_has_guest_session', $has_session, (array) $_COOKIE);
     }
 
     /**
@@ -261,13 +303,17 @@ class UCP_ESI {
             if ('auth_required' === $meta['visibility'] && !is_user_logged_in()) {
                 continue;
             }
+            if ('guest_session' === $meta['visibility'] && !is_user_logged_in() && !$this->has_guest_session_cookie()) {
+                continue;
+            }
 
             $html = '';
             try {
-                $html = (string) call_user_func($fragments[$id]);
+                $central = class_exists('UCP_Fragment_Cache') ? UCP_Fragment_Cache::registered_callbacks('client') : array();
+                $html = isset($central[$id]) ? UCP_Fragment_Cache::render($id, array('transport' => 'client')) : (string) call_user_func($fragments[$id]);
             } catch (\Throwable $e) {
                 if (class_exists('UCP_Logger')) {
-                    UCP_Logger::log('warning', 'esi', 'fragment_error', 'ESI-fragment gaf een fout.', array('id' => $id, 'error' => $e->getMessage()));
+                    UCP_Logger::log('warning', 'esi', 'fragment_error', __('ESI-fragment gaf een fout.', 'ultracache-pro'), array('id' => $id, 'exception' => get_class($e), 'code' => (string) $e->getCode()));
                 }
                 continue;
             }
@@ -279,7 +325,7 @@ class UCP_ESI {
         $response->header('Cache-Control', 'no-store, no-cache, must-revalidate, private');
         $response->header('Pragma', 'no-cache');
         $response->header('Expires', 'Wed, 11 Jan 1984 05:00:00 GMT');
-        $response->header('Vary', 'Cookie');
+        $response->header('Vary', 'Cookie, X-WP-Nonce');
         $response->header('X-Robots-Tag', 'noindex, nofollow, noarchive');
         $response->header('X-UCP-ESI', 'no-store');
         return $response;
@@ -303,10 +349,10 @@ class UCP_ESI {
         wp_register_script('ucp-esi-loader', $asset['url'], array(), $asset['version'], true);
         wp_add_inline_script(
             'ucp-esi-loader',
-            'window.UCP=window.UCP||{};window.UCP.esiLoader=' . wp_json_encode(array(
+            'window.UCP=window.UCP||{};window.UCP.esiLoader=' . UCP_Helpers::safe_inline_json(array(
                 'endpoint' => esc_url_raw(rest_url('ultracache-pro/v1/esi')),
                 'nonce'    => is_user_logged_in() ? wp_create_nonce('wp_rest') : '',
-            )) . ';window.ucpEsiLoader=window.UCP.esiLoader;',
+            ), '{}') . ';window.ucpEsiLoader=window.UCP.esiLoader;',
             'before'
         );
         wp_enqueue_script('ucp-esi-loader');
@@ -335,7 +381,11 @@ class UCP_ESI {
             return false;
         }
         foreach ($ids as $id) {
-            if ('' === self::clean_id($id)) {
+            if (!is_string($id)
+                || '' === $id
+                || strlen($id) > 80
+                || 1 !== preg_match('/^[a-z0-9_-]+$/iD', $id)
+                || !hash_equals($id, self::clean_id($id))) {
                 return false;
             }
         }
@@ -343,18 +393,61 @@ class UCP_ESI {
     }
 
     protected function enforce_rate_limits() {
-        $ip = isset($_SERVER['REMOTE_ADDR']) ? sanitize_text_field(wp_unslash($_SERVER['REMOTE_ADDR'])) : 'unknown';
+        $ip = UCP_Helpers::server_value('REMOTE_ADDR', 'unknown', 64);
+        if (false === filter_var($ip, FILTER_VALIDATE_IP)) {
+            $ip = 'unknown';
+        }
         $minute = (int) floor(time() / MINUTE_IN_SECONDS);
         $ip_key = 'ucp_esi_ip_' . md5($ip . '|' . $minute);
         $site_key = 'ucp_esi_site_' . $minute;
 
-        $ip_count = (int) get_transient($ip_key);
-        $site_count = (int) get_transient($site_key);
-
         $ip_limit = min(120, max(10, (int) apply_filters('ucp_esi_ip_rate_limit_per_minute', 60)));
         $site_limit = min(1200, max(100, (int) apply_filters('ucp_esi_site_rate_limit_per_minute', 600)));
 
-        if ($ip_count >= $ip_limit || $site_count >= $site_limit) {
+        if (class_exists('UCP_CWV_Rate_Limiter') && method_exists('UCP_CWV_Rate_Limiter', 'bump_many_status')) {
+            $result = UCP_CWV_Rate_Limiter::bump_many_status(array(
+                array($ip_key, $ip_limit, 2 * MINUTE_IN_SECONDS),
+                array($site_key, $site_limit, 2 * MINUTE_IN_SECONDS),
+            ));
+            if (UCP_CWV_Rate_Limiter::ALLOWED === $result['status']) {
+                $ip_allowed = true;
+                $site_allowed = true;
+            } elseif (UCP_CWV_Rate_Limiter::LIMITED === $result['status']) {
+                $ip_allowed = 0 !== (int) $result['index'];
+                $site_allowed = 1 !== (int) $result['index'];
+            } else {
+                $response = new WP_REST_Response(array('ok' => false, 'code' => 'rate_limiter_unavailable'), 503);
+                $response->header('Retry-After', '1');
+                $response->header('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+                $response->header('X-Robots-Tag', 'noindex, nofollow');
+                return $response;
+            }
+        } else {
+            $ip_count = (int) get_transient($ip_key);
+            $site_count = (int) get_transient($site_key);
+            $ip_allowed = $ip_count < $ip_limit;
+            $site_allowed = $site_count < $site_limit;
+            if ($ip_allowed && $site_allowed) {
+                $ip_written = set_transient($ip_key, $ip_count + 1, 2 * MINUTE_IN_SECONDS);
+                $site_written = $ip_written && set_transient($site_key, $site_count + 1, 2 * MINUTE_IN_SECONDS);
+                if (!$site_written) {
+                    if ($ip_written) {
+                        if ($ip_count > 0) {
+                            set_transient($ip_key, $ip_count, 2 * MINUTE_IN_SECONDS);
+                        } else {
+                            delete_transient($ip_key);
+                        }
+                    }
+                    $response = new WP_REST_Response(array('ok' => false, 'code' => 'rate_limiter_unavailable'), 503);
+                    $response->header('Retry-After', '1');
+                    $response->header('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+                    $response->header('X-Robots-Tag', 'noindex, nofollow');
+                    return $response;
+                }
+            }
+        }
+
+        if (!$ip_allowed || !$site_allowed) {
             $response = new WP_REST_Response(array('ok' => false, 'code' => 'rate_limited'), 429);
             $response->header('Retry-After', '60');
             $response->header('Cache-Control', 'no-store, no-cache, must-revalidate, private');
@@ -362,13 +455,14 @@ class UCP_ESI {
             return $response;
         }
 
-        set_transient($ip_key, $ip_count + 1, 2 * MINUTE_IN_SECONDS);
-        set_transient($site_key, $site_count + 1, 2 * MINUTE_IN_SECONDS);
         return null;
     }
 
     protected static function clean_id($id) {
-        $clean = preg_replace('/[^a-z0-9_-]/i', '', (string) $id);
+        if (!is_scalar($id)) {
+            return '';
+        }
+        $clean = UCP_Helpers::sanitize_preg_replace('/[^a-z0-9_-]/i', '', (string) $id);
         return is_string($clean) ? substr($clean, 0, 80) : '';
     }
 }

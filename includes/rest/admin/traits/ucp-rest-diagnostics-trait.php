@@ -18,6 +18,46 @@ trait UCP_REST_Diagnostics_Trait {
         return rest_ensure_response(array_merge(array('success' => true), $result));
     }
 
+    public static function cache_insights(WP_REST_Request $request) {
+        $days = min(30, max(1, absint($request->get_param('days')) ?: absint(UCP_Options::get('cache_insights_retention_days', 7))));
+        $limit = min(50, max(1, absint($request->get_param('per_page')) ?: 20));
+        return rest_ensure_response(array(
+            'success' => true,
+            'summary' => class_exists('UCP_Cache_Insights') ? UCP_Cache_Insights::summary($days) : array(),
+            'recentPurges' => class_exists('UCP_Cache_Insights') ? UCP_Cache_Insights::recent_purges($limit) : array(),
+        ));
+    }
+
+    public static function preload_queue(WP_REST_Request $request) {
+        $paging = self::request_paging($request);
+        $status = sanitize_key((string) self::scalar_request_param($request, 'status', ''));
+        if (!in_array($status, array('', 'pending', 'running', 'retrying', 'failed', 'success'), true)) {
+            $status = '';
+        }
+        $result = class_exists('UCP_Jobs') ? UCP_Jobs::query(array_merge($paging, array('type' => 'preload_url', 'status' => $status))) : array('rows' => array(), 'total' => 0, 'per_page' => $paging['per_page'], 'paged' => 1, 'max_pages' => 1);
+        return rest_ensure_response(array_merge(array(
+            'success' => true,
+            'summary' => class_exists('UCP_Jobs') ? UCP_Jobs::get_type_summary('preload_url') : array(),
+            'runner' => class_exists('UCP_Jobs') ? UCP_Jobs::get_runner_status() : array(),
+            'urlStatus' => class_exists('UCP_Preload') && method_exists('UCP_Preload', 'preload_status_summary') ? UCP_Preload::preload_status_summary(30) : array(),
+            'loadPaused' => class_exists('UCP_Preload') && method_exists('UCP_Preload', 'server_load_too_high') ? (bool) UCP_Preload::server_load_too_high() : false,
+        ), $result));
+    }
+
+    public static function compatibility_profiles(WP_REST_Request $request) {
+        return rest_ensure_response(array(
+            'success' => true,
+            'compatibility' => class_exists('UCP_Compat_Profiles') ? UCP_Compat_Profiles::summary() : array('mode' => 'off', 'profiles' => array()),
+        ));
+    }
+
+    public static function fragment_platform(WP_REST_Request $request) {
+        return rest_ensure_response(array(
+            'success' => true,
+            'fragments' => class_exists('UCP_Fragment_Cache') ? UCP_Fragment_Cache::summary() : array('server_cache_enabled' => false, 'client_hydration_enabled' => false, 'fragments' => array()),
+        ));
+    }
+
     public static function diagnostic_logs(WP_REST_Request $request) {
         $paging = self::request_paging($request);
         $result = class_exists('UCP_Logger') ? UCP_Logger::query($paging) : array('rows' => array(), 'total' => 0, 'per_page' => $paging['per_page'], 'paged' => 1, 'max_pages' => 1);
@@ -38,16 +78,19 @@ trait UCP_REST_Diagnostics_Trait {
 
     public static function browser_scan_save(WP_REST_Request $request) {
         if (!class_exists('UCP_PageSpeed_Browser_Scan')) {
-            return new WP_Error('ucp_browser_scan_unavailable', __('Browser scan is niet beschikbaar.', 'ultracache-pro'), array('status' => 404));
+            return new WP_Error('ucp_browser_scan_unavailable', __('Browserscan is niet beschikbaar.', 'ultracache-pro'), array('status' => 404));
         }
         $payload = $request->get_json_params();
         if (!is_array($payload)) {
             $payload = $request->get_params();
         }
         $scan = UCP_PageSpeed_Browser_Scan::save($payload);
+        if (empty($scan)) {
+            return new WP_Error('ucp_browser_scan_persist_failed', __('PageSpeed-browserscan kon niet worden opgeslagen.', 'ultracache-pro'), array('status' => 500));
+        }
         return rest_ensure_response(array(
             'success' => true,
-            'message' => __('PageSpeed browser scan opgeslagen.', 'ultracache-pro'),
+            'message' => __('PageSpeed-browserscan opgeslagen.', 'ultracache-pro'),
             'scan' => $scan,
         ));
     }

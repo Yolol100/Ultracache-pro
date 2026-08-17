@@ -232,16 +232,21 @@ trait UCP_Preload_Collector_Trait {
             'timeout' => max(3, min(8, absint(apply_filters('ucp_preload_sitemap_timeout', 6)))),
             'redirection' => 0,
             'reject_unsafe_urls' => true,
+            'limit_response_size' => 2 * MB_IN_BYTES,
             'user-agent' => 'UltraCachePro-Preloader/' . UCP_VERSION,
         ));
     }
 
-    private function sitemap_url_is_same_host($url, $home_host) {
-        if (!$url || !wp_http_validate_url($url)) {
-            return false;
-        }
-        $parts = wp_parse_url($url);
-        return !empty($parts['host']) && strtolower($parts['host']) === $home_host;
+    /**
+     * Normalize a sitemap URL to the exact configured WordPress origin.
+     * Same-host URLs on another scheme or port are intentionally rejected.
+     *
+     * @param string $url Candidate sitemap or page URL.
+     * @return string Empty string when the URL is not strictly local.
+     */
+    private function normalize_sitemap_local_url($url) {
+        $url = UCP_Helpers::strict_local_url((string) $url);
+        return $url && wp_http_validate_url($url) ? $url : '';
     }
 
     private function get_urls_from_sitemap($sitemap_url, $max_urls = 250) {
@@ -249,14 +254,16 @@ trait UCP_Preload_Collector_Trait {
         $max_urls = max(1, absint($max_urls));
         $max_sub_sitemaps = 25;
         $sub_sitemaps_checked = 0;
-        $home = wp_parse_url(home_url('/'));
-        $home_host = !empty($home['host']) ? strtolower($home['host']) : '';
+        $sitemap_url = $this->normalize_sitemap_local_url($sitemap_url);
+        if ('' === $sitemap_url) {
+            return $found;
+        }
         $response = $this->sitemap_request($sitemap_url);
         if (is_wp_error($response) || 200 !== (int) wp_remote_retrieve_response_code($response)) {
             return $found;
         }
-        $body = wp_remote_retrieve_body($response);
-        if (!is_string($body) || '' === $body || strlen($body) > 2 * 1024 * 1024) {
+        $body = UCP_Helpers::bounded_remote_response_body($response, 2 * MB_IN_BYTES);
+        if (false === $body) {
             return $found;
         }
         if (preg_match_all('/<loc>(.*?)<\/loc>/', $body, $matches)) {
@@ -264,12 +271,8 @@ trait UCP_Preload_Collector_Trait {
                 if (count($found) >= $max_urls) {
                     break;
                 }
-                $url = esc_url_raw(html_entity_decode(trim($match), ENT_QUOTES | ENT_HTML5));
-                if (!$this->sitemap_url_is_same_host($url, $home_host)) {
-                    continue;
-                }
-                $parts = wp_parse_url($url);
-                if (empty($parts['host']) || strtolower($parts['host']) !== $home_host) {
+                $url = $this->normalize_sitemap_local_url(html_entity_decode(trim($match), ENT_QUOTES | ENT_HTML5));
+                if ('' === $url) {
                     continue;
                 }
                 if (substr($url, -4) === '.xml') {
@@ -281,8 +284,8 @@ trait UCP_Preload_Collector_Trait {
                     if (is_wp_error($sub) || 200 !== (int) wp_remote_retrieve_response_code($sub)) {
                         continue;
                     }
-                    $sub_body = wp_remote_retrieve_body($sub);
-                    if (!is_string($sub_body) || '' === $sub_body || strlen($sub_body) > 2 * 1024 * 1024) {
+                    $sub_body = UCP_Helpers::bounded_remote_response_body($sub, 2 * MB_IN_BYTES);
+                    if (false === $sub_body) {
                         continue;
                     }
                     preg_match_all('/<loc>(.*?)<\/loc>/', $sub_body, $sub_matches);
@@ -290,12 +293,8 @@ trait UCP_Preload_Collector_Trait {
                         if (count($found) >= $max_urls) {
                             break 2;
                         }
-                        $sub_url = esc_url_raw(html_entity_decode(trim($sub_url), ENT_QUOTES | ENT_HTML5));
-                        if (!$this->sitemap_url_is_same_host($sub_url, $home_host)) {
-                            continue;
-                        }
-                        $sub_parts = wp_parse_url($sub_url);
-                        if (empty($sub_parts['host']) || strtolower($sub_parts['host']) !== $home_host) {
+                        $sub_url = $this->normalize_sitemap_local_url(html_entity_decode(trim($sub_url), ENT_QUOTES | ENT_HTML5));
+                        if ('' === $sub_url) {
                             continue;
                         }
                         $found[] = $sub_url;

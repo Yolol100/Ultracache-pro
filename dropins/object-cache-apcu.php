@@ -14,7 +14,14 @@ $GLOBALS['ucp_apcu_cache_runtime'] = isset($GLOBALS['ucp_apcu_cache_runtime']) &
 if (!function_exists('ucp_apcu_normalize_group')) {
     function ucp_apcu_normalize_group($group) {
         $group = (string) $group;
-        return '' === $group ? 'default' : preg_replace('/[^A-Za-z0-9_.:-]/', '_', $group);
+        if ('' === $group) {
+            return 'default';
+        }
+        if (1 === preg_match('/^ucp-group-[a-f0-9]{64}$/', $group)
+            || 1 === preg_match('/^[A-Za-z0-9_.:-]+$/', $group)) {
+            return $group;
+        }
+        return 'ucp-group-' . hash('sha256', $group);
     }
 }
 
@@ -36,7 +43,15 @@ if (!function_exists('ucp_apcu_normalize_groups')) {
 
 if (!function_exists('ucp_apcu_is_available')) {
     function ucp_apcu_is_available() {
-        return function_exists('apcu_fetch') && function_exists('apcu_store') && filter_var(ini_get('apc.enabled'), FILTER_VALIDATE_BOOLEAN);
+        if (!function_exists('apcu_fetch') || !function_exists('apcu_store') || !filter_var(ini_get('apc.enabled'), FILTER_VALIDATE_BOOLEAN)) {
+            return false;
+        }
+
+        if ('cli' === PHP_SAPI && !filter_var(ini_get('apc.enable_cli'), FILTER_VALIDATE_BOOLEAN)) {
+            return false;
+        }
+
+        return true;
     }
 }
 
@@ -87,22 +102,132 @@ if (!function_exists('ucp_apcu_key')) {
     }
 }
 
+if (!function_exists('ucp_apcu_is_valid_key')) {
+    function ucp_apcu_is_valid_key($key) {
+        return is_int($key) || (is_string($key) && '' !== trim($key));
+    }
+}
+
+if (!function_exists('ucp_apcu_clone_value')) {
+    function ucp_apcu_clone_value($value) {
+        return is_object($value) ? clone $value : $value;
+    }
+}
+
+if (!function_exists('ucp_apcu_remaining_ttl')) {
+    /**
+     * Return the remaining TTL for an APCu key without assuming that APCu uses
+     * Unix timestamps internally. A zero return value means that the key is
+     * intentionally persistent; null means that its expiry cannot be read.
+     */
+    function ucp_apcu_remaining_ttl($cache_key) {
+        if (!function_exists('apcu_key_info')) {
+            return null;
+        }
+
+        $info = apcu_key_info((string) $cache_key);
+        if (!is_array($info)) {
+            return null;
+        }
+
+        $ttl = isset($info['ttl']) ? (int) $info['ttl'] : 0;
+        if ($ttl <= 0) {
+            return 0;
+        }
+
+        if (!isset($info['creation_time']) || !function_exists('apcu_store') || !function_exists('apcu_delete')) {
+            return null;
+        }
+
+        // APCu may use a monotonic clock. Read "now" from APCu itself instead
+        // of comparing creation_time with PHP's wall clock.
+        $probe_key = (string) $cache_key . ':ucp-ttl-probe:' . md5(uniqid('', true));
+        if (!apcu_store($probe_key, 1, 1)) {
+            return null;
+        }
+
+        $probe_info = apcu_key_info($probe_key);
+        apcu_delete($probe_key);
+        if (!is_array($probe_info) || !isset($probe_info['creation_time'])) {
+            return null;
+        }
+
+        $elapsed = max(0, (int) $probe_info['creation_time'] - (int) $info['creation_time']);
+        return max(1, $ttl - $elapsed);
+    }
+}
+
+if (!function_exists('ucp_apcu_store_preserving_ttl')) {
+    function ucp_apcu_store_preserving_ttl($cache_key, $value) {
+        if (!function_exists('apcu_store')) {
+            return false;
+        }
+
+        $ttl = ucp_apcu_remaining_ttl($cache_key);
+        if (null === $ttl) {
+            return false;
+        }
+
+        return apcu_store((string) $cache_key, $value, (int) $ttl);
+    }
+}
+
+if (!function_exists('ucp_apcu_floor_counter')) {
+    /**
+     * Floor a negative APCu counter at zero without resetting its expiry.
+     */
+    function ucp_apcu_floor_counter($cache_key, $stored_value) {
+        $stored_value = (int) $stored_value;
+        if ($stored_value >= 0) {
+            return $stored_value;
+        }
+
+        if (function_exists('apcu_cas') && function_exists('apcu_fetch')) {
+            $expected = $stored_value;
+            for ($attempt = 0; $attempt < 3; $attempt++) {
+                if (apcu_cas((string) $cache_key, $expected, 0)) {
+                    return 0;
+                }
+
+                $success = false;
+                $current = apcu_fetch((string) $cache_key, $success);
+                if (!$success || !is_numeric($current)) {
+                    return false;
+                }
+
+                $expected = (int) $current;
+                if ($expected >= 0) {
+                    return $expected;
+                }
+            }
+
+            return false;
+        }
+
+        return ucp_apcu_store_preserving_ttl($cache_key, 0) ? 0 : false;
+    }
+}
+
 if (!function_exists('ucp_apcu_delete_by_prefix')) {
     function ucp_apcu_delete_by_prefix($prefix) {
         if (!ucp_apcu_is_available() || !class_exists('APCUIterator')) {
-            return true;
+            return false;
         }
 
-        $deleted = true;
-        $iterator = new APCUIterator('/^' . preg_quote((string) $prefix, '/') . '/');
+        try {
+            $deleted = true;
+            $iterator = new APCUIterator('/^' . preg_quote((string) $prefix, '/') . '/');
 
-        foreach ($iterator as $entry) {
-            if (empty($entry['key']) || !apcu_delete((string) $entry['key'])) {
-                $deleted = false;
+            foreach ($iterator as $entry) {
+                if (empty($entry['key']) || !apcu_delete((string) $entry['key'])) {
+                    $deleted = false;
+                }
             }
-        }
 
-        return $deleted;
+            return $deleted;
+        } catch (Throwable $e) {
+            return false;
+        }
     }
 }
 
@@ -152,14 +277,31 @@ if (!function_exists('wp_cache_add_non_persistent_groups')) {
 
 if (!function_exists('wp_cache_get')) {
     function wp_cache_get($key, $group = '', $force = false, &$found = null) {
-        $cache_key = ucp_apcu_key($key, $group);
-
-        if (array_key_exists($cache_key, $GLOBALS['ucp_apcu_cache_runtime'])) {
-            $found = true;
-            return $GLOBALS['ucp_apcu_cache_runtime'][$cache_key];
+        if (!ucp_apcu_is_valid_key($key)) {
+            $found = false;
+            return false;
         }
 
-        if (ucp_apcu_group_is_non_persistent($group) || !ucp_apcu_is_available()) {
+        $cache_key = ucp_apcu_key($key, $group);
+
+        if (!$force && array_key_exists($cache_key, $GLOBALS['ucp_apcu_cache_runtime'])) {
+            $found = true;
+            return ucp_apcu_clone_value($GLOBALS['ucp_apcu_cache_runtime'][$cache_key]);
+        }
+
+        if (ucp_apcu_group_is_non_persistent($group)) {
+            if (array_key_exists($cache_key, $GLOBALS['ucp_apcu_cache_runtime'])) {
+                $found = true;
+                return ucp_apcu_clone_value($GLOBALS['ucp_apcu_cache_runtime'][$cache_key]);
+            }
+            $found = false;
+            return false;
+        }
+        if ($force) {
+            unset($GLOBALS['ucp_apcu_cache_runtime'][$cache_key]);
+        }
+        if (!ucp_apcu_is_available()) {
+            // A forced read must never fall back to a potentially stale runtime value.
             $found = false;
             return false;
         }
@@ -169,8 +311,8 @@ if (!function_exists('wp_cache_get')) {
         $found = (bool) $success;
 
         if ($success) {
-            $GLOBALS['ucp_apcu_cache_runtime'][$cache_key] = $value;
-            return $value;
+            $GLOBALS['ucp_apcu_cache_runtime'][$cache_key] = ucp_apcu_clone_value($value);
+            return ucp_apcu_clone_value($value);
         }
 
         return false;
@@ -179,31 +321,24 @@ if (!function_exists('wp_cache_get')) {
 
 if (!function_exists('wp_cache_set')) {
     function wp_cache_set($key, $data, $group = '', $expire = 0) {
-        $cache_key = ucp_apcu_key($key, $group);
-        $GLOBALS['ucp_apcu_cache_runtime'][$cache_key] = $data;
-
-        if (ucp_apcu_group_is_non_persistent($group) || !ucp_apcu_is_available()) {
-            return true;
-        }
-
-        return (bool) apcu_store($cache_key, $data, max(0, (int) $expire));
-    }
-}
-
-if (!function_exists('wp_cache_add')) {
-    function wp_cache_add($key, $data, $group = '', $expire = 0) {
-        $cache_key = ucp_apcu_key($key, $group);
-
-        if (array_key_exists($cache_key, $GLOBALS['ucp_apcu_cache_runtime'])) {
+        if (!ucp_apcu_is_valid_key($key)) {
             return false;
         }
 
-        if (ucp_apcu_group_is_non_persistent($group) || !ucp_apcu_is_available()) {
+        $cache_key = ucp_apcu_key($key, $group);
+        $data = ucp_apcu_clone_value($data);
+
+        if (ucp_apcu_group_is_non_persistent($group)) {
             $GLOBALS['ucp_apcu_cache_runtime'][$cache_key] = $data;
             return true;
         }
+        if (!ucp_apcu_is_available()) {
+            unset($GLOBALS['ucp_apcu_cache_runtime'][$cache_key]);
+            return false;
+        }
 
-        if (!function_exists('apcu_add') || !apcu_add($cache_key, $data, max(0, (int) $expire))) {
+        if (!apcu_store($cache_key, $data, max(0, (int) $expire))) {
+            unset($GLOBALS['ucp_apcu_cache_runtime'][$cache_key]);
             return false;
         }
 
@@ -212,10 +347,43 @@ if (!function_exists('wp_cache_add')) {
     }
 }
 
+if (!function_exists('wp_cache_add')) {
+    function wp_cache_add($key, $data, $group = '', $expire = 0) {
+        if (!ucp_apcu_is_valid_key($key) || (function_exists('wp_suspend_cache_addition') && wp_suspend_cache_addition())) {
+            return false;
+        }
+
+        $cache_key = ucp_apcu_key($key, $group);
+
+        if (ucp_apcu_group_is_non_persistent($group)) {
+            if (array_key_exists($cache_key, $GLOBALS['ucp_apcu_cache_runtime'])) {
+                return false;
+            }
+            $GLOBALS['ucp_apcu_cache_runtime'][$cache_key] = ucp_apcu_clone_value($data);
+            return true;
+        }
+        if (!ucp_apcu_is_available()) {
+            unset($GLOBALS['ucp_apcu_cache_runtime'][$cache_key]);
+            return false;
+        }
+
+        if (!function_exists('apcu_add') || !apcu_add($cache_key, $data, max(0, (int) $expire))) {
+            return false;
+        }
+
+        $GLOBALS['ucp_apcu_cache_runtime'][$cache_key] = ucp_apcu_clone_value($data);
+        return true;
+    }
+}
+
 if (!function_exists('wp_cache_replace')) {
     function wp_cache_replace($key, $data, $group = '', $expire = 0) {
+        if (!ucp_apcu_is_valid_key($key)) {
+            return false;
+        }
+
         $found = false;
-        wp_cache_get($key, $group, false, $found);
+        wp_cache_get($key, $group, true, $found);
 
         return $found ? wp_cache_set($key, $data, $group, $expire) : false;
     }
@@ -223,14 +391,32 @@ if (!function_exists('wp_cache_replace')) {
 
 if (!function_exists('wp_cache_delete')) {
     function wp_cache_delete($key, $group = '') {
-        $cache_key = ucp_apcu_key($key, $group);
-        unset($GLOBALS['ucp_apcu_cache_runtime'][$cache_key]);
-
-        if (ucp_apcu_group_is_non_persistent($group) || !ucp_apcu_is_available()) {
-            return true;
+        if (!ucp_apcu_is_valid_key($key)) {
+            return false;
         }
 
-        return function_exists('apcu_delete') ? (bool) apcu_delete($cache_key) : false;
+        $cache_key = ucp_apcu_key($key, $group);
+
+        if (ucp_apcu_group_is_non_persistent($group)) {
+            $deleted = array_key_exists($cache_key, $GLOBALS['ucp_apcu_cache_runtime']);
+            unset($GLOBALS['ucp_apcu_cache_runtime'][$cache_key]);
+            return $deleted;
+        }
+        if (!ucp_apcu_is_available() || !function_exists('apcu_delete')) {
+            unset($GLOBALS['ucp_apcu_cache_runtime'][$cache_key]);
+            return false;
+        }
+
+        try {
+            $deleted = (bool) apcu_delete($cache_key);
+        } catch (Throwable $e) {
+            unset($GLOBALS['ucp_apcu_cache_runtime'][$cache_key]);
+            return false;
+        }
+
+        // Backend access succeeded, so the in-request layer may now mirror its state.
+        unset($GLOBALS['ucp_apcu_cache_runtime'][$cache_key]);
+        return $deleted;
     }
 }
 
@@ -299,36 +485,53 @@ if (!function_exists('wp_cache_flush_group')) {
     function wp_cache_flush_group($group) {
         $group = ucp_apcu_normalize_group($group);
         $prefix = ucp_apcu_prefix($group) . $group . ':';
+        if (ucp_apcu_group_is_non_persistent($group)) {
+            ucp_apcu_delete_runtime_by_prefix($prefix);
+            return true;
+        }
+        $deleted = ucp_apcu_delete_by_prefix($prefix);
         ucp_apcu_delete_runtime_by_prefix($prefix);
-
-        return ucp_apcu_delete_by_prefix($prefix);
+        return $deleted;
     }
 }
 
 if (!function_exists('wp_cache_flush')) {
     function wp_cache_flush() {
+        $deleted = ucp_apcu_delete_by_prefix('ucp:' . md5(ucp_apcu_installation_salt()) . ':');
         wp_cache_flush_runtime();
-        return ucp_apcu_delete_by_prefix('ucp:' . md5(ucp_apcu_installation_salt()) . ':');
+        return $deleted;
     }
 }
 
 if (!function_exists('wp_cache_incr')) {
     function wp_cache_incr($key, $offset = 1, $group = '') {
-        $offset = abs((int) $offset);
-        $cache_key = ucp_apcu_key($key, $group);
-        $found = false;
-        $current = wp_cache_get($key, $group, false, $found);
-
-        if (!$found) {
+        if (!ucp_apcu_is_valid_key($key)) {
             return false;
         }
 
-        $value = (int) $current + $offset;
-
-        if (ucp_apcu_group_is_non_persistent($group) || !ucp_apcu_is_available()) {
+        $offset = abs((int) $offset);
+        $cache_key = ucp_apcu_key($key, $group);
+        if (ucp_apcu_group_is_non_persistent($group)) {
+            $found = false;
+            $current = wp_cache_get($key, $group, false, $found);
+            if (!$found) {
+                return false;
+            }
+            $value = (int) $current + $offset;
             $GLOBALS['ucp_apcu_cache_runtime'][$cache_key] = $value;
             return $value;
         }
+        if (!ucp_apcu_is_available()) {
+            unset($GLOBALS['ucp_apcu_cache_runtime'][$cache_key]);
+            return false;
+        }
+
+        $found = false;
+        $current = wp_cache_get($key, $group, true, $found);
+        if (!$found) {
+            return false;
+        }
+        $value = (int) $current + $offset;
 
         if (function_exists('apcu_inc')) {
             $success = false;
@@ -339,32 +542,47 @@ if (!function_exists('wp_cache_incr')) {
             }
         }
 
-        if (function_exists('apcu_store') && apcu_store($cache_key, $value, 0)) {
+        // APCu increments only numeric values. Preserve WordPress' numeric cast
+        // fallback without turning a temporary key into a permanent one.
+        if (!is_int($current) && ucp_apcu_store_preserving_ttl($cache_key, $value)) {
             $GLOBALS['ucp_apcu_cache_runtime'][$cache_key] = $value;
             return $value;
         }
 
+        unset($GLOBALS['ucp_apcu_cache_runtime'][$cache_key]);
         return false;
     }
 }
 
 if (!function_exists('wp_cache_decr')) {
     function wp_cache_decr($key, $offset = 1, $group = '') {
-        $offset = abs((int) $offset);
-        $cache_key = ucp_apcu_key($key, $group);
-        $found = false;
-        $current = wp_cache_get($key, $group, false, $found);
-
-        if (!$found) {
+        if (!ucp_apcu_is_valid_key($key)) {
             return false;
         }
 
-        $value = max(0, (int) $current - $offset);
-
-        if (ucp_apcu_group_is_non_persistent($group) || !ucp_apcu_is_available()) {
+        $offset = abs((int) $offset);
+        $cache_key = ucp_apcu_key($key, $group);
+        if (ucp_apcu_group_is_non_persistent($group)) {
+            $found = false;
+            $current = wp_cache_get($key, $group, false, $found);
+            if (!$found) {
+                return false;
+            }
+            $value = max(0, (int) $current - $offset);
             $GLOBALS['ucp_apcu_cache_runtime'][$cache_key] = $value;
             return $value;
         }
+        if (!ucp_apcu_is_available()) {
+            unset($GLOBALS['ucp_apcu_cache_runtime'][$cache_key]);
+            return false;
+        }
+
+        $found = false;
+        $current = wp_cache_get($key, $group, true, $found);
+        if (!$found) {
+            return false;
+        }
+        $value = max(0, (int) $current - $offset);
 
         if (function_exists('apcu_dec')) {
             $success = false;
@@ -372,12 +590,13 @@ if (!function_exists('wp_cache_decr')) {
             if ($success) {
                 $value = (int) $stored_value;
                 if ($value < 0) {
-                    // Mirror WP core and the Redis drop-in: a decremented counter must not
-                    // persist below zero. apcu_dec() does not floor, so re-store 0 instead of
-                    // leaving a negative value that a later request would read back.
-                    $value = 0;
-                    if (function_exists('apcu_store')) {
-                        apcu_store($cache_key, 0, 0);
+                    // Mirror WP core and the Redis drop-in while retaining the
+                    // original expiry. CAS updates the existing APCu entry in
+                    // place and therefore avoids re-storing it with TTL 0.
+                    $value = ucp_apcu_floor_counter($cache_key, $value);
+                    if (false === $value) {
+                        unset($GLOBALS['ucp_apcu_cache_runtime'][$cache_key]);
+                        return false;
                     }
                 }
                 $GLOBALS['ucp_apcu_cache_runtime'][$cache_key] = $value;
@@ -385,11 +604,12 @@ if (!function_exists('wp_cache_decr')) {
             }
         }
 
-        if (function_exists('apcu_store') && apcu_store($cache_key, $value, 0)) {
+        if (!is_int($current) && ucp_apcu_store_preserving_ttl($cache_key, $value)) {
             $GLOBALS['ucp_apcu_cache_runtime'][$cache_key] = $value;
             return $value;
         }
 
+        unset($GLOBALS['ucp_apcu_cache_runtime'][$cache_key]);
         return false;
     }
 }
@@ -402,9 +622,13 @@ if (!function_exists('wp_cache_switch_to_blog')) {
 
 if (!function_exists('wp_cache_supports')) {
     function wp_cache_supports($feature) {
+        $feature = (string) $feature;
+        if ('flush_group' === $feature) {
+            return ucp_apcu_is_available() && class_exists('APCUIterator');
+        }
         return in_array(
-            (string) $feature,
-            array('add_multiple', 'set_multiple', 'get_multiple', 'delete_multiple', 'flush_runtime', 'flush_group'),
+            $feature,
+            array('add_multiple', 'set_multiple', 'get_multiple', 'delete_multiple', 'flush_runtime'),
             true
         );
     }

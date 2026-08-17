@@ -68,19 +68,37 @@ trait UCP_Optimizer_CDN_Hints_Trait {
         if (!$this->cdn_rewrite_context_is_safe() || (class_exists('UCP_Optimization_Guards') && UCP_Optimization_Guards::contains_sensitive_markup($html))) {
             return $html;
         }
-        $html = UCP_Helpers::safe_preg_replace_callback("/\s(src|href)=(\"|\x27)([^\"\x27]+)(\2)/i", function ($matches) {
-            $url = html_entity_decode($matches[3], ENT_QUOTES);
-            $rewritten = $this->rewrite_asset_to_cdn($url);
-            if ($rewritten === $url) {
-                return $matches[0];
+        if (!class_exists('UCP_HTML_Parser')) {
+            return $source;
+        }
+
+        $rewrite_tag = function ($tag_match) {
+            $tag = UCP_Helpers::safe_preg_replace_callback('/\s(src|href)\s*=\s*("|\')([^"\']+)\2/i', function ($matches) {
+                $url = html_entity_decode($matches[3], ENT_QUOTES);
+                $rewritten = $this->rewrite_asset_to_cdn($url);
+                if ($rewritten === $url) {
+                    return $matches[0];
+                }
+                return ' ' . $matches[1] . '=' . $matches[2] . esc_url($rewritten) . $matches[2];
+            }, $tag_match[0]);
+            if (!is_string($tag)) {
+                return $tag_match[0];
             }
-            return ' ' . $matches[1] . '=' . $matches[2] . esc_url($rewritten) . $matches[2];
-        }, $html);
-        $html = UCP_Helpers::safe_preg_replace_callback("/\s(srcset)=(\"|\x27)([^\"\x27]+)(\2)/i", function ($matches) {
-            $srcset = $this->rewrite_srcset_to_cdn($matches[3]);
-            return ' ' . $matches[1] . '=' . $matches[2] . esc_attr($srcset) . $matches[2];
-        }, $html);
-        return is_string($html) ? $html : $source;
+            $rewritten_tag = UCP_Helpers::safe_preg_replace_callback('/\s(srcset)\s*=\s*("|\')([^"\']+)\2/i', function ($matches) {
+                $srcset = $this->rewrite_srcset_to_cdn($matches[3]);
+                return ' ' . $matches[1] . '=' . $matches[2] . esc_attr($srcset) . $matches[2];
+            }, $tag);
+            return is_string($rewritten_tag) ? $rewritten_tag : $tag;
+        };
+
+        foreach (array('a', 'area', 'audio', 'base', 'embed', 'iframe', 'image', 'img', 'input', 'link', 'script', 'source', 'track', 'use', 'video') as $tag_name) {
+            $candidate = UCP_HTML_Parser::replace_tag($html, $tag_name, $rewrite_tag);
+            if (!is_string($candidate)) {
+                return $source;
+            }
+            $html = $candidate;
+        }
+        return $html;
     }
 
     private function rewrite_srcset_to_cdn($srcset) {
@@ -266,8 +284,7 @@ trait UCP_Optimizer_CDN_Hints_Trait {
             return false;
         }
         $host = strtolower((string) wp_parse_url($url, PHP_URL_HOST));
-        $path = strtolower((string) wp_parse_url($url, PHP_URL_PATH));
-        if (!preg_match('/\.(css|js|woff2?|ttf|otf|eot)(?:$|\?)/i', $path) && false === strpos($path, '/gtag/js') && false === strpos($path, '/gtm.js')) {
+        if ('' === $this->third_party_asset_extension($url)) {
             return false;
         }
         foreach ((array) $domains as $domain) {
@@ -288,12 +305,8 @@ trait UCP_Optimizer_CDN_Hints_Trait {
         if ($this->host_resolves_to_private_network($host)) {
             return '';
         }
-        $path = (string) wp_parse_url($url, PHP_URL_PATH);
-        $ext = strtolower((string) pathinfo($path, PATHINFO_EXTENSION));
-        if ('' === $ext && (false !== strpos($path, '/gtag/js') || false !== strpos($path, '/gtm.js'))) {
-            $ext = 'js';
-        }
-        if (!in_array($ext, array('css','js','woff','woff2','ttf','otf','eot'), true)) {
+        $ext = $this->third_party_asset_extension($url);
+        if ('' === $ext) {
             return '';
         }
         $dir = trailingslashit(UCP_CACHE_DIR) . 'self-host/';
@@ -301,47 +314,86 @@ trait UCP_Optimizer_CDN_Hints_Trait {
             wp_mkdir_p($dir);
         }
         UCP_Helpers::write_file($dir . 'index.html', '');
-        $hash = substr(hash('sha256', remove_query_arg(array('id','l','cx'), $url)), 0, 24);
+        $hash = substr(hash('sha256', $url), 0, 24);
         $target = $dir . $hash . '.' . $ext;
-        if (!file_exists($target)) {
-            $response = wp_remote_get(
-                $url,
-                array(
-                    'timeout'             => 8,
-                    'redirection'         => 0,
-                    'reject_unsafe_urls'  => true,
-                    'limit_response_size' => 1048576,
-                )
-            );
-            $code = (int) wp_remote_retrieve_response_code($response);
-            if (is_wp_error($response) || 200 !== $code) {
-                return '';
-            }
-            $content_type = strtolower((string) wp_remote_retrieve_header($response, 'content-type'));
-            if (!$this->remote_asset_content_type_allowed($ext, $content_type)) {
-                return '';
-            }
-            $body = wp_remote_retrieve_body($response);
-            if (!is_string($body) || strlen($body) < 20 || strlen($body) > 1048576) {
-                return '';
-            }
-            if ('css' === $ext) {
-                $body = UCP_Helpers::minify_css($body);
-            }
-            // Keep third-party JavaScript byte-for-byte. Re-minifying vendor/tracking scripts
-            // can break consent, analytics or integrity-sensitive code even when self-hosting is enabled.
+        $cached = UCP_Helpers::is_safe_managed_cache_file($target);
+        $max_age = absint(apply_filters('ucp_self_host_asset_max_age', DAY_IN_SECONDS, $url));
+        $max_age = max(HOUR_IN_SECONDS, min(7 * DAY_IN_SECONDS, $max_age));
+        $modified = $cached ? filemtime($target) : false;
+        $fresh = $cached && false !== $modified && $modified >= time() - $max_age;
+        if ($fresh) {
+            return UCP_Helpers::file_url_from_path($target);
+        }
 
-            $tmp = $target . '.tmp.' . wp_generate_password(8, false, false);
-            if (!UCP_Helpers::write_file($tmp, $body) || !UCP_Helpers::move_file($tmp, $target)) {
-                UCP_Helpers::safe_delete_file($tmp);
-                return '';
-            }
+        $stale_url = $cached ? UCP_Helpers::file_url_from_path($target) : '';
+        if (is_link($target)) {
+            UCP_Helpers::safe_delete_file($target);
+        }
+        $response = wp_remote_get(
+            $url,
+            array(
+                'timeout'             => 8,
+                'redirection'         => 0,
+                'reject_unsafe_urls'  => true,
+                'limit_response_size' => 1048576,
+            )
+        );
+        $code = (int) wp_remote_retrieve_response_code($response);
+        if (is_wp_error($response) || 200 !== $code) {
+            return $stale_url;
+        }
+        $content_type = strtolower((string) wp_remote_retrieve_header($response, 'content-type'));
+        if (!$this->remote_asset_content_type_allowed($ext, $content_type)) {
+            return $stale_url;
+        }
+        $body = UCP_Helpers::bounded_remote_response_body($response, 1048576, 20);
+        if (false === $body) {
+            return $stale_url;
+        }
+        if ('css' === $ext && $this->remote_css_has_relative_references($body)) {
+            return '';
+        }
+        // Keep third-party CSS and JavaScript byte-for-byte. Re-minifying vendor assets can
+        // invalidate integrity attributes or change vendor-specific parsing behaviour.
+
+        $tmp = $target . '.tmp.' . wp_generate_password(8, false, false);
+        if (!UCP_Helpers::write_file($tmp, $body) || !UCP_Helpers::move_file($tmp, $target)) {
+            UCP_Helpers::safe_delete_file($tmp);
+            return $stale_url;
         }
         return UCP_Helpers::file_url_from_path($target);
     }
 
+    private function third_party_asset_extension($url) {
+        $host = strtolower((string) wp_parse_url($url, PHP_URL_HOST));
+        $path = strtolower((string) wp_parse_url($url, PHP_URL_PATH));
+        $ext = strtolower((string) pathinfo($path, PATHINFO_EXTENSION));
+        if ('' === $ext && (false !== strpos($path, '/gtag/js') || false !== strpos($path, '/gtm.js'))) {
+            $ext = 'js';
+        }
+        if ('' === $ext && 'fonts.googleapis.com' === $host && preg_match('#^/(?:css2?|icon)(?:/|$)#i', $path)) {
+            $ext = 'css';
+        }
+        return in_array($ext, array('css', 'js', 'woff', 'woff2', 'ttf', 'otf', 'eot'), true) ? $ext : '';
+    }
+
+    private function remote_css_has_relative_references($css) {
+        $css = UCP_Helpers::safe_preg_replace('#/\*.*?\*/#s', '', (string) $css);
+        if (!preg_match_all('/(?:url\s*\(\s*|@import\s+(?:url\(\s*)?)([\'"]?)([^\'")\s]+)\1/i', $css, $matches)) {
+            return false;
+        }
+        foreach ($matches[2] as $reference) {
+            $reference = strtolower(trim((string) $reference));
+            if ('' === $reference || '#' === $reference[0] || 0 === strpos($reference, 'data:') || 0 === strpos($reference, 'http:') || 0 === strpos($reference, 'https:') || 0 === strpos($reference, '//')) {
+                continue;
+            }
+            return true;
+        }
+        return false;
+    }
+
     private function remote_asset_content_type_allowed($ext, $content_type) {
-        $content_type = strtolower(trim((string) preg_replace('/;.*$/', '', (string) $content_type)));
+        $content_type = strtolower(trim((string) UCP_Helpers::safe_preg_replace('/;.*$/', '', (string) $content_type)));
         $map = array(
             'css' => array('text/css'),
             'js' => array('application/javascript', 'text/javascript', 'application/x-javascript', 'text/ecmascript', 'application/ecmascript'),
@@ -375,7 +427,7 @@ trait UCP_Optimizer_CDN_Hints_Trait {
             }
         }
         $selectors = array_values(array_unique($selectors));
-        $selector_json = wp_json_encode($selectors);
+        $selector_json = UCP_Helpers::safe_inline_json(array_slice($selectors, 0, 100), '[]');
         if (!$selector_json) {
             return $html;
         }
@@ -392,9 +444,25 @@ trait UCP_Optimizer_CDN_Hints_Trait {
         if ($this->should_skip_markup_optimizations()) {
             return;
         }
+
+        $version = defined('UCP_VERSION') ? UCP_VERSION : null;
         if (UCP_Options::get('enable_lazyload_fade_in')) {
-            echo '<style id="ucp-lazy-fade-css">img.ucp-lazy-fade{opacity:0;transition:opacity .25s ease}img.ucp-lazy-fade.is-loaded{opacity:1}</style>' . "\n";
-            echo '<script id="ucp-lazy-fade-js">(function(){var d=document;function r(i){if(i&&i.classList){i.classList.add("is-loaded");}}function b(i){if(i.complete||i.loading!=="lazy"){r(i);}else{if(i.addEventListener){i.addEventListener("load",function(){r(i);},{once:true});i.addEventListener("error",function(){r(i);},{once:true});}}}function a(){d.querySelectorAll("img.ucp-lazy-fade").forEach(b);}if(d.readyState==="loading"){d.addEventListener("DOMContentLoaded",a,{once:true});}else{a();}})();</script>' . "\n";
+            $fade_css = 'img.ucp-lazy-fade{opacity:0;transition:opacity .25s ease}img.ucp-lazy-fade.is-loaded{opacity:1}';
+            $fade_javascript = '(function(){var d=document;function r(i){if(i&&i.classList){i.classList.add("is-loaded");}}function b(i){if(i.complete||i.loading!=="lazy"){r(i);}else if(i.addEventListener){i.addEventListener("load",function(){r(i);},{once:true});i.addEventListener("error",function(){r(i);},{once:true});}}function a(){d.querySelectorAll("img.ucp-lazy-fade").forEach(b);}if(d.readyState==="loading"){d.addEventListener("DOMContentLoaded",a,{once:true});}else{a();}})();';
+
+            wp_register_style('ucp-lazy-fade-css', false, array(), $version);
+            wp_enqueue_style('ucp-lazy-fade-css');
+            wp_add_inline_style('ucp-lazy-fade-css', $fade_css);
+
+            wp_register_script(
+                'ucp-lazy-fade-js',
+                false,
+                array(),
+                $version,
+                array('in_footer' => true)
+            );
+            wp_enqueue_script('ucp-lazy-fade-js');
+            wp_add_inline_script('ucp-lazy-fade-js', $fade_javascript, 'after');
         }
         if (!UCP_Options::get('enable_lazy_render')) {
             return;
@@ -429,7 +497,10 @@ trait UCP_Optimizer_CDN_Hints_Trait {
             $clean
         );
         $css = '@supports (content-visibility:auto){' . implode(',', $clean) . '{content-visibility:auto;contain-intrinsic-size:auto 600px;}' . implode(',', $done_selectors) . '{content-visibility:visible;contain-intrinsic-size:auto;}}';
-        echo '<style id="ucp-lazy-render">' . str_replace('</', '<\/', $css) . '</style>' . "\n";
+
+        wp_register_style('ucp-lazy-render', false, array(), $version);
+        wp_enqueue_style('ucp-lazy-render');
+        wp_add_inline_style('ucp-lazy-render', $css);
     }
 
     private function lazy_render_selector_is_critical($selector) {
@@ -457,9 +528,13 @@ trait UCP_Optimizer_CDN_Hints_Trait {
     }
 
     public function output_preload_fonts() {
+        if (!UCP_Options::get('enable_auto_font_preloads')) {
+            return;
+        }
+
         $manual_fonts = UCP_Helpers::normalize_multiline(UCP_Options::get('preload_fonts', ''));
         $fonts = $manual_fonts;
-        if (UCP_Options::get('enable_auto_font_preloads')) {
+        if (UCP_Options::get('enable_local_google_fonts')) {
             $auto = get_option('ucp_local_font_preload_candidates', array());
             if (is_array($auto)) {
                 $fonts = array_merge($fonts, $this->safe_auto_font_preload_candidates($auto));
@@ -475,7 +550,9 @@ trait UCP_Optimizer_CDN_Hints_Trait {
         }
         foreach ($fonts as $font_url) {
             $font_url = esc_url_raw((string) $font_url, array('http', 'https'));
-            if (!$font_url || isset($seen[$this->normalize_font_preload_url($font_url)]) || preg_match('/[\n<>]/', $font_url)) {
+            $dedupe_key = $this->normalize_font_preload_url($font_url);
+            if (!$font_url || !$dedupe_key || isset($seen[$dedupe_key]) || preg_match('/[
+<>]/', $font_url)) {
                 continue;
             }
             if (!preg_match('/\.(woff2|woff)(\?|$)/i', $font_url)) {
@@ -484,7 +561,7 @@ trait UCP_Optimizer_CDN_Hints_Trait {
             if (!UCP_Helpers::is_local_url($font_url) && !wp_http_validate_url($font_url)) {
                 continue;
             }
-            $seen[$this->normalize_font_preload_url($font_url)] = true;
+            $seen[$dedupe_key] = true;
             $type = preg_match('/\.woff2(\?|$)/i', $font_url) ? 'font/woff2' : 'font/woff';
             echo '<link rel="preload" href="' . esc_url($font_url) . '" as="font" type="' . esc_attr($type) . '" crossorigin data-ucp="font-preload">' . "
 ";
@@ -512,7 +589,8 @@ trait UCP_Optimizer_CDN_Hints_Trait {
         foreach ((array) $candidates as $candidate) {
             $url = is_array($candidate) && !empty($candidate['url']) ? (string) $candidate['url'] : (string) $candidate;
             $url = esc_url_raw($url, array('http', 'https'));
-            if (!$url || !preg_match('/\.woff2(\?|$)/i', $url) || preg_match('/[\n<>]/', $url)) {
+            if (!$url || !preg_match('/\.woff2(\?|$)/i', $url) || preg_match('/[
+<>]/', $url)) {
                 continue;
             }
             $lower = strtolower(rawurldecode($url));
@@ -558,7 +636,7 @@ trait UCP_Optimizer_CDN_Hints_Trait {
         if (is_admin() || is_user_logged_in() || !UCP_Options::get('enable_prefetch_links')) {
             return;
         }
-        echo $this->inline_script_tag($this->prefetch_links_script()); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- generated via wp_get_inline_script_tag or escaped fallback.
+        echo $this->inline_script_tag($this->prefetch_links_script()); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- generated via wp_get_inline_script_tag.
     }
 
     public function output_speculation_rules() {
@@ -575,6 +653,7 @@ trait UCP_Optimizer_CDN_Hints_Trait {
 
         $conditions = array(
             array('href_matches' => '/*'),
+            array('not' => array('href_matches' => '/*\?(.+)')),
             array('not' => array('href_matches' => '/wp-admin/*')),
             array('not' => array('href_matches' => '/wp-login.php*')),
             array('not' => array('href_matches' => '/*?*_wpnonce=*')),
@@ -584,17 +663,18 @@ trait UCP_Optimizer_CDN_Hints_Trait {
             array('not' => array('href_matches' => '/*?*preview=*')),
             array('not' => array('href_matches' => '/*?*customize_changeset_uuid=*')),
             array('not' => array('href_matches' => '/*logout*')),
-            array('not' => array('selector_matches' => '[rel~=nofollow]')),
+            array('not' => array('selector_matches' => 'a[rel~="nofollow"]')),
             array('not' => array('selector_matches' => '[target="_blank"]')),
-            array('not' => array('selector_matches' => '.do-not-prerender')),
-            array('not' => array('selector_matches' => '.do-not-prefetch')),
+            array('not' => array('selector_matches' => '.no-' . $mode . ', .no-' . $mode . ' a, .do-not-' . $mode . ', .do-not-' . $mode . ' a')),
         );
+        if ('prerender' === $mode) {
+            $conditions[] = array('not' => array('selector_matches' => '.no-prefetch, .no-prefetch a, .do-not-prefetch, .do-not-prefetch a'));
+        }
         foreach (UCP_Helpers::normalize_multiline(UCP_Options::get('speculation_exclusions', '')) as $fragment) {
-            $fragment = trim((string) $fragment);
-            if ('' === $fragment) {
-                continue;
+            $pattern = $this->speculation_exclusion_pattern($fragment);
+            if ('' !== $pattern) {
+                $conditions[] = array('not' => array('href_matches' => $pattern));
             }
-            $conditions[] = array('not' => array('href_matches' => '*' . $fragment . '*'));
         }
 
         $payload = array(
@@ -604,7 +684,7 @@ trait UCP_Optimizer_CDN_Hints_Trait {
                 'eagerness' => $eagerness,
             )),
         );
-        echo $this->inline_script_tag(wp_json_encode($payload), array('type' => 'speculationrules')); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- generated via wp_get_inline_script_tag or escaped fallback.
+        echo $this->inline_script_tag(UCP_Helpers::safe_inline_json($payload, '{}'), array('type' => 'speculationrules')); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- generated via wp_get_inline_script_tag.
         UCP_Diagnostics::record('speculation', 'Speculation rules emitted', array('mode' => $mode, 'eagerness' => $eagerness));
     }
 
@@ -639,12 +719,44 @@ trait UCP_Optimizer_CDN_Hints_Trait {
             $paths[] = $path;
         }
         foreach (UCP_Helpers::normalize_multiline(UCP_Options::get('speculation_exclusions', '')) as $fragment) {
-            $fragment = trim((string) $fragment);
-            if ('' !== $fragment) {
-                $paths[] = '*' . $fragment . '*';
+            $pattern = $this->speculation_exclusion_pattern($fragment);
+            if ('' !== $pattern) {
+                $paths[] = $pattern;
             }
         }
         return array_values(array_unique($paths));
+    }
+
+    private function speculation_exclusion_pattern($fragment) {
+        $fragment = trim((string) $fragment);
+        if ('' === $fragment) {
+            return '';
+        }
+        if (preg_match('#^https?://#i', $fragment)) {
+            $parts = wp_parse_url($fragment);
+            if (!is_array($parts)) {
+                return '';
+            }
+            $fragment = isset($parts['path']) ? (string) $parts['path'] : '/';
+            if (!empty($parts['query'])) {
+                $fragment .= '?' . (string) $parts['query'];
+            }
+        }
+        $fragment = str_replace('\\', '/', $fragment);
+        if ('/' === substr($fragment, 0, 1)) {
+            return $fragment;
+        }
+        $fragment = trim($fragment, "* /\t\n\r\0\x0B");
+        if ('' === $fragment) {
+            return '';
+        }
+        if ('?' === substr($fragment, 0, 1)) {
+            $fragment = ltrim($fragment, '?*');
+        }
+        if (false !== strpos($fragment, '=')) {
+            return '/*?*' . $fragment . ('*' === substr($fragment, -1) ? '' : '*');
+        }
+        return '/*' . $fragment . ('*' === substr($fragment, -1) ? '' : '*');
     }
 
     private function core_speculation_available() {
@@ -685,24 +797,11 @@ trait UCP_Optimizer_CDN_Hints_Trait {
     }
 
     private function inline_script_tag($javascript, $attributes = array()) {
-        if (function_exists('wp_get_inline_script_tag')) {
-            return wp_get_inline_script_tag($javascript, $attributes);
-        }
-        $attr_html = '';
-        foreach ((array) $attributes as $name => $value) {
-            if (is_bool($value)) {
-                if ($value) {
-                    $attr_html .= ' ' . esc_attr($name);
-                }
-            } else {
-                $attr_html .= ' ' . esc_attr($name) . '="' . esc_attr((string) $value) . '"';
-            }
-        }
-        return '<script' . $attr_html . '>' . str_replace('</', '<\/', (string) $javascript) . '</script>';
+        return wp_get_inline_script_tag($javascript, $attributes);
     }
 
     private function prefetch_links_script() {
-        return "(function(){var seen={};function blocked(url){if(!url||url.indexOf(location.origin)!==0)return true;try{var u=new URL(url);var h=u.href;var p=u.pathname;if(/[?&](add-to-cart|_wpnonce|nonce|preview|customize_changeset_uuid|wc-ajax|wc-api|apply_coupon|remove_item|undo_item|update_cart)=/i.test(u.search))return true;if(/\/(cart|checkout|my-account|account|order-pay|order-received|add-payment-method|winkelwagen|afrekenen|mijn-account|wp-admin|wp-login\.php|xmlrpc\.php)(\/|$)/i.test(p))return true;if(/(logout|customer-logout)/i.test(h))return true;return false;}catch(e){return true;}}function p(url){if(blocked(url)||seen[url])return;seen[url]=1;var l=document.createElement('link');l.rel='prefetch';l.href=url;document.head.appendChild(l);}function h(e){var a=e.target.closest&&e.target.closest('a[href]');if(!a)return;p(a.href);}document.addEventListener('mouseover',h,{passive:true});document.addEventListener('touchstart',h,{passive:true});})();";
+        return "(function(){var seen={};function blocked(url){if(!url)return true;try{var u=new URL(url);if(u.origin!==location.origin)return true;var h=u.href;var p=u.pathname;if(u.search)return true;if(/\/(cart|checkout|my-account|account|order-pay|order-received|add-payment-method|winkelwagen|afrekenen|mijn-account|wp-admin|wp-login\.php|xmlrpc\.php)(\/|$)/i.test(p))return true;if(/(logout|customer-logout)/i.test(h))return true;return false;}catch(e){return true;}}function p(url){if(blocked(url)||seen[url])return;seen[url]=1;var l=document.createElement('link');l.rel='prefetch';l.href=url;document.head.appendChild(l);}function h(e){var a=e.target.closest&&e.target.closest('a[href]');if(!a)return;if(a.matches&&a.matches('a[rel~=nofollow]'))return;if(a.closest&&a.closest('.no-prefetch,.no-prerender,.do-not-prefetch,.do-not-prerender'))return;p(a.href);}document.addEventListener('mouseover',h,{passive:true});document.addEventListener('touchstart',h,{passive:true});})();";
     }
 
     private function asset_manager_flag($flag) {

@@ -10,9 +10,9 @@ if (!defined('ABSPATH')) {
  * UltraCache already routes purges to CDN providers (UCP_CDN) and Cloudflare (UCP_Edge). This layer
  * extends the same `ucp_cache_purged_all|url|urls` events to the server-level cache of common managed
  * WordPress hosts (WP Engine, SiteGround, SpinupWP, Nginx FastCGI via Nginx Helper — which covers
- * GridPane/RunCloud/Closte — and Pantheon), so a UltraCache flush also clears the host's own page
- * cache instead of leaving stale HTML at a layer UltraCache does not own. This is the cross-layer
- * purge consistency FlyingPress added for managed hosts.
+ * GridPane/RunCloud/Closte — and Pantheon), so an UltraCache flush also clears the host's own page
+ * cache instead of leaving stale HTML at a layer UltraCache does not own. This keeps cache purges
+ * consistent across plugin and managed-host layers.
  *
  * Design:
  * - Opt-in (default OFF). Detection is always available for status reporting.
@@ -182,6 +182,6 @@ class UCP_Host_Cache {
         if (!class_exists('UCP_Logger')) {
             return;
         }
-        UCP_Logger::log('info', 'host_cache', 'purge_' . sanitize_key($scope), 'Host-cache purge gerouteerd.', array('context' => $context));
+        UCP_Logger::log('info', 'host_cache', 'purge_' . sanitize_key($scope), __('Hostcache-purge is gerouteerd.', 'ultracache-pro'), array('context' => $context));
     }
 }

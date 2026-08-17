@@ -70,7 +70,7 @@ class UCP_Optimization_Center {
     }
 
     /**
-     * Build high-level summary.
+     * Summarize testing mode and background queue state for the Optimization Center.
      *
      * @param array $settings Settings.
      * @return array
@@ -214,21 +214,18 @@ class UCP_Optimization_Center {
      */
     protected static function guardrails($settings) {
         $items = array();
-        if (!empty($settings['enable_delay_js']) || !empty($settings['enable_native_script_strategy'])) {
+        if (!empty($settings['enable_delay_js']) || !empty($settings['defer_all_js'])) {
             $items[] = array('feature' => 'jsCombine', 'state' => 'skipped', 'reason' => __('JS Combine blijft uit omdat Delay JS/native script strategy losse scripts nodig heeft.', 'ultracache-pro'));
         }
         $css_mode = isset($settings['css_delivery_mode']) ? (string) $settings['css_delivery_mode'] : 'none';
         if ('none' !== $css_mode || !empty($settings['enable_used_css']) || !empty($settings['enable_critical_css'])) {
             $items[] = array('feature' => 'cssCombine', 'state' => 'skipped', 'reason' => __('CSS Combine blijft uit omdat Used CSS/Critical CSS de CSS-delivery beheert.', 'ultracache-pro'));
         }
-        if (empty($settings['show_advanced_options'])) {
-            $items[] = array('feature' => 'combine', 'state' => 'skipped', 'reason' => __('Combine-modi blijven verborgen in eenvoudige modus.', 'ultracache-pro'));
-        }
         return $items;
     }
 
     /**
-     * Next actions for UI.
+     * Build context-sensitive follow-up checks for the Optimization Center UI.
      *
      * @param array $settings Settings.
      * @return array

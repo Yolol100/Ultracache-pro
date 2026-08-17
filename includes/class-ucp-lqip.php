@@ -12,8 +12,8 @@ if (!defined('ABSPATH')) {
  * but computed locally (no SaaS) and offloaded to the background job queue.
  *
  * A compact dominant colour (#rrggbb) is computed once per attachment and written to postmeta plus
- * a tiny `<file>.lqip` sidecar so the front-end pass can look it up by path without a DB query
- * (same cheap pattern as the WebP/AVIF sibling lookup). Combined with the existing lazy-load
+ * a tiny cache record per generated image path. This keeps front-end lookup DB-free without writing
+ * sidecars into the uploads tree. Combined with the existing lazy-load
  * fade-in, images fade in over their colour. Default OFF.
  */
 class UCP_LQIP {
@@ -26,6 +26,7 @@ class UCP_LQIP {
         add_filter('wp_generate_attachment_metadata', array($this, 'on_generate_metadata'), 25, 2);
         // Apply placeholders in the front-end HTML buffer, after picture/cdn rewriting.
         add_filter('ucp_process_html', array($this, 'apply_placeholders'), 7);
+        add_action('delete_attachment', array(__CLASS__, 'delete_attachment_cache'));
     }
 
     public static function enabled() {
@@ -39,7 +40,7 @@ class UCP_LQIP {
         if (class_exists('UCP_Image_Queue') && UCP_Image_Queue::async_enabled() && class_exists('UCP_Jobs')) {
             UCP_Jobs::enqueue_unique('lqip_generate', array('attachment_id' => (int) $attachment_id), 35, 'media');
         } else {
-            self::generate((int) $attachment_id);
+            self::generate((int) $attachment_id, is_array($metadata) ? $metadata : array());
         }
         return $metadata;
     }
@@ -60,20 +61,22 @@ class UCP_LQIP {
      * @param int $attachment_id
      * @return bool
      */
-    public static function generate($attachment_id) {
+    public static function generate($attachment_id, $metadata = null) {
         $attachment_id = (int) $attachment_id;
-        if ($attachment_id <= 0) {
+        if ($attachment_id <= 0 || !class_exists('UCP_Helpers')) {
             return false;
         }
         $file = get_attached_file($attachment_id);
         if (!$file || !is_file($file)) {
             return false;
         }
-        // Prefer the smallest available size to keep decoding cheap.
-        $meta = wp_get_attachment_metadata($attachment_id);
+        // During wp_generate_attachment_metadata the supplied metadata is newer than
+        // wp_get_attachment_metadata(), which may not have been persisted yet.
+        $meta = is_array($metadata) ? $metadata : wp_get_attachment_metadata($attachment_id);
+        $paths = self::attachment_paths($file, $meta);
         $small = $file;
         if (is_array($meta) && !empty($meta['sizes']['thumbnail']['file'])) {
-            $candidate = trailingslashit(dirname($file)) . $meta['sizes']['thumbnail']['file'];
+            $candidate = trailingslashit(dirname($file)) . basename((string) $meta['sizes']['thumbnail']['file']);
             if (is_file($candidate)) {
                 $small = $candidate;
             }
@@ -85,12 +88,94 @@ class UCP_LQIP {
         }
         update_post_meta($attachment_id, self::META_KEY, $color);
 
-        // Sidecar next to the full-size file for cheap front-end lookup by path.
-        $sidecar = $file . self::SIDECAR;
-        if (class_exists('UCP_Helpers')) {
-            UCP_Helpers::write_file($sidecar, $color);
+        $written = 0;
+        foreach ($paths as $path) {
+            $cache_file = self::cache_file_for_path($path);
+            if ('' !== $cache_file && UCP_Helpers::write_file($cache_file, $color)) {
+                $written++;
+            }
         }
-        return true;
+        return $written > 0;
+    }
+
+    /**
+     * Remove LQIP cache records while attachment metadata is still available.
+     *
+     * @param int $attachment_id Attachment ID.
+     * @return void
+     */
+    public static function delete_attachment_cache($attachment_id) {
+        if (!class_exists('UCP_Helpers')) {
+            return;
+        }
+        $file = get_attached_file((int) $attachment_id);
+        if (!$file) {
+            return;
+        }
+        foreach (self::attachment_paths($file, wp_get_attachment_metadata((int) $attachment_id)) as $path) {
+            $cache_file = self::cache_file_for_path($path);
+            if ('' !== $cache_file) {
+                UCP_Helpers::safe_delete_file($cache_file);
+            }
+        }
+    }
+
+    /**
+     * Resolve all generated files belonging to one attachment.
+     *
+     * @param string $file     Full-size attachment path.
+     * @param array  $metadata Attachment metadata.
+     * @return array
+     */
+    protected static function attachment_paths($file, $metadata) {
+        $paths = is_file($file) ? array($file) : array();
+        if (is_array($metadata) && !empty($metadata['sizes']) && is_array($metadata['sizes'])) {
+            foreach ($metadata['sizes'] as $size) {
+                if (!is_array($size) || empty($size['file']) || !is_scalar($size['file'])) {
+                    continue;
+                }
+                $name = basename((string) $size['file']);
+                if ('' === $name || '.' === $name || '..' === $name) {
+                    continue;
+                }
+                $candidate = trailingslashit(dirname($file)) . $name;
+                if (is_file($candidate)) {
+                    $paths[] = $candidate;
+                }
+            }
+        }
+        return array_values(array_unique($paths));
+    }
+
+    /**
+     * Map one existing uploads image to a plugin-managed cache record.
+     *
+     * @param string $path Existing image path.
+     * @return string
+     */
+    protected static function cache_file_for_path($path) {
+        if (!is_string($path) || '' === $path || !is_file($path) || !defined('UCP_CACHE_DIR')) {
+            return '';
+        }
+        $uploads = wp_upload_dir(null, false);
+        if (empty($uploads['basedir'])) {
+            return '';
+        }
+        $base_real = realpath((string) $uploads['basedir']);
+        $path_real = realpath($path);
+        if (false === $base_real || false === $path_real) {
+            return '';
+        }
+        $base_real = trailingslashit(wp_normalize_path($base_real));
+        $path_real = wp_normalize_path($path_real);
+        if (0 !== strpos($path_real, $base_real)) {
+            return '';
+        }
+        $relative = ltrim(substr($path_real, strlen($base_real)), '/');
+        if ('' === $relative) {
+            return '';
+        }
+        return trailingslashit(UCP_CACHE_DIR) . 'lqip/' . hash('sha256', $relative) . '.txt';
     }
 
     /**
@@ -102,7 +187,7 @@ class UCP_LQIP {
     protected static function dominant_color($path) {
         // GD path.
         if (function_exists('imagecreatefromstring') && function_exists('imagescale')) {
-            $raw = @file_get_contents($path); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- local image read for colour sampling.
+            $raw = UCP_Helpers::read_file($path, 10 * MB_IN_BYTES);
             if (false !== $raw) {
                 $img = @imagecreatefromstring($raw);
                 if ($img) {
@@ -112,11 +197,8 @@ class UCP_LQIP {
                         $r = ($rgb >> 16) & 0xFF;
                         $g = ($rgb >> 8) & 0xFF;
                         $b = $rgb & 0xFF;
-                        imagedestroy($tiny);
-                        imagedestroy($img);
                         return sprintf('#%02x%02x%02x', $r, $g, $b);
                     }
-                    imagedestroy($img);
                 }
             }
         }
@@ -149,16 +231,15 @@ class UCP_LQIP {
             return $html;
         }
 
-        $rewritten = preg_replace_callback('#<img\b[^>]*>#i', function ($m) {
-            $tag = $m[0];
-            if (false !== stripos($tag, 'data-ucp-no-lqip') || false !== stripos($tag, 'data-no-optimize')) {
+        $rewrite = static function ($m) {
+            $tag = isset($m[0]) ? (string) $m[0] : '';
+            if ('' === $tag || false !== stripos($tag, 'data-ucp-no-lqip') || false !== stripos($tag, 'data-no-optimize')) {
                 return $tag;
             }
-            // Only decorate lazy images (eager/LCP images paint immediately — no placeholder needed).
-            if (!preg_match('/\sloading=("|\')lazy\1/i', $tag)) {
+            if (!preg_match('/\sloading\s*=\s*("|\')lazy\1/i', $tag)) {
                 return $tag;
             }
-            if (!preg_match('/\ssrc=("|\')(.*?)\1/i', $tag, $sm)) {
+            if (!preg_match('/\ssrc\s*=\s*("|\')(.*?)\1/i', $tag, $sm)) {
                 return $tag;
             }
             $color = self::color_for_src(html_entity_decode($sm[2], ENT_QUOTES));
@@ -166,8 +247,13 @@ class UCP_LQIP {
                 return $tag;
             }
             return self::merge_background_style($tag, $color);
-        }, $html);
+        };
 
+        if (class_exists('UCP_HTML_Parser')) {
+            $rewritten = UCP_HTML_Parser::replace_tag($html, 'img', $rewrite);
+        } else {
+            $rewritten = UCP_Helpers::safe_preg_replace_callback('#<img\b(?:"[^"]*"|\'[^\']*\'|[^\'">])*>#i', $rewrite, $html);
+        }
         return is_string($rewritten) ? $rewritten : $html;
     }
 
@@ -189,10 +275,10 @@ class UCP_LQIP {
         if (array_key_exists($path, $cache)) {
             return $cache[$path];
         }
-        $sidecar = $path . self::SIDECAR;
+        $cache_file = self::cache_file_for_path($path);
         $color = '';
-        if (is_file($sidecar)) {
-            $raw = trim((string) UCP_Helpers::read_file($sidecar));
+        if ('' !== $cache_file && is_file($cache_file)) {
+            $raw = trim((string) UCP_Helpers::read_file($cache_file, 256 * KB_IN_BYTES));
             if (preg_match('/^#[0-9a-f]{6}$/i', $raw)) {
                 $color = $raw;
             }
@@ -210,18 +296,18 @@ class UCP_LQIP {
      */
     protected static function merge_background_style($tag, $color) {
         $decl = 'background-color:' . $color;
-        if (preg_match('/\sstyle=("|\')(.*?)\1/i', $tag, $sm)) {
+        if (preg_match('/\sstyle\s*=\s*("|\')(.*?)\1/i', $tag, $sm)) {
             $existing = rtrim(trim($sm[2]), ';');
             $merged = '' === $existing ? $decl : $existing . ';' . $decl;
             $tag = str_replace($sm[0], ' style=' . $sm[1] . $merged . $sm[1], $tag);
         } else {
-            $tag = preg_replace('/<img\b/i', '<img style="' . $decl . '"', $tag, 1);
+            $tag = UCP_Helpers::safe_preg_replace('/<img\b/i', '<img style="' . $decl . '"', $tag, 1);
         }
         if (false === stripos($tag, 'ucp-lqip')) {
-            if (preg_match('/\sclass=("|\')(.*?)\1/i', $tag, $cm)) {
+            if (preg_match('/\sclass\s*=\s*("|\')(.*?)\1/i', $tag, $cm)) {
                 $tag = str_replace($cm[0], ' class=' . $cm[1] . trim($cm[2] . ' ucp-lqip') . $cm[1], $tag);
             } else {
-                $tag = preg_replace('/<img\b/i', '<img class="ucp-lqip"', $tag, 1);
+                $tag = UCP_Helpers::safe_preg_replace('/<img\b/i', '<img class="ucp-lqip"', $tag, 1);
             }
         }
         return $tag;

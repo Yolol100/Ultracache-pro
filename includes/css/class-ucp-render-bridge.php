@@ -37,18 +37,12 @@ class UCP_Render_Bridge {
      * @return void
      */
     public static function handle_admin_test() {
-        if (!current_user_can('manage_options')) {
-            wp_die(esc_html__('Geen toegang.', 'ultracache-pro'), '', array('response' => 403));
-        }
-
-        check_admin_referer('ucp_test_headless_renderer');
+        UCP_Helpers::require_post_admin_action('ucp_test_headless_renderer');
 
         $url = home_url('/');
-        if (isset($_REQUEST['url'])) {
-            $candidate = esc_url_raw(wp_unslash($_REQUEST['url']));
-            if ('' !== $candidate) {
-                $url = $candidate;
-            }
+        $candidate = esc_url_raw(UCP_Helpers::request_scalar('url', '', 2048));
+        if ('' !== $candidate) {
+            $url = $candidate;
         }
 
         $result = self::test_endpoint($url);
@@ -105,13 +99,13 @@ class UCP_Render_Bridge {
      */
     public static function test_endpoint($url = '') {
         if (!self::is_active()) {
-            $error = new WP_Error('ucp_render_bridge_inactive', 'Headless renderer staat uit of het endpoint is ongeldig.');
+            $error = new WP_Error('ucp_render_bridge_inactive', __('Headless renderer staat uit of het endpoint is ongeldig.', 'ultracache-pro'));
             self::record_status('inactive', $error->get_error_message());
             return $error;
         }
         $url = UCP_Helpers::strict_local_url($url ? $url : home_url('/'), home_url('/'));
         if (!$url || !wp_http_validate_url($url)) {
-            $error = new WP_Error('ucp_render_bridge_url', 'Niet-lokale of ongeldige test-URL geweigerd.');
+            $error = new WP_Error('ucp_render_bridge_url', __('Niet-lokale of ongeldige test-URL geweigerd.', 'ultracache-pro'));
             self::record_status('error', $error->get_error_message());
             return $error;
         }
@@ -146,7 +140,7 @@ class UCP_Render_Bridge {
         }
         $url = UCP_Helpers::strict_local_url($url, home_url('/'));
         if (!$url || !wp_http_validate_url($url)) {
-            return new WP_Error('ucp_render_bridge_url', 'Niet-lokale of ongeldige URL geweigerd.');
+            return new WP_Error('ucp_render_bridge_url', __('Niet-lokale of ongeldige URL geweigerd.', 'ultracache-pro'));
         }
 
         $response = self::request_renderer($url, array(
@@ -160,7 +154,7 @@ class UCP_Render_Bridge {
 
         if (is_wp_error($response)) {
             self::record_status('error', $response->get_error_message(), array('url' => $url));
-            UCP_Logger::log('warning', 'render_bridge', 'request_failed', 'Render-bridge HTTP-fout.', array('url' => $url, 'error' => $response->get_error_message()));
+            UCP_Logger::log('warning', 'render_bridge', 'request_failed', __('Renderbridge gaf een HTTP-fout.', 'ultracache-pro'), array('url' => $url, 'error' => $response->get_error_message()));
             return $response;
         }
 
@@ -170,14 +164,13 @@ class UCP_Render_Bridge {
             return $data;
         }
 
-        $did_work = false;
-        if (!empty($data['used_css'])) {
-            UCP_Helpers::write_file(UCP_Helpers::get_used_css_path($url), (string) $data['used_css']);
-            $did_work = true;
-        }
-        if (!empty($data['critical_css'])) {
-            UCP_Helpers::write_file(UCP_Helpers::get_critical_css_path($url), (string) $data['critical_css']);
-            $did_work = true;
+        $used_css = !empty($data['used_css']) ? (string) $data['used_css'] : '';
+        $critical_css = !empty($data['critical_css']) ? (string) $data['critical_css'] : '';
+        $did_work = '' !== $used_css && class_exists('UCP_CSS') && UCP_CSS::persist_artifacts($url, $used_css, $critical_css);
+        if (!$did_work) {
+            $error = new WP_Error('ucp_render_bridge_persist', __('Render-bridge CSS-artifacts konden niet transactioneel worden opgeslagen.', 'ultracache-pro'));
+            self::record_status('error', $error->get_error_message(), array('url' => $url));
+            return $error;
         }
 
         $removable = array();
@@ -199,8 +192,8 @@ class UCP_Render_Bridge {
                 'contract_version' => self::CONTRACT_VERSION,
                 'artifact_version' => $artifact_version,
             ), self::ttl());
-            self::record_status('ok', 'Headless render gereed.', array('url' => $url, 'artifact_version' => $artifact_version, 'removable' => count($removable)));
-            UCP_Logger::log('info', 'render_bridge', 'render_ok', 'Headless render gereed.', array('url' => $url, 'removable' => count($removable)));
+            self::record_status('ok', __('Headless-render is gereed.', 'ultracache-pro'), array('url' => $url, 'artifact_version' => $artifact_version, 'removable' => count($removable)));
+            UCP_Logger::log('info', 'render_bridge', 'render_ok', __('Headless-render is gereed.', 'ultracache-pro'), array('url' => $url, 'removable' => count($removable)));
         }
 
         /**
@@ -282,10 +275,13 @@ class UCP_Render_Bridge {
     protected static function request_renderer($url, $payload, $timeout = 0) {
         $endpoint = self::endpoint();
         if ('' === $endpoint) {
-            return new WP_Error('ucp_render_bridge_endpoint', 'Render-endpoint niet geconfigureerd of onveilig.');
+            return new WP_Error('ucp_render_bridge_endpoint', __('Render-endpoint niet geconfigureerd of onveilig.', 'ultracache-pro'));
         }
 
         $token = trim(str_replace(array("\r", "\n"), '', (string) UCP_Options::get('headless_renderer_token', '')));
+        if (strlen($token) > 4096 || preg_match('/[\x00-\x1F\x7F]/', $token)) {
+            return new WP_Error('ucp_render_bridge_token', __('Render-token is ongeldig.', 'ultracache-pro'));
+        }
         $headers = array('Content-Type' => 'application/json', 'Accept' => 'application/json');
         if ('' !== $token) {
             $headers['Authorization'] = 'Bearer ' . $token;
@@ -299,13 +295,18 @@ class UCP_Render_Bridge {
             'viewport'         => wp_is_mobile() ? 'mobile' : 'desktop',
         ), is_array($payload) ? $payload : array());
 
+        $encoded_body = UCP_Helpers::safe_json_encode($body);
+        if (!is_string($encoded_body) || '' === $encoded_body) {
+            return new WP_Error('ucp_render_bridge_request_json', __('Render-aanvraag kon niet veilig als JSON worden opgebouwd.', 'ultracache-pro'));
+        }
+
         $response = wp_remote_post($endpoint, UCP_Helpers::default_remote_args(array(
             'timeout'             => $timeout > 0 ? absint($timeout) : self::timeout(),
             'limit_response_size' => self::max_response_bytes(),
             'sslverify'           => true,
             'user-agent'          => 'UltraCache Render Bridge/' . (defined('UCP_VERSION') ? UCP_VERSION : 'dev'),
             'headers'             => $headers,
-            'body'                => wp_json_encode($body),
+            'body'                => $encoded_body,
         )));
 
         if (is_wp_error($response)) {
@@ -313,15 +314,19 @@ class UCP_Render_Bridge {
         }
         $code = (int) wp_remote_retrieve_response_code($response);
         if ($code < 200 || $code >= 300) {
-            return new WP_Error('ucp_render_bridge_http', 'Render-bridge HTTP ' . $code);
+            return new WP_Error('ucp_render_bridge_http', sprintf(__('Render-bridge HTTP %d.', 'ultracache-pro'), $code));
         }
         $content_type = strtolower((string) wp_remote_retrieve_header($response, 'content-type'));
         if ('' !== $content_type && false === strpos($content_type, 'application/json') && false === strpos($content_type, '+json')) {
-            return new WP_Error('ucp_render_bridge_content_type', 'Render-bridge gaf geen JSON content-type terug.');
+            return new WP_Error('ucp_render_bridge_content_type', __('Render-bridge gaf geen JSON content-type terug.', 'ultracache-pro'));
         }
-        $data = json_decode((string) wp_remote_retrieve_body($response), true);
+        $response_body = UCP_Helpers::bounded_remote_response_body($response, self::max_response_bytes());
+        if (false === $response_body) {
+            return new WP_Error('ucp_render_bridge_truncated', __('Render-bridge antwoord is te groot of mogelijk afgekapt.', 'ultracache-pro'));
+        }
+        $data = UCP_Helpers::safe_json_decode($response_body, true);
         if (!is_array($data) || JSON_ERROR_NONE !== json_last_error()) {
-            return new WP_Error('ucp_render_bridge_json', 'Render-bridge gaf geen geldige JSON terug.');
+            return new WP_Error('ucp_render_bridge_json', __('Render-bridge gaf geen geldige JSON terug.', 'ultracache-pro'));
         }
         return $data;
     }
@@ -336,48 +341,108 @@ class UCP_Render_Bridge {
      */
     protected static function validate_response($data, $url, $require_css) {
         if (!is_array($data)) {
-            return new WP_Error('ucp_render_bridge_response', 'Renderer-response is geen object.');
+            return new WP_Error('ucp_render_bridge_response', __('Renderer-response is geen object.', 'ultracache-pro'));
         }
-        if (isset($data['ok']) && false === (bool) $data['ok']) {
-            return new WP_Error('ucp_render_bridge_not_ok', isset($data['message']) ? sanitize_text_field((string) $data['message']) : 'Renderer gaf ok=false terug.');
+        if (isset($data['ok'])) {
+            if (!is_bool($data['ok'])) {
+                return new WP_Error('ucp_render_bridge_ok_type', __('Renderer-veld ok moet een boolean zijn.', 'ultracache-pro'));
+            }
+            if (false === $data['ok']) {
+                $message = isset($data['message']) && is_scalar($data['message'])
+                    ? sanitize_text_field((string) $data['message'])
+                    : __('Renderer gaf ok=false terug.', 'ultracache-pro');
+                return new WP_Error('ucp_render_bridge_not_ok', $message);
+            }
         }
-        if (isset($data['contract_version']) && '' !== (string) $data['contract_version'] && 0 !== strpos((string) $data['contract_version'], '1.')) {
-            return new WP_Error('ucp_render_bridge_contract', 'Renderer-contractversie wordt niet ondersteund.');
+        if (!isset($data['contract_version']) || !is_scalar($data['contract_version'])) {
+            return new WP_Error('ucp_render_bridge_contract_missing', __('Renderer-contractversie ontbreekt.', 'ultracache-pro'));
+        }
+        $contract_version = trim((string) $data['contract_version']);
+        if ('' === $contract_version) {
+            return new WP_Error('ucp_render_bridge_contract_missing', __('Renderer-contractversie ontbreekt.', 'ultracache-pro'));
+        }
+        if (1 !== preg_match('/^1\.[0-9]+$/', $contract_version)) {
+            return new WP_Error('ucp_render_bridge_contract', __('Renderer-contractversie wordt niet ondersteund.', 'ultracache-pro'));
         }
         if (isset($data['url'])) {
-            $returned = UCP_Helpers::strict_local_url((string) $data['url'], home_url('/'));
-            if (!$returned || untrailingslashit($returned) !== untrailingslashit($url)) {
-                return new WP_Error('ucp_render_bridge_url_mismatch', 'Renderer gaf een andere URL terug dan gevraagd.');
+            if (!is_scalar($data['url'])) {
+                return new WP_Error('ucp_render_bridge_url_mismatch', __('Renderer gaf een andere URL terug dan gevraagd.', 'ultracache-pro'));
+            }
+            $returned = self::canonical_local_url((string) $data['url']);
+            $requested = self::canonical_local_url($url);
+            if ('' === $returned || '' === $requested || $returned !== $requested) {
+                return new WP_Error('ucp_render_bridge_url_mismatch', __('Renderer gaf een andere URL terug dan gevraagd.', 'ultracache-pro'));
             }
         }
 
         foreach (array('used_css' => 400000, 'critical_css' => 120000) as $field => $max) {
-            if (!isset($data[$field]) || '' === (string) $data[$field]) {
+            if (!isset($data[$field]) || '' === $data[$field]) {
                 $data[$field] = '';
                 continue;
             }
-            if (!self::valid_css((string) $data[$field], $max)) {
-                return new WP_Error('ucp_render_bridge_bad_' . $field, 'Renderer gaf onveilige of te grote CSS terug: ' . $field . '.');
+            if (!is_string($data[$field]) || !self::valid_css($data[$field], $max)) {
+                return new WP_Error('ucp_render_bridge_bad_' . $field, sprintf(__('Renderer gaf onveilige of te grote CSS terug: %s.', 'ultracache-pro'), $field));
             }
         }
 
         if ($require_css && '' === $data['used_css'] && '' === $data['critical_css']) {
-            return new WP_Error('ucp_render_bridge_empty_artifacts', 'Renderer gaf geen bruikbare CSS-artifacts terug.');
+            return new WP_Error('ucp_render_bridge_empty_artifacts', __('Renderer gaf geen bruikbare CSS-artifacts terug.', 'ultracache-pro'));
         }
 
-        if (isset($data['safely_removable']) && !is_array($data['safely_removable'])) {
-            return new WP_Error('ucp_render_bridge_removable_shape', 'safely_removable moet een lijst zijn.');
+        if (isset($data['safely_removable'])) {
+            if (!is_array($data['safely_removable']) || count($data['safely_removable']) > 500) {
+                return new WP_Error('ucp_render_bridge_removable_shape', __('safely_removable moet een begrensde lijst zijn.', 'ultracache-pro'));
+            }
+            $clean_removable = array();
+            foreach ($data['safely_removable'] as $href) {
+                if (!is_scalar($href) || strlen((string) $href) > 2048) {
+                    return new WP_Error('ucp_render_bridge_removable_item', __('safely_removable bevat een ongeldig item.', 'ultracache-pro'));
+                }
+                $clean = self::normalize_stylesheet_url((string) $href);
+                if ('' !== $clean) {
+                    $clean_removable[$clean] = $clean;
+                }
+            }
+            $data['safely_removable'] = array_values($clean_removable);
+        } else {
+            $data['safely_removable'] = array();
         }
-        if (isset($data['viewport_images']) && !is_array($data['viewport_images'])) {
-            return new WP_Error('ucp_render_bridge_vpi_shape', 'viewport_images moet een lijst zijn.');
+        if (isset($data['viewport_images'])) {
+            if (!is_array($data['viewport_images']) || count($data['viewport_images']) > 500) {
+                return new WP_Error('ucp_render_bridge_vpi_shape', __('viewport_images moet een begrensde lijst zijn.', 'ultracache-pro'));
+            }
+            $clean_viewport_images = array();
+            foreach ($data['viewport_images'] as $viewport_image) {
+                if (!is_scalar($viewport_image) || strlen((string) $viewport_image) > 2048) {
+                    return new WP_Error('ucp_render_bridge_vpi_item', __('viewport_images bevat een ongeldig item.', 'ultracache-pro'));
+                }
+                $clean = esc_url_raw(trim((string) $viewport_image), array('http', 'https'));
+                $scheme = strtolower((string) wp_parse_url($clean, PHP_URL_SCHEME));
+                if ('' === $clean || !in_array($scheme, array('http', 'https'), true)) {
+                    return new WP_Error('ucp_render_bridge_vpi_item', __('viewport_images bevat een ongeldig item.', 'ultracache-pro'));
+                }
+                $clean_viewport_images[$clean] = $clean;
+            }
+            $data['viewport_images'] = array_values($clean_viewport_images);
+        } else {
+            $data['viewport_images'] = array();
         }
-        $data['contract_version'] = isset($data['contract_version']) ? sanitize_text_field((string) $data['contract_version']) : self::CONTRACT_VERSION;
-        $data['renderer'] = isset($data['renderer']) ? sanitize_key((string) $data['renderer']) : 'headless_renderer';
+        $data['contract_version'] = sanitize_text_field($contract_version);
+        $renderer = isset($data['renderer']) && is_scalar($data['renderer']) && strlen((string) $data['renderer']) <= 100
+            ? sanitize_key((string) $data['renderer'])
+            : '';
+        $data['renderer'] = '' !== $renderer ? $renderer : 'headless_renderer';
         return $data;
     }
 
     protected static function result_key($url) {
-        return self::RESULT_PREFIX . md5(strtolower((string) $url) . '|' . (wp_is_mobile() ? 'm' : 'd'));
+        // URL paths and query values can be case-sensitive. Normalize only through the
+        // configured local origin and preserve the remaining case to avoid cross-page results.
+        $canonical = UCP_Helpers::strict_local_url((string) $url);
+        if ('' === $canonical) {
+            $canonical = 'invalid:' . hash('sha256', (string) $url);
+        }
+        return self::RESULT_PREFIX . md5($canonical . '|' . (wp_is_mobile() ? 'm' : 'd'));
     }
 
     protected static function ttl() {
@@ -400,28 +465,60 @@ class UCP_Render_Bridge {
         return !preg_match('/<\/?(?:script|style|html|body)\b|<\?(?:php|=)/i', $css);
     }
 
-    protected static function normalize_stylesheet_url($href) {
-        $href = esc_url_raw((string) $href);
-        if ('' === $href) {
+    protected static function canonical_local_url($url) {
+        $url = UCP_Helpers::strict_local_url((string) $url, home_url('/'));
+        if ('' === $url) {
             return '';
         }
-        if (0 === strpos($href, '//')) {
-            $href = (is_ssl() ? 'https:' : 'http:') . $href;
+        $parts = wp_parse_url($url);
+        if (!is_array($parts)) {
+            return '';
         }
-        if (0 === strpos($href, '/')) {
-            $href = home_url($href);
+        $path = isset($parts['path']) && '' !== $parts['path'] ? $parts['path'] : '/';
+        $query = isset($parts['query']) && '' !== $parts['query'] ? '?' . $parts['query'] : '';
+        return UCP_Helpers::strict_local_url($path . $query, home_url('/'));
+    }
+
+    protected static function normalize_stylesheet_url($href) {
+        if (!is_scalar($href)) {
+            return '';
         }
-        return esc_url_raw($href);
+        $href = trim((string) $href);
+        if ('' === $href || strlen($href) > 2048 || false !== strpos($href, '#')) {
+            return '';
+        }
+        $local = UCP_Helpers::strict_local_url($href, home_url('/'));
+        if ('' === $local) {
+            return '';
+        }
+        $path = (string) wp_parse_url($local, PHP_URL_PATH);
+        if ('' === $path || !preg_match('/\.css$/i', $path)) {
+            return '';
+        }
+        return esc_url_raw($local);
     }
 
     protected static function record_status($state, $message = '', $extra = array()) {
-        $payload = array_merge(array(
+        $allowed_extra = array();
+        foreach (array('url', 'tested_url', 'renderer', 'response_contract', 'artifact_version', 'removable') as $key) {
+            if (!is_array($extra) || !array_key_exists($key, $extra) || (!is_scalar($extra[$key]) && null !== $extra[$key])) {
+                continue;
+            }
+            if ('removable' === $key) {
+                $allowed_extra[$key] = absint($extra[$key]);
+            } elseif (in_array($key, array('url', 'tested_url'), true)) {
+                $allowed_extra[$key] = esc_url_raw((string) $extra[$key]);
+            } else {
+                $allowed_extra[$key] = sanitize_text_field((string) $extra[$key]);
+            }
+        }
+        $payload = array_merge($allowed_extra, array(
             'state' => sanitize_key((string) $state),
             'message' => sanitize_text_field((string) $message),
             'checked_at' => current_time('mysql', true),
             'endpoint' => self::endpoint(),
             'contract_version' => self::CONTRACT_VERSION,
-        ), is_array($extra) ? $extra : array());
+        ));
         update_option(self::STATUS_OPTION, $payload, false);
     }
 }

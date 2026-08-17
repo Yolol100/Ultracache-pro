@@ -22,4 +22,18 @@ class UCP_Admin_Actions {
         $this->admin = $admin;
     }
 
+    /**
+     * Read a scalar admin-action value from the POST body.
+     *
+     * The query-string fallback preserves compatibility with legacy admin-post
+     * URLs while keeping current forms aligned with their enforced POST method.
+     *
+     * @param string $key     Request key.
+     * @param mixed  $default Default value.
+     * @return mixed
+     */
+    protected function admin_action_scalar($key, $default = '', $max_bytes = 4096) {
+        return UCP_Helpers::request_scalar($key, $default, $max_bytes, true);
+    }
+
 }

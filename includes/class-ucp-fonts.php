@@ -10,6 +10,27 @@ class UCP_Fonts {
         add_action('ucp_refresh_google_font_cache', array($this, 'refresh_cached_css'), 10, 1);
     }
 
+
+    public static function clear_cache() {
+        $dir = self::font_cache_directory(false);
+        $deleted = 0;
+        if ($dir) {
+            foreach (UCP_Helpers::safe_glob_files(trailingslashit($dir) . '*', 500, array($dir)) as $file) {
+                if (!is_file($file)) {
+                    continue;
+                }
+                wp_delete_file($file);
+                clearstatcache(true, $file);
+                if (!file_exists($file) && !is_link($file)) {
+                    $deleted++;
+                }
+            }
+        }
+        delete_option('ucp_local_font_preload_candidates');
+        wp_clear_scheduled_hook('ucp_refresh_google_font_cache');
+        return $deleted;
+    }
+
     public function localize_google_fonts($html, $handle, $href, $media) {
         if (empty(UCP_Options::get('enable_local_google_fonts')) || empty($href)) {
             return $html;
@@ -26,20 +47,18 @@ class UCP_Fonts {
     }
 
     protected function cached_css_url($href) {
-        $uploads = wp_upload_dir();
-        if (empty($uploads['basedir']) || empty($uploads['baseurl'])) {
+        $context = $this->font_cache_context();
+        if (!$context) {
             return false;
         }
 
-        $dir = trailingslashit($uploads['basedir']) . 'ultracache-pro/fonts';
-        if (!wp_mkdir_p($dir)) {
-            return false;
-        }
-        $this->ensure_font_cache_index($dir);
-
+        $dir = $context['dir'];
         $file = trailingslashit($dir) . md5($href) . '.css';
-        if (!file_exists($file)) {
-            if (!$this->refresh_cached_css($href) || !file_exists($file)) {
+        if (!self::is_safe_cached_file($file, $dir)) {
+            if (is_link($file)) {
+                wp_delete_file($file);
+            }
+            if (!$this->refresh_cached_css($href) || !self::is_safe_cached_file($file, $dir)) {
                 $this->schedule_refresh($href);
                 return false;
             }
@@ -49,12 +68,12 @@ class UCP_Fonts {
             $this->schedule_refresh($href);
         }
 
-        return trailingslashit($uploads['baseurl']) . 'ultracache-pro/fonts/' . basename($file);
+        return $context['baseurl'] . basename($file);
     }
 
     public function refresh_cached_css($href) {
-        $uploads = wp_upload_dir();
-        if (empty($uploads['basedir']) || empty($uploads['baseurl'])) {
+        $context = $this->font_cache_context();
+        if (!$context) {
             return false;
         }
 
@@ -65,12 +84,7 @@ class UCP_Fonts {
             return false;
         }
 
-        $dir = trailingslashit($uploads['basedir']) . 'ultracache-pro/fonts';
-        if (!wp_mkdir_p($dir)) {
-            return false;
-        }
-        $this->ensure_font_cache_index($dir);
-
+        $dir = $context['dir'];
         $file = trailingslashit($dir) . md5($href) . '.css';
         $response = wp_remote_get(
             $href,
@@ -87,23 +101,96 @@ class UCP_Fonts {
             return false;
         }
 
-        $type = wp_remote_retrieve_header($response, 'content-type');
-        if ($type && false === stripos((string) $type, 'text/css')) {
+        $type = strtolower(trim((string) wp_remote_retrieve_header($response, 'content-type')));
+        $type = trim((string) strtok($type, ';'));
+        if ('text/css' !== $type) {
             return false;
         }
 
-        $body = wp_remote_retrieve_body($response);
-        if (!is_string($body) || '' === $body || strlen($body) > 250000 || false !== stripos($body, '<html') || false !== stripos($body, '<?php')) {
+        $body = UCP_Helpers::bounded_remote_response_body($response, 250000);
+        if (false === $body || '' === trim($body) || false !== stripos($body, '<html') || false !== stripos($body, '<?php')) {
             return false;
         }
 
-        $body = $this->localize_font_files($body, $dir, trailingslashit($uploads['baseurl']) . 'ultracache-pro/fonts/');
+        $body = $this->localize_font_files($body, $dir, $context['baseurl']);
         $body = $this->maybe_apply_unicode_ranges($body);
         $written = $this->write_cached_file($file, $body, $dir);
         if ($written) {
             $this->store_font_preload_candidates($body);
         }
         return $written;
+    }
+
+    /**
+     * Prepare the shared local-font cache directory and URL.
+     *
+     * @return array{dir:string,baseurl:string}|false
+     */
+    protected function font_cache_context() {
+        $uploads = wp_upload_dir();
+        if (empty($uploads['baseurl'])) {
+            return false;
+        }
+
+        $dir = self::font_cache_directory(true);
+        if (!$dir) {
+            return false;
+        }
+        $this->ensure_font_cache_index($dir);
+
+        return array(
+            'dir'     => $dir,
+            'baseurl' => trailingslashit($uploads['baseurl']) . 'ultracache-pro/fonts/',
+        );
+    }
+
+    /**
+     * Return the canonical local-font cache directory without following a
+     * replaced plugin-owned child directory symlink outside uploads.
+     *
+     * The uploads root itself may be a legitimate configured symlink. Only the
+     * plugin-owned `ultracache-pro` and `fonts` descendants are required to be
+     * real directories under that canonical uploads root.
+     *
+     * @param bool $create Whether the directory may be created when missing.
+     * @return string|false
+     */
+    protected static function font_cache_directory($create = false) {
+        $uploads = wp_upload_dir();
+        if (empty($uploads['basedir']) || !is_string($uploads['basedir'])) {
+            return false;
+        }
+
+        $uploads_dir = rtrim((string) $uploads['basedir'], '/\\');
+        $plugin_dir = trailingslashit($uploads_dir) . 'ultracache-pro';
+        $dir = trailingslashit($plugin_dir) . 'fonts';
+        if (
+            '' === $uploads_dir
+            || is_link($plugin_dir)
+            || is_link($dir)
+            || (file_exists($plugin_dir) && !is_dir($plugin_dir))
+            || (file_exists($dir) && !is_dir($dir))
+        ) {
+            return false;
+        }
+
+        if (!is_dir($dir) && (!$create || !wp_mkdir_p($dir))) {
+            return false;
+        }
+
+        $uploads_real = realpath($uploads_dir);
+        $dir_real = realpath($dir);
+        if (false === $uploads_real || false === $dir_real) {
+            return false;
+        }
+
+        $expected = trailingslashit(wp_normalize_path($uploads_real)) . 'ultracache-pro/fonts';
+        $dir_real = wp_normalize_path($dir_real);
+        if ($dir_real !== $expected) {
+            return false;
+        }
+
+        return $dir_real;
     }
 
     protected function schedule_refresh($href) {
@@ -121,47 +208,32 @@ class UCP_Fonts {
 
     protected function ensure_font_cache_index($dir) {
         $index = trailingslashit((string) $dir) . 'index.html';
-        if (file_exists($index) || !wp_is_writable($dir)) {
+        if (self::is_safe_cached_file($index, $dir)) {
+            return;
+        }
+        if (is_link($index)) {
+            wp_delete_file($index);
+        }
+        if (!wp_is_writable($dir)) {
             return;
         }
 
         $this->write_cached_file($index, '', $dir);
     }
 
+    protected static function is_safe_cached_file($path, $dir) {
+        if (is_link($path) || !is_file($path) || !is_readable($path)) {
+            return false;
+        }
+        $file_real = realpath($path);
+        $dir_real  = realpath($dir);
+        return false !== $file_real
+            && false !== $dir_real
+            && dirname(wp_normalize_path($file_real)) === rtrim(wp_normalize_path($dir_real), '/');
+    }
+
     protected function write_cached_file($path, $body, $base_dir) {
-        $normalized_path = wp_normalize_path((string) $path);
-        $normalized_base = trailingslashit(wp_normalize_path((string) $base_dir));
-        if ('' === $normalized_path || 0 !== strpos($normalized_path, $normalized_base)) {
-            return false;
-        }
-
-        if (!is_string($body) || !is_dir($base_dir) || !wp_is_writable($base_dir)) {
-            return false;
-        }
-
-        $real_base = realpath($base_dir);
-        $real_dir  = realpath(dirname($path));
-        if (!$real_base || !$real_dir || wp_normalize_path($real_base) !== wp_normalize_path($real_dir)) {
-            return false;
-        }
-
-        $tmp = $path . '.tmp.' . wp_generate_password(8, false, false);
-        // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents -- cache-only write under wp-content/uploads with path allow-list and LOCK_EX.
-        $bytes = file_put_contents($tmp, $body, LOCK_EX);
-        if (false === $bytes || $bytes < strlen($body)) {
-            if (file_exists($tmp)) {
-                wp_delete_file($tmp);
-            }
-            return false;
-        }
-
-        // phpcs:ignore WordPress.WP.AlternativeFunctions.rename_rename -- atomic cache-file move under validated uploads cache path; WP_Filesystem::move() is not atomic.
-        if (!@rename($tmp, $path)) {
-            wp_delete_file($tmp);
-            return false;
-        }
-
-        return true;
+        return UCP_Helpers::write_upload_cache_file_atomic($path, $body, $base_dir);
     }
 
     protected function localize_font_files($css, $dir, $baseurl) {
@@ -178,8 +250,13 @@ class UCP_Fonts {
             $filename = md5($font_url) . '.' . $this->font_file_extension($font_url);
             $target = trailingslashit($dir) . $filename;
 
-            if (!file_exists($target) && !$this->cache_remote_font_file($font_url, $target, $dir)) {
-                continue;
+            if (!self::is_safe_cached_file($target, $dir)) {
+                if (is_link($target)) {
+                    wp_delete_file($target);
+                }
+                if (!$this->cache_remote_font_file($font_url, $target, $dir) || !self::is_safe_cached_file($target, $dir)) {
+                    continue;
+                }
             }
 
             $css = str_replace($font_url, esc_url_raw($baseurl . $filename), $css);
@@ -207,7 +284,7 @@ class UCP_Fonts {
             return $css;
         }
 
-        $updated = preg_replace_callback('/@font-face\s*\{[^}]*\}/i', function ($matches) use ($range) {
+        $updated = UCP_Helpers::safe_preg_replace_callback('/@font-face\s*\{[^}]*\}/i', function ($matches) use ($range) {
             $block = (string) $matches[0];
             if (false !== stripos($block, 'unicode-range')) {
                 return $block;
@@ -283,6 +360,11 @@ class UCP_Fonts {
     }
 
     protected function cache_remote_font_file($font_url, $target, $dir) {
+        $font_url = $this->normalize_font_url($font_url);
+        if (!$font_url) {
+            return false;
+        }
+
         $response = wp_remote_get(
             $font_url,
             array(
@@ -298,16 +380,40 @@ class UCP_Fonts {
             return false;
         }
 
-        $body = wp_remote_retrieve_body($response);
-        if (!is_string($body) || '' === $body || strlen($body) > 2000000) {
+        $body = UCP_Helpers::bounded_remote_response_body($response, 2000000);
+        if (false === $body || '' === $body) {
             return false;
         }
 
-        $type = wp_remote_retrieve_header($response, 'content-type');
-        if ($type && false === stripos((string) $type, 'font') && false === stripos((string) $type, 'application/octet-stream')) {
+        $type = strtolower(trim((string) wp_remote_retrieve_header($response, 'content-type')));
+        $type = trim((string) strtok($type, ';'));
+        if ('' === $type || (false === strpos($type, 'font') && 'application/octet-stream' !== $type)) {
+            return false;
+        }
+
+        $extension = strtolower((string) pathinfo((string) $target, PATHINFO_EXTENSION));
+        if (!$this->font_body_matches_extension($body, $extension)) {
             return false;
         }
 
         return $this->write_cached_file($target, $body, $dir);
+    }
+
+    protected function font_body_matches_extension($body, $extension) {
+        if (!is_string($body) || strlen($body) < 4) {
+            return false;
+        }
+
+        $signature = substr($body, 0, 4);
+        if ('woff2' === $extension) {
+            return 'wOF2' === $signature;
+        }
+        if ('woff' === $extension) {
+            return 'wOFF' === $signature;
+        }
+        if ('ttf' === $extension) {
+            return in_array($signature, array("\x00\x01\x00\x00", 'true', 'typ1', 'OTTO'), true);
+        }
+        return false;
     }
 }

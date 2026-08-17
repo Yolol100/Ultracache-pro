@@ -28,6 +28,9 @@ class UCP_Health {
     }
 
     public static function register_schedule($schedules) {
+        if (!is_array($schedules)) {
+            $schedules = array();
+        }
         if (!isset($schedules['ucp_five_minutes'])) {
             $schedules['ucp_five_minutes'] = array(
                 'interval' => 300,
@@ -50,11 +53,12 @@ class UCP_Health {
             'logs_recent'       => count(UCP_Logger::recent(10)),
             'cloud_configured'  => (bool) UCP_Options::get('cloud_endpoint'),
             'edge_configured'   => (bool) UCP_Options::get('cloudflare_zone_id'),
-            'browser_cache'     => (bool) UCP_Options::get('browser_cache_headers'),
+            'browser_cache'     => (bool) UCP_Options::get('browser_cache_headers') && (bool) UCP_Options::get('allow_browser_cache_rule_writes'),
             'object_cache'      => UCP_Helpers::has_persistent_object_cache(),
         );
         update_option(self::OPTION_KEY, $snapshot, false);
-        UCP_Logger::log('info', 'health', 'snapshot_refreshed', 'Controle bijgewerkt.', $snapshot);
+        UCP_Logger::log('info', 'health', 'snapshot_refreshed', __('Controle bijgewerkt.', 'ultracache-pro'), $snapshot);
+        return $snapshot;
     }
 
     public static function latest() {

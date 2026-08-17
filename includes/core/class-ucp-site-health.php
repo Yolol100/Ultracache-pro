@@ -11,6 +11,9 @@ class UCP_Site_Health {
     }
 
     public static function cache_headers($headers) {
+        if (!is_array($headers)) {
+            $headers = array();
+        }
         $headers['x-ultracache'] = static function ($value) {
             return false !== stripos((string) $value, 'hit') || false !== stripos((string) $value, 'stale');
         };
@@ -18,6 +21,9 @@ class UCP_Site_Health {
     }
 
     public static function register_tests($tests) {
+        if (!is_array($tests)) {
+            $tests = array();
+        }
         $tests['direct']['ucp_cache_dir'] = array(
             'label' => __('UltraCache cachemap', 'ultracache-pro'),
             'test'  => array(__CLASS__, 'test_cache_dir'),
@@ -29,6 +35,10 @@ class UCP_Site_Health {
         $tests['direct']['ucp_cache_conflicts'] = array(
             'label' => __('UltraCache cacheconflicten', 'ultracache-pro'),
             'test'  => array(__CLASS__, 'test_cache_conflicts'),
+        );
+        $tests['direct']['ucp_performance_readiness'] = array(
+            'label' => __('UltraCache performance-readiness', 'ultracache-pro'),
+            'test'  => array(__CLASS__, 'test_performance_readiness'),
         );
         $tests['direct']['ucp_dropin_config'] = array(
             'label' => __('UltraCache drop-in configuratie', 'ultracache-pro'),
@@ -45,6 +55,10 @@ class UCP_Site_Health {
         $tests['direct']['ucp_release_readiness'] = array(
             'label' => __('UltraCache release-readiness', 'ultracache-pro'),
             'test'  => array(__CLASS__, 'test_release_readiness'),
+        );
+        $tests['direct']['ucp_update_channel'] = array(
+            'label' => __('UltraCache updatekanaal', 'ultracache-pro'),
+            'test'  => array(__CLASS__, 'test_update_channel'),
         );
         $tests['direct']['ucp_security_verification'] = array(
             'label' => __('UltraCache security-verificatie', 'ultracache-pro'),
@@ -142,16 +156,40 @@ class UCP_Site_Health {
         );
     }
 
+    public static function test_update_channel() {
+        $status = class_exists('UCP_Update_Client') ? UCP_Update_Client::status(false) : array('state' => 'unavailable');
+        $state = isset($status['state']) ? (string) $status['state'] : 'unavailable';
+        $ok = in_array($state, array('current', 'update_available'), true);
+        $message = isset($status['message']) ? sanitize_text_field((string) $status['message']) : '';
+        if ('source_behind' === $state) {
+            $message = __('De publieke releasebron loopt achter op de geïnstalleerde UltraCache-versie. Publiceer eerst een ondertekend releasemanifest en ZIP met dezelfde of een nieuwere versie.', 'ultracache-pro');
+        } elseif ('update_available' === $state) {
+            $message = __('Een nieuwere UltraCache-release is beschikbaar en de release-assets zijn met SHA-256 geverifieerd.', 'ultracache-pro');
+        } elseif ('current' === $state) {
+            $message = __('Het UltraCache-updatekanaal is bereikbaar en de geïnstalleerde versie komt overeen met de nieuwste geverifieerde release.', 'ultracache-pro');
+        } elseif ('' === $message) {
+            $message = __('Het UltraCache-updatekanaal kon nog niet worden geverifieerd.', 'ultracache-pro');
+        }
+
+        return array(
+            'label'       => $ok ? __('UltraCache updatekanaal is geverifieerd', 'ultracache-pro') : __('UltraCache updatekanaal vraagt aandacht', 'ultracache-pro'),
+            'status'      => $ok ? 'good' : 'recommended',
+            'badge'       => array('label' => __('Updates', 'ultracache-pro'), 'color' => $ok ? 'blue' : 'orange'),
+            'description' => '<p>' . esc_html($message) . '</p>',
+            'test'        => 'ucp_update_channel',
+        );
+    }
+
     public static function test_dependency_status() {
         $report = function_exists('ucp_dependency_report') ? ucp_dependency_report() : array('available' => function_exists('ucp_dependency_status') ? ucp_dependency_status() : array(), 'missing' => array());
         $missing = isset($report['missing']) && is_array($report['missing']) ? array_map('sanitize_key', $report['missing']) : array();
         $ok = empty($missing);
         return array(
-            'label'       => $ok ? __('UltraCache Composer dependencies zijn beschikbaar', 'ultracache-pro') : __('UltraCache gebruikt native fallback-minifiers', 'ultracache-pro'),
+            'label'       => $ok ? __('UltraCache Composer dependencies zijn beschikbaar', 'ultracache-pro') : __('UltraCache mist optionele minify-libraries', 'ultracache-pro'),
             'status'      => $ok ? 'good' : 'recommended',
             'badge'       => array('label' => __('Release', 'ultracache-pro'), 'color' => $ok ? 'blue' : 'orange'),
             /* translators: %s: dynamic value. */
-            'description' => '<p>' . esc_html($ok ? __('De gebundelde CSS/JS parser- en minify-libraries zijn geladen.', 'ultracache-pro') : sprintf(__('Optionele libraries niet geladen: %s. Dit pakket gebruikt de ingebouwde fallback-minifiers en parser; bundel vendor-scoped/autoload.php alleen voor een private build met Composer-dependencies.', 'ultracache-pro'), implode(', ', $missing))) . '</p>',
+            'description' => '<p>' . esc_html($ok ? __('De gebundelde CSS/JS parser- en minify-libraries zijn geladen.', 'ultracache-pro') : sprintf(__('Optionele libraries niet geladen: %s. CSS en JavaScript blijven ongewijzigd wanneer veilige minificatie niet beschikbaar is; de gebruikte-CSS-analyse behoudt haar conservatieve fallback.', 'ultracache-pro'), implode(', ', $missing))) . '</p>',
             'test'        => 'ucp_dependency_status',
         );
     }
@@ -194,6 +232,29 @@ class UCP_Site_Health {
             'badge'       => array('label' => __('Compatibiliteit', 'ultracache-pro'), 'color' => 'blue'),
             'description' => '<p>' . esc_html($ok ? __('Er zijn geen bekende overlap-signalen gevonden.', 'ultracache-pro') : implode(', ', $labels)) . '</p>',
             'test'        => 'ucp_cache_conflicts',
+        );
+    }
+
+    public static function test_performance_readiness() {
+        $summary = class_exists('UCP_Support_Report') ? UCP_Support_Report::readiness_summary() : array();
+        $score = isset($summary['score']) ? absint($summary['score']) : 0;
+        $primary = !empty($summary['primary_action']) ? sanitize_text_field((string) $summary['primary_action']) : __('Controleer de UltraCache instellingen en wachtrij.', 'ultracache-pro');
+        $status = $score >= 85 ? 'good' : ($score >= 60 ? 'recommended' : 'critical');
+        $label = $score >= 85
+            ? __('UltraCache performance-readiness is goed', 'ultracache-pro')
+            : __('UltraCache performance-readiness vraagt aandacht', 'ultracache-pro');
+
+        return array(
+            'label'       => $label,
+            'status'      => $status,
+            'badge'       => array('label' => __('Prestaties', 'ultracache-pro'), 'color' => $score >= 85 ? 'blue' : 'orange'),
+            'description' => '<p>' . esc_html(sprintf(
+                /* translators: 1: readiness score, 2: recommended action. */
+                __('Readiness-score: %1$d%%. Volgende stap: %2$s', 'ultracache-pro'),
+                $score,
+                $primary
+            )) . '</p>',
+            'test'        => 'ucp_performance_readiness',
         );
     }
 

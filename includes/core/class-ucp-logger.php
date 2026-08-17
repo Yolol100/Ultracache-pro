@@ -22,6 +22,9 @@ class UCP_Logger {
         }
         $clean_context = class_exists('UCP_Log_Package') ? UCP_Log_Package::redact(is_array($context) ? $context : array()) : (is_array($context) ? $context : array());
         $request_url = method_exists('UCP_Helpers', 'redact_log_url') ? UCP_Helpers::redact_log_url(UCP_Helpers::current_full_url()) : esc_url_raw(UCP_Helpers::current_full_url());
+        if (count(self::$buffer) >= 250) {
+            array_shift(self::$buffer);
+        }
         self::$buffer[] = array(
             'level'       => sanitize_key($level),
             'component'   => sanitize_key($component),
@@ -55,7 +58,7 @@ class UCP_Logger {
                     'component'   => $row['component'],
                     'event'       => $row['event'],
                     'message'     => $row['message'],
-                    'context'     => wp_json_encode($row['context']),
+                    'context'     => UCP_Helpers::safe_json_encode_or($row['context'], '{}'),
                     'request_url' => $row['request_url'],
                     'created_at'  => $row['created_at'],
                 ),
@@ -66,6 +69,12 @@ class UCP_Logger {
     }
 
     public static function recent($limit = 50, $component = '') {
+        if (!is_scalar($limit) && null !== $limit) {
+            $limit = 50;
+        }
+        if (!is_scalar($component) && null !== $component) {
+            $component = '';
+        }
         $result = self::query(
             array(
                 'component' => $component,
@@ -98,12 +107,15 @@ class UCP_Logger {
             $where[] = 'level = %s';
             $params[] = sanitize_key($args['level']);
         }
-        if (!empty($args['search'])) {
-            $like = '%' . $wpdb->esc_like(wp_unslash($args['search'])) . '%';
-            $where[] = '(message LIKE %s OR event LIKE %s OR request_url LIKE %s)';
-            $params[] = $like;
-            $params[] = $like;
-            $params[] = $like;
+        if (!empty($args['search']) && (is_scalar($args['search']) || null === $args['search'])) {
+            $search = substr(sanitize_text_field(wp_unslash((string) $args['search'])), 0, 200);
+            if ('' !== $search) {
+                $like = '%' . $wpdb->esc_like($search) . '%';
+                $where[] = '(message LIKE %s OR event LIKE %s OR request_url LIKE %s)';
+                $params[] = $like;
+                $params[] = $like;
+                $params[] = $like;
+            }
         }
 
         $where_sql = implode(' AND ', $where);
@@ -113,7 +125,7 @@ class UCP_Logger {
         // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter -- SQL is assembled from fixed fragments and prepared values above.
         $total = (int) $wpdb->get_var($prepared_count);
 
-        $per_page = max(1, absint($args['per_page']));
+        $per_page = min(100, max(1, absint($args['per_page'])));
         $paged = max(1, absint($args['paged']));
         $offset = ($paged - 1) * $per_page;
 
@@ -152,9 +164,9 @@ class UCP_Logger {
                 $row['message'] = UCP_Helpers::redact_log_text($row['message']);
             }
             if (isset($row['context'])) {
-                $decoded = is_string($row['context']) ? json_decode($row['context'], true) : $row['context'];
+                $decoded = is_string($row['context']) ? UCP_Helpers::safe_json_decode($row['context'], true) : $row['context'];
                 if (is_array($decoded) && class_exists('UCP_Log_Package')) {
-                    $row['context'] = wp_json_encode(UCP_Log_Package::redact($decoded));
+                    $row['context'] = UCP_Helpers::safe_json_encode_or(UCP_Log_Package::redact($decoded), '{}');
                 }
             }
             $rows[$index] = $row;

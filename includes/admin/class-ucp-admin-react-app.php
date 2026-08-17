@@ -13,95 +13,78 @@ class UCP_Admin_React_App {
     }
 
     /**
-     * Prefer the `.min` variant of an asset when SCRIPT_DEBUG is off and the
-     * file exists on disk; otherwise fall back to the unminified source.
+     * Backward-compatible asset resolver facade.
      *
-     * Thin wrapper kept for backwards compatibility with the class's own
-     * call sites; the implementation lives in UCP_Helpers::asset_path().
+     * @param string $relative Relative plugin asset path.
+     * @return string
      */
     protected static function asset_path($relative) {
-        return UCP_Helpers::asset_path($relative);
+        return UCP_Asset_Resolver::relative($relative);
     }
 
     /**
-     * Return modular admin stylesheet assets in load order.
+     * Backward-compatible content version helper.
      *
-     * The legacy monolithic CSS remains as a fallback for custom/private builds,
-     * but release builds can load smaller sectioned files while preserving the
-     * same cascade order through chained style dependencies.
+     * @param string $path Absolute or relative asset path.
+     * @return string
+     */
+    protected static function asset_version($path) {
+        $path = (string) $path;
+        if (0 === strpos($path, UCP_PATH)) {
+            $path = substr($path, strlen(UCP_PATH));
+        }
+        return UCP_Asset_Resolver::version($path);
+    }
+
+    /**
+     * Backward-compatible ordered stylesheet list.
      *
      * @return array<int,string>
      */
     protected static function style_asset_relatives() {
-        $modules = glob(UCP_PATH . 'assets/admin/react/css/modules/ucp-react-admin-*.css');
-        if (!empty($modules) && is_array($modules)) {
-            sort($modules, SORT_NATURAL);
-            $assets = array();
-            $seen = array();
-            foreach ($modules as $module) {
-                $relative = str_replace(wp_normalize_path(UCP_PATH), '', wp_normalize_path((string) $module));
-                $source_relative = preg_replace('/\.min\.css$/', '.css', (string) $relative);
-                if (!is_string($source_relative) || '' === $source_relative || isset($seen[$source_relative])) {
-                    continue;
-                }
-                $seen[$source_relative] = true;
-                $assets[] = self::asset_path($source_relative);
-            }
-            if (!empty($assets)) {
-                return apply_filters('ucp_react_admin_style_assets', $assets);
-            }
-        }
-
-        return apply_filters('ucp_react_admin_style_assets', array(self::asset_path('assets/admin/react/css/ucp-react-admin.css')));
+        return array_values(UCP_Admin_Asset_Manifest::resolved_styles());
     }
 
     public static function should_render() {
-        $script_path = UCP_PATH . self::asset_path('assets/admin/react/js/app/ucp-react-admin.js');
-        $style_assets = self::style_asset_relatives();
-        $style_path  = !empty($style_assets[0]) ? UCP_PATH . $style_assets[0] : '';
+        if (!self::enabled()) {
+            return false;
+        }
 
-        return self::enabled() && file_exists($script_path) && file_exists($style_path);
+        foreach (UCP_Admin_Asset_Manifest::scripts() as $definition) {
+            $relative = UCP_Asset_Resolver::relative(isset($definition['relative']) ? $definition['relative'] : '');
+            if ('' === $relative || !is_file(UCP_PATH . $relative)) {
+                return false;
+            }
+        }
+
+        return !empty(UCP_Admin_Asset_Manifest::resolved_styles());
     }
 
     public static function enqueue() {
-        $script_rel  = self::asset_path('assets/admin/react/js/app/ucp-react-admin.js');
-        $style_rels  = self::style_asset_relatives();
-        $tokens_rel  = self::asset_path('assets/admin/css/ucp-admin-tokens.css');
-        $script_path = UCP_PATH . $script_rel;
-        $tokens_path = UCP_PATH . $tokens_rel;
-        $script_ver  = file_exists($script_path) ? (string) filemtime($script_path) : UCP_VERSION;
-        $tokens_ver  = file_exists($tokens_path) ? (string) filemtime($tokens_path) : UCP_VERSION;
+        self::enqueue_scripts();
+        self::enqueue_styles();
+    }
 
-        wp_enqueue_script(
-            self::SCRIPT_HANDLE,
-            UCP_URL . $script_rel,
-            array('wp-element', 'wp-components', 'wp-api-fetch', 'wp-i18n', 'wp-a11y'),
-            $script_ver,
-            true
-        );
+    /**
+     * Enqueue the schema before the application bundle.
+     *
+     * @return void
+     */
+    private static function enqueue_scripts() {
+        foreach (UCP_Admin_Asset_Manifest::scripts() as $definition) {
+            $handle = isset($definition['handle']) ? (string) $definition['handle'] : '';
+            $relative = UCP_Asset_Resolver::relative(isset($definition['relative']) ? $definition['relative'] : '');
+            if ('' === $handle || '' === $relative || !is_file(UCP_PATH . $relative)) {
+                continue;
+            }
 
-        // Shared design tokens — single source of truth for legacy + React admin.
-        if (file_exists($tokens_path)) {
-            wp_enqueue_style(
-                'ucp-admin-tokens',
-                UCP_URL . $tokens_rel,
-                array(),
-                $tokens_ver
-            );
-        }
-
-        $style_dependency = 'ucp-admin-tokens';
-        $style_count = count($style_rels);
-        foreach ($style_rels as $index => $style_rel) {
-            $handle = ($index === $style_count - 1) ? self::STYLE_HANDLE : self::STYLE_HANDLE . '-' . ($index + 1);
-            $style_path = UCP_PATH . $style_rel;
-            wp_enqueue_style(
+            wp_enqueue_script(
                 $handle,
-                UCP_URL . $style_rel,
-                array('wp-components', $style_dependency),
-                file_exists($style_path) ? (string) filemtime($style_path) : UCP_VERSION
+                UCP_URL . $relative,
+                isset($definition['dependencies']) ? (array) $definition['dependencies'] : array(),
+                UCP_Asset_Resolver::version($relative),
+                true
             );
-            $style_dependency = $handle;
         }
 
         if (function_exists('wp_set_script_translations')) {
@@ -110,21 +93,63 @@ class UCP_Admin_React_App {
 
         wp_add_inline_script(
             self::SCRIPT_HANDLE,
-            'window.UCP_ADMIN_CONFIG = ' . wp_json_encode(array(
-                'restUrl'    => esc_url_raw(rest_url('ultracache-pro/v1/')),
-                'homeUrl'    => esc_url_raw(home_url('/')),
-                'nonce'      => wp_create_nonce('wp_rest'),
-                'version'    => UCP_VERSION,
-                'pluginName' => __('UltraCache Pro', 'ultracache-pro'),
-                'caps'       => array('manageOptions' => current_user_can('manage_options')),
-                'logDownloadUrl' => class_exists('UCP_Log_Package') ? UCP_Log_Package::download_url() : '',
-                'managedSettingKeys' => class_exists('UCP_Options') && method_exists('UCP_Options', 'automatic_managed_keys') ? UCP_Options::automatic_managed_keys() : array(),
-            )) . ';',
+            'window.UCP_ADMIN_CONFIG = ' . UCP_Helpers::safe_inline_json(UCP_Admin_React_Config::data(), '{}') . ';',
             'before'
         );
     }
 
+    /**
+     * Enqueue design tokens and the canonical admin stylesheet.
+     *
+     * @return void
+     */
+    private static function enqueue_styles() {
+        $tokens = UCP_Asset_Resolver::relative('assets/admin/css/ucp-admin-tokens.css');
+        $dependency = 'wp-components';
+
+        if ('' !== $tokens && is_file(UCP_PATH . $tokens)) {
+            wp_enqueue_style(
+                'ucp-admin-tokens',
+                UCP_URL . $tokens,
+                array(),
+                UCP_Asset_Resolver::version($tokens)
+            );
+            $dependency = 'ucp-admin-tokens';
+        }
+
+        $styles = UCP_Admin_Asset_Manifest::resolved_styles();
+        $keys = array_keys($styles);
+        $last_key = end($keys);
+
+        foreach ($styles as $key => $relative) {
+            $handle = ($key === $last_key)
+                ? self::STYLE_HANDLE
+                : self::STYLE_HANDLE . '-' . sanitize_key((string) $key);
+
+            wp_enqueue_style(
+                $handle,
+                UCP_URL . $relative,
+                array('wp-components', $dependency),
+                UCP_Asset_Resolver::version($relative)
+            );
+            $dependency = $handle;
+        }
+
+        // Keep the existing CSS-generated empty state localizable without changing the UI flow.
+        $empty_state_label = sanitize_text_field(__('Geen gegevens beschikbaar.', 'ultracache-pro'));
+        $empty_state_label = str_replace(array('\\', '"'), array('\\\\', '\\"'), $empty_state_label);
+        wp_add_inline_style(
+            self::STYLE_HANDLE,
+            '.ucp-react-admin-wrap{--ucp-empty-state-label:"' . $empty_state_label . '";}'
+        );
+    }
+
     public static function render_root() {
-        echo '<div class="wrap ucp-react-admin-wrap"><main id="ucp-admin-root" class="ucp-admin-app" role="main"></main></div>';
+        echo '<div class="wrap ucp-react-admin-wrap"><main id="ucp-admin-root" class="ucp-admin-app" role="main">';
+        echo '<noscript><section class="ucp-noscript-fallback" role="status">';
+        echo '<h1>' . esc_html__('UltraCache Pro', 'ultracache-pro') . '</h1>';
+        echo '<p>' . esc_html__('JavaScript is nodig voor de volledige UltraCache beheerinterface. Zet JavaScript tijdelijk aan om instellingen, status en veilige acties te beheren.', 'ultracache-pro') . '</p>';
+        echo '</section></noscript>';
+        echo '</main></div>';
     }
 }

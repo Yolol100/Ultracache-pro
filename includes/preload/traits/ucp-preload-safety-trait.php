@@ -5,6 +5,30 @@ if (!defined('ABSPATH')) {
 }
 
 trait UCP_Preload_Safety_Trait {
+    /**
+     * Match preload safety/configuration patterns through the central URL matcher.
+     *
+     * @param string $url     Candidate URL.
+     * @param string $pattern Exclusion pattern.
+     * @return bool
+     */
+    protected static function matches_preload_url_pattern($url, $pattern) {
+        if (class_exists('UCP_Quality_Suite') && method_exists('UCP_Quality_Suite', 'matches_configured_url_pattern')) {
+            return UCP_Quality_Suite::matches_configured_url_pattern($url, $pattern);
+        }
+        return UCP_Helpers::wildcard_match($url, $pattern);
+    }
+
+    public static function light_request_headers() {
+        if (!UCP_Options::get('enable_light_preload_requests')) {
+            return array();
+        }
+        if (class_exists('UCP_LiteSpeed_Cache') && UCP_LiteSpeed_Cache::active()) {
+            return array();
+        }
+        return array('X-UltraCache-Light-Preload' => '1');
+    }
+
     public static function is_safety_excluded_url($url) {
         $url = UCP_Helpers::strict_local_url($url);
         if (!$url) {
@@ -24,7 +48,7 @@ trait UCP_Preload_Safety_Trait {
             '/winkelwagen', '/afrekenen', '/mijn-account', 'wc-ajax', 'wc-api', 'add-to-cart', 'apply_coupon', 'remove_item', 'update_cart', '_wpnonce', 'preview='
         );
         foreach ($needles as $needle) {
-            if (false !== strpos($haystack, strtolower($needle))) {
+            if (self::matches_preload_url_pattern($url, $needle)) {
                 return true;
             }
         }
@@ -35,7 +59,8 @@ trait UCP_Preload_Safety_Trait {
                     $page_url = get_permalink($page_id);
                     if ($page_url) {
                         $page_path = strtolower(rawurldecode((string) wp_parse_url($page_url, PHP_URL_PATH)));
-                        if ($page_path && 0 === strpos($haystack, $page_path)) {
+                        $request_path = strtolower(rawurldecode((string) wp_parse_url($url, PHP_URL_PATH)));
+                        if ($page_path && ($request_path === $page_path || 0 === strpos($request_path, trailingslashit($page_path)))) {
                             return true;
                         }
                     }
@@ -81,8 +106,7 @@ trait UCP_Preload_Safety_Trait {
             's=',
         ));
         foreach ((array) $fragments as $fragment) {
-            $fragment = strtolower((string) $fragment);
-            if ('' !== $fragment && false !== strpos($haystack, $fragment)) {
+            if (self::matches_preload_url_pattern($url, $fragment)) {
                 return true;
             }
         }
@@ -90,21 +114,17 @@ trait UCP_Preload_Safety_Trait {
         return false;
     }
 
-    protected function is_preload_excluded($url) {
-        return '' !== $this->preload_exclusion_reason($url);
-    }
-
     protected function preload_exclusion_reason($url) {
         $path = wp_parse_url($url, PHP_URL_PATH);
         $path = $path ? $path : $url;
         $safety_reason = self::preload_safety_reason($url);
         if ('' !== $safety_reason) {
-            UCP_Logger::log('info', 'preload', 'preload_url_skipped_safety', 'Preload URL overgeslagen door centrale safety layer.', array('url' => esc_url_raw($url), 'reason' => $safety_reason));
+            UCP_Logger::log('info', 'preload', 'preload_url_skipped_safety', __('Preload-URL is overgeslagen door de centrale veiligheidslaag.', 'ultracache-pro'), array('url' => esc_url_raw($url), 'reason' => $safety_reason));
             return $safety_reason;
         }
         foreach (UCP_Helpers::normalize_multiline(UCP_Options::get('preload_exclude_urls', '')) as $pattern) {
-            if (UCP_Helpers::wildcard_match($url, $pattern) || UCP_Helpers::wildcard_match($path, $pattern)) {
-                UCP_Logger::log('info', 'preload', 'preload_url_skipped_pattern', 'Preload URL overgeslagen door uitsluitpatroon.', array('url' => esc_url_raw($url), 'pattern' => sanitize_text_field((string) $pattern)));
+            if (self::matches_preload_url_pattern($url, $pattern)) {
+                UCP_Logger::log('info', 'preload', 'preload_url_skipped_pattern', __('Preload-URL is overgeslagen door een uitsluitpatroon.', 'ultracache-pro'), array('url' => esc_url_raw($url), 'pattern' => sanitize_text_field((string) $pattern)));
                 return 'blocked_by_settings:' . substr(sanitize_key((string) $pattern), 0, 80);
             }
         }
@@ -131,18 +151,19 @@ trait UCP_Preload_Safety_Trait {
         if (preg_match('#/(?:wp-admin|wp-login\.php|wp-json|xmlrpc\.php)(?:/|$)#i', $path)) {
             return 'private_sensitive_url';
         }
-        if (preg_match('#(?:wc-ajax|wc-api|add-to-cart|apply_coupon|remove_item|update_cart|_wpnonce|preview=|customize_changeset_uuid=)#i', $haystack)) {
-            return 'dynamic_query_or_nonce';
+        foreach (array('wc-ajax=', 'wc-api=', 'add-to-cart=', 'apply_coupon=', 'remove_item=', 'update_cart=', '_wpnonce=', 'preview=', 'customize_changeset_uuid=') as $dynamic_pattern) {
+            if (self::matches_preload_url_pattern($url, $dynamic_pattern)) {
+                return 'dynamic_query_or_nonce';
+            }
         }
         if (preg_match('#/(?:wp-content|uploads)(?:/|$)#i', $path) || preg_match('/\.(?:png|jpe?g|gif|webp|avif|svg|ico|css|js|json|xml|txt|pdf|zip|php|env|map)(?:$|[?#])/i', $haystack)) {
             return 'unsupported_content_type';
         }
-        if (preg_match('#/(?:author|feed|search)(?:/|$)#i', $path) || false !== strpos($haystack, 's=')) {
+        if (preg_match('#/(?:author|feed|search)(?:/|$)#i', $path) || self::matches_preload_url_pattern($url, 's=')) {
             return 'robots_or_indexable_risk';
         }
         foreach ((array) apply_filters('ucp_preload_excluded_path_fragments', array('attachment_id=', 'download=', 'preview=', 'elementor-preview=', 'wc-ajax=', 'add-to-cart=', 's=')) as $fragment) {
-            $fragment = strtolower((string) $fragment);
-            if ('' !== $fragment && false !== strpos($haystack, $fragment)) {
+            if (self::matches_preload_url_pattern($url, $fragment)) {
                 return 'blocked_by_settings';
             }
         }
@@ -153,7 +174,7 @@ trait UCP_Preload_Safety_Trait {
                     $page_url = get_permalink($page_id);
                     if ($page_url) {
                         $page_path = strtolower(rawurldecode((string) wp_parse_url($page_url, PHP_URL_PATH)));
-                        if ($page_path && 0 === strpos($path, $page_path)) {
+                        if ($page_path && ($path === $page_path || 0 === strpos($path, trailingslashit($page_path)))) {
                             return 'private_sensitive_url';
                         }
                     }
@@ -183,8 +204,7 @@ trait UCP_Preload_Safety_Trait {
             return strcmp((string) ($b['updated_at'] ?? ''), (string) ($a['updated_at'] ?? ''));
         });
         $map = array_slice($map, 0, 250, true);
-        update_option('ucp_preload_url_statuses', $map, false);
-        return true;
+        return self::persist_preload_option('ucp_preload_url_statuses', $map);
     }
 
 
@@ -209,6 +229,9 @@ trait UCP_Preload_Safety_Trait {
     }
 
     public static function preload_status_summary($limit = 50) {
+        if (!is_scalar($limit) && null !== $limit) {
+            $limit = 50;
+        }
         $limit = max(1, min(250, absint($limit)));
         $map = get_option('ucp_preload_url_statuses', array());
         $map = is_array($map) ? $map : array();
@@ -240,8 +263,18 @@ trait UCP_Preload_Safety_Trait {
             return absint($b['time'] ?? 0) <=> absint($a['time'] ?? 0);
         });
         $items = array_slice($items, 0, 100, true);
-        update_option('ucp_preload_recent_purge_urls', $items, false);
-        return true;
+        return self::persist_preload_option('ucp_preload_recent_purge_urls', $items);
+    }
+
+    /**
+     * Persist preload state and verify unchanged-value writes.
+     *
+     * @param string $key   Option key.
+     * @param mixed  $value Option value.
+     * @return bool
+     */
+    private static function persist_preload_option($key, $value) {
+        return UCP_Options::persist_option_value($key, $value);
     }
 
     public static function server_load_too_high() {

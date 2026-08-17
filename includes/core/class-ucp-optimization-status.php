@@ -60,7 +60,7 @@ class UCP_Optimization_Status {
             'assetManager'  => self::asset_feature($settings, $public_guard),
             'lazyMedia'     => self::feature(__('Lazy media', 'ultracache-pro'), !empty($settings['enable_lazy_images']) || !empty($settings['enable_lazy_iframes']) || !empty($settings['enable_lazy_youtube_preview']), $public_guard, __('Media-optimalisatie blijft uit op gevoelige of afgeschermde contexten.', 'ultracache-pro')),
             'restCache'     => self::feature(__('REST-cache', 'ultracache-pro'), !empty($settings['enable_rest_cache']), $public_guard, __('Alleen veilige GET-routes zonder persoonlijke context worden gecachet.', 'ultracache-pro')),
-            'imageOptimize' => self::queued_feature(__('Afbeeldingen', 'ultracache-pro'), !empty($settings['enable_image_optimization']) || !empty($settings['enable_webp_generation']) || !empty($settings['enable_avif_generation']), $queue, __('Afbeeldingswerk hoort in de wachtrij, niet in de bezoekersrequest.', 'ultracache-pro')),
+            'imageOptimize' => self::queued_feature(__('Afbeeldingen', 'ultracache-pro'), !empty($settings['enable_webp_generation']) || !empty($settings['enable_avif_generation']), $queue, __('Afbeeldingswerk hoort in de wachtrij, niet in de bezoekersrequest.', 'ultracache-pro')),
             'adaptiveImages'=> self::adaptive_images_feature($settings, $public_guard),
             'cdn'           => self::cdn_feature($settings, $public_guard),
             'objectCache'   => self::object_cache_feature($settings),
@@ -72,8 +72,10 @@ class UCP_Optimization_Status {
             'testingMode' => array(
                 'active' => (bool) $testing_mode,
                 'publicGuard' => (bool) $public_guard,
+                'expiresAt' => class_exists('UCP_Helpers') ? UCP_Helpers::testing_mode_expires_at() : 0,
+                'remainingSeconds' => class_exists('UCP_Helpers') ? UCP_Helpers::testing_mode_remaining_seconds() : 0,
                 'message' => $testing_mode
-                    ? __('Testmodus is actief: beheerders kunnen optimalisaties previewen, bezoekers zien de stabiele live-versie.', 'ultracache-pro')
+                    ? __('Testmodus is tijdelijk actief: beheerders kunnen optimalisaties previewen, bezoekers zien de stabiele live-versie.', 'ultracache-pro')
                     : __('Testmodus is uit: actieve optimalisaties gelden normaal voor de publieke site.', 'ultracache-pro'),
             ),
             'features' => apply_filters('ucp_optimization_lifecycle_features', $features, $settings, $queue),
@@ -192,17 +194,13 @@ class UCP_Optimization_Status {
      * @return array
      */
     protected static function combine_feature($label, $enabled, $settings, $type) {
-        if ('js' === $type && (!empty($settings['enable_delay_js']) || !empty($settings['enable_native_script_strategy']))) {
+        if ('js' === $type && (!empty($settings['enable_delay_js']) || !empty($settings['defer_all_js']))) {
             return self::item($label, self::SKIPPED, __('Automatisch uitgeschakeld', 'ultracache-pro'), __('Delay JS/native script strategy heeft losse scripts nodig om volgorde betrouwbaar te houden.', 'ultracache-pro'));
         }
 
         $css_mode = isset($settings['css_delivery_mode']) ? (string) $settings['css_delivery_mode'] : 'none';
         if ('css' === $type && ('none' !== $css_mode || !empty($settings['enable_used_css']) || !empty($settings['enable_critical_css']))) {
             return self::item($label, self::SKIPPED, __('Automatisch uitgeschakeld', 'ultracache-pro'), __('Used CSS/Critical CSS beheert CSS-delivery; combineren blijft uit om dubbele delivery te voorkomen.', 'ultracache-pro'));
-        }
-
-        if (empty($settings['show_advanced_options'])) {
-            return self::item($label, self::SKIPPED, __('Alleen geavanceerd', 'ultracache-pro'), __('Combine is verborgen in eenvoudige modus en blijft opt-in voor geavanceerde tests.', 'ultracache-pro'));
         }
 
         return self::feature($label, $enabled, false, __('Combine draait als geavanceerde optimalisatie met fallback naar originele bestanden.', 'ultracache-pro'));
@@ -216,9 +214,21 @@ class UCP_Optimization_Status {
      * @return array
      */
     protected static function asset_feature($settings, $public_guard) {
-        $enabled = !empty($settings['disabled_style_handles']) || !empty($settings['disabled_script_handles']) || !empty($settings['conditional_style_unloads']) || !empty($settings['conditional_script_unloads']) || !empty($settings['advanced_asset_rules']);
+        $rule_count = 0;
+        foreach (array('disabled_style_handles', 'disabled_script_handles', 'conditional_style_unloads', 'conditional_script_unloads', 'advanced_asset_rules') as $key) {
+            if (class_exists('UCP_Helpers')) {
+                $rule_count += count(UCP_Helpers::normalize_multiline(isset($settings[$key]) ? $settings[$key] : ''));
+            } elseif (!empty($settings[$key])) {
+                $rule_count++;
+            }
+        }
+        $enabled = $rule_count > 0;
 
-        return self::feature(__('Asset Manager', 'ultracache-pro'), $enabled, $public_guard, __('Assetregels worden alleen toegepast waar ze expliciet matchen.', 'ultracache-pro'));
+        $item = self::feature(__('Asset Manager', 'ultracache-pro'), $enabled, $public_guard, __('Assetregels worden alleen toegepast waar ze expliciet matchen.', 'ultracache-pro'));
+        $item['rules'] = $rule_count;
+        $item['testMode'] = !empty($settings['enable_asset_test_mode']);
+        $item['snapshotEnabled'] = !empty($settings['enable_asset_manager_snapshot']);
+        return $item;
     }
 
 
@@ -233,17 +243,38 @@ class UCP_Optimization_Status {
         $enabled = !empty($settings['enable_cdn']);
         $hosts = !empty($settings['cdn_cnames']) ? UCP_Helpers::normalize_multiline($settings['cdn_cnames']) : array();
         $provider = !empty($settings['cdn_provider']) ? sanitize_key((string) $settings['cdn_provider']) : 'none';
+        $cloudflare_ready = class_exists('UCP_Edge') && method_exists('UCP_Edge', 'cloudflare_api_configured') ? UCP_Edge::cloudflare_api_configured() : (!empty($settings['cloudflare_zone_id']) && !empty($settings['cloudflare_api_token']));
 
         if (!$enabled && 'none' === $provider && empty($hosts)) {
-            return self::item(__('CDN', 'ultracache-pro'), self::SKIPPED, __('Niet ingesteld', 'ultracache-pro'), __('Geen CDN-provider of CNAME actief.', 'ultracache-pro'));
+            $item = self::item(__('CDN', 'ultracache-pro'), self::SKIPPED, __('Niet ingesteld', 'ultracache-pro'), __('Geen CDN-provider of CNAME actief.', 'ultracache-pro'));
+            $item['provider'] = $provider;
+            $item['cloudflareConfigured'] = $cloudflare_ready;
+            $item['cloudflareLastResult'] = class_exists('UCP_Edge') && method_exists('UCP_Edge', 'cloudflare_last_result') ? UCP_Edge::cloudflare_last_result() : array();
+            $item['cdnLastResult'] = class_exists('UCP_CDN') && method_exists('UCP_CDN', 'cdn_last_result') ? UCP_CDN::cdn_last_result() : array();
+            return $item;
         }
         if ($enabled && empty($hosts)) {
-            return self::item(__('CDN', 'ultracache-pro'), self::PENDING, __('Gedeeltelijk ingesteld', 'ultracache-pro'), __('CDN rewrite staat aan, maar er is nog geen CDN-domein ingevuld.', 'ultracache-pro'));
+            $item = self::item(__('CDN', 'ultracache-pro'), self::PENDING, __('Gedeeltelijk ingesteld', 'ultracache-pro'), __('CDN rewrite staat aan, maar er is nog geen CDN-domein ingevuld.', 'ultracache-pro'));
+            $item['provider'] = $provider;
+            $item['cloudflareConfigured'] = $cloudflare_ready;
+            $item['cloudflareLastResult'] = class_exists('UCP_Edge') && method_exists('UCP_Edge', 'cloudflare_last_result') ? UCP_Edge::cloudflare_last_result() : array();
+            $item['cdnLastResult'] = class_exists('UCP_CDN') && method_exists('UCP_CDN', 'cdn_last_result') ? UCP_CDN::cdn_last_result() : array();
+            return $item;
         }
         if ($public_guard) {
-            return self::item(__('CDN', 'ultracache-pro'), self::PENDING, __('Alleen zichtbaar in testmodus', 'ultracache-pro'), __('CDN rewrite wordt niet op gevoelige requests toegepast.', 'ultracache-pro'));
+            $item = self::item(__('CDN', 'ultracache-pro'), self::PENDING, __('Alleen zichtbaar in testmodus', 'ultracache-pro'), __('CDN rewrite wordt niet op gevoelige requests toegepast.', 'ultracache-pro'));
+            $item['provider'] = $provider;
+            $item['cloudflareConfigured'] = $cloudflare_ready;
+            $item['cloudflareLastResult'] = class_exists('UCP_Edge') && method_exists('UCP_Edge', 'cloudflare_last_result') ? UCP_Edge::cloudflare_last_result() : array();
+            $item['cdnLastResult'] = class_exists('UCP_CDN') && method_exists('UCP_CDN', 'cdn_last_result') ? UCP_CDN::cdn_last_result() : array();
+            return $item;
         }
-        return self::item(__('CDN', 'ultracache-pro'), self::ACTIVE, __('Actief', 'ultracache-pro'), __('CDN rewrite gebruikt de ingestelde bestandstypes en uitsluitingen.', 'ultracache-pro'));
+        $item = self::item(__('CDN', 'ultracache-pro'), self::ACTIVE, __('Actief', 'ultracache-pro'), __('CDN rewrite gebruikt de ingestelde bestandstypes en uitsluitingen.', 'ultracache-pro'));
+        $item['provider'] = $provider;
+        $item['cloudflareConfigured'] = $cloudflare_ready;
+        $item['cloudflareLastResult'] = class_exists('UCP_Edge') && method_exists('UCP_Edge', 'cloudflare_last_result') ? UCP_Edge::cloudflare_last_result() : array();
+        $item['cdnLastResult'] = class_exists('UCP_CDN') && method_exists('UCP_CDN', 'cdn_last_result') ? UCP_CDN::cdn_last_result() : array();
+        return $item;
     }
 
     /**
@@ -298,7 +329,7 @@ class UCP_Optimization_Status {
      * @return array
      */
     protected static function font_feature($settings, $public_guard) {
-        $enabled = !empty($settings['enable_local_google_fonts']) || !empty($settings['enable_font_display_swap']) || !empty($settings['enable_disable_google_fonts']) || !empty($settings['enable_auto_font_preloads']) || !empty($settings['preload_fonts']);
+        $enabled = !empty($settings['enable_local_google_fonts']) || !empty($settings['enable_font_display_swap']) || !empty($settings['enable_disable_google_fonts']) || !empty($settings['enable_auto_font_preloads']);
         if (!$enabled) {
             return self::item(__('Fonts', 'ultracache-pro'), self::SKIPPED, __('Uitgeschakeld', 'ultracache-pro'), __('Geen font-optimalisaties actief.', 'ultracache-pro'));
         }
@@ -384,17 +415,24 @@ class UCP_Optimization_Status {
      * @return array
      */
     protected static function queue_summary($queue) {
-        return array(
+        if (class_exists('UCP_Jobs') && method_exists('UCP_Jobs', 'normalize_summary')) {
+            $queue = UCP_Jobs::normalize_summary($queue);
+        }
+        $summary = array(
             'pending' => isset($queue['pending']) ? absint($queue['pending']) : 0,
             'running' => isset($queue['running']) ? absint($queue['running']) : 0,
             'failed' => isset($queue['failed']) ? absint($queue['failed']) : 0,
             'completed' => isset($queue['completed']) ? absint($queue['completed']) : 0,
             'retrying' => isset($queue['retrying']) ? absint($queue['retrying']) : 0,
+            'staleRunning' => isset($queue['staleRunning']) ? absint($queue['staleRunning']) : 0,
         );
+        $summary['totalOpen'] = isset($queue['totalOpen']) ? absint($queue['totalOpen']) : $summary['pending'] + $summary['running'] + $summary['retrying'];
+        $summary['needsAttention'] = !empty($queue['needsAttention']) || $summary['failed'] > 0 || $summary['staleRunning'] > 0;
+        return $summary;
     }
 
     /**
-     * Create a normalized item.
+     * Create a validated optimization-status item for the admin response.
      *
      * @param string $label Human label.
      * @param string $state Lifecycle state.

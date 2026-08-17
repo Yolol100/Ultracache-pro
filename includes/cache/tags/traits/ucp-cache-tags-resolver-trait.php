@@ -63,6 +63,9 @@ trait UCP_Cache_Tags_Resolver_Trait {
     }
 
     public static function tags_for_post($post_id, $post = null) {
+        if (!is_scalar($post_id) && null !== $post_id) {
+            $post_id = 0;
+        }
         $post_id = absint($post_id);
         if (!$post_id) {
             return array('site:home');

@@ -36,8 +36,12 @@ class UCP_Optimization_Guards {
         }
 
         $value = self::sync_testing_mode_aliases($value);
+        self::sync_testing_mode_window($value, is_array($old_value) ? $old_value : array());
         $value = self::guard_css_delivery($value);
         $value = self::guard_js_delivery($value);
+        if (class_exists('UCP_Options') && method_exists('UCP_Options', 'apply_accessibility_safety')) {
+            $value = UCP_Options::apply_accessibility_safety($value);
+        }
         $value = self::guard_smart_safe_mode($value);
         $value = self::guard_advanced_combine_modes($value);
 
@@ -55,6 +59,33 @@ class UCP_Optimization_Guards {
         $settings['testing_mode'] = $testing ? 1 : 0;
         $settings['enable_asset_test_mode'] = $testing ? 1 : 0;
         return $settings;
+    }
+
+    /**
+     * Start one bounded preview window and keep ordinary settings saves from extending it.
+     *
+     * @param array $settings     New settings.
+     * @param array $old_settings Previous settings.
+     * @return void
+     */
+    protected static function sync_testing_mode_window(array $settings, array $old_settings) {
+        $active = !empty($settings['testing_mode']) || !empty($settings['enable_asset_test_mode']);
+        $was_active = !empty($old_settings['testing_mode']) || !empty($old_settings['enable_asset_test_mode']);
+
+        if (!$active) {
+            delete_option('ucp_testing_mode_started_at');
+            delete_option('ucp_testing_mode_expires_at');
+            return;
+        }
+
+        $expires_at = absint(get_option('ucp_testing_mode_expires_at', 0));
+        if (!$was_active || 0 === $expires_at || $expires_at <= time()) {
+            $started_at = time();
+            $ttl = class_exists('UCP_Helpers') ? UCP_Helpers::testing_mode_ttl_seconds() : 4 * HOUR_IN_SECONDS;
+            update_option('ucp_testing_mode_started_at', $started_at, false);
+            update_option('ucp_testing_mode_expires_at', $started_at + $ttl, false);
+            delete_option('ucp_testing_mode_expired_at');
+        }
     }
 
     /**
@@ -84,12 +115,8 @@ class UCP_Optimization_Guards {
      * @return array
      */
     protected static function guard_js_delivery(array $settings) {
-        if (!empty($settings['enable_delay_js']) || !empty($settings['enable_native_script_strategy'])) {
+        if (!empty($settings['enable_delay_js']) || (!empty($settings['enable_native_script_strategy']) && !empty($settings['defer_all_js']))) {
             $settings['enable_js_combine'] = 0;
-        }
-
-        if (!empty($settings['enable_delay_js'])) {
-            $settings['delay_js_safe_mode'] = 1;
         }
 
         if (!empty($settings['enable_js_combine'])) {
@@ -113,12 +140,11 @@ class UCP_Optimization_Guards {
             $settings['enable_css_queue'] = 1;
         }
 
-        if (!empty($settings['woocommerce_safety_mode']) || !empty($settings['enable_woocommerce_rules'])) {
-            $settings['serve_cache_to_shoppers'] = 0;
-            if (isset($settings['speculative_loading_mode']) && 'prerender' === (string) $settings['speculative_loading_mode']) {
-                $settings['speculative_loading_mode'] = 'core';
-            }
+        if (!empty($settings['serve_cache_to_shoppers'])) {
+            $settings['enable_woocommerce_rules'] = 1;
+            $settings['woocommerce_safety_mode'] = 1;
         }
+
 
         if (!empty($settings['enable_delay_js']) || $uses_css_artifacts || !empty($settings['enable_js_combine']) || !empty($settings['enable_css_combine'])) {
             $settings['compatibility_mode'] = 1;
@@ -128,18 +154,13 @@ class UCP_Optimization_Guards {
     }
 
     /**
-     * Combine modes stay advanced-only. This mirrors how modern cache plugins
-     * keep combine available, but avoid enabling it silently on complex sites.
+     * Keep advanced combine values intact when the admin switches display mode.
+     * Runtime conflict guards above still disable combinations that are unsafe.
      *
      * @param array $settings Settings.
      * @return array
      */
     protected static function guard_advanced_combine_modes(array $settings) {
-        if (empty($settings['show_advanced_options'])) {
-            $settings['enable_css_combine'] = 0;
-            $settings['enable_js_combine'] = 0;
-        }
-
         return $settings;
     }
 
@@ -234,7 +255,7 @@ class UCP_Optimization_Guards {
         }
         $payment_needles = array('stripe', 'paypal', 'mollie', 'klarna', 'adyen', 'ideal', 'wcpay', 'woocommerce-payments', 'apple-pay', 'google-pay');
         foreach ($query_args as $key => $value) {
-            $haystack = strtolower((string) $key . ' ' . (is_scalar($value) ? (string) $value : wp_json_encode($value)));
+            $haystack = strtolower((string) $key . ' ' . (is_scalar($value) ? (string) $value : UCP_Helpers::safe_json_encode_or($value, 'null')));
             foreach ($payment_needles as $needle) {
                 if (false !== strpos($haystack, $needle)) {
                     return true;
@@ -252,6 +273,9 @@ class UCP_Optimization_Guards {
      * @return bool
      */
     public static function contains_sensitive_markup($html) {
+        if (!is_scalar($html) && null !== $html) {
+            $html = '';
+        }
         $scan = strtolower(substr((string) $html, 0, 300000));
         foreach (array(
             'woocommerce-checkout', 'woocommerce-cart-form', 'wc-block-checkout', 'wc-block-cart', 'woocommerce-product-gallery',

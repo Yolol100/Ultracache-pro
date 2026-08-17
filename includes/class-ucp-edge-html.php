@@ -45,19 +45,18 @@ class UCP_Edge_HTML {
             return;
         }
 
-        $ttl = $this->edge_ttl();
-        $stale = $this->edge_stale();
+        $policy = UCP_Cache_Policy::export_header_policy();
+        $ttl = (int) $policy['edge_ttl'];
+        $stale = (int) $policy['edge_stale'];
+        $cache_control = UCP_Cache_Policy::public_html_cache_control($ttl, true, $policy);
+        $shared = UCP_Cache_Policy::shared_html_cache_control($ttl, true, $policy);
 
-        $shared = 'max-age=' . $ttl;
-        if ($stale > 0) {
-            $shared .= ', stale-while-revalidate=' . $stale . ', stale-if-error=' . $stale;
+        header('Cache-Control: ' . $cache_control, true);
+        if ('' !== $shared) {
+            header('CDN-Cache-Control: ' . $shared, true);
+            header('Cloudflare-CDN-Cache-Control: ' . $shared, true);
         }
-
-        // Browser always revalidates (max-age=0); shared/edge caches keep the document for the TTL.
-        header('Cache-Control: public, max-age=0, s-maxage=' . $ttl);
-        header('CDN-Cache-Control: ' . $shared, true);
-        header('Cloudflare-CDN-Cache-Control: ' . $shared, true);
-        header('Vary: Accept-Encoding', false);
+        header('Vary: ' . $this->edge_vary_header(), false);
 
         if (UCP_Options::get('edge_html_cache_tags', 1)) {
             $tags = $this->current_request_tags();
@@ -76,6 +75,15 @@ class UCP_Edge_HTML {
                 'stale'    => $stale,
             ));
         }
+    }
+
+    /**
+     * Shared-cache dimensions used by edge HTML eligibility and cache keys.
+     *
+     * @return string
+     */
+    private function edge_vary_header() {
+        return UCP_Cache_Policy::html_vary_header(false);
     }
 
     /**
@@ -107,8 +115,12 @@ class UCP_Edge_HTML {
             return false;
         }
 
-        $method = isset($_SERVER['REQUEST_METHOD']) ? strtoupper(sanitize_text_field(wp_unslash($_SERVER['REQUEST_METHOD']))) : 'GET';
-        if ('GET' !== $method) {
+        $method = UCP_Helpers::request_method();
+        if ('GET' !== $method || !$this->request_accepts_html()) {
+            return false;
+        }
+        $query_args = UCP_Helpers::query_args(100, 4, 8192);
+        if (false === $query_args || '' !== UCP_Helpers::server_value('HTTP_X_HTTP_METHOD_OVERRIDE', '', 32) || array_key_exists('_method', $query_args)) {
             return false;
         }
 
@@ -117,12 +129,26 @@ class UCP_Edge_HTML {
             return false;
         }
 
-        foreach (array('HTTP_AUTHORIZATION', 'REDIRECT_HTTP_AUTHORIZATION') as $key) {
-            if (!empty($_SERVER[$key])) {
+        foreach (array('HTTP_AUTHORIZATION', 'REDIRECT_HTTP_AUTHORIZATION', 'HTTP_X_WP_NONCE', 'HTTP_RANGE', 'HTTP_IF_RANGE') as $key) {
+            if ('' !== UCP_Helpers::server_value($key, '', 8192)) {
                 return false;
             }
         }
-        if (!empty($_SERVER['PHP_AUTH_USER']) || !empty($_SERVER['PHP_AUTH_DIGEST'])) {
+        if ('' !== UCP_Helpers::server_value('PHP_AUTH_USER', '', 1024) || '' !== UCP_Helpers::server_value('PHP_AUTH_DIGEST', '', 8192)) {
+            return false;
+        }
+
+        $request_cache_control = UCP_Helpers::server_value('HTTP_CACHE_CONTROL', '', 8192);
+        if ('' !== $request_cache_control) {
+            $requires_revalidation = class_exists('UCP_Cache_Policy') && method_exists('UCP_Cache_Policy', 'request_cache_control_requires_revalidation')
+                ? UCP_Cache_Policy::request_cache_control_requires_revalidation($request_cache_control)
+                : 1 === preg_match('/(?:^|,)\s*(?:no-cache|no-store|private|(?:s-)?max-age\s*=\s*"?0"?)(?:\s*(?:,|$))/i', $request_cache_control);
+            if ($requires_revalidation) {
+                return false;
+            }
+        }
+        $pragma = strtolower(UCP_Helpers::server_value('HTTP_PRAGMA', '', 1024));
+        if (false !== strpos($pragma, 'no-cache')) {
             return false;
         }
 
@@ -144,10 +170,19 @@ class UCP_Edge_HTML {
             return false;
         }
 
-        // Query strings: only allow when the page-cache query policy explicitly allows it.
-        $query_string = isset($_SERVER['QUERY_STRING']) ? sanitize_text_field(wp_unslash($_SERVER['QUERY_STRING'])) : '';
-        if ('' !== trim($query_string) && !UCP_Options::get('cache_query_strings')) {
+        // Query strings must follow the same disabled/allow-list policy as the page cache.
+        $query_string = UCP_Helpers::server_value('QUERY_STRING', '', 8192);
+        $query_inclusions = UCP_Helpers::normalize_multiline(UCP_Options::get('cache_query_string_inclusions', ''));
+        if (!UCP_Helpers::query_string_is_cacheable($query_string, !empty(UCP_Options::get('cache_query_strings')), $query_inclusions)) {
             return false;
+        }
+
+        // Edge HTML is a shared cache, so any unknown or malformed request cookie must bypass.
+        $raw_cookie_header = UCP_Helpers::server_value('HTTP_COOKIE', '', 16384);
+        if ('' !== trim($raw_cookie_header)) {
+            if (!class_exists('UCP_Cache_Policy') || !UCP_Cache_Policy::cookie_header_is_safe_for_shared_cache($raw_cookie_header)) {
+                return false;
+            }
         }
 
         // Excluded cookies + common cart/session cookies force a bypass.
@@ -156,7 +191,11 @@ class UCP_Edge_HTML {
             'woocommerce_items_in_cart', 'woocommerce_cart_hash', 'wp_woocommerce_session',
             'edd_items_in_cart', 'comment_author', 'wordpress_logged_in',
         ));
-        foreach ((array) array_keys($_COOKIE) as $cookie_name) {
+        $request_cookies = UCP_Helpers::cookie_map(128, 4096);
+        if (false === $request_cookies) {
+            return false;
+        }
+        foreach (array_keys($request_cookies) as $cookie_name) {
             $cookie_name = strtolower(sanitize_key((string) $cookie_name));
             foreach ($sensitive_cookies as $fragment) {
                 $fragment = strtolower(trim((string) $fragment));
@@ -164,6 +203,10 @@ class UCP_Edge_HTML {
                     return false;
                 }
             }
+        }
+
+        if (!$this->response_headers_allow_shared_cache(headers_list())) {
+            return false;
         }
 
         // Defer to the central safety layer when present (builder/preview/transactional bypass).
@@ -175,6 +218,145 @@ class UCP_Edge_HTML {
         }
 
         return (bool) apply_filters('ucp_edge_html_cacheable', true);
+    }
+
+
+    /**
+     * Parse a request-header qvalue. Invalid q parameters fail closed.
+     *
+     * @param array<int,string> $parameters Media-range parameters.
+     * @return float
+     */
+    private function request_header_quality($parameters) {
+        return UCP_Cache_Policy::request_header_quality($parameters);
+    }
+
+    /**
+     * Return the effective quality for one concrete media type.
+     * Exact ranges override wildcards, including an exact q=0 exclusion.
+     *
+     * @param string $header Accept header.
+     * @param string $type Media type.
+     * @param string $subtype Media subtype.
+     * @param array<string,string> $parameters Representation parameters.
+     * @return float
+     */
+    private function request_media_quality($header, $type, $subtype, $parameters = array()) {
+        $header = strtolower(trim((string) $header));
+        $parameters = is_array($parameters) ? array_change_key_case($parameters, CASE_LOWER) : array();
+        if ('' === $header) {
+            return 1.0;
+        }
+
+        $best_specificity = -1;
+        $best_quality = 0.0;
+        foreach (explode(',', $header) as $item) {
+            $segments = array_map('trim', explode(';', $item));
+            $range = explode('/', (string) array_shift($segments), 2);
+            if (2 !== count($range)) {
+                continue;
+            }
+            $range_type = trim($range[0]);
+            $range_subtype = trim($range[1]);
+            if ('*' === $range_type && '*' === $range_subtype) {
+                $specificity = 0;
+            } elseif ($type === $range_type && '*' === $range_subtype) {
+                $specificity = 1;
+            } elseif ($type === $range_type && $subtype === $range_subtype) {
+                $specificity = 2;
+            } else {
+                continue;
+            }
+
+            $parameter_count = 0;
+            $matches = true;
+            foreach ($segments as $parameter) {
+                if (preg_match('/^q\s*=/i', (string) $parameter)) {
+                    continue;
+                }
+                $pair = explode('=', (string) $parameter, 2);
+                if (2 !== count($pair)) {
+                    $matches = false;
+                    break;
+                }
+                $name = strtolower(trim($pair[0]));
+                $value = strtolower(trim($pair[1], " \t\n\r\0\x0B\""));
+                if ('' === $name || !array_key_exists($name, $parameters)
+                    || strtolower(trim((string) $parameters[$name], " \t\n\r\0\x0B\"")) !== $value) {
+                    $matches = false;
+                    break;
+                }
+                ++$parameter_count;
+            }
+            if (!$matches) {
+                continue;
+            }
+
+            $specificity = ($specificity * 1000) + $parameter_count;
+            $quality = $this->request_header_quality($segments);
+            if ($specificity > $best_specificity) {
+                $best_specificity = $specificity;
+                $best_quality = $quality;
+            } elseif ($specificity === $best_specificity) {
+                $best_quality = max($best_quality, $quality);
+            }
+        }
+        return $best_specificity >= 0 ? $best_quality : 0.0;
+    }
+
+    /**
+     * The edge key represents an HTML document and must not satisfy JSON-only clients.
+     *
+     * @return bool
+     */
+    private function request_accepts_html() {
+        $accept = UCP_Helpers::server_value('HTTP_ACCEPT', '', 8192);
+        $charset = function_exists('get_bloginfo') ? strtolower((string) get_bloginfo('charset')) : 'utf-8';
+        return $this->request_media_quality($accept, 'text', 'html', array('charset' => $charset)) > 0.0;
+    }
+
+    /**
+     * Reject response headers that make a representation private, stateful or
+     * dependent on a request header the edge key does not vary by.
+     *
+     * @param array<int,string> $headers Current response headers.
+     * @return bool
+     */
+    private function response_headers_allow_shared_cache($headers) {
+        if (!is_array($headers)) {
+            return false;
+        }
+        foreach ($headers as $header_line) {
+            $raw_header = trim((string) $header_line);
+            $lower_header = strtolower($raw_header);
+            if (0 === strpos($lower_header, 'set-cookie:')
+                || 0 === strpos($lower_header, 'content-range:')
+                || 0 === strpos($lower_header, 'www-authenticate:')) {
+                return false;
+            }
+            if (0 === strpos($lower_header, 'pragma:') && false !== strpos($lower_header, 'no-cache')) {
+                return false;
+            }
+            if (0 === strpos($lower_header, 'cache-control:')) {
+                $value = trim(substr($raw_header, strlen('cache-control:')));
+                $blocked = class_exists('UCP_Cache_Policy') && method_exists('UCP_Cache_Policy', 'cache_control_disallows_shared_storage')
+                    ? UCP_Cache_Policy::cache_control_disallows_shared_storage($value)
+                    : 1 === preg_match('/(?:^|,)\s*(?:private|no-store|no-cache)(?:\s*(?:,|$))/i', $value);
+                if ($blocked) {
+                    return false;
+                }
+            }
+            if (0 === strpos($lower_header, 'vary:')) {
+                $value = trim(substr($raw_header, strlen('vary:')));
+                foreach (explode(',', strtolower($value)) as $vary_header) {
+                    $vary_header = trim($vary_header);
+                    if ('' !== $vary_header && 'accept-encoding' !== $vary_header) {
+                        return false;
+                    }
+                }
+            }
+        }
+        return true;
     }
 
     /**
@@ -225,7 +407,7 @@ class UCP_Edge_HTML {
      * @return string
      */
     private function sanitize_tag($tag) {
-        $tag = preg_replace('/[^A-Za-z0-9_\-]/', '', (string) $tag);
+        $tag = UCP_Helpers::sanitize_preg_replace('/[^A-Za-z0-9_\-]/', '', (string) $tag);
         return substr((string) $tag, 0, 60);
     }
 
@@ -235,8 +417,8 @@ class UCP_Edge_HTML {
      * @return int
      */
     private function edge_ttl() {
-        $ttl = absint(UCP_Options::get('edge_html_cache_ttl', 600));
-        return min(86400, max(60, $ttl));
+        $policy = UCP_Cache_Policy::export_header_policy();
+        return (int) $policy['edge_ttl'];
     }
 
     /**
@@ -245,7 +427,7 @@ class UCP_Edge_HTML {
      * @return int
      */
     private function edge_stale() {
-        $stale = absint(UCP_Options::get('edge_html_cache_stale', 86400));
-        return min(604800, max(0, $stale));
+        $policy = UCP_Cache_Policy::export_header_policy();
+        return (int) $policy['edge_stale'];
     }
 }

@@ -17,7 +17,7 @@ class UCP_Optimization_Center_Notices {
             return;
         }
 
-        $page = isset($_GET['page']) ? sanitize_key(wp_unslash($_GET['page'])) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only admin routing context.
+        $page = isset($_GET['page']) && is_scalar($_GET['page']) ? sanitize_key(wp_unslash($_GET['page'])) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only admin routing context.
         $expected = class_exists('UCP_Admin_Router') ? UCP_Admin_Router::page_slug() : 'ultracache-pro';
         if ($page !== $expected) {
             return;
@@ -28,7 +28,7 @@ class UCP_Optimization_Center_Notices {
             return;
         }
 
-        echo '<div class="notice notice-info ucp-optimization-center-notice"><p><strong>' . esc_html__('UltraCache Optimization Center', 'ultracache-pro') . '</strong></p><ul style="margin-left:1.2em;list-style:disc;">';
+        echo '<div class="notice notice-info ucp-optimization-center-notice"><p><strong>' . esc_html__('UltraCache Optimization Center', 'ultracache-pro') . '</strong></p><ul class="ucp-optimization-center-list">';
         foreach ($messages as $message) {
             echo '<li>' . esc_html($message) . '</li>';
         }
@@ -38,8 +38,20 @@ class UCP_Optimization_Center_Notices {
     protected static function messages(array $settings) {
         $messages = array();
 
+        if (get_transient('ucp_testing_mode_expired_notice')) {
+            $messages[] = __('Testmodus is automatisch beëindigd. De publieke site gebruikt weer de normale actieve instellingen.', 'ultracache-pro');
+            delete_transient('ucp_testing_mode_expired_notice');
+        }
+
         if (class_exists('UCP_Helpers') && UCP_Helpers::testing_mode_active()) {
-            $messages[] = __('Testmodus is actief: beheerders kunnen optimalisaties previewen, bezoekers zien de stabiele live-versie.', 'ultracache-pro');
+            $expires_at = UCP_Helpers::testing_mode_expires_at();
+            $messages[] = $expires_at > 0
+                ? sprintf(
+                    /* translators: %s: local testing mode expiration time. */
+                    __('Testmodus is actief tot %s: beheerders previewen optimalisaties, bezoekers zien de stabiele live-versie.', 'ultracache-pro'),
+                    wp_date(get_option('date_format') . ' ' . get_option('time_format'), $expires_at)
+                )
+                : __('Testmodus is actief: beheerders kunnen optimalisaties previewen, bezoekers zien de stabiele live-versie.', 'ultracache-pro');
         }
 
         if (!empty($settings['enable_delay_js'])) {

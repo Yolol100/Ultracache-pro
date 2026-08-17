@@ -41,6 +41,10 @@ class UCP_Optimization_Intelligence {
     }
 
     public static function delay_js_exclusions($rules) {
+        if (!is_array($rules)) {
+            $rules = is_scalar($rules) ? array($rules) : array();
+        }
+        $rules = array_values(array_filter($rules, 'is_scalar'));
         $rules = is_array($rules) ? $rules : array();
         $extra = array(
             'nowprocket', 'data-ucp-no-delay', 'noucpdelay', 'data-no-delay', 'data-no-optimize',
@@ -62,6 +66,10 @@ class UCP_Optimization_Intelligence {
     }
 
     public static function css_exclusions($rules) {
+        if (!is_array($rules)) {
+            $rules = is_scalar($rules) ? array($rules) : array();
+        }
+        $rules = array_values(array_filter($rules, 'is_scalar'));
         $rules = is_array($rules) ? $rules : array();
         $extra = array('admin-bar', 'wp-block-library', 'wp-interactivity', 'woocommerce-layout', 'woocommerce-smallscreen', 'woocommerce-general', 'checkout', 'cart', 'account', 'order-pay', 'payment', 'elementor', 'elementor-pro', 'elementor-popup', 'elementor-nav-menu', 'e-con', 'bricks', 'breakdance', 'et-core', 'fusion-', 'flatsome', 'menu', 'nav-menu', 'popup', 'modal', 'slider', 'swiper', 'slick', 'sticky', 'hidden', 'mobile-', 'tablet-', 'desktop-', 'cookie', 'consent', 'captcha', 'form');
         return array_values(array_unique(array_filter(array_merge($rules, $extra), 'strlen')));
@@ -78,13 +86,13 @@ class UCP_Optimization_Intelligence {
         }
     }
 
-    public static function mark_css_stale_global($reason = '') {
+    public static function mark_css_stale_global($reason = '', $context = null) {
         $statuses = get_option('ucp_css_artifact_status', array());
         $statuses = is_array($statuses) ? $statuses : array();
         foreach ($statuses as $key => $status) {
             $status = is_array($status) ? $status : array();
             $status['status'] = 'stale';
-            $status['message'] = 'CSS artifact is stale after site/theme/plugin change.';
+            $status['message'] = __('CSS-artifact is verouderd na een wijziging aan de site, het thema of een plugin.', 'ultracache-pro');
             $status['stale_reason'] = is_scalar($reason) ? sanitize_text_field((string) $reason) : 'site_change';
             $status['updated_at'] = current_time('mysql', true);
             $statuses[$key] = $status;
@@ -136,14 +144,7 @@ class UCP_Optimization_Intelligence {
                 }
             }
         }
-        $clean = array();
-        foreach ((array) $urls as $url) {
-            $url = UCP_Helpers::strict_local_url($url);
-            if ($url && wp_http_validate_url($url)) {
-                $clean[] = $url;
-            }
-        }
-        return array_values(array_unique($clean));
+        return UCP_Helpers::normalize_local_url_list($urls);
     }
 
     public static function purge_product_from_stock_object($product) {
@@ -337,7 +338,7 @@ class UCP_Optimization_Intelligence {
             'impact' => array('TTFB'),
             'risk' => 'client-safe',
             'runtime_test_required' => true,
-            'recommended_action' => __('Controleer pending/failed/skipped URL-statussen en throttling voordat grote sites volledig worden gepreload.', 'ultracache-pro'),
+            'recommended_action' => __('Controleer wachtende, mislukte en overgeslagen URL-statussen en de snelheidsbegrenzing voordat grote sites volledig worden voorbereid.', 'ultracache-pro'),
             'summary' => $preload,
         );
         $items['font_preload_status'] = array(
@@ -403,14 +404,16 @@ class UCP_Optimization_Intelligence {
 
     public static function rest_rollback_css_artifacts() {
         $deleted = 0;
-        $restored = class_exists('UCP_CSS') && method_exists('UCP_CSS', 'restore_latest_artifact_backup') ? UCP_CSS::restore_latest_artifact_backup() : 0;
         foreach (array(UCP_CACHE_DIR . 'used-css/*.css', UCP_CACHE_DIR . 'critical-css/*.css') as $pattern) {
-            foreach ((array) glob($pattern) as $file) {
+            foreach (UCP_Helpers::safe_glob_files($pattern, 1000) as $file) {
                 if (UCP_Helpers::safe_delete_file($file)) {
                     $deleted++;
                 }
             }
         }
+        // Delete the active generation first. Restoring before this cleanup made
+        // the rollback action immediately delete the files it had just restored.
+        $restored = class_exists('UCP_CSS') && method_exists('UCP_CSS', 'restore_latest_artifact_backup') ? UCP_CSS::restore_latest_artifact_backup() : 0;
         self::mark_css_stale_global('rollback_css_artifacts');
         return rest_ensure_response(array('ok' => true, 'deleted' => $deleted, 'restored_backups' => $restored));
     }

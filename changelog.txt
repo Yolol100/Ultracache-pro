@@ -1,0 +1,1343 @@
+= 11.7.19 =
+* Removed the programmatically triggered JSON import file input from the normal keyboard tab order while preserving a translated accessible name and the existing import workflow.
+* Localized the existing React admin empty-card fallback instead of hardcoding user-visible text in CSS.
+* Localized the remaining Cloudflare, CDN and CSS artifact status messages used by existing status and log flows.
+* Preserved all existing settings, routes, hooks, storage formats and product scope; no setting, route or feature was added.
+
+= 11.7.18 =
+* Preserved allowlisted origin security and representation headers across normal PHP and early advanced-cache.php page-cache HITs while keeping stateful, freshness, transport and malformed headers out of cache metadata.
+* Bypassed REST response caching for WooCommerce Store API Cart-Token and Nonce requests and rotated the REST cache schema.
+* Bound opt-in logged-in page-cache keys to the current WordPress session as well as user identity and fail closed when no session token is available.
+* Corrected Accept-Encoding selection for identity preference, explicit identity refusal, wildcard semantics and missing or stale compressed variants in both page-cache serving paths.
+* Replaced unbounded per-cache-key writer lock files with a bounded lock pool and removed only stale legacy lock files during maintenance.
+* Bounded maintenance retention deletes, added matching leftmost time indexes through the existing dbDelta schema upgrade path, and preserved existing cleanup settings.
+* Removed obsolete imagedestroy() calls because GdImage resources are automatically released and the function is deprecated on PHP 8.5.
+* Preserved existing public settings, routes, hooks and product scope; no setting, route or feature was added.
+
+= 11.7.17 =
+* Preserved gain-mapped HDR JPEGs by skipping WebP/AVIF cross-codec variant generation when UltraHDR, ISO 21496-1 or Apple gain-map metadata is detected.
+* Bypassed image-CDN rewriting and transforms for detected gain-mapped HDR JPEGs so existing format=auto behavior cannot strip HDR gain maps.
+* Stopped serving stale WebP/AVIF siblings for detected gain-mapped HDR JPEGs and removed only previously tracked UltraCache-owned variants during re-optimization.
+* Preserved ordinary JPEG optimization, existing image settings, routes, hooks and product scope; no setting or feature was added.
+
+= 11.7.16 =
+* Invalidated existing cached output when CSS artifact limits/profile age, LCP profile confidence/age/allowed hosts, edge cache-tag policy, or cached admin-bar/preload state changes.
+* Stopped persisting origin freshness/validator/cache-control metadata in the anonymous REST response cache and rotated the internal REST cache schema.
+* Routed native defer through WordPress 6.3+ dependency-aware script strategy metadata, preserving exclusions, existing strategies and no-delay/no-defer markers where dependency order stays safe; older Core keeps the legacy tag fallback.
+* Preserved all existing settings, routes, custom public hooks and feature scope; no setting or product feature was added.
+
+= 11.7.15 =
+* Kept queued mobile preload retryable when the mobile cache variant hits a transport error or transient HTTP 429/5xx response.
+* Stopped reporting failed direct mobile warmup requests as successful preload requests.
+* Reported an already-existing equivalent preload job as queued after a single-URL purge, matching the durable unique-queue semantics used elsewhere.
+* Preserved existing settings, public hooks, routes and feature scope; no feature or setting was added.
+
+= 11.7.14 =
+* Kept LQIP media-library backfill retryable when an enabled LQIP subjob cannot be durably queued.
+* Treated an already-existing equivalent LQIP job as success, preserving idempotent backfill behavior.
+* Preserved existing public hooks, routes, option keys and image-optimization behavior; no feature was added.
+
+= 11.7.13 =
+* Rejected replay of an older validly signed compatibility overlay when a newer verified overlay is already installed.
+* Kept Used CSS refresh retryable when its maintenance job cannot be durably queued.
+* Counted direct-preload overflow as queued only after durable queue insertion or detection of an existing equivalent job.
+* Recorded lifecycle cache warmup as scheduled only after WordPress accepted the single cron event.
+* Reported seeded test jobs from durable queue outcomes instead of always showing a success notice.
+* Kept CSS fallback diagnostics truthful when optimized CSS generation could not be durably queued.
+* Preserved existing public hooks, routes, option keys and permanent preload behavior; no feature was added.
+
+= 11.7.12 =
+* Fixed CWV retention reads so timeseries pruning and the CLI use the canonical plugin setting.
+* Matched database-cleanup preview counts to the exact revision and post candidates selected by cleanup.
+* Extended plain-text secret redaction to colon and whitespace key/value forms.
+* Routed transient preload 429/5xx responses through bounded queue retries and respected Retry-After.
+* Preserved existing public hooks, routes, option keys and permanent preload skip behavior.
+
+= 11.7.11 =
+* Fixed protected transformation callbacks that silently skipped lazyload, iframe and HTML-minification work.
+* Made HTML tag processing quote-aware and raw-text-safe so valid `>` characters, scripts, comments, CDATA and template-like strings remain intact.
+* Accepted valid whitespace around HTML attribute assignments across CSS delivery, Delay JavaScript, media, CDN, LQIP, responsive images and YouTube previews.
+* Corrected Delay JavaScript attribute removal, CDN HTML rewriting, internal placeholder collisions and fallback cache-header sanitization.
+* Corrected LCP priority replacement and adaptive-image skip detection so eager/high-priority images are not treated as ordinary responsive candidates.
+* Preserved public hooks, routes, option keys, cache contracts and existing feature behavior; no features or settings were added.
+
+= 11.7.10 =
+* Fixed frontend output-buffer ordering so disk cache stores the final optimized HTML instead of the pre-optimization response.
+* Made LiteSpeed cacheability checks evaluate the final optimized representation.
+* Added explicit cache and optimizer priority constants to prevent the buffer pipeline from silently regressing.
+
+= 11.7.9 =
+* Aligned cache, preload, optimization, media and server controls with their labels on desktop while retaining stacked mobile layouts.
+* Flattened nested rule panels, modernized protected-rule summaries and balanced dashboard, insight and adjacent card spacing.
+* Hid Asset Inspector copy actions until rules are selected and corrected button hover and focus contrast in both source and minified assets.
+
+= 11.7.8 =
+* Prevented disabled preload intervals from scheduling an hourly preload event.
+* Ignored unsupported legacy image-mode values instead of silently disabling valid image settings.
+* Applied existing dependency locks consistently to all admin control types and disabled preload mode while page caching is off.
+
+= 11.7.7 =
+* Aligned media loading controls with their descriptions on desktop and kept the existing stacked mobile layout.
+* Moved rendering toggles and maintenance actions into consistent right-side control columns at desktop widths.
+* Corrected preload queue state wording, disabled unavailable processing actions and fixed singular/plural queue labels.
+
+= 11.7.6 =
+* Fixed malformed non-scalar search values in job, log and diagnostic queries so they fail safely without PHP warnings or TypeErrors.
+* Preserved valid scalar search behavior, prepared SQL placeholders and existing pagination contracts.
+
+= 11.7.5 =
+* Fixed 153 reproducible malformed-input failures across 123 public callbacks and helper methods in 54 files.
+* Added only type guards, scalar-list filtering and existing safe fallbacks for the failing paths; valid-input outputs and public contracts remain unchanged.
+
+= 11.7.4 =
+* Fixed 51 reproducible malformed-input failures across public helpers, cache policy, admin routing, fragment handling, image CDN, rate limiting and preload safety.
+* Added scalar guards and existing safe fallbacks only; valid-input output and public contracts remain unchanged.
+
+= 11.7.3 =
+* Rejected nested browser-scan values before scalar conversion, preventing warnings and incorrect stored values across URLs, viewports, candidates, selectors, resources and timing entries.
+* Bounded and type-filtered browser-scan recommendations instead of storing unlimited or nested malformed values.
+* Preserved measured LCP start times and sanitized srcset metadata through both JSON and array persistence paths.
+* Rejected non-HTTP LCP resources, overlong resource URLs and invalid srcset descriptors.
+* Built bounded srcset output from complete candidates so stored attributes are never cut in the middle of a URL or descriptor.
+
+= 11.7.2 =
+* Rejected symlinked or escaped managed-cache artifacts before exposing public cache URLs.
+* Preserved complete third-party asset URLs in cache identities, added bounded refresh, and purged self-hosted asset caches on full purge.
+* Supported extensionless Google Fonts CSS, preserved vendor CSS bytes, and rejected CSS with unresolved relative dependencies.
+* Refreshed stale Gravatar and YouTube media through the existing unique background job path while serving the current local copy.
+* Enforced scalar, bounded viewport-image URLs while preserving query strings and case-sensitive page identities.
+
+= 11.7.1 =
+* Aligned the public CWV REST schema with the page-bound token contract by requiring and validating a same-origin page URL.
+* Rejected ESI fragment identifiers that would otherwise normalize to a different registered identifier.
+* Bounded remote compatibility-overlay depth, node counts, array sizes, scalar sizes and structured entry recursion before canonicalization or storage.
+* Clarified that development CI, release automation, static analysis and browser tooling are maintained outside the installable production ZIP.
+
+= 11.7.0 =
+* Added a fail-closed self-service update channel based on the WordPress Update URI API, a published release manifest and SHA-256 verification of both manifest and ZIP assets.
+* Added Site Health and support-report visibility for update-channel drift, unavailable releases and verified current/update states.
+* Added customer-facing security, support and compatibility policies; development CI, release automation, static analysis and browser tooling are maintained in the source repository rather than the production ZIP.
+* Kept runtime optimization behavior unchanged apart from the new update-channel registration and diagnostics.
+
+= 11.6.54 =
+* Reduced readme.txt below the WordPress.org size guideline and retained only the current release summary; full history remains in changelog.txt.
+* Replaced the abbreviated license notice with the complete GNU GPL version 2 license text.
+* Revalidated classmap loading, registered callbacks, REST permission callbacks, settings behavior, assets, public contracts and release packaging without changing public runtime behavior.
+
+= 11.6.53 =
+* Cached normalized settings per site for the current request and invalidated them on add, update and delete operations.
+* Connected previously inert comment/theme/extension purge, responsive-image, retry, Delay JS diagnostics and CLS reservation settings to their canonical runtime owners.
+* Loaded image optimization and Image CDN processing independently of lazy-load settings and enforced CDN transform dependencies in both PHP and React.
+* Preserved intentionally empty advanced request-rule lists and forced hidden mandatory safety invariants to their truthful enabled state.
+* Added regression coverage for settings effects, list deletion, media dependencies, client/server parity and CSS retry timing.
+
+= 11.6.52 =
+* Fixed three persisted setting conflicts in CSS delivery and Google Fonts modes.
+* Matched React optimistic state to server normalization for cache/preload, JavaScript, CSS, accessibility and WooCommerce dependencies.
+* Added client/server parity checks for all visible combined controls and direct toggle side effects.
+* Cleaned redundant combined-control code while retaining public signatures and compatibility facades.
+* Completed settings, assets, comments, duplicate-code and dead-code verification with no safe runtime file removals identified.
+
+= 11.6.51 =
+* Centralized browser/CDN/origin HTML cache-header policy across runtime and advanced-cache.php.
+* Made multisite activation state commits compare-and-swap safe.
+* Converted full-library image backfill to resumable cursor jobs.
+* Added queue time and memory budgets with stop-reason metrics.
+* Added an in-plugin runtime invariant diagnostic for cache-policy, drop-in and queue drift.
+
+= 11.6.50 =
+* Queue runner and job claims use renewable, token-bound leases and stop safely when ownership changes.
+* CSS generation renews active operation leases between bounded processing phases.
+* Network activation is fully asynchronous, refreshes ownership around each site/state commit, and recovers missing cron events.
+* Added controlled regression coverage for job-claim replacement, runner-lock replacement, stale network workers and activation schedule recovery.
+
+= 11.6.49 =
+* Rate-limit decisions are all-or-nothing across related counters and roll back earlier writes on storage failure.
+* WooCommerce validates guest sessions before session-bound ESI callbacks run.
+* Long-running REST actions refresh their lease between bounded work phases and use a longer default safety lease.
+* Site activation is serialized with upgrades and commits the installed version only after all activation phases succeed.
+
+= 11.6.48 =
+* Cache correctness: browser freshness is separated from origin and edge freshness; public HTML now revalidates after a purge while shared caches retain a bounded s-maxage policy.
+* Concurrency: long-running REST mutations use renewable compare-and-swap leases and heartbeat between preload, queue and cleanup batches.
+* Upgrades: schema and filesystem migrations renew their exact lease between phases; multisite network activation is cursor-based, bounded and resumable.
+* Object cache: Redis prefix cleanup enforces hard round, key and wall-clock budgets and reports partial cleanup as incomplete.
+* API reliability: CWV and ESI rate limits distinguish quota exhaustion from temporary lock or storage contention.
+* Security hardening: CWV tokens carry their signed time bucket for constant-time verification, with one bounded compatibility window for cached legacy pages.
+* ESI: guest-session fragments execute only for authenticated users or visitors with an actual WooCommerce session cookie.
+* Scalability: page-cache writer locks use a sharded 64-bit identity instead of a 16-bit shard, preventing unrelated URL writes from blocking each other.
+* Lifecycle: option migrations use renewable compare-and-swap leases; uninstall removes all new operational locks, cursors and token-transition records.
+* QA: PHP, JavaScript, JSON, public-contract, package and targeted concurrency/cache regressions are repeated in two stable rounds. Native WordPress, WooCommerce, browser, multisite and live Redis/APCu validation remains staging-first.
+
+= 11.6.47 =
+* Security: remote compatibility overlays now require an Ed25519 signature and an explicit expiry unless a legacy unsigned source is deliberately enabled.
+* Reliability: database upgrades use an expiring cross-request mutex, verify schema/version commits and report degraded filesystem or drop-in integration separately.
+* Reliability: feature modules remain paused while an upgrade is locked or incomplete, preventing runtime code from using an unverified schema while WordPress itself stays available.
+* Reliability: option migrations now run after schema verification under their own expiring mutex, commit one aggregate completion marker and pause feature modules while another request is migrating.
+* Reliability: clean uninstall removes upgrade, migration, runtime-status and action-lock records introduced by the hardened lifecycle.
+* Reliability: cache publication rolls back safely after exceptions and keeps a verified identity generation when optional compression fails.
+* Reliability: queued precompression shares the identity writer lock so a stale job cannot publish compressed output over a newer cache generation.
+* Performance: gzip/Brotli derivatives are queued outside the cache-miss path, use content-bound jobs and lower CPU-oriented defaults, with a safe synchronous fallback only when the queue is unavailable.
+* Concurrency: cache writer waits are bounded, lock sharding is expanded and mutating admin actions are protected against duplicate execution; replay records are bound to the exact sanitized payload.
+* Object cache: APCu reports group-flush support only when available; Redis adds TLS transport, verified stream-context support, separate timeouts and bounded UNLINK/DEL cleanup.
+* Cache correctness: early-cache, runtime-quality and preload URL parsing now agree on encoded query delimiters; REST cache invalidation covers persistent option, metadata, menu, theme and Customizer mutations.
+* Hosting compatibility: browser-cache rule verification is skipped cleanly on non-Apache servers instead of reporting an irrelevant degraded state.
+* Privacy and metrics: ESI failures no longer log exception messages; fragment registration is private by default; CWV tokens are page-bound and remain valid only for the configured cache-retention window.
+* QA: added controlled regression coverage for upgrades, serialized option migrations, uninstall cleanup, rollback, query parsing parity, Redis transport, APCu capabilities, signed overlays, REST invalidation, action idempotency, CWV tokens and asynchronous precompression. Native WordPress, WooCommerce, browser and live Redis/APCu validation remains staging-first.
+
+= 11.6.46 =
+* Hardening: querystrings, query arrays, cookie headers, Cache-Control/Vary metadata, URL lists and multiline rule sources now share explicit byte, item, depth and control-character limits.
+* Reliability: invalid query data produces a collision-resistant cache-key marker instead of being silently normalized into a potentially valid key.
+* Validation: URL, domain, cookie and rule helpers reject non-scalar input without PHP warnings and keep early drop-in behavior aligned with the normal plugin runtime.
+* Documentation: corrected the duplicated 11.6.45 readme changelog heading for the 11.6.44 release.
+* QA: 5,000 additional unique controlled scenarios record expected and actual outcomes; native WordPress, database, WooCommerce and browser validation remains staging-first.
+
+= 11.6.45 =
+* Hardening: multiline settings are bounded by total size, line count and line length before normalization.
+* Hardening: wildcard and regular-expression rules now reject oversized subjects and invalid PCRE results.
+* Hardening: outbound HTTP defaults always retain TLS verification and cannot be converted into arbitrary streamed file writes.
+* Hardening: current-request URL helpers use the shared bounded server-input reader.
+* Validation: domain normalization now enforces DNS hostname length and label rules.
+
+11.6.44
+- Hardening: hard caps toegevoegd voor JSON, bestanden, globs, preload, jobrunner, image backfill, asset minify/combine en gedeelde remote-requestargumenten.
+- Reliability: CLI-import/export, cachemetadata, cacheherstel en artifactreads falen nu gesloten bij te grote of ongeldige invoer.
+- Compatibility: ongeldige tablet-mediaquery gecorrigeerd zonder publieke hooks, routes of instellingen te wijzigen.
+
+11.6.43
+- Herstelt vijftien ongeldige geneste helperaanroepen in CSS-, media-, CDN- en Delay-JS-paden.
+- Begrensde requestvormen, jobpayloads, REST-extensies, JSONL, lokale reads en veilige globs.
+- Atomaire of herstelbare cache-, tag-, diagnose- en tellerwrites plus fail-closed remote-responsecontrole.
+- 500 extra traceerbare punten: 250 implementatiepunten en 250 onafhankelijke regressiepoorten.
+
+11.6.42
+- Brede regex-, JSON-, request- en remote-response hardening met fail-safe/fail-closed foutpaden.
+- Advanced-cache en uninstallpaden voorzien van bootstrap-onafhankelijke defensieve helpers.
+- 500-punten kwaliteitsmanifest en regressiematrix toegevoegd aan release-evidence.
+
+= 11.6.41 =
+* Hardened renderer request tokens and JSON encoding.
+* Hardened renderer response contracts, booleans, URL matching, list limits and local stylesheet authorization.
+* Hardened filtered REST route/handler registration and canonical REST response fields.
+* Hardened error status normalization and job-runner availability checks.
+
+= 11.6.40 =
+* Runtimecontrole: behandelt bewust niet-meegeleverde Nederlandse JavaScript-catalogi als optioneel en valideert ze wanneer ze aanwezig zijn.
+* Uninstall: verwijdert opgeslagen maatwerkpresets wanneer schone verwijdering is ingeschakeld.
+
+= 11.6.39 =
+* Code quality: removed an accidental search/replace comment, normalized comment language and grammar, and removed a redundant class-name-only PHPDoc line.
+* Formatting: restored standard class/trait indentation in ten first-party PHP files and removed trailing whitespace without changing runtime logic or public contracts.
+
+= 11.6.38 =
+* ESI: voorkomt overlappende requests en verouderde DOM-hydratatie wanneer de loader meermaals wordt uitgevoerd.
+* ESI: verwerkt gereserveerde fragment-ID’s zoals `constructor` en `__proto__` zonder prototype-keyconflicten.
+* Verificatie: houdt bron- en minified-assets token-voor-token gelijk en hertest sanitizer-, timeout- en racepaden in Chromium.
+
+= 11.6.37 =
+* Refactored admin-bar and lazy-render inline assets to `wp_register_*()` plus `wp_add_inline_*()`.
+* Removed legacy inline-script fallbacks below the WordPress 6.3 minimum.
+* Replaced ESI `innerHTML` hydration with allowlisted DOM parsing and safe node construction.
+* Regenerated the ESI minified asset and moved affected hooks to the enqueue lifecycle.
+
+= 11.6.36 =
+* Cleanup: verwijdert twee overbodige Nederlandse JavaScript-vertaalcatalogi waarvan 1.286 vertalingen exact gelijk waren aan de Nederlandse brontekst.
+* Refactor: centraliseert lokale URL-lijstnormalisatie en diagnostische URL-redactie zonder publieke hooks, methodes of dataformaten te breken.
+* Admin-CSS: verwijdert tien exact identieke, eerder in dezelfde cascade voorkomende regels en behoudt steeds de laatste canonieke regel.
+* Packaging: verkort alleen de dubbele releasehistorie in readme.txt; dit bestand bewaart de volledige historie.
+* Verificatie: voert syntax-, contract-, dynamisch-gebruik-, duplicatie-, vertaal-, bron/minified- en packagecontroles uit in twee stabiele rondes.
+
+= 11.6.35 =
+* Refactor: centraliseert gedeelde cachepolicy-, optie-, datum-, bevestigings- en minificatiehulpmethoden zonder publieke hooks of dataformaten te wijzigen.
+* Cleanup: verwijdert ongebruikte minified React-adminbuilds; de runtime gebruikt bewust de leesbare bronbestanden.
+* Onderhoudbaarheid: verwijdert dubbele helperimplementaties en herstelt de dubbele versieheader in readme.txt.
+
+= 11.6.34 =
+* Admin-CSS: vervangt de veertien gestapelde module- en correctielagen door één canoniek stylesheet.
+* Cleanup: verwijdert de oude CSS-modulebestanden en hun afzonderlijke enqueuehandles.
+* Onderhoudbaarheid: bron- en minified-CSS hebben voortaan één duidelijke eigenaar en één cacheversie.
+
+= 11.6.33 =
+* UI: media-, lettertype- en compatibiliteitsbediening staat werkelijk links onder de bijbehorende uitleg; de conflicterende hybride rasterregels zijn vervangen.
+* Verplaatst media-, lettertype-, cache- en CDN-bediening onder de bijbehorende uitleg en beperkt compacte velden tot een passende breedte.
+* Toont korte HTML- en CSS-keuzes als een responsief keuzeraster en herstelt de bedoelde 2+1-indeling voor speciale situaties.
+* Vermindert lege ruimte in onderhoud en technische herstelacties en maakt de tijdelijke supportmodus een duidelijke secundaire knop.
+
+= 11.6.31 =
+* Herstelt de adminlayout met semantische componentklassen en een nieuwe laatst geladen layoutasset.
+* Maakt dropdowns compacter, lijnt bediening links uit en vereenvoudigt onderhoud en diagnostiek.
+
+= 11.6.30 =
+* Admininterface: bedieningselementen staan dichter bij hun uitleg en gebruiken compacte veldbreedtes.
+* Uitsluitingen: invoervelden staan onder de toelichting en benutten de volledige kaartbreedte.
+* Onderhoud en diagnostiek: vereenvoudigde kaartopbouw, consistente knoppen en rustigere statusweergave.
+* Toegankelijkheid: statuskaarten zijn gecentreerd en herstelacties hebben een duidelijke knopweergave.
+
+= 11.6.29 =
+* Edge Worker correctness: stores one canonical URL-keyed Cache API object without a misleading `Vary` header and restores the safe origin `Vary` policy only on the visitor response.
+* Policy parity: aligns cookie-fragment, request Cache-Control, response Cache-Control and parameterized Accept handling with the central PHP cache policy, including fail-closed handling of disguised sensitive cookies and malformed directives.
+* Response safety: rejects authentication challenges, no-cache pragmas, unsafe variation dimensions and non-HTML media types while preserving conditional request headers during Cache API lookup.
+* Browser cache safety: separates the Worker storage TTL from the browser `Cache-Control` policy, restores the origin policy on HIT and handles legacy entries fail-closed.
+* Stale delivery: implements bounded stale-while-revalidate and stale-if-error behavior, including fallback for network failures and HTTP 500, 502, 503 and 504 responses without deleting the usable stale object.
+* Verification: repeats the file-by-file, drop-in, lifecycle, public-contract, source/minified and release-package checks plus cross-language policy parity tests.
+
+= 11.6.28 =
+* Redis correctness: treats only actual Unix socket paths or names ending in `.sock` as sockets, so TCP hosts such as `redis.sock.internal` keep their configured port in both diagnostics and the Redis drop-in.
+* Diagnostics and translations: makes all persisted administrator-facing log messages translation-extractable, replaces mixed English/Dutch status copy and rebuilds the POT from current source without stale entries.
+* Code quality: removes a duplicate PHPCS suppression and repeats the complete file-by-file, cross-file, contract and package verification.
+
+= 11.6.27 =
+* Correctness: preserves the literal value `0` in multiline settings and accepts valid upload filenames containing adjacent dots while still rejecting parent-directory traversal.
+* Frontend reliability: restores ESI accessibility state after bounded timeouts even when AbortController is unavailable.
+* CDN safety: requires exact uploads-path boundaries and uses domain-label/path-segment matching for automatic Bunny and Cloudflare image-transform detection.
+* Database accuracy: escapes SQL LIKE metacharacters during exact table-existence and table-status checks.
+* Admin copy: localizes visible CLI, maintenance, REST, CDN, Cloudflare and diagnostic log messages and refreshes the translation template.
+* Verification: performs a file-by-file audit of all production files, cross-file callbacks, classmap entries, assets, lifecycle paths and source/minified pairs.
+
+= 11.6.26 =
+* Accessibility: labels optimized YouTube preview iframes when the original embed has no title.
+* Frontend reliability: marks ESI fragments busy during hydration, restores existing accessibility state and aborts stalled requests after a bounded timeout.
+* Admin copy: replaces mixed English/Dutch diagnostics, backup wording and unknown-key messages with consistent Dutch terminology.
+* Verification: adds a new frontend/backend/text scenario matrix and repeats package, contract and source/minified checks.
+
+= 11.6.25 =
+* Internationalization: makes all React settings-schema group names, labels, help text, option labels and preset metadata translatable through the WordPress i18n runtime.
+* Admin feedback: translates field-save results, CSS/JavaScript combination locks, WP-CLI output, render-bridge errors and admin-bar notices while preserving dynamic values with placeholder-safe formatting.
+* Catalogs: rebuilds the POT and Dutch JavaScript catalogs deterministically from PHP, JavaScript and schema sources so frontend and backend copy stay synchronized.
+* Status copy: localizes CSS-artifact lifecycle messages, compatibility warnings, release-checklist guidance and placeholder-safe WP-CLI output while preserving stable machine keys.
+* Verification: adds schema-wide translation, UI copy, catalog parity, JavaScript/CSS, accessibility-pattern and production-package scenarios on top of the existing cache, lifecycle, security and fuzz suites.
+
+= 11.6.24 =
+* Security: hardens outbound HTTPS validation against alternate numeric IPv4 forms, trailing-dot hosts, IPv4-mapped/translation addresses and non-public IPv6 ranges including Teredo, benchmarking, ORCHIDv2, Drone Remote ID, 6to4 and documentation space.
+* Cache correctness: applies exact path-segment and query-key matching in both the WordPress runtime and the early advanced-cache drop-in, so unrelated routes such as cartography, checkout-guide and accounting are no longer bypassed.
+* Compatibility: migrates only untouched built-in cart/checkout rules to exact segment matching while preserving custom or modified rules and retrying safely after write failures.
+* Optimization and privacy: fully respects the logged-in optimization bypass, narrows builder-preview detection and redacts IPv6 addresses plus query-style credentials from diagnostic exports.
+* Verification: adds controlled lifecycle, multisite, REST, cache-backend, drop-in parity, HTML, migration, fault-injection, fuzz, IP-range and package-integrity scenarios; native WordPress/database/provider/browser validation remains staging-first.
+
+= 11.6.23 =
+* Performance: stores the last purge timestamp as a non-autoloaded option so administrative purge history does not add data to every WordPress request.
+* Resource hints: stops Cloudflare detection from adding an unrelated cdnjs.cloudflare.com DNS-prefetch when no matching asset was observed.
+* Privacy and documentation: documents the optional YouTube preview request, normalizes installation steps to consistent English and refreshes translation catalog build metadata.
+* Verification: adds broader checks for lifecycle cleanup, dependency guards, WooCommerce HPOS usage, declared platform support, accessibility patterns and canonical release packaging.
+
+= 11.6.22 =
+* Compatibility: restores the protected preload safety wrapper so subclasses and integrations retain the 11.6.20 extension surface.
+* Redis diagnostics: keeps the endpoint in the immediate `redis_probe()` result for backward compatibility while excluding it from transient storage.
+* Verification: corrects the earlier audit conclusion and adds return-shape and protected-API regression coverage.
+
+= 11.6.21 =
+* Runtime diagnostics: aligns host normalization and raw cookie-name hashing with the live page-cache and advanced-cache drop-in, preventing false key-drift reports.
+* Security: protects Redis probe cache-key material with the WordPress authentication salt and no longer persists the Redis endpoint in the transient payload.
+* Refactor: centralizes object-cache admin POST authorization and removes an unused preload safety wrapper.
+
+= 11.6.20 =
+* Type safety: corrects internal return and parameter contracts used by static analysis and IDE tooling.
+* Image CDN: converts numeric query-template replacements explicitly to strings for PHP 8 compatibility.
+
+= 11.6.19 =
+* CSS generator: rejects a response body that reaches the configured byte cap so potentially truncated HTML cannot produce Used CSS or Critical CSS artifacts.
+* CSS generator: deduplicates local stylesheets and rejects source sets that reach the bounded 4 MB read budget, preventing unbounded memory use or partial CSS artifacts.
+
+= 11.6.18 =
+* Cache correctness: sends Cookie and User-Agent Vary dimensions whenever configured cookie or mobile variants affect the page-cache key, including 304 responses and edge headers.
+* LiteSpeed: safely uses the disk page-cache backend when prefix-based cookie variation is configured, because LiteSpeed cookie variation requires exact cookie names.
+* Direct cache: bypasses custom currency/language cookie fragments that the static server-cache path cannot vary safely.
+* Tooling security: makes the React runtime builder CLI-only, confines generated output to its managed directory and publishes through a unique locked temporary file.
+
+= 11.6.17 =
+* Filesystem: validates opened cache handles against symlink, hard-link and inode swaps before counters or lock files are used.
+* Compatibility: confirms file deletion on WordPress 6.3 through 6.6, where `wp_delete_file()` has no return value.
+* HTTP: keeps safe final-response preload `Link` headers without emitting a userland `103 Early Hints` response that can suppress the final page response.
+* Cleanup: clean uninstall removes plugin-owned cache/font symlinks without traversing or deleting their external targets.
+* Settings: aligns integer constraint fallbacks with the canonical defaults registry.
+* URLs: normalizes managed cache paths before converting them to public cache URLs.
+
+= 11.6.16 =
+* Database: registered the cache-insights table centrally so install, reset, cleanup and uninstall consistently use `ucp_cache_events`.
+* Settings: malformed array values from imports, REST or CLI calls are normalized without PHP array-to-string warnings.
+* Filesystem: atomic writes now fail closed when a verification hash cannot be read during a concurrent or interrupted write.
+* UX/UI: removed the duplicate browser-navigation control from the preload screen and consolidated all modes into one clearly labelled setting.
+* JavaScript/CSS: removed dead admin runtime code, simplified settings export, removed obsolete onboarding progress styles and deduplicated repeated responsive/layout rules.
+* Cleanup: a clean uninstall now explicitly removes the local Google Fonts opt-in migration marker and the Testing Mode expiry notice.
+* Maintenance: removed benchmark-style competitor comparisons from internal comments and administrator guidance without changing cache behavior or public contracts.
+* Security: blocked symlinked local-font and self-hosted-media cache artifacts from being exposed through public upload URLs.
+* Fixed modern image variant mapping for cache-busting query strings and URL-encoded upload filenames.
+* Fixed upload base-prefix matching so sibling paths such as `uploads-evil` are never treated as WordPress uploads.
+
+= 11.6.15 =
+* Blokkeert symlink-following bij alle cache-eigen leesroutes, waaronder Used CSS, Critical CSS, LQIP, tag-indexen en onderhoudsmetadata.
+* Voorkomt dat een vervangen cache-artifact inhoud buiten de beheerde cache-root in frontendoutput of runtimebeslissingen kan invoegen.
+* Rondt opnieuw twintig onafhankelijke check-fix-hertestrondes af zonder publieke hooks, routes, opties of handles te wijzigen.
+
+= 11.6.14 =
+* Blokkeert het volgen van gesymlinkte cachebestanden, metadata, compressievarianten en drop-inconfiguratie buiten de beheerde cache-root.
+* Beveiligt zowel de vroege advanced-cache drop-in als de PHP-cachefallback met dezelfde cacheleesgrens.
+* Rondt een tweede reeks van twintig onafhankelijke check-fix-hertestrondes af zonder publieke hooks, routes, opties of handles te breken.
+
+= 11.6.13 =
+* Blokkeert log- en supportexportlezing via gesymlinkte cache-submappen buiten het beheerde UltraCache-pad.
+* Rondt twintig onafhankelijke check-fix-hertestrondes af voor beveiliging, filesystem, SQL, REST, cache, queues, lifecycle, assets, compatibiliteit en releasekwaliteit.
+* Behoudt bestaande publieke hooks, routes, opties, shortcodes en asset-handles.
+
+= 11.6.12 =
+* Voorkomt dat uninstall-, lettertypecache- en beheeropruimacties gesymlinkte submappen volgen en bestanden buiten plugin-eigendom verwijderen.
+* Herstelt LQIP-opslag door kleurrecords in de eigen cache te bewaren, ook voor gegenereerde afbeeldingsformaten, en ruimt deze op bij het verwijderen van een bijlage.
+* Herhaalt de volledige statische, runtime-, contract- en packagecontrole op de definitieve release.
+
+= 11.6.11 =
+* Leest waarden van legacy wijzigende admin-post-acties primair uit de POST-body en behoudt een begrensde querystringfallback voor achterwaartse compatibiliteit.
+* Rondt de bestand-voor-bestand audit af met callback-, classmap-, asset-, SQL-, filesystem-, remote-request- en lifecyclecontroles.
+
+= 11.6.10 =
+* Herstelt lokale upload-URL’s met querystrings, fragmenten en URL-gecodeerde bestandsnamen zonder padtraversal toe te staan.
+* Voorkomt verloren cache-tagregistraties bij gelijktijdige cache-opbouw met een exclusieve vergrendeling per tag.
+* Maakt server-side Google Fonts-localisatie expliciet opt-in en schakelt eerder automatisch geërfde activering eenmalig uit.
+* Verwijdert herkenbare sleutel- en tokenfragmenten volledig uit deelbare supportrapporten.
+* Synchroniseert vertaalcatalogi, pluginmetadata en recente releasehistorie.
+
+= 11.6.9 =
+* Beperkt wijzigende beheerhandlers strikt tot POST-invoer in plaats van de gecombineerde requestbron.
+* Vervangt de uiterste sleutelgeneratiefallback door `wp_rand()`-gebaseerde willekeur.
+* Begrenst CDN-responsverbruik om onverwacht grote externe antwoorden veilig af te kappen.
+* Synchroniseert pluginversie, readme en releasehistorie.
+
+= 11.6.8 =
+* Verfijnt de beheerinterface met compacte teksten, vlakke instellingenrijen en consistente uitlijning.
+* Behoudt het bestaande hoofdmenu en groepeert media- en optimalisatieopties in voorspelbare 2-kolomsindelingen.
+* Verwijdert dubbele website- en supportacties; Website status blijft het centrale controlepunt.
+* Configureert de UltraCache-paginacache automatisch wanneer WordPress-bestanden veilig schrijfbaar zijn en er geen andere cache-eigenaar actief is.
+* Verbetert herstelpunten, disclosure-pijlen, linkkleuren en databasekaarten zonder publieke instellingen of routes te wijzigen.
+
+= 11.6.6 =
+* Blokkeert redirect-gebaseerde SSRF in runtimecontroles en verwerkt relatieve Location-headers volgens hun oorspronkelijke URL.
+* Vereist POST voor alle wijzigende admin-post-acties; downloads blijven read-only met capability- en noncecontrole.
+* Voorkomt dat cachepurge of uninstall een als root aangeboden symlink volgt naar een externe map.
+* Behoudt Delay JavaScript en andere instellingen bij gedeeltelijke saves en ondersteunt HTML-attribuutquoteverwijdering volledig.
+* Verwerkt geneste of niet-scalare instellingen zonder array-to-string-waarschuwingen.
+* Voegt regressietests toe voor 3-way combinaties, instellingenoppervlak, MC/DC, redirect-state-machines en admin-postcontracten.
+
+= 11.6.5 =
+* Synchroniseert de PHP-cachefallback met het drop-in voor Accept-, encoding- en identity-onderhandeling.
+* Scheidt browser- en rendererresultaten correct op schema, poort en hoofdlettergevoelige URL-paden.
+* Beperkt sitemap-preloading tot de exact geconfigureerde WordPress-origin.
+* Houdt Critical CSS syntactisch geldig bij comments, geneste regels, statement-at-rules en bytegrenzen.
+* Weigert externe afbeeldingsbytes waarvan MIME-type en bestandsnaam niet overeenkomen.
+* Serialiseert gelijktijdige CWV-updates met begrensde back-off en herstel van verlopen of beschadigde locks, zodat piekverkeer geen samples verliest.
+* Vereist een expliciete ondersteunde contractversie van de externe headless renderer.
+* Bouwt LCP-profielsleutels uitsluitend op de geconfigureerde WordPress-origin en negeert request-gestuurde Host- en proxyprotocolheaders.
+* Bepaalt Brotli-precompressie via de canonieke WordPress-origin en de echte HTTPS-serverstatus, niet via een onbevestigde proxyheader.
+
+= 11.6.4 =
+* Respecteert RFC 9110-kwaliteitswaarden en media-specificiteit voor Accept en Accept-Encoding.
+* Serveert geen identity-cachebestand wanneer de client identity expliciet weigert.
+* Voegt Accept toe aan Vary zodat gedeelde caches verschillende representatievoorkeuren niet vermengen.
+* Houdt cachekeys identiek voor paden met een afsluitende backslash en voor ongeslashte hosts.
+* Synchroniseert releaseversies en vult ontbrekende releasehistorie aan.
+
+= 11.6.3 =
+* Verhardt classmap-autoloading tegen recursie en paden buiten de pluginmap.
+* Vereist POST voor destructieve beheeracties en normaliseert REST-nonces voor verificatie.
+* Valideert externe media- en lettertypebronnen opnieuw vlak voor verwerking.
+* Maakt ESI-rate-limiting concurrency-safe en controleert foutieve fragmentresponses.
+* Respecteert Accept-Encoding-kwaliteitswaarden bij Brotli- en gzip-cachevarianten.
+* Behoudt aangepaste browsercachetermijnen en voorkomt afgekapte schakelaars in het beheer.
+
+= 11.6.2 =
+* Voorkomt fatale class- en constantdeclaraties wanneer meerdere plugin-kopieën actief zijn.
+* Herstelt hoofdletterongevoelige class-autoloading volgens PHP-semantiek.
+* Corrigeert de ingeklapte WordPress-menubreedte en de samenvatting van technische herstelacties.
+* Laadt de leesbare React-beheerassets om verouderde geminificeerde UI-bestanden te vermijden.
+
+= 11.6.1 =
+* Herstelt de buitensporige witruimte in de Media-header en onder hulpteksten.
+* Centreert schakelaars correct en voorkomt afgekapte sporen en knoppen.
+* Synchroniseert de leesbare en geminificeerde beheer-CSS.
+* Herstelt een geldige productievariant van de Core Web Vitals-monitor.
+
+= 11.6.0 =
+* Added cache insights, purge history and preload queue inspection, including low-overhead 1% sampling for early drop-in hits.
+* Added cache policy rules with safe 404-status support and versioned compatibility profiles.
+* Consolidated public server fragments and client-hydrated fragments.
+* Added per-cache-file TTL metadata and safe fragment invalidation after page-cache purges.
+
+= 11.5.1 =
+* Fixed a runtime error that could leave the Maintenance tab blank.
+* Removed redundant ARIA labels from visible admin content and avoided referencing the configuration dialog before it exists.
+* Removed confirmed dead internal helpers and consolidated duplicated flash, URL-identity and font-cache setup logic without changing public hooks, options, routes or asset handles.
+
+= 11.5.0 =
+* Vereenvoudigt Server & CDN tot een stabiele taakgerichte pagina met minder dubbele statussen en alleen relevante badges.
+* Verplaatst externe verbindingshints naar de ingeklapte serverdetails en toont image-CDN pas wanneer een provider actief of correct geconfigureerd is.
+* Behoudt alle bestaande opties, keys, routes en object-cacheveiligheidsgrenzen.
+
+= 11.4.99 =
+* Verwijdert de overbodige tussenkoppen voor rendering en externe scripts uit de geavanceerde CSS/JS-instellingen.
+* Behoudt de bestaande instellingen, bediening en gegevens zonder parallelle UI-laag.
+
+= 11.4.98 =
+* Herstelt de onderhoudspagina door de stabiele tools-route expliciet door te geven aan de onderhoudsrenderer.
+* Verwijdert taalafhankelijke paginaherkenning op basis van de vertaalde titel, zodat Onderhoud in iedere taal correct rendert.
+
+= 11.4.97 =
+* Vereenvoudigt geavanceerde media-instellingen met een compacte externe-mediarij, kortere labels en alleen contextuele testfeedback.
+* Verbergt rustige preloadstatus in de globale header en het dashboard zodat alleen actiegerichte statussen zichtbaar blijven.
+* Brengt HTML, CSS en JavaScript samen in één consistente verticale instellingenkaart.
+* Toont risicowaarschuwingen alleen bij actieve risicovolle keuzes en houdt geavanceerde optimalisaties standaard gesloten.
+* Maakt afhankelijke JavaScript- en renderinginstellingen conditioneel zichtbaar.
+* Verplaatst grote uitsluitingsvelden naar één beheerdialoog met compacte regelaantallen in de hoofdflow.
+* Verkort technische microcopy, maakt schakelaarrijen volledig klikbaar en plaatst bediening in een vaste controlekolom.
+
+= 11.4.95 =
+* Vereenvoudigt Cache & Preload tot één exclusieve accordion met maximaal één geopende hoofdsectie.
+* Verplaatst de preloadactie naar de pagina-intro en verwijdert de dubbele statuskaart en herhaalde statussen.
+* Verkort labels en hulpteksten en plaatst bediening in een compacte vaste controlekolom.
+* Toont badges alleen bij actie, wachtrij of eigen uitzonderingen en houdt Geavanceerd standaard gesloten.
+* Maakt schakelaarrijen volledig klikbaar en behoudt toetsenbord-, focus- en bestaande instellingsbediening.
+
+= 11.4.94 =
+* Brengt labels en bediening dichter bij elkaar in de media-instellingen.
+* Maakt titel en uitleg van schakelaars samen klikbaar zonder de bestaande toetsenbordbediening te vervangen.
+* Benoemt de hoofdafbeeldingsinstelling op basis van het concrete resultaat en verkort dubbele hulpteksten.
+* Verbergt sectiestatussen zodra het bijbehorende onderdeel openstaat en houdt regelvelden compact.
+
+= 11.4.93 =
+* Verkort de mediateksten en houdt uitleg beperkt tot wat nodig is om een instelling te kiezen.
+* Toont statusbadges alleen wanneer een onderdeel aandacht nodig heeft en verwijdert decoratieve statussen.
+* Plaatst labels en bediening in een compact vast raster, zodat instellingen sneller als één geheel scanbaar zijn.
+* Behoudt één eenvoudige interface met maximaal één geopende sectie en Geavanceerd standaard gesloten.
+
+= 11.4.92 =
+* Vereenvoudigt de beheerheader door alleen statusinformatie te tonen die bij het geopende onderdeel hoort.
+* Combineert de mediastatus en acties in één compacte intro en verwijdert de dubbele statuskaart.
+* Maakt Media & lettertypen een exclusieve accordion, zodat maximaal één hoofdonderdeel tegelijk openstaat.
+* Verlaagt de visuele druk met compactere rijen, rustigere panelen en een vlakke geavanceerde sectie zonder geneste kaarten.
+
+= 11.4.91 =
+* Verwijdert onbekende queryparameters uit opgeslagen CSS-profielen en browser-PageSpeedscans en migreert bestaande records naar veilige pagina- en resource-identiteiten.
+* Herstelt ontbrekende leesbare en geminificeerde assetparen, zodat productie en `SCRIPT_DEBUG` dezelfde beheer- en frontendfunctionaliteit laden.
+* Synchroniseert de release-readme en vertaalcatalogus met versie 11.4.91 en de actuele PHP-vertaalstrings.
+* Maakt de preloadstatus type-specifiek, zodat de Cache & Preload-pagina niet langer andere achtergrondtaken als preloadwachtrij toont.
+* Laat de handmatige preloadrunner gericht en begrensd preloadtaken verwerken, ook wanneer de automatische serverbelastingpauze actief is.
+* Maakt de preload- en beschermingskaarten even hoog en harmoniseert links en secundaire acties met de blauwe schakelaarkleur.
+* Verbergt server-, CDN- en uitsluitingsnavigatie standaard in de eenvoudige weergave en houdt directe geavanceerde links beschikbaar voor beheerders.
+* Vereenvoudigt de configuratie-assistent met gelijkwaardige profielkaarten zonder pictogrammen, een compacte stapvermelding en duidelijke profielrisico’s.
+* Vervangt de ongelijke regelkaarten door een enkelkoloms accordion met consistente open- en gesloten toestanden.
+* Harmoniseert alle links, tertiaire acties en schakelaars met de primaire WordPress/UltraCache-kleurtoken.
+* Verwijdert decoratieve aantallen en badges en houdt technische herstel-, import-, database- en diagnostiekfuncties achter gerichte disclosures.
+
+= 11.4.90 =
+* Moderniseert de configuratie-assistent met drie gelijkwaardige profielkaarten, duidelijke profieltypen en een benoemde voortgangsindicator.
+* Vervangt de lege bevestigingsruimte door een compacte successtatus en houdt de dialoog inhoudsafhankelijk van hoogte.
+* Maakt actieve optimalisaties scanbaar als responsieve statustegels met directe beheerlinks.
+* Groepeert veelgebruikte regelsets in compacte uitklapkaarten en plaatst technische cookie-, user-agent- en queryregels achter één disclosure.
+* Verfijnt de tabnavigatie, database-statusregel en lege database-selectie zonder extra overridebestand of parallelle UI-laag.
+
+= 11.4.89 =
+* Vereenvoudigt de Tools-pagina met één zichtbare websitecontrole en ingeklapte technische herstelacties.
+* Vervangt database-statistiekkaarten door een compacte statusregel en combineert planning met veilig opschonen.
+* Beperkt diagnostiek tot twee hoofdkeuzes; logging, bewaartermijnen en developeropties blijven ingeklapt.
+* Zet de vier JavaScript-instellingen in een 2x2-raster op desktop en één kolom op kleinere schermen.
+
+= 11.4.88 =
+* Removes redundant CSS and JavaScript rebuild cards from the normal Tools view because the daily cache actions already refresh those artifacts.
+* Keeps website control as the single customer-facing extra action and moves targeted CSS, JavaScript and full diagnostic controls behind technical details.
+* Replaces repeated card titles and button labels with a compact action row and descriptive, purpose-based labels.
+
+= 11.4.87 =
+* Vereenvoudigt Tools met drie duidelijke beheeracties en ingeklapte technische details.
+* Vereenvoudigt database-onderhoud met compacte status, veilige hoofdactie en optionele selectie.
+* Vereenvoudigt diagnostiek tot twee hoofdkeuzes, een statusregel en een geavanceerd paneel.
+* Toont de actie om Core Web Vitals-data te wissen alleen wanneer meetgegevens bestaan.
+
+= 11.4.86 =
+* Refactored the bootstrap into lazy-loaded dependency and multisite table-name services while preserving the existing global compatibility functions.
+* Split the React settings schema, admin asset manifest/configuration, REST status logic, URL/cache/CDN helpers and options migrations into focused canonical modules.
+* Replaced the hardcoded stylesheet list with a semantic asset manifest, rejected copied or empty minified assets and split the large cross-tab stylesheet without changing cascade order.
+
+= 11.4.85 =
+* Reworked the requested admin UI changes in the canonical component and stylesheet rules instead of appending override layers.
+* Removed nested card wrappers from database and developer disclosures, removed duplicate server-detail headings and restored consistent card spacing.
+* Synced the production CSS assets, normalized secondary action styling and made the JavaScript settings render as a two-by-two desktop grid.
+
+= 11.4.82 =
+* Made the Extra instellingen toggle reveal the matching advanced Tools and diagnostics controls without requiring a hidden URL parameter.
+* Kept explicit support mode separate for temporary debug and cache-file repair actions.
+* Added renderer connection testing, CWV data clearing, conditional retention controls and confirmation dialogs for high-risk settings.
+
+= 11.4.81 =
+* Applied the requested full-width settings-row spacing and alignment in the admin interface.
+* Changed dashboard configuration actions from buttons to semantic links with working tab URLs.
+* Promoted cache warmup to a primary action and aligned the configuration-assistant link colors.
+
+= 11.4.80 =
+* Fixed CDN mode being reset by a retired simple/advanced-mode normalization rule.
+* Aligned Tools action buttons consistently on the right across compact card layouts.
+* Simplified customer-facing preload protection while retaining automatic safeguards and custom exclusions.
+* Hid cache, WooCommerce, lazyload, font and CDN controls when their parent setting makes them inapplicable.
+
+= 11.4.79 =
+* Production cleanup now removes expired page-cache representations and abandoned atomic-write files in bounded daily batches.
+* Daily maintenance scheduling now self-heals when its WordPress cron event is missing.
+* Removed duplicate release metadata and completed package, encoding and runtime validation.
+
+= 11.4.78 =
+* Made page-cache and direct-cache publication atomic and writer-serialized, with generation-safe gzip/Brotli selection and representation-specific ETags.
+* Purges now clear every mobile, cookie-vary, query and compressed representation for a route and also remove the previous permalink after slug changes.
+* Kept the early advanced-cache policy aligned with runtime URL wildcard and user-agent exclusions, and made nested query-array keys deterministic and PHP 8 safe.
+* Invalidated existing cached HTML when output- or cache-policy settings change, while leaving admin-only settings saves cache-neutral.
+* Fixed lazyload attributes being discarded, restricted the output optimizer to HTML responses, and improved local image dimensions and YouTube host validation.
+* Hardened preload partial-content handling and object-cache object isolation for the bundled APCu and Redis drop-ins.
+
+= 11.4.77 =
+* Upgraded the existing read-only Asset Inspector with owner grouping, dependency and dependent visibility, protected-flow detection, search/filter controls, candidate selection, copy-ready per-path rules and keyboard-safe external assets.
+* Kept the inspector read-only: it adds no REST/AJAX write endpoint and protected WordPress, checkout, payment, consent and security handles cannot be selected automatically.
+* Added a bounded four-hour Testing Mode window that does not extend on ordinary settings saves, automatically restores normal public behavior after expiry and reports the expiry in admin notices and the toolbar.
+* Added focused static regression coverage for asset classification, protected selection, inline-code removal and Testing Mode expiration.
+
+= 11.4.76 =
+* Aligned dashboard and settings actions consistently, changed setup links to standard secondary buttons, and mapped safe statuses to the success treatment.
+* Added dependency-aware visibility for font, query-string, renderer, cleanup, lazy-render and CDN settings; preload protection now separates built-in and custom rules.
+* Replaced the failing object-cache details link with inline diagnostics and restored failed-job retry controls for the normal Tools view.
+* Fixed stale runner-lock option cache handling so replacement locks can be released in the same request.
+* Hardened settings imports against malformed REST payload types and restricted fallback uploads to JSON.
+* Completed deactivation and clean-uninstall cleanup for cron hooks, UltraCache-owned object-cache drop-ins and hidden runtime files.
+* Restricted multisite new-site initialization to the new site and replaced the deprecated wpmu_new_blog hook.
+* Redacted and safely bounded queue error details, cleared claim tokens after processing, and kept future retry jobs out of manual due-job runs.
+* Added regression tests for lock replacement, malformed imports, lifecycle cleanup, multisite initialization, queue claims, due-job timing and UTF-8 error handling.
+
+= 11.4.75 =
+* Queue status now keeps failed jobs visible alongside ready, active and scheduled work.
+* Object-cache setup and diagnostics run inline, preserve third-party drop-ins and cache safe Redis probes briefly with an explicit refresh action.
+* Settings import now previews recognized, changed, risky and ignored keys and requires backup confirmation before applying changes.
+* Protected cache and preload rules are separated from custom rules while remaining merged in stored settings.
+* Consolidated superseded admin CSS declarations and added regression coverage for CSS ownership, mixed queue states, object-cache refresh and import safety.
+
+= 11.4.74 =
+* Unified Overview and Tools on the same settings-section and action-row components.
+* Removed the Simple/Advanced view switch; all applicable tabs now use one predictable navigation.
+* Distributed navigation items evenly and normalized compact, vertically centered action buttons.
+* Placed HTML and CSS side by side with JavaScript full width below on the CSS & JS screen.
+* Simplified preload exclusion summaries, compacted rule editors and hid CDN exclusions until CDN rewriting is enabled.
+* Queue badges now distinguish ready, scheduled, active and failed jobs; manual processing handles a full dashboard batch instead of one job.
+* Retained automatic object-cache detection and safe Redis/APCu configuration with explicit administrator confirmation.
+
+= 11.4.73 =
+* Object cache can now be detected and configured automatically from the Server & CDN screen.
+* Automatic setup preserves third-party object-cache drop-ins, prefers reachable Redis and falls back to available APCu.
+* Redis diagnostics now distinguish extension, connection, authentication, database and ping failures without exposing credentials.
+* Manual Redis/APCu preparation toggles are no longer required before installing the bundled drop-in.
+
+= 11.4.72 =
+* Fixed destructive database-cleanup risk states in the admin interface and expanded render/REST regression coverage.
+
+= 11.4.71 =
+* Fixed React admin component alias shadowing in Server & CDN and line-based rule fields.
+* Added executable admin render smoke coverage, handoff contract validation and deterministic admin translation synchronization.
+* Synchronized Project-Id-Version and current React admin messages.
+* Privacy: CWV/LCP page profiles discard query strings and fragments before storage and lookup.
+* WooCommerce: removes shared replay of empty-cart fragment JSON; safe script scoping remains available.
+* Admin UX: clarifies object-cache availability, autosave state, queue status and simple/advanced modes.
+* Admin UX: centralizes preload exclusions under Rules and adds duplicate-rule diagnostics.
+* Safety: database cleanup confirmation now summarizes selected operations and available record counts.
+* Build: adds deterministic React-admin JavaScript/CSS builds and static admin-UI regression tests.
+
+= 11.4.68 =
+* Cachekaarten gelijkgetrokken in hoogte en rijtypografie afgestemd op het Overzicht.
+
+= 11.4.67 =
+* Cachebeheer-intro gebruikt exact dezelfde kaartopbouw, typografie en uitlijning als Snelle acties.
+
+
+= 11.4.66 =
+* Cache-interface visueel gelijkgetrokken met Overzicht: dezelfde hero-opbouw, typografie, kaartkoppen, rijen en statusbadges.
+
+= 11.4.65 =
+* Cache-interface: herstelt de introkaart, behoudt de scheidingslijn onder sectiekoppen en zet de blauwe statusbadges terug.
+* Uitlijning: verwijdert dubbele headerpadding zodat titels, omschrijvingen en instellingen exact dezelfde linker uitlijning gebruiken.
+
+= 11.4.64 =
+* Cache-tab verfijnd: sectielabels vereenvoudigd, header/rij-uitlijning aangescherpt en WordPress-footer verborgen op de pluginpagina.
+
+= 11.4.63 =
+* Admin UI: herstelt de interne uitlijning van cache-instellingen zodat labels, toggles en velden niet meer tegen de kaartranden staan.
+* Responsive: behoudt de bestaande tweekolomsindeling en mobiele terugval zonder functionele instellingen te wijzigen.
+
+= 11.4.62 =
+* Admin UI: vereenvoudigt Cache, Afbeeldingen, Preload, CSS & JS, Server & CDN en Regels tot compacte instellingenkaarten zonder extra introductiepanelen.
+* Admin UI: behoudt de bestaande UltraCache-header en tabnavigatie, maar vermindert geneste kaarten, statussamenvattingen en visuele ruis.
+* Accessibility: horizontale tabnavigatie verwerkt alleen Left/Right/Home/End zodat ArrowUp en ArrowDown normaal blijven scrollen.
+* Responsive: de zes primaire instellingenpagina’s gebruiken rustige één- en tweekolomsindelingen met compacte mobiele terugval.
+
+= 11.4.61 =
+* Admin UI: alle React-beheerschermen gebruiken één consistente maximale leesbreedte, kaartritme, formulieropbouw en responsieve terugval.
+* Accessibility: tabnavigatie verwijst altijd naar een echt tabpanel, actieve tabs hebben een huidige-paginastatus en dialogtriggers zijn semantisch herkenbaar.
+* Accessibility: setupdialogen hebben voortgangsstatus, focusbegrenzing, Escape-afhandeling, focusteruggave, forced-colors-ondersteuning en zichtbare focusstijlen.
+* Responsive: header, navigatie, instellingen, acties, WooCommerce-panelen en modals schalen gecontroleerd terug op 1280, 960, 782 en 480 pixels.
+
+= 11.4.59 =
+* Fix: runtime-tests bevatten nu alle vijf eerder ontbrekende controles en lopen niet meer fataal vast.
+* Reliability: elke runtime-controle is geïsoleerd, zodat één defecte of optionele controle de rest van het diagnosepakket niet meer afbreekt.
+* Fix: font-preloads gebruiken nu een genormaliseerde sleutel voor betrouwbare deduplicatie zonder PHP-notices.
+* Compatibility: WooCommerce-detectie en WordPress-hook signatures zijn opgeschoond en conflictseverity wordt expliciet vastgelegd.
+* Quality: beveiligingscontroles voor REST, URL-validatie, geheimen, privacy, vertalingen, checkout en Core Web Vitals zijn aan de runtime-diagnose toegevoegd.
+
+= 11.4.58-ui4 =
+* UI: corrected the settings layout against the actual React DOM so Cache, CSS & JS, Preload, Server & CDN, Rules and WooCommerce render as tight WordPress-style rows instead of oversized nested cards.
+* UI: added final responsive polish for grouped cache fields, server rows and advanced sections, with consistent labels, controls and spacing across the admin menu.
+
+= 11.4.57-ui3 =
+* UI: extended the compact WordPress-style settings layout across Cache, CSS & JS, Preload, Server & CDN, Rules and WooCommerce tabs.
+* UI: standardized card headers, row spacing, form controls, advanced disclosures and responsive behavior across the admin menu.
+
+= 11.4.56-ui2 =
+* UI: added a final media-tab design layer so the Afbeeldingen tab consistently renders as compact WordPress-style setting rows.
+* UI: tightened spacing, hierarchy, controls, details disclosures and responsive behavior for a polished admin experience.
+
+= 11.4.55-ui1 =
+* UI: rebuilt the Afbeeldingen admin tab into a cleaner settings-list layout that matches the Overview and Tools rhythm.
+* UI: moved long media/font textarea controls into compact disclosure rows and reduced nested card visual noise.
+
+= 11.4.54 =
+* Admin UX: React-admin terminology tightened so the modern UI consistently uses Dutch labels such as Afbeeldingen, Geavanceerd, Paginacache and WordPress-prestaties.
+* Admin maintainability: added a readable React admin source bundle and source map companion for the production minified bundle.
+* Admin maintainability: added readable CSS source companions for the modular React admin stylesheets while keeping production loads on the existing minified files.
+* Admin polish: added a final CSS module for empty states, skeleton placeholders, reduced-motion behavior and safer long-label wrapping.
+* Admin fallback: missing-asset diagnostics now reference the modular React admin stylesheet that release builds actually load.
+
+= 11.4.53 =
+* Clean uninstall: plugin-owned network site transients are now removed from multisite `sitemeta` as well as normal options storage.
+* Maintenance: LiteSpeed runtime detection formatting cleaned up so the diagnostic helper is easier to review and maintain.
+
+= 11.4.52 =
+* Clean uninstall: removes all known UltraCache-owned options, snapshots, lifecycle markers, status records and dynamic `ucp_` transients when clean uninstall is enabled.
+* Maintenance: uninstall now clears compat-overlay and automatic Used CSS refresh cron hooks alongside the existing cache, preload, jobs and maintenance hooks.
+* Admin tools: existing meta cleanup action now clears more status-only diagnostics, queue/preload summaries and temporary hints without changing settings, presets or the admin layout.
+
+= 11.4.51 =
+* Hardening: Bunny/generic CDN purge now normalizes purge URLs through the same local-site guard used elsewhere before forwarding them to a provider.
+* Admin status: Bunny/generic CDN purge records a sanitized last-result snapshot for support diagnostics without exposing tokens or purge payload contents.
+* Reliability: queue summary attention fields are now normalized from one shared helper so REST status, lifecycle status and support data stay aligned.
+* Maintenance: `enable_html_parser` now exists in the central defaults table, preventing managed-setting/default drift.
+* Admin diagnostics: settings save/import exceptions are logged with sanitized changed keys while keeping the existing admin response unchanged.
+
+= 11.4.50 =
+* Admin status: Cloudflare purge bewaart nu een veilige laatste-resultaat snapshot voor duidelijkere CDN-diagnose zonder tokens of purge-payloads bloot te leggen.
+* Queue reliability: wachtrijsamenvattingen herkennen nu stale running jobs en geblokkeerde runner-situaties voor sterkere admin/supportdiagnose.
+* Admin UX: settings save/import responses bevatten nu warning counts en opgeschoonde gewijzigde keys, zonder de bestaande adminlayout te veranderen.
+
+= 11.4.49 =
+* Admin UX: bestaande Asset Manager-regels, snapshots en testmodus blijven nu behouden wanneer andere instellingen worden opgeslagen in de vereenvoudigde admin.
+* Admin status: REST-status geeft rijkere bestaande statusdata terug voor Asset Manager, Cloudflare en wachtrij-aandacht zonder nieuwe schermen of styling toe te voegen.
+* Reliability: wachtrijstatus bevat nu totalOpen en needsAttention zodat de huidige admin/supportlaag duidelijker kan reageren op lopende of mislukte taken.
+
+= 11.4.48 =
+* Packaging: nieuwe install-ZIP's voorbereid voor zowel bestaande `Ultracache-pro-main` installaties als installaties met de nette `ultracache-pro` mapnaam, zodat WordPress het hoofdpluginbestand betrouwbaar vindt bij upload/replace.
+
+= 11.4.47 =
+* Admin UI: tabs delen nu een strakkere consistentielaag voor kaarten, sectie-intro's, badges, risicolabels, accordions en actieknoppen.
+* Admin UX: Tools-tekst maakt nu duidelijk dat technische instellingen in de relevante tabs staan, terwijl Tools het actiecentrum blijft.
+* Accessibility: Simpel/Advanced-modusknoppen geven nu hun actieve status door met `aria-pressed`.
+
+= 11.4.46 =
+* Admin UX: first-run onboarding now remembers a local dismissal immediately when admins choose Later or finish the wizard, so the modal does not keep blocking tab navigation if the REST completion call is delayed or blocked.
+* Admin UX: forced setup via `?ucp-wizard=1` still bypasses the local dismissal so support can reopen the wizard intentionally.
+
+= 11.4.45 =
+* Admin UX: fallbackmelding toegevoegd binnen de React-admin root, zodat de beheerpagina niet leeg lijkt wanneer scripts zijn uitgeschakeld of geblokkeerd.
+* Admin UI: mobiele stacking verbeterd voor presets, actierijen, dialogen en import/export-panelen om krappe twee-koloms layouts op smalle schermen te voorkomen.
+* Accessibility: kleine muted teksten in actiekaarten beter leesbaar gemaakt en reduced-motion voorkeuren gerespecteerd voor admin-toasts en loading-animaties.
+
+= 11.4.44 =
+* Improvement: support report bevat nu dezelfde performance-readiness samenvatting als de admin-status, inclusief score, eerstvolgende actie, wachtrijstatus, plugin-overlap en risicovolle CSS/JS-status.
+* Improvement: WordPress Site Health krijgt een UltraCache performance-readiness test, zodat beheerders ook buiten de pluginpagina zien of cache, preload, compressie, media, fonts, WooCommerce safety en overlap gezond zijn.
+* Compatibility: centrale conflict-detectie herkent nu ook SpeedyCache, SpeedyCache Pro, Seraphinite Accelerator, 10Web Booster en Airlift als mogelijke performance/cache-overlap.
+
+= 11.4.43 =
+* Improvement: admin-status toont nu een UltraCache readiness-score die cache, preload, compressie, media, fonts, WooCommerce safety, wachtrij en plugin-overlap weegt en vertaalt naar een concreet volgend advies.
+* Improvement: Conflict Guard herkent meer performance- en cacheplugins, waaronder SpeedyCache, WP Fastest Cache, Cache Enabler, Jetpack Boost, Async JavaScript, Swift Performance, Seraphinite Accelerator, 10Web Booster, Debloat, Powered Cache en Airlift.
+* Hardening: Smart Safe Mode status en guardrails houden Delay JS safe mode, CSS-artifact rollback, queue-verwerking en WooCommerce/shop-bescherming automatisch actief wanneer riskantere CSS/JS-opties worden gekozen.
+* UX: conflict-items in de React-admin krijgen een eigen compacte kaartstijl zodat overlapmeldingen beter scannen binnen het bestaande dashboarddesign.
+
+= 11.4.42 =
+* Fix: CSS combineren bewaart `@charset` en `@import` regels nu bovenaan de gecombineerde stylesheet, zodat imports uit latere stylesheets niet ongeldig midden in de CSS terechtkomen.
+
+= 11.4.41 =
+* Hardening: Brotli page-cache variants worden nu alleen geschreven en geserveerd wanneer de huidige request via HTTPS loopt. Gzip blijft beschikbaar voor HTTP en HTTPS.
+
+= 11.4.40 =
+* Compatibility: JS Delay/Defer respecteert nu ook de veelgebruikte `data-no-defer` markup-marker, naast de bestaande `nowprocket`, `data-no-delay`, `data-ucp-no-delay` en `data-no-optimize` markers.
+* Hardening: generieke third-party self-hosting volgt nu hetzelfde HTTPS-only localisatiepatroon als volwassen cacheplugins; onveilige `http` assets worden niet langer lokaal opgehaald.
+
+= 11.4.39 =
+* Improvement: Delay JS event-dekking verder gelijkgetrokken met het brede interactiepatroon van gevestigde cacheplugins: extra muis-, focus-, blur-, contextmenu- en mousewheel-signalen starten nu ook de bestaande uitgestelde scriptketen.
+* Improvement: replay van vastgelegde interacties gebruikt nu specifiekere browser-events voor pointer-, mouse-, wheel- en contextmenu-gebeurtenissen waar de browser die constructors ondersteunt.
+
+= 11.4.38 =
+* Improvement: Delay JS reageert nu op een bredere set eerste-interactie signalen (keyboard, mouse, pointer, touch, wheel, scroll, input en submit), zodat uitgestelde scripts sneller vrijkomen bij echte gebruikersinteractie zonder nieuwe instelling toe te voegen.
+* Improvement: lokale Google Fonts proberen de lokale stylesheet direct op de eerste geldige request/cache-pass op te bouwen voordat er wordt teruggevallen op de geplande refresh. Dit vermindert de kans dat een eerste bezoek alsnog naar `fonts.googleapis.com` blijft wijzen.
+* Hardening: de font-cache gebruikt nu dezelfde uploads-afgebakende atomic write-controle als de media-cache, inclusief realpath-validatie en veilige cleanup van tijdelijke bestanden.
+
+= 11.4.37 =
+* Fix: lokale Gravatar/YouTube self-hosting schreef cachebestanden naar `uploads/ultracache-pro/remote/`, maar gebruikte daarvoor de algemene managed-file writer die uploads-paden terecht weigert. De media-module heeft nu een eigen uploads-afgebakende atomic writer met padvalidatie en `index.html`, zodat cache-misses daadwerkelijk lokaal worden opgeslagen.
+* Fix: release-readiness runtimetest markeert `docs/QUALITY-SCORECARD.md` niet langer als ontbrekend probleem in het `lightweight` productiebuildprofiel. Die documentatiemap wordt bewust niet meegeleverd in klantzips; custom/dev builds blijven de scorecard wel controleren.
+* Packaging: deze gecontroleerde build wordt opnieuw als `ultracache-pro/` rootmap verpakt, zodat installatie via wp-admin de juiste plugin-slug behoudt.
+
+= 11.4.36 =
+* Veiliger defaults: database-cleanup sub-opties (verlopen transients, spam-reacties, verwijderde reacties en verwijderde berichten) staan op een nieuwe installatie nu standaard uit i.p.v. voorgevinkt. De hoofd-schakelaar `enable_db_cleanup` en `db_cleanup_frequency` stonden al uit; het inschakelen van cleanup is nu een bewuste keuze per categorie. Geen effect op bestaande installaties (defaults vullen alleen nieuwe sites) en geen runtime-gedragswijziging zolang cleanup uit staat.
+
+= 11.4.35 =
+* Release hygiene: plugin header, `UCP_VERSION` en readme stable tag weer gelijkgetrokken (waren uiteengelopen op 11.4.33/11.4.34).
+* Packaging: interne audit-/release-documentatie (`docs/`) verwijderd uit de productiezip conform het eigen release-readiness-criterium; deze bestanden blijven in de repo en horen niet in een klantbuild.
+* Packaging: productiezip wordt nu opgebouwd met een `ultracache-pro/`-rootmap zodat installatie via wp-admin en de GitHub-updater consistent naar de juiste plugin-slug uitpakt.
+* Changelog: onderstaande tussenliggende fixes (11.4.26–11.4.34) samengevat die eerder wel zijn uitgebracht maar nog niet in de changelog stonden. Geen functionele of gedragswijzigingen in deze release; uitsluitend hygiëne en documentatie.
+
+= 11.4.31 =
+* advanced-cache.php drop-in: faalt nu expliciet "closed" wanneer `wp-content/cache/ultracache-pro/dropin-config.php` ontbreekt, onleesbaar of ongeldig is. Bij twijfel wordt niets geserveerd uit cache i.p.v. een onbedoelde HIT. Versie verhoogd zodat het gerepareerde pakket traceerbaar is.
+
+= 11.4.26 – 11.4.30 =
+* Consistentie- en consolidatiefixes rond admin-UI-tabunificatie, cache-key-normalisatie tussen drop-in en PHP-helper, used-CSS file-based delivery als standaard leveringsmethode, en WooCommerce-routebescherming consistent doorgetrokken in cache-, preload-, asset-unload-, browser-scan- en prefetch/speculation-lijsten. Risicovolle CSS/JS-opties blijven standaard uit; veilige opties (page cache, browser cache, preload, CSS-minify, lazy images, image dimensions, WooCommerce safety) blijven standaard aan.
+
+= 11.4.25 production-fix =
+* Packaging: productiebuild opgeschoond naar minified runtime assets; overbodige React fallback/source-assets uit de zip verwijderd.
+* Admin performance: centrale asset-resolutie valt veilig terug op `.min` wanneer source-assets niet in de lightweight build aanwezig zijn.
+* Admin performance: React-admin CSS-module discovery ondersteunt min-only modulebestanden zonder terug te vallen op de monolithische stylesheet.
+* wp-admin overhead: cache-toast assets worden alleen nog op relevante UltraCache admin-schermen overwogen.
+* WooCommerce safety: Nederlandse en standaard WooCommerce-routes worden nu consistent beschermd in cache, preload, asset-unload, browser-scan, prefetch/speculation en advanced-cache fallbacklijsten.
+* Prefetch/speculation safety: cart, checkout, account, coupon, cart-update, order, logout, `wc-ajax`, `wc-api`, nonce- en preview-URL's worden uitgesloten van speculative/prefetch requests.
+* Vertaling: Nederlandse React-admin script-translation JSON opnieuw als UTF-8 taalbron opgebouwd zodat mojibake in adminteksten is verwijderd zonder de minified React-bundle te wijzigen.
+* Release clarity: lightweight buildprofiel toegevoegd aan dependency-report; externe Composer parser/minifier-libraries blijven optioneel met native fallbacks.
+* Documentatie: release-audit toegevoegd met probleem, oplossing, aangepaste bestanden, risico en verificatiestap.
+
+= 11.4.25 =
+* advanced-cache.php drop-in: het 304 Not Modified-antwoord stuurde geen `Vary: Accept-Encoding` mee, terwijl het volledige HIT-antwoord (dat vooraf-gecomprimeerde brotli/gzip-varianten serveert) dat wél doet. RFC 7232 §4.1 vereist dat een 304 dezelfde validatie- en cache-headers draagt als de bijbehorende 200, inclusief `Vary`. Zonder dit konden gedeelde caches/CDN's een gevalideerde entry verkeerd keyen en een gecomprimeerde body teruggeven aan een client die geen `Accept-Encoding: gzip` stuurde. Het 304-pad stuurt nu `Vary: Accept-Encoding` mee, consistent met de HIT-tak.
+* Geen andere wijzigingen aan de drop-in; serveer-fast-path, ETags, conditionele requests en compressie-selectie blijven byte-identiek.
+
+= 11.4.24 =
+* Robuustheidsfix in de HTML-optimalisatiepijplijn: op zeer grote pagina's (lange inline JSON-LD, page-builder-output, grote inline data-scripts) kon PCRE de `pcre.backtrack_limit`/`pcre.recursion_limit` raken en `null` teruggeven uit een `preg_replace_callback`. Een aantal passes herwees `$html` direct toe, waardoor die `null` door de rest van de pijplijn propageerde — met als gevolg dat álle optimalisaties op die pagina stilletjes wegvielen plus PHP 8.1+ "passing null"-deprecations in de logs.
+* Nieuwe centrale helpers `UCP_Helpers::safe_preg_replace_callback()` en `safe_preg_replace()`: bij een PCRE-fout (null-resultaat of niet-nul `preg_last_error()`) wordt het oorspronkelijke onderwerp ongewijzigd teruggegeven, zodat een falende pass netjes degradeert tot een no-op i.p.v. het document te vernietigen. De optionele `$count`-by-reference blijft correct (0 bij falen, zodat bestaande `if (!$count)`-fallbacks blijven werken).
+* Toegepast op alle full-HTML-passes die `$html` direct herwezen: delay-JS scriptherschrijving en loader/preload-injectie, module-naar-footer, font-display swap, CDN- en self-host-rewrites, lazy-render-runtime, kritieke/used-CSS `<head>`-injectie, preload-link-injectie, YouTube-thumbnail-rewrite en background-image-modernisering. De bestaande `is_string()`-bewaakte passes (minify, link-rewrites, mask/restore) bleven ongewijzigd.
+* `rewrite_html_assets_to_cdn()` viel bij een PCRE-fout terug op een **lege string** (`return is_string($html) ? $html : ''`). Met CDN ingeschakeld kon dat op een te grote pagina een blanco buffer opleveren. Nu valt het terug op de oorspronkelijke HTML.
+* Extra vangnet in `optimize_html()`: het `ucp_process_html`-filterresultaat en de uiteindelijke return worden gegarandeerd als geldige, niet-lege string teruggegeven, anders de onbewerkte invoer. De buffer-callback kan dus nooit een niet-string aan PHP teruggeven.
+* Geen wijzigingen aan option keys, hooks, REST-routes, slugs of standaardgedrag. Op normale pagina's is de output byte-voor-byte identiek; de fix raakt uitsluitend het foutpad.
+
+= 11.4.23 =
+* Instellingen-navigatie: het langste tab-label (WooCommerce) werd bij krappere breedtes aan beide kanten afgekapt. Oorzaak was `justify-content: center` op een horizontaal scrollbare flex-balk — bij overloop duwt centreren de inhoud onbereikbaar naar buiten. Vervangen door een `flex-start` basis met `safe center` verfijning: gecentreerd zolang de tabs passen, anders netjes scrollen vanaf links zonder clipping.
+* React-admin `.min.css` opnieuw gegenereerd uit de bron (de vorige build was een niet-geminificeerde kopie, ~270 KB). De geladen productie-stylesheet bevat nu de fix en is ~20 KB kleiner.
+
+= 11.4.22 =
+* Page-cache-sleutel: host-segment in de PHP-fallback (`UCP_Helpers::cache_key_for_url()`) genormaliseerd via de nieuwe gedeelde `UCP_Helpers::normalize_host()`, byte-voor-byte identiek aan `ucp_dropin_normalize_host()` in de drop-in. Lost een latente sleuteldivergentie op bij multi-host-, poort- en niet-canonieke hostsituaties (raakte ook de Used/Critical-CSS artifact-sleutels via `css_artifact_key_for_url()`).
+* `cache_path_slug()` gebruikt nu `rtrim($raw_path, '/')` i.p.v. `untrailingslashit()`, exact gelijk aan de drop-in, zodat de "byte-voor-byte identiek"-invariant ook in de bron klopt.
+* Runtime drift-check (Quality Suite) spiegelt nu de canonieke drop-in host-normalisatie, zodat de zelftest tegen de juiste referentie valideert.
+* Used CSS wordt standaard als losse, browser-cachebare bestandslevering uitgeleverd (`used_css_delivery_method = file`, met de bestaande inline-fallback wanneer het bestand niet schrijfbaar is). Betere herhaalbezoek-LCP; bestaande installaties behouden hun opgeslagen keuze.
+
+= 11.4.21 =
+* Veldtypografie over alle instellingen-tabs gelijkgetrokken met de Cache/Tools-referentie: een rustige, sentence-case labelstijl (geen hoofdletter-labels meer op Preload, CSS & JS en Regels) en identieke veld-tegels.
+* Scoped CSS-consistentielaag binnen de plugin-wrapper; geen globale selectors, geen markup- of gedragswijziging. Hero-statusbadges en de Server & CDN service-tegels blijven bewust hun eigen variant.
+
+= 11.4.20 =
+* Afbeeldingen-tab gelijkgetrokken met Cache/Tools: dezelfde hero, kaarten, koppen, veld-rijen, badges en witruimte (gedeelde cache-tools-opbouw).
+* Verwijderde afwijkende media-only styling (vette hoofdletter-labels, losse veldhulp, multi-pill hero, kaart-eyebrows) zodat alle tabs één design-systeem delen.
+* Adaptive images blijft inklapbaar maar gebruikt nu de uniforme geavanceerd-accordion. Geen functionele of opslagwijzigingen.
+
+= 11.4.19 =
+* Eén uniforme, rustige en premium admin-interface over alle menu-items.
+* Alle pagina's gebruiken nu hetzelfde gedeelde design-systeem: identieke kaarten, koppen, velden, grids, badges en witruimte.
+* Design-tokens als single source of truth voor radii, schaduw en lijnkleur; per menu-item blijft de eigen structuur behouden.
+* Rustiger en consistenter ritme en breakpoints; kalmere kaart-hover. Geen functionele wijzigingen.
+
+= 11.4.18 =
+* Wizard-styling aangepast naar een lichte WordPress-native adminkaart.
+* Donkere full-screen onboarding-modal vervangen door inline setupkaart binnen de UCP-adminpagina.
+* Standaard WordPress-kleuren, borders en knoppen gebruikt zodat de wizard beter aansluit op de plugininterface.
+* Wizard-functionaliteit behouden; alleen presentatie en plaatsing aangepast.
+
+= 11.4.17 =
+* Admin UI eenvoudiger gemaakt rond status-first werken: Overzicht toont status, bescherming en belangrijkste actie.
+* Simple mode beperkt tot Overzicht, Cache, Afbeeldingen, WooCommerce en Preload; Advanced toont CSS & JS, Server & CDN, Regels en Tools.
+* Nieuwe WooCommerce-adminsectie toegevoegd als UI-groepering voor bestaande cart/checkout/account/payment-bescherming.
+* Nieuwe Server & CDN-adminsectie toegevoegd als UI-groepering voor bestaande CDN- en object-cache-infrastructuur.
+* CDN-instellingen uit de CSS & JS-weergave gehaald zodat optimalisatie en infrastructuur niet door elkaar staan.
+* Geen nieuwe performance-features, option keys, REST-routes of WebP/AVIF-promotie toegevoegd.
+
+= 11.4.16 =
+* Strakkere uitvoering van bestaande features: Delay JS beschermt checkout, formulieren, captcha, consent en payment scripts consequenter.
+* Centrale WooCommerce-guard toegevoegd voor cache/CSS/JS/CDN/media optimalisaties.
+* Adaptive image srcsets veiliger begrensd voor normale rasterafbeeldingen; logo’s, icons, hero/LCP-beelden en productgalerijen blijven beschermd.
+* Font preload beperkt automatische kandidaten tot enkele veilige WOFF2-fonts en vermijdt icon-fonts.
+* CDN en Object Cache statusmodellen duidelijker gemaakt zonder nieuwe featurelaag.
+* Simple mode houdt geavanceerde beheerpagina’s rustiger verborgen.
+
+= 11.4.14 =
+* UX: toegevoegd dashboardoverzicht "Wat staat aan en waarom?" met rustige veiligheidslabels.
+* UX: setup-wizard vereenvoudigd naar 3 stappen met profielkeuze, voorafzicht en bevestiging.
+* UX: waarschuwingstaal aangescherpt naar Render-veilig / Geavanceerd — eerst testen.
+* UI: geavanceerde CDN, adaptive images en font-preload instellingen overzichtelijker voorbereid zonder bestaande features te verwijderen.
+
+
+= 11.4.13 =
+* Nieuw: first-run onboarding-wizard (3 stappen) in het beheerscherm. Stap 1 laat je een doel kiezen (Snelheid & SEO / WooCommerce / Conservatief) met een live omgevings-readiness-check (PHP/WP, WP_CACHE, minify-libraries). Stap 2 toont exact welke render-veilige optimalisaties worden aangezet en past ze toe via het bestaande, ge-sanitizede instellingen-endpoint; geavanceerde CSS/JS (Used/Critical CSS, combineren, Delay JS) blijft uitgeschakeld tot je ze zelf aanzet. Stap 3 warmt de homepage en toont een echte eerste cache-respons-tijd.
+* Veiligheid/scope: de wizard laadt alleen op de UltraCache-adminpagina voor beheerders, schrijft instellingen uitsluitend via `POST settings/bulk` (non-destructieve merge + sanitatie), en gebruikt voor de afronding een eigen REST-route met dezelfde permission/nonce-controle als de overige admin-acties. Eigen done-flag (`ucp_onboarding_completed`), los van de Safe Autopilot; opnieuw te openen met `?ucp-wizard=1`.
+* Build: build-vrij component (`wp.element`), met geminificeerde `.min.js`/`.min.css` naast de bron (geladen via de bestaande `UCP_Helpers::asset_path()`-selectie). POT bijgewerkt en een script-translation JSON (`ucp-onboarding-wizard`-handle) toegevoegd. Geen wijziging aan bestaande hooks, option keys, REST-routes of class names; alleen één classmap-entry en één admin-bootstrapaanroep toegevoegd.
+
+= 11.4.12 =
+* Prestatie: geminificeerde CSS/JS-bestanden worden nu op bron-vingerafdruk (pad + mtime + grootte + versie) gecached. Een eerder geminificeerd bestand kost daardoor één bestandscontrole in plaats van een volledige parse+minify per asset bij elke cache-miss render. Bestanden die niet de moeite waard zijn (te kleine besparing of JS die een volledige parser nodig heeft) krijgen een lichte negatieve markering, zodat ze niet telkens opnieuw worden verwerkt.
+* Nieuw: inline <style>- en <script>-blokken worden nu ook verkleind, net als bij WP Rocket, Autoptimize en LiteSpeed. Page builders (Elementor, Divi, Bricks) zetten het meeste CSS inline; dat werd voorheen ongewijzigd verstuurd. Inline CSS volgt 'CSS verkleinen', inline JS volgt 'JavaScript verkleinen'. JSON-LD, templates, importmaps, speculation rules en modules blijven onaangeroerd; blokken met data-cfasync of data-ucp-no-minify worden overgeslagen, en met de filter 'ucp_enable_inline_minify' kun je het volledig uitschakelen.
+* Onderhoud: 'Cache legen' verwijdert nu ook de map met losse geminificeerde bestanden (min/) en de gecombineerde CSS/JS-bundels (assets/, js/). Deze waren al zelf-invaliderend op basis van bron-vingerafdruk, maar verweesde bestanden bleven voorheen staan.
+* QA: PHP-syntax (brace/quote-balans), geen gewijzigde hooks, option keys, REST-routes of class names; alleen interne minify-logica en cacheopruiming aangepast.
+
+= 11.4.11 =
+* Veiligheid: REST-acties (cache legen, preload, CSS genereren, database opruimen, enz.) vangen nu onverwachte fouten netjes op. In plaats van een kale serverfout krijg je een duidelijke melding ("Probeer het opnieuw of controleer Tools") en wordt de fout gelogd.
+* UX: knoppen in het beheerscherm kunnen niet meer eindeloos op "Bezig…" blijven staan. Verzoeken hebben nu een veilige tijdslimiet (langer voor preload, CSS en websitecontrole) met een rustige fallbackmelding; de achtergrondtaak loopt indien nodig gewoon door.
+* CSS: Used/Critical CSS probeert generatie nu maximaal 3 keer in plaats van 5, gelijk aan de bestaande opslagregels. Rustiger, voorspelbaarder en met dezelfde veilige terugval naar normale CSS.
+* QA: PHP-, JavaScript- en JSON-syntaxcontrole, REST permission/nonce-controle, text-domain- en conflictmarker-scan en zip-integriteit opnieuw geverifieerd. Geen nieuwe functies, hooks, option keys, REST-routes of class names gewijzigd.
+
+= 11.4.10 =
+* Release: final release-ready packaging and validation pass.
+* QA: validated feature-toggle mappings, UI grouping, REST permissions, classmap, includes, translations and zip integrity.
+* UX: preserves simplified customer-facing menu structure while keeping advanced controls available in advanced view.
+
+= 11.4.9 =
+* UX: geavanceerde weergave toont nu ook automatisch beheerde instellingen, zodat toggles en selecties na de menuherindeling handmatig controleerbaar blijven.
+* QA: feature-toggle mapping gecontroleerd van UI-control naar option key, save/load flow, normalizer en runtime-referentie.
+* UX: eenvoudige weergave blijft rustig; automatische baseline-instellingen worden daar nog steeds verborgen.
+
+= 11.4.3 =
+* Quality: added PHPCS/WPCS, PHPUnit and CI configuration for repeatable scoring.
+* Quality: minified the React admin production asset and added an asset size check.
+* I18n: refreshed POT metadata and added a generated script-translation JSON for the admin app handle.
+* Docs: added staging validation and testing guides for runtime proof above the static score cap.
+
+= 11.4.1 =
+* Quality: added deterministic release-readiness runtime checks and Site Health visibility for version/classmap/REST smoke signals.
+* Quality: explicitly loads the plugin text domain for private/non-standard installs while preserving WordPress.org language-pack behaviour.
+* Docs: added a stable scorecard and validation checklist so future audits can use the same scoring basis.
+
+= 11.4.0 =
+* Nieuw: optionele fouttolerante HTML-parser-engine voor afbeelding- en iframe-passes (standaard uit). Verwerkt markup binnen `<script>`, `<style>`, `<textarea>` en comments correct en breekt niet op `>` binnen attribuutwaarden. Valt automatisch terug op de bestaande methode bij twijfel. Test op staging.
+
+= 11.3.0 =
+* Nieuw: hosting-cache mee legen (standaard uit). UltraCache-purges kunnen nu ook de servercache van bekende managed hosts legen (WP Engine, SiteGround, SpinupWP, Nginx FastCGI via Nginx Helper, Pantheon), met uitbreidingshooks voor overige stacks.
+
+= 11.2.7 =
+* Fix: de instellingen-sanitizer zet `enable_async_image_optimization` en `enable_viewport_images` niet langer geforceerd aan bij een gedeeltelijke opslag of import; een bewust uitgezette optie blijft nu uit. Nieuwe installaties houden de standaard ingeschakeld.
+* Fix: HEAD-requests adverteren nu de juiste `Content-Encoding` wanneer een GET gecomprimeerd zou worden, in plaats van de ongecomprimeerde lengte.
+* Fix: ontbrekend text-domain op enkele admin-teksten, zodat ze vertaalbaar zijn.
+* Build: de geminificeerde admin-bundles worden uit de bron gebouwd via een vaste build-stap, zodat bron en bundle niet meer uit elkaar kunnen lopen.
+
+= 11.2.5 =
+* Hotfix: Speculative Loading `off` bootstrapt nu ook de optimizer op de frontend, zodat UltraCache op WordPress 6.8+ de Core-configuratiefilter kan registreren en Core Speculative Loading daadwerkelijk kan uitschakelen voor de request.
+
+= 11.2.4 =
+* Refactor: Speculative Loading heeft nu een Core-aware policy: Core standaard volgen, UltraCache veilig versterken, Prerender op staging, of volledig uitschakelen. Op WordPress 6.8+ kan UltraCache Core Speculative Loading nu ook expliciet uitschakelen via de Core-configuratiefilter; eigen speculationrules-output blijft alleen fallback voor oudere WordPress-versies.
+* Refactor: CWV fielddata gebruikt nu een bounded histogram zodat samples, p75 en gemiddelde consistent uit dezelfde begrensde dataset komen.
+* Refactor: de job runner wordt expliciet geactiveerd door alle job-producerende features, inclusief async image optimization, LQIP, lokale media, headless renderer en compat-updates.
+* Migratie: hidden technische defaults voor async image optimization, VPI en Used CSS auto-refresh worden bij bestaande installaties genormaliseerd.
+* Cleanup: de admin-resetactie heet nu `clear-cwv-fielddata`; `clear-rum` blijft alleen als backward-compatible alias.
+* Cleanup: verwarrende RUM/Speculative Loading labels en comments zijn opgeschoond.
+
+= 11.2.3 =
+* Cleanup: RUM is samengevoegd met de bestaande Core Web Vitals-monitoring. De aparte `UCP_RUM`-klasse en `/rum`-endpoint zijn verwijderd; het dashboard gebruikt nu `UCP_CWV::get_summary()` op de bestaande `/cwv` collector. `enable_rum` blijft alleen als legacy-alias bestaan en schakelt `enable_cwv_monitoring` in bij import/WP-CLI.
+* Cleanup: Speculative Loading gebruikt op WordPress 6.8+ Core-filters voor mode/eagerness/exclusions en print de eigen speculationrules alleen nog als fallback op oudere WordPress-versies.
+* Admin cleanup: technische opties voor async image-queue, VPI en Used CSS auto-refresh zijn uit de normale UI gehaald. Async image-queue en VPI staan standaard aan; VPI blijft alleen precies wanneer de headless-renderer actief is.
+* Admin cleanup: de dashboardkaart en resetactie zijn herlabeld naar CWV/RUM-fielddata, zodat duidelijk is dat dit de bestaande CWV-collector gebruikt.
+
+= 11.2.2 =
+* Nieuw (admin): dashboardkaart voor lokale CWV/RUM-fielddata met p75/gemiddelde/samples per metric en device, gevoed door de bestaande CWV-collector.
+* Nieuw (admin): zichtbare controls voor headless renderer, image-CDN, ESI, CDN-provider purge, compat-updates, LQIP, CWV-monitoring en lokale Gravatar/YouTube-thumbnails. Technische subopties voor VPI, async image-queue en Used CSS auto-refresh zijn in 11.2.3 weer uit de normale UI gehaald.
+* Fix (RUM): CLS-gemiddelde wordt nu in dezelfde CLS-eenheid getoond als p75 in plaats van de intern opgeslagen x1000-bucketwaarde.
+* Verbetering: admin-status toont VPI-precisie expliciet; precieze VPI-detectie vereist de headless-renderer, anders blijft de leading-image-heuristiek de fallback.
+* Nieuw (admin): CWV/RUM-fielddata kan via een beveiligde admin REST-actie worden gereset zonder instellingen te wijzigen.
+
+= 11.2.1 =
+* Fix: verwijderde een dubbele speculative-loading-implementatie. Speculative loading bestond al (`enable_speculative_loading` met `speculation_mode`/`speculation_eagerness`/`speculation_exclusions`); de in 11.2.0 toegevoegde parallelle module vuurde op dezelfde optie en is verwijderd, inclusief de dubbele optie-default.
+* Fix (admin): alle nieuwe opties van 11.1.0–11.2.0 (headless renderer, image-CDN, ESI, CDN-provider, compat-updates, LQIP, RUM, viewport-images, lokale Gravatar/YouTube) zijn toegevoegd aan de instellingen-sanitizer met bijbehorende validatie/clamps, zodat ze via de REST-instellingen, import/export en `UCP_Options::update()` correct bewaard blijven in plaats van bij opslaan te worden gestript.
+
+= 11.2.0 =
+* Nieuw (default-off): LQIP — low-quality image placeholders. Berekent lokaal een dominante kleur per afbeelding (achtergrond-queue, job `lqip_generate`) en toont die als placeholder achter lazy-loaded afbeeldingen. Optie: `enable_lqip`.
+* Nieuw (default-off): lokale Core Web Vitals fielddata (LCP/INP/CLS/FCP/TTFB) via de bestaande `/cwv` beacon met p75 per device. Privacy-vriendelijk en gesampled. Optie: `enable_cwv_monitoring`; `enable_rum` is vanaf 11.2.3 alleen nog een legacy-alias.
+* Nieuw: Viewport-image-detectie (VPI) is een automatische detectielaag. Precieze data komt uit de headless-renderer of de `ucp_viewport_images`-filter; zonder data blijft de bestaande leading-image-heuristiek leidend.
+* Nieuw (default-off): Gravatar- en YouTube-thumbnails lokaal hosten (achtergrond-fetch, job `localize_remote_asset`) om externe requests te elimineren. Opties: `enable_local_gravatar`, `enable_local_youtube_thumbnails`.
+* Verbetering: nieuwe `ucp_image_is_viewport_image`-filter in de media-optimizer en een `ucp_render_result`-actie na een headless render.
+
+= 11.1.1 =
+* Refactor (geen gedragswijziging voor bestaande sites): één gedeelde SSRF-veilige URL-validator (`UCP_Helpers::validate_public_https_url()`, incl. DNS-resolutie) vervangt vier losse kopieën in cloud, headless-renderer, CDN-purge en compat-overlay; de asset-CDN-host-check deelt nu dezelfde resolver (nu ook met IPv6-dekking).
+* Refactor: image-CDN-rewriting is samengevoegd met de `<picture>`-stap tot één media-pass over de HTML-buffer. Dit lost een inconsistentie op waarbij `<source>`-URLs lokaal bleven terwijl de `<img>`-fallback naar de CDN wees.
+* Refactor: gedeelde uploads-URL↔pad-helpers en één compat-JSON-reader (dubbele lees/cache-logica verwijderd); gemeenschappelijke `wp_remote_*`-defaults via `UCP_Helpers::default_remote_args()`.
+
+= 11.1.0 =
+* Nieuw (default-off): Headless render bridge — koppel een echte browser-renderer (self-hosted Puppeteer/Playwright, browserless of de UltraCache-cloud) aan `enable_headless_renderer`. Levert browser-geverifieerde Used/Critical CSS en autoriseert pas dán veilige stylesheet-verwijdering via `ucp_css_profile_external_result`. Nieuwe queue-job `headless_css`.
+* Nieuw (default-off): Asynchrone beeldoptimalisatie (`enable_async_image_optimization`) verplaatst WebP/AVIF-generatie naar de achtergrond-queue (`image_optimize`) i.p.v. synchroon bij upload. Optionele image-CDN delivery (`enable_image_cdn`) met width-descriptors voor device-passende afbeeldingen.
+* Nieuw (default-off): Server-agnostische ESI-achtige fragment hole-punching (`enable_esi`) — punch cart/account/gepersonaliseerde regio's uit gedeelde gecachte HTML op elke server; één gebatchte client-side hydratie. Registreer fragmenten via `UCP_ESI::register()` / `ucp_esi_fragments` of `[ucp_esi id="..."]`.
+* Nieuw (default-off): Multi-provider CDN-purge (`cdn_provider`: cloudflare/bunny/generic) gekoppeld aan de bestaande purge-events, zodat pull-zone/full-site CDN's mee leeglopen bij een flush.
+* Nieuw (default-off): Remote-updatebare compatibiliteitslijsten (`enable_compat_updates`) mergen een gevalideerde overlay over de gebundelde compat/*.json, plus automatische Used CSS-verversing op interval (`used_css_auto_refresh_days`, standaard 30).
+* Nieuw: Veilige auto-pilot bij eerste run zet alleen render-veilige optimalisaties aan (cache, lazyload, afbeeldingsdimensies, browser-cache headers, heartbeat); CSS/JS-render-opties blijven opt-in. Uitschakelbaar via `UCP_DISABLE_AUTOPILOT` of `ucp_enable_safe_autopilot`.
+
+
+= 11.0.53 =
+* Release cleanup: aligned plugin and readme version metadata.
+* Release cleanup: clarified optional Composer libraries and fallback behaviour.
+* Release cleanup: rechecked PHP, JSON, JavaScript and zip integrity.
+
+= 11.0.52 =
+* Diagnostics cleanup: removed a spoofable LiteSpeed request-header hint and rechecked the build.
+
+= 11.0.51 =
+* Hardened cache-conflict detection so visitor-spoofable HTTP cache headers no longer trigger server-cache warnings.
+* Re-ran the full CSS/JS/PHP/package audit pipeline after the 11.0.50 cleanup.
+
+= 11.0.50 =
+* Merged the cleaned admin CSS/JS system into the uploaded 11.0.47 package.
+* Overwrote the bundled admin CSS/JS asset files with the deduplicated token-based files.
+* Revalidated CSS scope, duplicate rule blocks, !important usage, JavaScript syntax, PHP linting and package integrity.
+
+= 11.0.47 =
+* Design/admin cleanup: late CSS overrides deduplicated and replaced with one scoped shell guard without forced late override rules.
+* Admin navigation, settings grid, cards and asset-manager overflow handling stay scoped to the UltraCache React page.
+* Rebuilt minified admin CSS so production and debug assets match.
+
+= 11.0.45 =
+* LiteSpeed backend werkt nu expliciet server-detectie-first: de plugin hoeft geen Hostinger-knop te bedienen en schakelt automatisch naar LSCache headers zodra LiteSpeed/OpenLiteSpeed wordt gedetecteerd.
+* Diagnostische header aangepast naar `X-UltraCache-LiteSpeed-Bridge: auto-detected`.
+
+= 11.0.44 =
+* Verbetering voor de automatische LiteSpeed-backend: consistente backend-resolutie, extra Hostinger/LSCache detectie, chunked URL-purge en minder valse server-cache conflictmeldingen.
+
+= 11.0.41 =
+* Nieuw: automatische cache-backend switch. Op LiteSpeed/OpenLiteSpeed gebruikt UltraCache LSCache-responseheaders voor publieke guest page-cache; op gewone servers blijft de bestaande UltraCache disk-cache actief.
+* Nieuw: LiteSpeed purge bridge voor purge-all, purge-url en batch-purge via bestaande UltraCache purge-acties.
+* Veiligheid: ingelogde/private/checkout/cookie-gevoelige responses blijven fail-closed en worden niet publiek door LiteSpeed gecachet.
+* Fix: eigen advanced-cache.php drop-in wordt bij upgrades nu ververst wanneer UltraCache eigenaar is, zodat oude disk-cache drop-ins niet actief blijven in LiteSpeed-modus.
+
+= 11.0.39 =
+* Fixed internal UCP_VERSION mismatch so cache keys, migrations and asset versions match the release header.
+* Hardened automatic advanced-cache installation so drop-in writes remain disabled unless explicitly allowed by an admin action/setting.
+* Added stricter Cloudflare API request validation for zone IDs and supported endpoint paths.
+* Refreshed release metadata after static checks.
+
+= 11.0.37 =
+* Tweak: LCP-detectie scant het document nog maar één keer — de aparte <img>- en alle-tags-passes in detect_lcp_image_candidate() zijn samengevoegd tot één tag-walk.
+* Note: gedrag 1-op-1 behouden (images eerst gescoord, daarna backgrounds; identieke tie-breaking); geen hooks/REST/options/output gewijzigd. De cross-pass lazyload/LCP-samenvoeging is bewust niet aangeraakt.
+
+= 11.0.36 =
+* Nieuw (default-off): Edge HTML cache — echte shared-cache directives (s-maxage, CDN-Cache-Control, Cloudflare-CDN-Cache-Control, stale-while-revalidate/stale-if-error) plus Cache-Tag headers, fail-closed voor ingelogde/cart/checkout/account/preview.
+* Nieuw: meegeleverde Cloudflare Worker en docs voor volledige edge-HTML-caching op elk Cloudflare-plan; UCP_Edge::cloudflare_purge_tags() voor tag-purge.
+* Tweak: native toggles toegevoegd aan de React-admin (Cloudflare/Edge + Asset Manager); editorpaneel op @wordpress/components.
+* Note: beide features zijn opt-in; geen gedragswijziging op bestaande installs. Inclusief de classmap-opschoning uit 11.0.35.
+
+= 11.0.35 =
+* Tweak: autoloader-classmap opgeschoond — 27 redundante trait-entries verwijderd die nooit vuurden omdat de trait in zijn eigen composing class-bestand staat (van 143 naar 116 entries).
+* Tweak: de co-located-trait-conventie expliciet in de loader gedocumenteerd zodat de map niet opnieuw uit sync loopt.
+* Note: puur release-hygiene — geen runtime-, hook-, REST-, option- of gedragswijziging; geen migratie nodig.
+
+= 11.0.34 =
+* Tweak: React admin volgt nu het WordPress-beheerkleurenschema — primair, focusringen, badges, toasts en navigatie zijn afgeleid van `--wp-admin-theme-color` in plaats van een vaste merkkleur, zodat ze overeenkomen met de aangrenzende native @wordpress/components.
+* Tweak: semantische statuskleuren afgestemd op het WordPress admin notice-palet (success #00a32a, warning #dba617, error #d63638).
+* Tweak: verouderde "premium" decoratielaag platgeslagen naar native stijl (4px radii, geen slagschaduwen, geen gradient-headerbalk).
+* Fix: tab-navigatie in de React admin werkte niet door een ontbrekende `selectTab`-handler (ReferenceError bij klikken); tab wisselt nu correct en synchroniseert de URL.
+* Tweak: dode code verwijderd uit de React admin (~490 regels JS): niet-gemounte DiagnosticsPage en hulpfuncties, ongebruikte overzichtspanelen, MetricCard/DataList en wees-API-helpers, plus bijbehorende ongebruikte CSS.
+* Note: geen PHP-logica, REST-namespace of option keys gewijzigd; geen migratie nodig.
+
+= 11.0.33 =
+* Tweak: Delay-JS safe-exclusion lijst uitgebreid met payment SDKs (Braintree, Razorpay, Square, Paddle, Authorize.Net).
+* Tweak: Delay-JS safe-exclusion lijst uitgebreid met consent managers (CookieYes/Cookie Law Info, Usercentrics, iubenda).
+* Note: pure data/allowlist-wijziging in `compat/delay-js-exclusions.json` (13 entries); strikt conservatief, vertraagt nooit méér scripts.
+* Note: geen PHP-logica, hooks, REST-namespace of option keys gewijzigd; geen migratie nodig.
+
+= 11.0.32 =
+* Fix: React admin `.min` CSS/JS assets zijn nu daadwerkelijk kleiner dan de debugvarianten.
+* Fix: ontbrekende 11.0.30 changelog-entry toegevoegd voor volledige releasehistorie.
+* Tweak: versie- en POT-metadata gelijkgetrokken naar 11.0.32.
+* Note: geen runtime- of businesslogica gewijzigd.
+
+= 11.0.30 =
+* Added admin-only diagnostics quality-summary endpoint.
+* Extended support report and log package with quality summary and runtime-test snapshots.
+* Added WP-CLI diagnostics and runtime-test commands with JSON output support.
+* Added Site Health runtime-test visibility and competitive feature matrix documentation.
+
+= 11.0.29 =
+* Hardened sensitive admin downloads with nosniff, noindex and no-store response headers.
+* Reduced public CWV beacon token window to daily buckets while keeping previous-bucket support for cached HTML.
+* Improved private cache directory protection rules and package hygiene.
+
+= 11.0.26 =
+* Bugfix: hardens log/support-package redaction for user identifiers and sensitive WooCommerce URL path segments.
+* Bugfix: redacts user identifiers in JSONL log exports and support packages.
+* Bugfix: protects order-pay, order-received, checkout, cart, account, payment, token, nonce and session path markers in logged URLs.
+
+
+= 11.0.25 =
+* Privacy fix: plain-text helper logs and REST log rows now redact URL queries, emails, IPs and common secret/payment/order tokens before admin display or storage.
+* No cache, WooCommerce, asset, CSS, LCP or admin UI behavior changes.
+
+= 11.0.24 =
+* Runtime privacy fix: diagnostics and log-package redaction now redact WooCommerce/order, customer, payment, cart, checkout and session-related context keys.
+* No feature behavior changes; staging runtime testing remains required for browser, WooCommerce and payment flows.
+
+= 11.0.23 =
+* Polished the React admin toward a WordPress-native Gutenberg/@wordpress/components style without changing cache behavior.
+* Added a compact native admin header with accessible tab semantics and clearer top-level status badges.
+* Added a DataViews-like PageSpeed Readiness card with expandable details for impact, risk and runtime-test status.
+* Improved Asset Manager copy, list semantics, button labels and protected/test-mode action wording.
+* Added scoped admin CSS polish for cards, tabs, readiness details, loading states, asset rows and responsive wp-admin layouts.
+
+= 11.0.22 =
+* Ultimate polish: CSS profile expiry metadata, renderer status and protected-wins enforcement for external Used CSS payloads.
+* Added optional allowed LCP CDN host support while keeping measured page URLs same-origin and text LCP out of auto-preload.
+* Asset Manager now fails closed on sensitive WooCommerce/account/payment requests unless an explicit manual override is enabled.
+* Preload crawler status reasons now distinguish sensitive URLs, dynamic nonce/query URLs, redirects and unsupported content types.
+* Expanded PageSpeed Readiness with advanced-cache, cache-writability, font preload, WooCommerce safety and REST/admin security status.
+* Added PageSpeed Auto v12 safelist/default migration without enabling aggressive CSS, JS or asset unload behavior.
+
+= 11.0.21 =
+* Polished CSS profile sanitization so external renderer output is bounded, typed and still fails closed on WooCommerce/account/payment-sensitive URLs.
+* Raised default LCP auto-preload confidence to 85 and restricted automatic LCP resource use to same-origin resource-like image URLs.
+* Added per-URL/device LCP stale rollback helper for bad or outdated measured profiles.
+* Cleaned Conflict Guard plugin detection, including Cloudflare and Cloudflare Super Page Cache labels without duplicate/malformed entries.
+* Added friendlier Asset Manager rule aliases for unload/protect, URL exceptions, post type, device and logged-in/logged-out scopes.
+* Hardened preload status metadata sanitization and added a PageSpeed Auto v11 safelist polish migration.
+
+= 11.0.20 =
+* Added conservative per-URL CSS profiles with separate critical, delayed, protected and renderer-ready safe-removal buckets.
+* Added high-confidence LCP profiles per URL/device, including image, background-image, text and video-poster metadata.
+* Added Preload Crawler v2 prioritization for homepage, purge URLs, menu URLs, recent content and sitemap URLs with status logging and throttling.
+* Expanded Asset Manager rule scopes and protected-asset warnings for safer URL, post type, device and logged-out unload workflows.
+* Expanded conflict diagnostics for WP Rocket, LiteSpeed Cache, FlyingPress, Autoptimize, Perfmatters, Asset CleanUp, SG Optimizer and Cloudflare/edge cache overlap.
+* Added PageSpeed Readiness diagnostics covering cache, LCP, CSS, JS delay, resource hints, Asset Test Mode, preload and conflicts.
+
+= 11.0.14 =
+* Removed the unused pre-React admin field-rendering layer (admin UI field helpers, field-logic schema/state and admin metrics helper) that the React admin no longer calls.
+* Consolidated the three identical admin REST permission callbacks into a single shared check (capability + nonce for mutations).
+* Documented advanced-cache.php / object-cache.php drop-in installation and the optional WP_CACHE constant write.
+* Removed a duplicate Privacy section from this readme.
+* No runtime cache, optimization, WooCommerce, REST, preload or settings behavior was changed.
+
+= 11.0.10 =
+* Hardened APCu object-cache increment/decrement paths with atomic APCu operations.
+* Added validated job-table helpers for queue SQL and guarded empty table states.
+* Reformatted remaining compact callbacks and lazy-render selector assembly for stricter WPCS readability.
+
+= 11.0.8 =
+* Hardened CWV/RUM burst limits so per-IP and site-wide caps are global per minute instead of per metric.
+* Added locked counter updates for all CWV/RUM minute, visitor and daily rate-limit counters to reduce concurrent bypass risk.
+* Added strict scheme, host and port checks for same-origin CWV/RUM headers and LCP hint URLs.
+* Added length bounds before decoding LCP element JSON metadata.
+* Switched APCu object-cache drop-in installation to WordPress filesystem writes.
+* Removed UltraCache-owned object-cache.php during clean uninstall.
+* Removed duplicate REST action route registrations from the quality suite layer.
+* Added HTTP response-size limits for remote CSS/font/cloud/Cloudflare requests.
+* Reformatted compact admin/font/router code paths for stricter WPCS readability.
+
+= 11.0.3 =
+* Fixed cache toast CSS keyframes in both readable and production assets so admin cache notifications animate and dismiss consistently.
+* Re-ran static package validation after the UI/release fixes.
+
+= 11.0.2 =
+* Fixed production minified React asset to preserve translated string spacing.
+* Corrected malformed legacy admin CSS selectors in the fallback navigation layer.
+* Synced release assets after UI polish validation.
+
+= 11.0.1 =
+* Native WordPress/Gutenberg admin polish: flatter cards, WordPress-style buttons, calmer status badges and a permanent dashboard header.
+* Improved dashboard hierarchy with visible cache, WooCommerce, queue and JavaScript test status.
+* Replaced ARIA-tab semantics with simpler WordPress-style navigation to reduce accessibility risk.
+* Added resettable card layout controls and screen-reader announcements for layout changes.
+* Synced release assets and prepared a cleaner production package without tests/dev notes.
+
+= 11.0.0 =
+* Performance suite 11.0: parser-first CSS, improved HTML minify, precompressed cache variants, database audit, APCu drop-in template and safer JS combine.
+
+= 10.12.2 =
+* Regression audit cleanup: removed unused legacy UX cleanup CSS asset.
+* Scoped React admin navigation CSS to the React admin wrapper only.
+* Removed React-only selectors from the classic admin design-system stylesheet.
+* Kept page override editor styling in its dedicated scoped stylesheet.
+* Rebuilt the translation template (`languages/ultracache-pro.pot`) to cover all PHP and JavaScript admin strings.
+* Added minified asset variants for the React admin bundle, design-system CSS and core/tab admin scripts; the plugin now serves `.min` files automatically when `SCRIPT_DEBUG` is off.
+* Added weak/list ETag handling and 304 responses for cached HTML in the advanced-cache drop-in.
+* No runtime cache, CSS optimization, JS optimization, lazyload, preload, WooCommerce, REST, fragment or settings logic was removed.
+
+= 10.12.1 =
+* Restored visibility of important compatibility settings in the classic and React UI after the admin reorganization.
+* Kept `cache_logged_in`, `enable_object_cache_support` and `enable_woocommerce_rules` available under Compatibility.
+* Added a separate, scoped CSS asset for the page exclusions meta box so no inline styling is needed and the post editor layout stays intact.
+* Preserved the central design tokens and avoided global CSS hacks, forced late overrides and broad admin selectors.
+
+= 10.12 =
+* Reorganized cache compatibility settings outside the regular advanced rules.
+* Tightened the builder-safe layer for Elementor, Bricks, Oxygen, Breakdance, Divi, Beaver Builder, WPBakery, Flatsome UX Builder and SiteOrigin editor/preview flows.
+* Frontend optimizations now skip builder previews and transactional WooCommerce flows through the same central safety layer.
+* React admin and classic admin share the same design tokens; global CSS hiding and hard override rules have been cleaned up.
+* Added settings intro cards for consistent per-section explanations.
+
+= 10.11 =
+* Added automatic settings snapshots before settings changes, keeping the latest 5 snapshots.
+* Added manual settings snapshot creation and a restore action in Tools.
+* Added custom presets saved from the current configuration.
+* Added per-page UltraCache overrides via a post/page meta box.
+* Added a lightweight WordPress dashboard widget with the active optimization status.
+* Added REST endpoints for settings snapshots and custom preset saving for the React admin.
+* Kept import/export and existing legacy settings compatible.
+
+= 4.22.6.9 =
+* Added automatic replacement cleanup for older duplicate UltraCache Pro plugin copies during activation when WordPress file permissions allow deletion.
+* Added repository governance files, GitHub Actions quality gates, Plugin Check readiness documentation and privacy/support disclosure notes.
+
+= 4.22.6.8 =
+* Restored the dashboard quick actions as separate explanatory cards.
+* Placed each action button underneath its explanation text.
+* Kept the recent technical lists removed from the user-facing dashboard.
+
+= 4.22.6.5 =
+* Removed recent technical diagnostic lists from the Websitecontrole screen.
+* Restored the extended action buttons as cards with each button underneath the explanatory text.
+* Kept the stable plugin folder so WordPress can replace the existing plugin on upload.
+
+= 4.22.6.2 =
+* Simplified the Diagnostics screen for client-friendly use by removing technical lists and advanced controls.
+* Improved diagnostics card layout so action buttons sit neatly below the explanatory text.
+* Includes earlier accessibility, i18n, stricter SSL verification and packaging fixes.
+
+= 4.22.6 =
+* Added optimization intelligence layer for CSS status, stale refresh, JS delay guards, WooCommerce purge coverage, server detection and REST diagnostics.
+
+= 4.22.5 =
+* Improve: added safer WooCommerce/payment/form/builder guards before Delay JS, lazy loading and HTML rewrites run.
+* Improve: Delay JS now leaves non-JavaScript data/template scripts untouched.
+* Fix: Core Web Vitals rolling averages remain accurate after the sample cap is reached.
+* Fix: log package download errors now return the intended HTTP status code.
+
+= 4.22.4 =
+* Add: PageSpeed Auto preset for Elementor/WooCommerce sites with cache, preload, CSS minify, local fonts, lazyload and safe checkout/account bypasses; image generation, Used CSS and Delay JS remain manual staging-first options.
+* Improve: fresh installs and upgrades apply the PageSpeed Auto profile automatically when autopilot is enabled.
+* Improve: Asset CleanUp detection now supports both common plugin slugs and no longer disables UltraCache Used CSS/Delay JS when Asset CleanUp is used only for selective unloads.
+
+
+= 4.21.76 =
+* Added staging safety checks for WooCommerce cache bypasses, builder preview bypasses, REST settings import confirmation, and advanced-cache.php ownership protection.
+* Added release safeguards for packaged installs, explicit import/database cleanup confirmations, CWV daily sample caps, and admin audit logging for high-impact actions.
+* Hardened Core Web Vitals collection with same-origin beacon token, local URL validation and retained rate limiting.
+* Made Google Fonts localization non-blocking on first uncached frontend renders by scheduling cache refreshes instead of fetching during page output.
+* Hardened preload and Cloudflare remote requests with stricter redirect and unsafe URL handling.
+* Limited and sanitized Preload Link headers preload headers, including safer font preload handling.
+
+= 4.21.75 =
+* Hardened the advanced-cache drop-in for early WordPress bootstrap by removing direct dependency on WordPress helper functions.
+* Changed duplicate plugin cleanup from automatic deletion to manual-review candidate recording.
+* Aligned release metadata with plugin version and conservative tested-up-to value.
+* Switched first-run defaults to a safer preset with staging-first optimizations left disabled until explicitly enabled.
+
+= 4.21.68 =
+* Improved LCP image handling for hero/excluded images and added low fetch priority hints for lazy images.
+* Hardened Delay JS defaults and exclusions for builders, forms, cookies, payment gateways and WooCommerce.
+* Added YouTube iframe dimensions to reduce CLS and prevented frontend Google Font downloads during page render.
+* Added cache BYPASS/MISS debug headers with reasons for easier PageSpeed troubleshooting.
+* Fixed Used CSS/Critical CSS cleanup paths.
+* Added upgrade cleanup for previous UltraCache-generated cache artifacts and own drop-in refresh.
+* Added duplicate UltraCache Pro plugin cleanup during activation when permissions allow.
+
+= 4.21.50 =
+* Ultra-minimal Tools UI met rustigere kaart-hiërarchie.
+* Secundaire acties worden subtieler als tekstlinks weergegeven.
+* Risico-kaart visueel rustiger gemaakt zonder destructive confirmation te veranderen.
+* Drag-and-drop layout en 1x1/2x2/3x3/4x4-keuze blijven actief.
+
+
+= 4.21.45 =
+* Adjusted CSS and JavaScript compatibility rules to match WP Rocket-style behavior.
+* CSS minify can stay enabled with CSS delivery; only CSS combine is auto-disabled for Used CSS or async CSS delivery.
+* JavaScript minify is experimental and should be enabled only after staging tests; JS combine/native script-strategy conflicts are auto-disabled.
+= 4.21.28 =
+* Cleanup release: removed leftover guest-mode option keys and kept the logged-in optimization bypass as the single maintained safe approach.
+* Deduplicated support-report fields and consolidated WP Rocket-style default overrides into one source of truth.
+* Added LiteSpeed-inspired safe presets: Veilig, Gebalanceerd, Snel, Agressief - staging, Webshop veilig, Builder veilig and Edge eerst.
+* Added URI optimization exclusions and broader default JS/CSS safety exclusions for WooCommerce, builders, forms, maps, analytics, anti-bot and payment scripts.
+* Added optional font-display swap and remove-query-strings settings for safer fast presets.
+* Added WordPress Site Health support for the X-UltraCache page-cache header.
+* Added a masked support-report export for faster troubleshooting.
+* Made purge hooks filterable for post, full-cache and WooCommerce events.
+* Fixed cache TTL header handling when writing fresh cache files.
+* Added compatibility JSON lists for cache, asset, and delay JavaScript exclusions.
+* Improved lazyload behavior so the first likely LCP image is not lazy-loaded and receives fetch priority.
+* Added extra purge hooks for taxonomy, menu, customizer, permalink, WooCommerce, and builder cache changes.
+
+= 4.19.0 =
+* Auto delay JS exclusions now scan active plugins and the current theme when Delay JS is enabled.
+* Added broader built-in exclusions for builders, forms, commerce, consent, and common themes.
+* Delay JS exclusions are synced into the saved list while remaining filterable at runtime.
+
+* Cleaned up remaining admin controller screens so they match the simplified UI and hidden safe defaults.
+* Improved fallback tools/import UI consistency, including support for importing .txt settings files in fallback admin flows.
+
+= 4.9.0 =
+* Added smart cache tags for related-page invalidation with optional persistent object-cache acceleration.
+* Improved Cloudflare purging to support batched URL purges from the background jobs queue.
+* Kept the admin UI simple with only a few new controls.
+
+= 4.1.0 =
+* Refined WP Admin UX with Material 3 inspired cards, tabs, chips and clearer information architecture.
+* Added richer overview, jobs, diagnostics and rule builder presentation.
+* Improved simple vs advanced mode clarity and surfaced existing premium architecture features.
+
+= 3.0.0 =
+* Added queue/jobs engine, CSS artifact hooks, Cloudflare/APO and Preload Link headers helpers, script modules compatibility and per-URL diagnostics.
+
+= 2.0.0 =
+* Added file optimization, optional delay JS, basic used CSS, critical CSS, DB cleanup and cloud connector architecture.
+
+
+= 4.16.4 =
+* Added privacy exporter and eraser hooks for matching emails in logs and diagnostics.
+* Improved admin accessibility with clearer focus states and accessible labels on search and rule controls.
+* Tightened admin table and toolbar spacing for more consistent formatting.
+
+= 4.16.3 =
+* Admin UI simpeler en consistenter gemaakt.
+* Automatische veilige hulp toegevoegd voor compatibiliteit.
+* Veilige knoppen toegevoegd voor Heartbeat, preload en server cache setup.
+
+
+== Accessibility ==
+The admin interface uses real form controls, visible focus states and accessible labels for search and rule controls.
+
+
+== Third-Party Services ==
+
+UltraCache Pro can connect to third-party services only when an administrator explicitly configures or enables those integrations.
+
+= Cloudflare purge =
+* Service: Cloudflare API
+* Purpose: purge the full zone cache or selected URLs after manual purge actions or plugin-driven purge jobs.
+* Data sent: configured Cloudflare Zone ID, API token in the authorization header, and the URL or URL list being purged.
+* When: only when Cloudflare-related settings are configured and a purge request is triggered.
+* Privacy / terms: document Cloudflare use in your site privacy policy and review Cloudflare privacy and terms documentation for your account/region.
+
+= Cloud sync / render endpoint =
+* Service: custom cloud endpoint configured by the site owner
+* Purpose: sync, remote render, or related cloud tasks initiated by UltraCache Pro features.
+* Data sent: configured endpoint URL, site code, API key, and task-specific URLs or payload fragments needed to complete the requested operation.
+* When: only when the cloud integration is configured and the related cloud feature or job is enabled.
+* Privacy / terms: document the privacy policy, terms and processor role for the configured service in your site or service documentation.
+
+
+= Google Fonts localization =
+* Service: Google Fonts / Google Fonts CSS endpoints when this feature fetches font CSS or font files for local storage.
+* Purpose: download configured font assets so future visitor requests can be served locally from this WordPress installation.
+* Data sent: the requested Google Fonts CSS/font URL and standard server-side HTTP request metadata. UltraCache Pro does not intentionally send visitor personal data for this fetch.
+* When: only when local Google Fonts handling is enabled and a font cache refresh is needed.
+* Privacy / terms: document Google Fonts localization in your site privacy policy if you use this feature.
+
+= URL preload / sitemap collection =
+* Service: this WordPress site and its configured sitemap URLs.
+* Purpose: warm page cache and collect same-site URLs for preload jobs.
+* Data sent: server-side GET requests to local site URLs and sitemap URLs.
+* When: only when preload features are enabled or triggered by an administrator.
+
+= Support report / log package =
+* Service: local WordPress only unless an administrator manually sends the exported package to a support provider.
+* Purpose: troubleshooting cache, queue, conflict and diagnostics issues.
+* Data included: redacted settings, plugin status, queue summaries, recent jobs, recent diagnostics and file logs. API keys, tokens, nonces, cookies, sessions, authorization values, email addresses, IP addresses and URL query strings are redacted where detected.
+* When: only when an administrator with the required capability downloads the package.
+
+= Premium modules added =
+UltraCache Pro includes optional premium modules for WebP/AVIF image variants, Google Fonts localization, link preload/speculation, REST API caching, fragment cache helper API, object-cache detection, and lightweight Core Web Vitals monitoring. Enable these modules gradually and test dynamic pages such as checkout, account, forms and dashboards. Use strict cookie mode on membership, portal, custom-session or heavily personalized sites. A cache lifespan of 0 means no automatic TTL expiry for disk page cache; purge events and manual purges still invalidate cache.

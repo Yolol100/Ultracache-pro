@@ -6,8 +6,6 @@ if (!defined('ABSPATH')) {
 
 // phpcs:disable WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Log package exports plugin-owned diagnostic tables with fixed SQL and sanitized output.
 
-// phpcs:disable WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Log package exports plugin-owned diagnostic tables with fixed SQL and sanitized output.
-
 trait UCP_Log_Package_Writer_Trait {
     public static function write_event($level, $component, $event, $message, $context = array(), $request_url = '') {
         UCP_Helpers::ensure_cache_dirs();
@@ -23,7 +21,7 @@ trait UCP_Log_Package_Writer_Trait {
             'request_url' => method_exists('UCP_Helpers', 'redact_log_url') ? UCP_Helpers::redact_log_url($request_url ? $request_url : UCP_Helpers::current_full_url()) : esc_url_raw($request_url ? $request_url : UCP_Helpers::current_full_url()),
             'user_id'     => get_current_user_id() ? '[redacted]' : 0,
             'request'     => array(
-                'method' => isset($_SERVER['REQUEST_METHOD']) ? sanitize_key(wp_unslash($_SERVER['REQUEST_METHOD'])) : '',
+                'method' => UCP_Helpers::request_method(),
                 'ajax'   => function_exists('wp_doing_ajax') && wp_doing_ajax(),
                 'cron'   => function_exists('wp_doing_cron') && wp_doing_cron(),
                 'cli'    => defined('WP_CLI') && WP_CLI,
@@ -39,7 +37,7 @@ trait UCP_Log_Package_Writer_Trait {
     }
 
     public static function log_file($stream) {
-        $stream = sanitize_key($stream);
+        $stream = is_scalar($stream) ? sanitize_key((string) $stream) : 'activity';
         if (!in_array($stream, array('activity', 'errors', 'runtime'), true)) {
             $stream = 'activity';
         }
@@ -47,14 +45,16 @@ trait UCP_Log_Package_Writer_Trait {
     }
 
     protected static function append_jsonl($file, $entry) {
-        UCP_Helpers::append_file($file, wp_json_encode($entry, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . "\n");
-        self::rotate_file_if_needed($file);
+        if (UCP_Helpers::append_json_line($file, $entry, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)) {
+            self::rotate_file_if_needed($file);
+        }
     }
 
     protected static function rotate_file_if_needed($file) {
-        $max_bytes = (int) apply_filters('ucp_log_file_max_bytes', 5 * MB_IN_BYTES);
+        $max_bytes = max(64 * KB_IN_BYTES, min(100 * MB_IN_BYTES, absint(apply_filters('ucp_log_file_max_bytes', 5 * MB_IN_BYTES))));
         if (is_file($file) && filesize($file) > $max_bytes) {
-            $rotated = dirname($file) . '/' . basename($file, '.jsonl') . '-' . gmdate('His') . '.jsonl';
+            $suffix = wp_generate_password(8, false, false);
+            $rotated = dirname($file) . '/' . basename($file, '.jsonl') . '-' . gmdate('His') . '-' . $suffix . '.jsonl';
             UCP_Helpers::move_file($file, $rotated);
         }
     }
@@ -70,7 +70,7 @@ trait UCP_Log_Package_Writer_Trait {
     public static function cleanup_previous_log_files() {
         $days = max(1, absint(UCP_Options::get('log_retention_days', 30)));
         $cutoff = time() - ($days * DAY_IN_SECONDS);
-        foreach (glob(UCP_CACHE_DIR . 'logs/*') as $file) {
+        foreach (UCP_Helpers::safe_glob_files(UCP_CACHE_DIR . 'logs/*', 1000) as $file) {
             if (is_file($file) && preg_match('/\.(jsonl|log)$/', $file) && filemtime($file) < $cutoff) {
                 UCP_Helpers::safe_delete_file($file);
             }
@@ -84,7 +84,7 @@ trait UCP_Log_Package_Redaction_Trait {
     public static function redact($value) {
         if (is_array($value)) {
             $clean = array();
-            foreach ($value as $key => $item) {
+            foreach (array_slice($value, 0, 250, true) as $key => $item) {
                 $key_string = (string) $key;
                 if (preg_match('/(password|passwd|pwd|token|secret|api[_-]?key|license|nonce|cookie|authorization|auth|session|user[_-]?id|order|customer|email|phone|address|payment|cart|checkout)/i', $key_string)) {
                     $clean[$key] = '[redacted]';
@@ -95,12 +95,20 @@ trait UCP_Log_Package_Redaction_Trait {
             return $clean;
         }
         if (is_string($value)) {
+            // Context values and imported support files can contain query-style
+            // credentials even when the surrounding array key is generic. Reuse
+            // the plain-text log scrubber before the package-specific cleanup.
+            if (class_exists('UCP_Helpers') && method_exists('UCP_Helpers', 'redact_log_text')) {
+                $value = UCP_Helpers::redact_log_text($value);
+            }
             if (preg_match('/(bearer\s+[a-z0-9._\-]+|sk_live_[a-z0-9_]+|sk_test_[a-z0-9_]+)/i', $value)) {
                 return '[redacted]';
             }
-            $value = preg_replace('/[A-Z0-9._%+\-]+@[A-Z0-9.\-]+\.[A-Z]{2,}/i', '[redacted-email]', $value);
-            $value = preg_replace('/\b(?:\d{1,3}\.){3}\d{1,3}\b/', '[redacted-ip]', $value);
-            $value = preg_replace_callback("#https?://[^\\s\"'<>]+#i", array(__CLASS__, 'redact_url_callback'), $value);
+            $value = UCP_Helpers::redact_preg_replace('/[A-Z0-9._%+\-]+@[A-Z0-9.\-]+\.[A-Z]{2,}/i', '[redacted-email]', $value);
+            $value = UCP_Helpers::redact_preg_replace('/\b(?:\d{1,3}\.){3}\d{1,3}\b/', '[redacted-ip]', $value);
+            $value = UCP_Helpers::safe_preg_replace_callback("#https?://[^\\s\"'<>]+#i", static function ($matches) {
+                return self::redact_url_callback($matches);
+            }, $value);
             if (defined('ABSPATH') && ABSPATH) {
                 $value = str_replace(wp_normalize_path(ABSPATH), '[ABSPATH]/', wp_normalize_path($value));
             }
@@ -117,35 +125,23 @@ trait UCP_Log_Package_Redaction_Trait {
 
     protected static function redact_url_callback($matches) {
         $url = isset($matches[0]) ? (string) $matches[0] : '';
-        $parts = wp_parse_url($url);
-        if (empty($parts['scheme']) || empty($parts['host'])) {
-            return '[redacted-url]';
-        }
-        $path = isset($parts['path']) ? $parts['path'] : '/';
-        if (self::is_sensitive_log_url_path($path)) {
-            $path = '/[redacted-path]';
-        }
-        return esc_url_raw($parts['scheme'] . '://' . $parts['host'] . $path . (isset($parts['query']) ? '?[redacted-query]' : ''));
-    }
-
-    protected static function is_sensitive_log_url_path($path) {
-        return is_string($path) && (bool) preg_match('#/(order-pay|order-received|checkout|cart|my-account|account|payment|customer|session|token|nonce)(/|$)#i', $path);
+        $redacted = UCP_Helpers::redact_log_url($url);
+        return '' !== $redacted ? $redacted : '[redacted-url]';
     }
 
     protected static function add_redacted_text_file($zip, $name, $file) {
-        $content = UCP_Helpers::read_file($file);
-        if (!is_string($content)) {
+        $lines = UCP_Helpers::read_file_tail_lines($file, 20000, 2 * MB_IN_BYTES);
+        if (empty($lines)) {
             return;
         }
-        $lines = preg_split('/\r\n|\r|\n/', $content);
         $out = '';
-        foreach ((array) $lines as $line) {
+        foreach ($lines as $line) {
             if ('' === $line) {
                 continue;
             }
-            $decoded = json_decode($line, true);
+            $decoded = UCP_Helpers::safe_json_decode($line, true);
             if (is_array($decoded)) {
-                $out .= wp_json_encode(self::redact($decoded), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . "\n";
+                $out .= UCP_Helpers::safe_json_encode_or(self::redact($decoded), '{}', JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . "\n";
             } else {
                 $out .= (string) self::redact($line) . "\n";
             }
@@ -210,13 +206,24 @@ trait UCP_Log_Package_Data_Trait {
     }
 
     protected static function add_json($zip, $name, $data) {
-        $zip->addFromString($name, wp_json_encode(self::redact($data), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
+        $json = UCP_Helpers::safe_json_encode(self::redact($data), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        if (is_string($json)) {
+            $zip->addFromString($name, $json);
+        }
     }
 
     protected static function add_jsonl($zip, $name, $rows) {
         $out = '';
-        foreach ((array) $rows as $row) {
-            $out .= wp_json_encode(self::redact($row), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . "\n";
+        foreach (array_slice((array) $rows, 0, 1000) as $row) {
+            $line = UCP_Helpers::safe_json_encode(self::redact($row), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+            if (!is_string($line)) {
+                continue;
+            }
+            $out .= $line . "\n";
+            if (strlen($out) > 2 * MB_IN_BYTES) {
+                $out .= '{"truncated":true}' . "\n";
+                break;
+            }
         }
         $zip->addFromString($name, $out);
     }

@@ -47,10 +47,6 @@ trait UCP_Optimizer_Media_Image_Trait {
         } elseif (!$is_excluded && UCP_Options::get('enable_lazy_images') && empty($attr['loading'])) {
             $attr['loading'] = 'lazy';
         }
-        if (!$is_lcp_candidate && !$is_leading && !empty($attr['loading']) && 'lazy' === $attr['loading'] && empty($attr['fetchpriority'])) {
-            $attr['fetchpriority'] = 'low';
-        }
-
         if (empty($attr['decoding'])) {
             $attr['decoding'] = 'async';
         }
@@ -71,17 +67,31 @@ trait UCP_Optimizer_Media_Image_Trait {
         if ($this->asset_manager_flag('disable_lazyload')) {
             return $html;
         }
-        if (UCP_Options::get('enable_lazy_images') || UCP_Options::get('enable_add_image_dimensions') || UCP_Options::get('preload_critical_images')) {
+        if (UCP_Options::get('enable_lazy_images') || UCP_Options::get('enable_add_image_dimensions') || UCP_Options::get('preload_critical_images') || UCP_Options::get('enable_expand_missing_srcset') || UCP_Options::get('enable_webp_generation') || UCP_Options::get('enable_avif_generation') || UCP_Options::get('enable_image_cdn') || UCP_Options::get('enable_image_cdn_transforms') || UCP_Options::get('enable_adaptive_image_srcset')) {
             $this->detect_lcp_image_candidate($html);
-            $html = $this->rewrite_start_tag_pass($html, 'img', '/<img\b([^>]*)>/i', array($this, 'optimize_image_loading_attribute'));
+            $html = $this->rewrite_start_tag_pass($html, 'img', '/<img\b((?:"[^"]*"|\'[^\']*\'|[^\'">])*)>/i', function ($matches) {
+                return $this->optimize_image_loading_attribute($matches);
+            });
         }
-        if (UCP_Options::get('enable_lazyload_background_images') || UCP_Options::get('enable_image_optimization') || UCP_Options::get('enable_webp_generation') || UCP_Options::get('enable_avif_generation')) {
+        if (UCP_Options::get('enable_lazyload_background_images') || UCP_Options::get('enable_webp_generation') || UCP_Options::get('enable_avif_generation')) {
             $html = $this->rewrite_background_image_urls_to_modern_variants($html);
         }
         if (UCP_Options::get('enable_lazy_iframes') || UCP_Options::get('enable_lazy_youtube_preview')) {
-            $html = $this->rewrite_element_pass($html, 'iframe', '/<iframe\b([^>]*)>(.*?)<\/iframe>/is', array($this, 'optimize_iframe_loading_attribute'));
+            $html = $this->rewrite_element_pass($html, 'iframe', '/<iframe\b((?:"[^"]*"|\'[^\']*\'|[^\'">])*)>(.*?)<\/iframe>/is', function ($matches) {
+                return $this->optimize_iframe_loading_attribute($matches);
+            });
         }
         return $html;
+    }
+
+
+    private function markup_requires_safe_parser($html) {
+        if (!is_string($html) || '' === $html) {
+            return false;
+        }
+        return false !== strpos($html, '<!--')
+            || false !== strpos($html, '<![CDATA[')
+            || 1 === preg_match('#<(script|style|textarea|title|noscript|pre)\b#i', $html);
     }
 
     /**
@@ -97,7 +107,7 @@ trait UCP_Optimizer_Media_Image_Trait {
      */
     private function rewrite_start_tag_pass($html, $tag, $regex, $callback) {
         $candidate = null;
-        if (UCP_Options::get('enable_html_parser') && class_exists('UCP_HTML_Parser')) {
+        if ((UCP_Options::get('enable_html_parser') || $this->markup_requires_safe_parser($html)) && class_exists('UCP_HTML_Parser')) {
             try {
                 $candidate = UCP_HTML_Parser::replace_tag($html, $tag, $callback);
             } catch (\Throwable $e) {
@@ -105,7 +115,7 @@ trait UCP_Optimizer_Media_Image_Trait {
             }
         }
         if (!is_string($candidate)) {
-            $candidate = preg_replace_callback($regex, $callback, $html);
+            $candidate = UCP_Helpers::safe_preg_replace_callback($regex, $callback, $html);
         }
         return is_string($candidate) ? $candidate : $html;
     }
@@ -123,7 +133,7 @@ trait UCP_Optimizer_Media_Image_Trait {
      */
     private function rewrite_element_pass($html, $tag, $regex, $callback) {
         $candidate = null;
-        if (UCP_Options::get('enable_html_parser') && class_exists('UCP_HTML_Parser') && method_exists('UCP_HTML_Parser', 'replace_element')) {
+        if ((UCP_Options::get('enable_html_parser') || $this->markup_requires_safe_parser($html)) && class_exists('UCP_HTML_Parser') && method_exists('UCP_HTML_Parser', 'replace_element')) {
             try {
                 $candidate = UCP_HTML_Parser::replace_element($html, $tag, $callback);
             } catch (\Throwable $e) {
@@ -131,7 +141,7 @@ trait UCP_Optimizer_Media_Image_Trait {
             }
         }
         if (!is_string($candidate)) {
-            $candidate = preg_replace_callback($regex, $callback, $html);
+            $candidate = UCP_Helpers::safe_preg_replace_callback($regex, $callback, $html);
         }
         return is_string($candidate) ? $candidate : $html;
     }
@@ -147,11 +157,11 @@ trait UCP_Optimizer_Media_Image_Trait {
         $is_excluded = $this->media_matches_lazyload_exclusion($attrs) || $this->image_matches_parent_exclusion($attrs);
 
         $current_src = '';
-        if (preg_match('/\bsrc=["\']([^"\']+)["\']/i', $attrs, $current_src_match)) {
+        if (preg_match('/\bsrc\s*=\s*["\']([^"\']+)["\']/i', $attrs, $current_src_match)) {
             $current_src = html_entity_decode($current_src_match[1], ENT_QUOTES);
         }
         $is_lcp_candidate = $current_src && $this->image_url_matches_lcp_candidate($current_src);
-        if (!$is_lcp_candidate && preg_match('/\bsrcset=["\']([^"\']+)["\']/i', $attrs, $srcset_match)) {
+        if (!$is_lcp_candidate && preg_match('/\bsrcset\s*=\s*["\']([^"\']+)["\']/i', $attrs, $srcset_match)) {
             $is_lcp_candidate = $this->srcset_matches_lcp_candidate($srcset_match[1]);
         }
         if (($is_lcp_candidate || ($is_leading && !$this->ucp_lcp_image_seen && '' === (string) $this->ucp_lcp_candidate_src)) && !$this->ucp_lcp_image_seen) {
@@ -171,13 +181,13 @@ trait UCP_Optimizer_Media_Image_Trait {
         if ($allow_preload && !$is_lcp_candidate && '' !== (string) $this->ucp_lcp_candidate_src) {
             $allow_preload = false;
         }
-        if ($allow_preload && preg_match('/\bsrc=["\']([^"\']+)["\']/i', $attrs, $src_match)) {
+        if ($allow_preload && preg_match('/\bsrc\s*=\s*["\']([^"\']+)["\']/i', $attrs, $src_match)) {
             $this->ucp_preloaded_images++;
             $entry = array('href' => html_entity_decode($src_match[1], ENT_QUOTES));
-            if (preg_match('/\bsrcset=["\']([^"\']+)["\']/i', $attrs, $srcset_match)) {
+            if (preg_match('/\bsrcset\s*=\s*["\']([^"\']+)["\']/i', $attrs, $srcset_match)) {
                 $entry['imagesrcset'] = html_entity_decode($srcset_match[1], ENT_QUOTES);
             }
-            if (preg_match('/\bsizes=["\']([^"\']+)["\']/i', $attrs, $sizes_match)) {
+            if (preg_match('/\bsizes\s*=\s*["\']([^"\']+)["\']/i', $attrs, $sizes_match)) {
                 $entry['imagesizes'] = html_entity_decode($sizes_match[1], ENT_QUOTES);
             }
             $this->ucp_preload_image_entries[] = $entry;
@@ -189,16 +199,17 @@ trait UCP_Optimizer_Media_Image_Trait {
         }
 
         $lazy_attrs = ' loading="lazy"' . $attrs;
-        $lazy_attrs = $this->add_low_priority_if_lazy($lazy_attrs);
         if (UCP_Options::get('enable_lazyload_fade_in') && false === stripos($lazy_attrs, 'ucp-lazy-fade')) {
             $lazy_attrs = $this->append_class_attribute($lazy_attrs, 'ucp-lazy-fade');
         }
-        return $this->maybe_add_missing_image_dimensions('<img' . $lazy_attrs . '>', $attrs);
+        // Pass the transformed attributes through; using the original attrs here silently
+        // discarded loading="lazy" and the fade-in class.
+        return $this->maybe_add_missing_image_dimensions('<img' . $lazy_attrs . '>', $lazy_attrs);
     }
 
     private function add_responsive_image_attrs($attrs) {
         $attrs = (string) $attrs;
-        if (!preg_match('/\bsrc=["\']([^"\']+)["\']/i', $attrs, $src_match)) {
+        if (!preg_match('/\bsrc\s*=\s*["\']([^"\']+)["\']/i', $attrs, $src_match)) {
             return $attrs;
         }
         $src = html_entity_decode($src_match[1], ENT_QUOTES);
@@ -206,18 +217,19 @@ trait UCP_Optimizer_Media_Image_Trait {
             return $this->apply_device_fetchpriority_rules($attrs);
         }
         $attachment_id = function_exists('attachment_url_to_postid') ? absint(attachment_url_to_postid($src)) : 0;
-        if ($attachment_id > 0) {
+        $expand_srcset = (bool) UCP_Options::get('enable_expand_missing_srcset');
+        if ($expand_srcset && $attachment_id > 0) {
             if (!preg_match('/\bsrcset\s*=/i', $attrs) && function_exists('wp_get_attachment_image_srcset')) {
                 $srcset = wp_get_attachment_image_srcset($attachment_id, 'full');
                 if ($srcset) {
                     $attrs .= ' srcset="' . esc_attr($srcset) . '"';
                 }
             }
-            if (!preg_match('/\bsizes\s*=/i', $attrs) && preg_match('/\bloading=["\']lazy["\']/i', $attrs)) {
+            if (!preg_match('/\bsizes\s*=/i', $attrs) && preg_match('/\bloading\s*=\s*["\']lazy["\']/i', $attrs)) {
                 $attrs .= ' sizes="auto, (max-width: 768px) 100vw, 768px"';
             }
         }
-        if (!preg_match('/\bsrcset\s*=/i', $attrs) && class_exists('UCP_Image_Queue')) {
+        if ($expand_srcset && !preg_match('/\bsrcset\s*=/i', $attrs) && class_exists('UCP_Image_Queue')) {
             $adaptive_srcset = UCP_Image_Queue::adaptive_srcset($src, '<img' . $attrs . '>');
             if ('' !== $adaptive_srcset) {
                 $attrs .= ' srcset="' . esc_attr($adaptive_srcset) . '"';
@@ -270,7 +282,7 @@ trait UCP_Optimizer_Media_Image_Trait {
             }
         }
         if (empty($dims['width']) && UCP_Helpers::is_local_url($url)) {
-            $path = UCP_Helpers::local_path_from_url($url);
+            $path = UCP_Helpers::local_path_from_url($url, array('jpg', 'jpeg', 'png', 'gif', 'webp', 'avif', 'bmp'));
             if ($path && is_file($path) && function_exists('getimagesize')) {
                 $size = @getimagesize($path);
                 if (is_array($size) && !empty($size[0]) && !empty($size[1])) {
@@ -306,7 +318,7 @@ trait UCP_Optimizer_Media_Image_Trait {
             if (!in_array($rule_device, array('all', $device), true) || !in_array($rule_context, array('all', $context), true)) {
                 continue;
             }
-            if ('high' === $priority && ($this->ucp_fetchpriority_high_assigned || preg_match('/\bloading=["\']lazy["\']/i', $attrs))) {
+            if ('high' === $priority && ($this->ucp_fetchpriority_high_assigned || preg_match('/\bloading\s*=\s*["\']lazy["\']/i', $attrs))) {
                 continue;
             }
             if (!$this->image_attrs_match_simple_selector($attrs, $selector)) {
@@ -314,9 +326,11 @@ trait UCP_Optimizer_Media_Image_Trait {
             }
             if ('high' === $priority) {
                 $this->ucp_fetchpriority_high_assigned = true;
+            } elseif ('low' === $priority && preg_match('/\bloading\s*=\s*["\']lazy["\']/i', $attrs)) {
+                $attrs = UCP_Helpers::safe_preg_replace('/\sloading\s*=\s*["\']lazy["\']/i', '', $attrs, 1);
             }
             if (preg_match('/\bfetchpriority\s*=/i', $attrs)) {
-                return preg_replace('/\sfetchpriority=["\'][^"\']*["\']/i', ' fetchpriority="' . esc_attr($priority) . '"', $attrs, 1);
+                return UCP_Helpers::safe_preg_replace('/\sfetchpriority\s*=\s*["\'][^"\']*["\']/i', ' fetchpriority="' . esc_attr($priority) . '"', $attrs, 1);
             }
             return $attrs . ' fetchpriority="' . esc_attr($priority) . '"';
         }
@@ -352,11 +366,11 @@ trait UCP_Optimizer_Media_Image_Trait {
         }
         if (0 === strpos($selector, '.')) {
             $class = preg_quote(substr($selector, 1), '/');
-            return (bool) preg_match('/\bclass=["\'][^"\']*\b' . $class . '\b/i', $attrs);
+            return (bool) preg_match('/\bclass\s*=\s*["\'][^"\']*\b' . $class . '\b/i', $attrs);
         }
         if (0 === strpos($selector, '#')) {
             $id = preg_quote(substr($selector, 1), '/');
-            return (bool) preg_match('/\bid=["\']' . $id . '["\']/i', $attrs);
+            return (bool) preg_match('/\bid\s*=\s*["\']' . $id . '["\']/i', $attrs);
         }
         return false !== stripos($attrs, $selector);
     }
@@ -364,13 +378,13 @@ trait UCP_Optimizer_Media_Image_Trait {
     private function force_lcp_image_attrs($attrs) {
         $attrs = (string) $attrs;
         if (preg_match("/\\bfetchpriority\\s*=/i", $attrs)) {
-            $attrs = preg_replace("/\\sfetchpriority=[\"\047][^\"\047]*[\"\047]/i", " fetchpriority=\"high\"", $attrs, 1);
+            $attrs = UCP_Helpers::safe_preg_replace("/\\sfetchpriority\\s*=\\s*[\"\047][^\"\047]*[\"\047]/i", " fetchpriority=\"high\"", $attrs, 1);
         } else {
             $attrs .= " fetchpriority=\"high\"";
         }
         $this->ucp_fetchpriority_high_assigned = true;
         if (preg_match("/\\bloading\\s*=/i", $attrs)) {
-            $attrs = preg_replace("/\\sloading=[\"\047][^\"\047]*[\"\047]/i", " loading=\"eager\"", $attrs, 1);
+            $attrs = UCP_Helpers::safe_preg_replace("/\\sloading\\s*=\\s*[\"\047][^\"\047]*[\"\047]/i", " loading=\"eager\"", $attrs, 1);
         } else {
             $attrs .= " loading=\"eager\"";
         }
@@ -378,13 +392,6 @@ trait UCP_Optimizer_Media_Image_Trait {
             $attrs .= " decoding=\"async\"";
         }
         return $attrs;
-    }
-
-    private function add_low_priority_if_lazy($attrs) {
-        if (!preg_match("/\\bloading=[\"\047]lazy[\"\047]/i", (string) $attrs) || preg_match("/\\bfetchpriority\\s*=/i", (string) $attrs)) {
-            return $attrs;
-        }
-        return (string) $attrs . " fetchpriority=\"low\"";
     }
 
     private function image_url_matches_lcp_candidate($url) {
@@ -403,10 +410,10 @@ trait UCP_Optimizer_Media_Image_Trait {
         if ($modern && $modern === $url) {
             return true;
         }
-        $a = preg_replace('/\-(?:\d{2,5})x(?:\d{2,5})(?=\.(?:jpe?g|png|webp|avif)$)/i', '', (string) wp_parse_url($url, PHP_URL_PATH));
-        $b = preg_replace('/\-(?:\d{2,5})x(?:\d{2,5})(?=\.(?:jpe?g|png|webp|avif)$)/i', '', (string) wp_parse_url($candidate, PHP_URL_PATH));
-        $a = preg_replace('/\.(jpe?g|png|webp|avif)(\?.*)?$/i', '', $a);
-        $b = preg_replace('/\.(jpe?g|png|webp|avif)(\?.*)?$/i', '', $b);
+        $a = UCP_Helpers::safe_preg_replace('/\-(?:\d{2,5})x(?:\d{2,5})(?=\.(?:jpe?g|png|webp|avif)$)/i', '', (string) wp_parse_url($url, PHP_URL_PATH));
+        $b = UCP_Helpers::safe_preg_replace('/\-(?:\d{2,5})x(?:\d{2,5})(?=\.(?:jpe?g|png|webp|avif)$)/i', '', (string) wp_parse_url($candidate, PHP_URL_PATH));
+        $a = UCP_Helpers::safe_preg_replace('/\.(jpe?g|png|webp|avif)(\?.*)?$/i', '', $a);
+        $b = UCP_Helpers::safe_preg_replace('/\.(jpe?g|png|webp|avif)(\?.*)?$/i', '', $b);
         return '' !== $a && $a === $b;
     }
 
@@ -469,7 +476,7 @@ trait UCP_Optimizer_Media_Image_Trait {
         if (!UCP_Options::get('enable_add_image_dimensions')) {
             return '<img' . $attrs . '>';
         }
-        if (!preg_match('/\bsrc=["\']([^"\']+)["\']/i', $attrs, $src_match)) {
+        if (!preg_match('/\bsrc\s*=\s*["\']([^"\']+)["\']/i', $attrs, $src_match)) {
             return '<img' . $attrs . '>';
         }
         $has_width = preg_match('/\bwidth\s*=/i', $attrs);

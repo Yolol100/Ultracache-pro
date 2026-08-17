@@ -8,32 +8,59 @@ if (!defined('ABSPATH')) {
 // phpcs:disable WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Custom plugin-owned queue table queries use controlled table constants and prepared/sanitized values.
 
 trait UCP_Jobs_Payload_Trait {
-    protected static function normalize_job_payload($payload) {
-        if (!is_array($payload)) {
+    protected static function normalize_job_payload($payload, $depth = 0, &$remaining = null) {
+        if (null === $remaining) {
+            $remaining = 100;
+        }
+        if (!is_array($payload) || $depth > 4 || $remaining < 0) {
             return array();
         }
+        $normalized = array();
         foreach ($payload as $key => $value) {
-            if (is_array($value)) {
-                $payload[$key] = self::normalize_job_payload($value);
+            --$remaining;
+            if ($remaining < 0) {
+                break;
+            }
+            $clean_key = is_int($key) ? $key : sanitize_key((string) $key);
+            if (!is_int($key) && ('' === $clean_key || strlen($clean_key) > 64)) {
                 continue;
             }
-            if (class_exists('UCP_Helpers') && in_array((string) $key, array('url', 'href', 'endpoint'), true)) {
-                $payload[$key] = esc_url_raw(UCP_Helpers::normalize_url_syntax($value));
+            if (is_array($value)) {
+                $normalized[$clean_key] = self::normalize_job_payload($value, $depth + 1, $remaining);
+                continue;
             }
+            if (!is_scalar($value) && null !== $value) {
+                continue;
+            }
+            if (is_string($value)) {
+                if (strlen($value) > 8192 || false !== strpos($value, "\0")) {
+                    continue;
+                }
+                if (class_exists('UCP_Helpers') && in_array((string) $clean_key, array('url', 'href', 'endpoint'), true)) {
+                    $value = esc_url_raw(UCP_Helpers::normalize_url_syntax($value));
+                }
+            }
+            $normalized[$clean_key] = $value;
         }
-        $is_numeric_array = function_exists('wp_is_numeric_array') ? wp_is_numeric_array($payload) : array_keys($payload) === range(0, count($payload) - 1);
+        $is_numeric_array = function_exists('wp_is_numeric_array') ? wp_is_numeric_array($normalized) : array_keys($normalized) === range(0, count($normalized) - 1);
         if ($is_numeric_array) {
-            return array_values($payload);
+            return array_values($normalized);
         }
-        ksort($payload);
-        return $payload;
+        ksort($normalized);
+        return $normalized;
     }
 
     protected static function encode_job_payload($payload) {
-        return wp_json_encode(self::normalize_job_payload(is_array($payload) ? $payload : array()));
+        return UCP_Helpers::safe_json_encode_or(self::normalize_job_payload(is_array($payload) ? $payload : array()), '{}');
     }
 
     public static function build_job_signature($type, $payload = array(), $queue = 'default') {
+        if (!is_scalar($type) && null !== $type) {
+            $type = '';
+        }
+        if (!is_scalar($queue) && null !== $queue) {
+            $queue = 'default';
+        }
         return hash('sha256', sanitize_key($queue) . '|' . sanitize_key($type) . '|' . self::encode_job_payload($payload));
     }
 }
@@ -68,24 +95,27 @@ trait UCP_Jobs_Admin_Actions_Trait {
         $this->run_queue();
     }
     public function handle_manual_run() {
-        if (!current_user_can('manage_options')) {
-            wp_die(esc_html__('Geen toegang.', 'ultracache-pro'), '', array('response' => 403));
-        }
-        check_admin_referer('ucp_run_jobs');
-        $this->run_queue_until_idle(true, 5);
+        UCP_Helpers::require_post_admin_action('ucp_run_jobs');
+        $this->run_queue_until_idle(false, 5);
         wp_safe_redirect(admin_url('admin.php?page=ultracache-pro&tab=tools&jobs=1'));
         exit;
     }
 
     public function handle_seed_jobs() {
-        if (!current_user_can('manage_options')) {
-            wp_die(esc_html__('Geen toegang.', 'ultracache-pro'), '', array('response' => 403));
+        UCP_Helpers::require_post_admin_action('ucp_seed_jobs');
+        $seeded = 0;
+        $jobs = array(
+            array('generate_css', array('url' => home_url('/')), 5, 'css'),
+            array('cloud_sync', array(), 10, 'cloud'),
+            array('diagnostics_snapshot', array(), 20, 'health'),
+        );
+        foreach ($jobs as $job) {
+            $queued = self::enqueue_unique($job[0], $job[1], $job[2], $job[3]);
+            if ($queued || self::unique_job_exists($job[0], $job[1], $job[3])) {
+                $seeded++;
+            }
         }
-        check_admin_referer('ucp_seed_jobs');
-        self::enqueue_unique('generate_css', array('url' => home_url('/')), 5, 'css');
-        self::enqueue_unique('cloud_sync', array(), 10, 'cloud');
-        self::enqueue_unique('diagnostics_snapshot', array(), 20, 'health');
-        wp_safe_redirect(admin_url('admin.php?page=ultracache-pro&tab=tools&seeded=1'));
+        wp_safe_redirect(admin_url('admin.php?page=ultracache-pro&tab=tools&seeded=' . $seeded));
         exit;
     }
 }
@@ -106,6 +136,41 @@ class UCP_Jobs {
      * @var bool
      */
     protected $force_current_run = false;
+
+    /**
+     * Optional job type filter for an explicit short-lived runner call.
+     *
+     * @var string
+     */
+    protected $job_type_current_run = '';
+
+    /**
+     * Whether an explicit runner call may bypass the automatic load pause.
+     *
+     * @var bool
+     */
+    protected $bypass_load_guard_current_run = false;
+
+    /**
+     * Active global runner lease for the current queue pass.
+     *
+     * @var array<string,mixed>
+     */
+    protected $active_runner_lease = array();
+
+    /**
+     * Active claim lease for the job currently being processed.
+     *
+     * @var array<string,mixed>
+     */
+    protected $active_job_lease = array();
+
+    /**
+     * Whether the global runner lease was replaced while a claimed job was active.
+     *
+     * @var bool
+     */
+    protected $runner_lease_lost = false;
 
     /**
      * @param bool $skip_hook_registration Pass true to construct an instance without

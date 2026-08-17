@@ -14,6 +14,7 @@ class UCP_PageSpeed_Browser_Scan {
     const OPTION_KEY = 'ucp_pagespeed_browser_scan_latest';
     const OPTION_MAP_KEY = 'ucp_pagespeed_browser_scan_map';
     const MAX_STORED_SCANS = 40;
+    const PRIVACY_VERSION = 1;
 
     /**
      * Persist a sanitized browser scan payload.
@@ -23,9 +24,9 @@ class UCP_PageSpeed_Browser_Scan {
      */
     public static function save($payload) {
         $payload = is_array($payload) ? $payload : array();
-        $url = isset($payload['url']) ? UCP_Helpers::strict_local_url((string) $payload['url'], home_url('/')) : home_url('/');
+        $url = UCP_PageSpeed_Browser_Scan_Sanitizer::page_url(isset($payload['url']) ? $payload['url'] : home_url('/'));
         if ('' === $url) {
-            $url = home_url('/');
+            $url = UCP_PageSpeed_Browser_Scan_Sanitizer::page_url(home_url('/'));
         }
 
         $scan = array(
@@ -49,15 +50,25 @@ class UCP_PageSpeed_Browser_Scan {
             'source'     => 'admin_browser',
         );
 
-        update_option(self::OPTION_KEY, $scan, false);
-        self::store_scan_map($scan);
+        $previous_latest = get_option(self::OPTION_KEY, null);
+        if (!self::persist_option_value(self::OPTION_KEY, $scan)) {
+            return array();
+        }
+        if (!self::store_scan_map($scan)) {
+            if (null === $previous_latest) {
+                delete_option(self::OPTION_KEY);
+            } else {
+                self::persist_option_value(self::OPTION_KEY, $previous_latest);
+            }
+            return array();
+        }
 
         if (class_exists('UCP_CWV') && !empty($scan['lcp']['url'])) {
             UCP_CWV::store_lcp_hint(array(
                 'url' => $scan['url'],
                 'device' => !empty($scan['viewport']['width']) && absint($scan['viewport']['width']) <= 767 ? 'mobile' : 'desktop',
                 'lcp_url' => $scan['lcp']['url'],
-                'lcp_element_json' => wp_json_encode($scan['lcp']),
+                'lcp_element_json' => UCP_Helpers::safe_json_encode_or($scan['lcp'], '{}'),
                 'lcp_imagesrcset' => isset($scan['lcp']['srcset']) ? $scan['lcp']['srcset'] : '',
                 'lcp_type' => !empty($scan['lcp']['type']) ? sanitize_key((string) $scan['lcp']['type']) : (!empty($scan['lcp']['background']) ? 'background-image' : 'image'),
                 'source' => 'browser_scan',
@@ -139,6 +150,51 @@ class UCP_PageSpeed_Browser_Scan {
     }
 
     /**
+     * Remove sensitive query data from browser scans saved by older versions.
+     *
+     * @return void
+     */
+    public static function maybe_migrate_sensitive_urls() {
+        if ((int) get_option('ucp_pagespeed_scan_privacy_version', 0) >= self::PRIVACY_VERSION) {
+            return;
+        }
+
+        $latest = UCP_PageSpeed_Browser_Scan_Sanitizer::stored_scan(get_option(self::OPTION_KEY, array()));
+        if (!empty($latest['url']) && !self::persist_option_value(self::OPTION_KEY, $latest)) {
+            return;
+        }
+
+        $legacy_map = get_option(self::OPTION_MAP_KEY, array());
+        $normalized = array();
+        foreach (is_array($legacy_map) ? $legacy_map : array() as $scan) {
+            $scan = UCP_PageSpeed_Browser_Scan_Sanitizer::stored_scan($scan);
+            if (empty($scan['url'])) {
+                continue;
+            }
+            $device = !empty($scan['viewport']['type']) ? sanitize_key((string) $scan['viewport']['type']) : 'all';
+            if (!in_array($device, array('mobile', 'desktop', 'all'), true)) {
+                $device = !empty($scan['viewport']['width']) && absint($scan['viewport']['width']) <= 767 ? 'mobile' : 'desktop';
+            }
+            $key = self::url_match_key((string) $scan['url']) . '|' . $device;
+            if ('|' === $key) {
+                continue;
+            }
+            if (!isset($normalized[$key]) || absint($scan['timestamp'] ?? 0) >= absint($normalized[$key]['timestamp'] ?? 0)) {
+                $normalized[$key] = $scan;
+            }
+        }
+        uasort($normalized, static function($a, $b) {
+            $at = is_array($a) && isset($a['timestamp']) ? absint($a['timestamp']) : 0;
+            $bt = is_array($b) && isset($b['timestamp']) ? absint($b['timestamp']) : 0;
+            return $bt <=> $at;
+        });
+        if (!self::persist_option_value(self::OPTION_MAP_KEY, array_slice($normalized, 0, self::MAX_STORED_SCANS, true))) {
+            return;
+        }
+        self::persist_option_value('ucp_pagespeed_scan_privacy_version', self::PRIVACY_VERSION);
+    }
+
+    /**
      * Return the best stored browser-rendered scan for the current URL/device.
      * Falls back to the legacy latest scan only when it matches the request.
      *
@@ -175,15 +231,15 @@ class UCP_PageSpeed_Browser_Scan {
      * Store a bounded per-URL/device scan map so LCP, CSS and JS hints are no longer global.
      *
      * @param array<string,mixed> $scan Sanitized scan payload.
-     * @return void
+     * @return bool
      */
     protected static function store_scan_map($scan) {
         if (empty($scan['url'])) {
-            return;
+            return false;
         }
         $key = self::url_match_key((string) $scan['url']);
         if ('' === $key) {
-            return;
+            return false;
         }
         $device = !empty($scan['viewport']['type']) ? sanitize_key((string) $scan['viewport']['type']) : 'all';
         if (!in_array($device, array('mobile', 'desktop', 'all'), true)) {
@@ -198,7 +254,18 @@ class UCP_PageSpeed_Browser_Scan {
             return $bt <=> $at;
         });
         $map = array_slice($map, 0, self::MAX_STORED_SCANS, true);
-        update_option(self::OPTION_MAP_KEY, $map, false);
+        return self::persist_option_value(self::OPTION_MAP_KEY, $map);
+    }
+
+    /**
+     * Persist an option while distinguishing unchanged data from a failed write.
+     *
+     * @param string $key   Option key.
+     * @param mixed  $value Option value.
+     * @return bool
+     */
+    protected static function persist_option_value($key, $value) {
+        return UCP_Options::persist_option_value($key, $value);
     }
 
     /**
@@ -340,13 +407,21 @@ class UCP_PageSpeed_Browser_Scan {
 
     protected static function url_match_key($url) {
         $parts = wp_parse_url((string) $url);
-        if (empty($parts['host'])) {
+        if (!is_array($parts) || empty($parts['host'])) {
+            return '';
+        }
+        $scheme = !empty($parts['scheme']) ? strtolower((string) $parts['scheme']) : 'https';
+        if (!in_array($scheme, array('http', 'https'), true)) {
             return '';
         }
         $host = strtolower((string) $parts['host']);
+        if (false !== strpos($host, ':') && '[' !== substr($host, 0, 1)) {
+            $host = '[' . $host . ']';
+        }
+        $port = isset($parts['port']) ? absint($parts['port']) : ('https' === $scheme ? 443 : 80);
         $path = isset($parts['path']) && '' !== $parts['path'] ? (string) $parts['path'] : '/';
         $path = '/' . ltrim($path, '/');
-        return $host . untrailingslashit($path);
+        return $scheme . '://' . $host . ':' . $port . untrailingslashit($path);
     }
 
     protected static function current_device() {
@@ -370,26 +445,33 @@ class UCP_PageSpeed_Browser_Scan {
     }
 
     protected static function current_url_without_query() {
-        $host = isset($_SERVER['HTTP_HOST']) ? sanitize_text_field(wp_unslash($_SERVER['HTTP_HOST'])) : wp_parse_url(home_url('/'), PHP_URL_HOST);
+        // Build from WordPress' configured origin, not request-controlled Host or
+        // forwarded-proto headers. Only the path is taken from the current request.
         $request_uri = isset($_SERVER['REQUEST_URI']) ? sanitize_text_field(wp_unslash($_SERVER['REQUEST_URI'])) : '/';
-        $scheme = is_ssl() ? 'https' : 'http';
-        if (!empty($_SERVER['HTTP_X_FORWARDED_PROTO'])) {
-            $forwarded_proto = strtolower(sanitize_key(wp_unslash($_SERVER['HTTP_X_FORWARDED_PROTO'])));
-            if (in_array($forwarded_proto, array('http', 'https'), true)) {
-                $scheme = $forwarded_proto;
-            }
+        $request_parts = wp_parse_url((string) $request_uri);
+        $path = is_array($request_parts) && isset($request_parts['path']) ? (string) $request_parts['path'] : '/';
+        if ('' === $path) {
+            $path = '/';
         }
-        return self::url_without_query($scheme . '://' . $host . $request_uri);
+        return self::url_without_query(home_url('/' . ltrim($path, '/')));
     }
 
     protected static function url_without_query($url) {
         $parts = wp_parse_url((string) $url);
-        if (empty($parts['host'])) {
+        if (!is_array($parts) || empty($parts['host'])) {
             return '';
         }
-        $scheme = empty($parts['scheme']) ? 'https' : $parts['scheme'];
-        $path = isset($parts['path']) ? $parts['path'] : '/';
-        return esc_url_raw($scheme . '://' . $parts['host'] . $path);
+        $scheme = empty($parts['scheme']) ? 'https' : strtolower((string) $parts['scheme']);
+        if (!in_array($scheme, array('http', 'https'), true)) {
+            return '';
+        }
+        $host = (string) $parts['host'];
+        if (false !== strpos($host, ':') && '[' !== substr($host, 0, 1)) {
+            $host = '[' . $host . ']';
+        }
+        $port = isset($parts['port']) ? ':' . absint($parts['port']) : '';
+        $path = isset($parts['path']) && '' !== $parts['path'] ? (string) $parts['path'] : '/';
+        return esc_url_raw($scheme . '://' . $host . $port . '/' . ltrim($path, '/'));
     }
 
     protected static function sanitize_viewport($viewport) {

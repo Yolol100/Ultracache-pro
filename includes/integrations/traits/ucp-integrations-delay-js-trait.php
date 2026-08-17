@@ -7,6 +7,9 @@ if (!defined('ABSPATH')) {
 trait UCP_Integrations_Delay_JS_Trait {
 
     public static function auto_js_exclusions($detected = array()) {
+        if (!is_array($detected)) {
+            $detected = array();
+        }
         if (empty($detected)) {
             $detected = self::detected();
         }
@@ -17,6 +20,9 @@ trait UCP_Integrations_Delay_JS_Trait {
     }
 
     public static function auto_delay_js_exclusions($detected = array()) {
+        if (!is_array($detected)) {
+            $detected = array();
+        }
         if (empty($detected)) {
             $detected = self::detected();
         }
@@ -161,6 +167,9 @@ trait UCP_Integrations_Delay_JS_Trait {
     }
 
     public static function auto_delay_js_breakdown($detected = array()) {
+        if (!is_array($detected)) {
+            $detected = array();
+        }
         if (empty($detected)) {
             $detected = self::detected();
         }
@@ -196,6 +205,9 @@ trait UCP_Integrations_Delay_JS_Trait {
     }
 
     public static function auto_delay_js_summary($detected = array()) {
+        if (!is_array($detected)) {
+            $detected = array();
+        }
         $groups = self::auto_delay_js_breakdown($detected);
         $total = 0;
         foreach ($groups as $group) {
@@ -205,6 +217,9 @@ trait UCP_Integrations_Delay_JS_Trait {
     }
 
     public static function delay_js_debug_data($detected = array()) {
+        if (!is_array($detected)) {
+            $detected = array();
+        }
         if (empty($detected)) {
             $detected = self::detected();
         }

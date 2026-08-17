@@ -7,14 +7,15 @@ if (!defined('ABSPATH')) {
 trait UCP_Cache_Tags_Storage_Trait {
     protected static function normalize_tag($tag) {
         $tag = strtolower(trim((string) $tag));
-        $tag = preg_replace('/[^a-z0-9:_-]/', '-', $tag);
+        $tag = UCP_Helpers::sanitize_preg_replace('/[^a-z0-9:_-]/', '-', $tag);
         return trim((string) $tag, '-');
     }
 
     protected static function normalize_tags($tags) {
         $tags = is_array($tags) ? $tags : array();
+        $tags = array_slice($tags, 0, 250);
         $tags = array_filter(array_map(array(__CLASS__, 'normalize_tag'), $tags));
-        return array_values(array_unique($tags));
+        return array_slice(array_values(array_unique($tags)), 0, 100);
     }
 
     protected static function meta_dir() {
@@ -42,16 +43,15 @@ trait UCP_Cache_Tags_Storage_Trait {
     }
 
     protected static function read_json($path) {
-        $raw = UCP_Helpers::read_file($path);
+        $raw = UCP_Helpers::read_file($path, MB_IN_BYTES);
         if (!$raw) {
             return array();
         }
-        $decoded = json_decode($raw, true);
-        return is_array($decoded) ? $decoded : array();
+        return UCP_Helpers::safe_json_decode_array($raw);
     }
 
     protected static function write_json($path, $data) {
-        return UCP_Helpers::write_file($path, wp_json_encode($data));
+        return UCP_Helpers::write_json_file_atomic($path, $data);
     }
 
     protected static function get_tag_urls($tag) {
@@ -74,7 +74,7 @@ trait UCP_Cache_Tags_Storage_Trait {
                     $urls[] = $url;
                 }
             }
-            $urls = array_values(array_unique($urls));
+            $urls = array_slice(array_values(array_unique($urls)), 0, 5000);
         }
         if (self::object_cache_enabled()) {
             wp_cache_set(self::cache_key('tag', $tag), $urls, self::CACHE_GROUP, HOUR_IN_SECONDS);
@@ -82,10 +82,83 @@ trait UCP_Cache_Tags_Storage_Trait {
         return $urls;
     }
 
+    /**
+     * Update one tag index under an exclusive per-tag lock.
+     *
+     * Tag registration is a read-modify-write operation. Without a lock, two
+     * simultaneous cache writes can both read the same old index and the last
+     * writer silently drops the other URL, causing targeted purges to miss it.
+     *
+     * @param string $tag
+     * @param string $url
+     * @param bool   $add
+     * @return bool
+     */
+    protected static function mutate_tag_url($tag, $url, $add) {
+        $tag = self::normalize_tag($tag);
+        $url = UCP_Helpers::strict_local_url($url);
+        if (!$tag || !$url || !wp_http_validate_url($url)) {
+            return false;
+        }
+
+        $index_dir = self::index_dir();
+        if (!is_dir($index_dir) && !wp_mkdir_p($index_dir)) {
+            return false;
+        }
+
+        $lock_path = $index_dir . md5((string) $tag) . '.lock';
+        $handle = UCP_Helpers::open_managed_cache_file($lock_path, 'c');
+        if (!$handle || !@flock($handle, LOCK_EX)) {
+            if (is_resource($handle)) {
+                @fclose($handle);
+            }
+            return false;
+        }
+
+        $updated = false;
+        try {
+            // Read from disk while holding the lock; an object-cache value may
+            // have been populated before another process committed its update.
+            $data = self::read_json(self::index_file($tag));
+            $urls = !empty($data['urls']) && is_array($data['urls']) ? $data['urls'] : array();
+            $clean_urls = array();
+            foreach ($urls as $existing_url) {
+                $existing_url = UCP_Helpers::strict_local_url($existing_url);
+                if ($existing_url && wp_http_validate_url($existing_url)) {
+                    $clean_urls[] = $existing_url;
+                }
+            }
+            $clean_urls = array_values(array_unique($clean_urls));
+
+            if ($add) {
+                if (!in_array($url, $clean_urls, true)) {
+                    $clean_urls[] = $url;
+                }
+            } else {
+                $clean_urls = array_values(array_diff($clean_urls, array($url)));
+            }
+
+            $updated = self::set_tag_urls($tag, $clean_urls);
+        } finally {
+            @flock($handle, LOCK_UN);
+            @fclose($handle);
+        }
+
+        return $updated;
+    }
+
+    protected static function add_url_to_tag($tag, $url) {
+        return self::mutate_tag_url($tag, $url, true);
+    }
+
+    protected static function remove_url_from_tag($tag, $url) {
+        return self::mutate_tag_url($tag, $url, false);
+    }
+
     protected static function set_tag_urls($tag, $urls) {
         $tag = self::normalize_tag($tag);
         if (!$tag) {
-            return;
+            return false;
         }
         $clean_urls = array();
         foreach ((array) $urls as $url) {
@@ -95,21 +168,27 @@ trait UCP_Cache_Tags_Storage_Trait {
             }
         }
         $urls = array_values(array_unique($clean_urls));
+        $index_file = self::index_file($tag);
         if (empty($urls)) {
-            UCP_Helpers::safe_delete_file(self::index_file($tag));
+            if (file_exists($index_file) && !UCP_Helpers::safe_delete_file($index_file)) {
+                return false;
+            }
             if (self::object_cache_enabled()) {
                 wp_cache_delete(self::cache_key('tag', $tag), self::CACHE_GROUP);
             }
-            return;
+            return true;
         }
-        self::write_json(self::index_file($tag), array(
+        if (!self::write_json($index_file, array(
             'tag' => $tag,
             'urls' => $urls,
             'updated_at' => current_time('mysql', true),
-        ));
+        ))) {
+            return false;
+        }
         if (self::object_cache_enabled()) {
             wp_cache_set(self::cache_key('tag', $tag), $urls, self::CACHE_GROUP, HOUR_IN_SECONDS);
         }
+        return true;
     }
 
     protected static function get_url_tags($url) {

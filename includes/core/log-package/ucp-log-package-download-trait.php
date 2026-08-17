@@ -32,7 +32,7 @@ trait UCP_Log_Package_Download_Trait {
         check_admin_referer(self::NONCE_ACTION);
 
         if (class_exists('UCP_Logger')) {
-            UCP_Logger::log('notice', 'diagnostics', 'log_package_download_requested', 'Logpakket downloaden gestart.', array('user_id' => get_current_user_id()));
+            UCP_Logger::log('notice', 'diagnostics', 'log_package_download_requested', __('Downloaden van het logpakket is gestart.', 'ultracache-pro'), array('user_id' => get_current_user_id()));
             UCP_Logger::flush_buffer();
         }
 
@@ -40,7 +40,7 @@ trait UCP_Log_Package_Download_Trait {
         if (!$tmp) {
             wp_die(esc_html__('Kon geen tijdelijk logpakket maken.', 'ultracache-pro'), '', array('response' => 500));
         }
-        $zip_path = preg_replace('/\.tmp$/', '', $tmp);
+        $zip_path = UCP_Helpers::safe_preg_replace('/\.tmp$/', '', $tmp);
         if ($zip_path === $tmp) {
             $zip_path .= '.zip';
         }
@@ -50,6 +50,9 @@ trait UCP_Log_Package_Download_Trait {
 
         $ok = self::build_zip($zip_path);
         if (!$ok || !is_readable($zip_path)) {
+            if (file_exists($zip_path)) {
+                wp_delete_file($zip_path);
+            }
             wp_die(esc_html__('Kon het logpakket niet bouwen. Controleer of ZipArchive beschikbaar is.', 'ultracache-pro'), '', array('response' => 500));
         }
 
@@ -61,8 +64,8 @@ trait UCP_Log_Package_Download_Trait {
         header('X-Download-Options: noopen');
         header('Content-Disposition: attachment; filename="ultracache-pro-logpakket-' . gmdate('Ymd-His') . '.zip"');
         header('Content-Length: ' . filesize($zip_path));
-        // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- streaming a generated zip file; escaping would corrupt the binary response.
-        echo UCP_Helpers::read_file($zip_path);
+        // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped, WordPress.WP.AlternativeFunctions.file_system_operations_readfile -- streams a validated generated ZIP without loading it fully into PHP memory.
+        readfile($zip_path);
         wp_delete_file($zip_path);
         exit;
     }
@@ -95,17 +98,23 @@ trait UCP_Log_Package_Download_Trait {
         self::add_jsonl($zip, 'recent-db-logs.jsonl', self::recent_logs(500));
         self::add_jsonl($zip, 'recent-diagnostics.jsonl', self::recent_diagnostics(300));
 
-        foreach ((array) glob(UCP_CACHE_DIR . 'logs/ucp-*.jsonl') as $file) {
+        foreach (UCP_Helpers::safe_glob_files(UCP_CACHE_DIR . 'logs/ucp-*.jsonl', 500) as $file) {
             if (is_readable($file)) {
                 self::add_redacted_text_file($zip, 'file-logs/' . basename($file), $file);
             }
         }
-        $previous_log = UCP_CACHE_DIR . 'logs/events.log';
-        if (is_readable($previous_log)) {
-            self::add_redacted_text_file($zip, 'file-logs/events.log', $previous_log);
+        foreach (UCP_Helpers::safe_glob_files(UCP_CACHE_DIR . 'logs/events*.log', 100) as $previous_log) {
+            if (is_readable($previous_log)) {
+                self::add_redacted_text_file($zip, 'file-logs/' . basename($previous_log), $previous_log);
+            }
         }
 
-        $zip->close();
+        if (!$zip->close() || !is_readable($zip_path) || 0 === (int) filesize($zip_path)) {
+            if (file_exists($zip_path)) {
+                wp_delete_file($zip_path);
+            }
+            return false;
+        }
         return true;
     }
 }

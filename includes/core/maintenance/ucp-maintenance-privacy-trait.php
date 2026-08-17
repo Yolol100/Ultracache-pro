@@ -19,6 +19,9 @@ trait UCP_Maintenance_Privacy_Trait {
 
 
     public static function register_privacy_exporter($exporters) {
+        if (!is_array($exporters)) {
+            $exporters = array();
+        }
         $exporters['ultracache-pro'] = array(
             'exporter_friendly_name' => __('UltraCache Pro gegevens', 'ultracache-pro'),
             'callback'               => array(__CLASS__, 'privacy_exporter'),
@@ -27,6 +30,9 @@ trait UCP_Maintenance_Privacy_Trait {
     }
 
     public static function register_privacy_eraser($erasers) {
+        if (!is_array($erasers)) {
+            $erasers = array();
+        }
         $erasers['ultracache-pro'] = array(
             'eraser_friendly_name' => __('UltraCache Pro gegevens', 'ultracache-pro'),
             'callback'             => array(__CLASS__, 'privacy_eraser'),
@@ -49,6 +55,9 @@ trait UCP_Maintenance_Privacy_Trait {
     }
 
     public static function privacy_exporter($email_address, $page = 1) {
+        if (!is_scalar($page) && null !== $page) {
+            $page = 1;
+        }
         global $wpdb;
 
         $email_address = sanitize_email($email_address);
@@ -119,6 +128,9 @@ trait UCP_Maintenance_Privacy_Trait {
     }
 
     public static function privacy_eraser($email_address, $page = 1) {
+        if (!is_scalar($page) && null !== $page) {
+            $page = 1;
+        }
         global $wpdb;
 
         $email_address = sanitize_email($email_address);

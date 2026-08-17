@@ -13,6 +13,8 @@ trait UCP_Optimizer_Media_Trait {
 
 
 class UCP_Optimizer {
+    private const FRONT_BUFFER_PRIORITY = 2;
+
     use UCP_Optimizer_Core_Bloat_Trait;
     use UCP_Optimizer_HTML_Trait;
     use UCP_Optimizer_Media_Trait;
@@ -32,9 +34,9 @@ class UCP_Optimizer {
     private $ucp_fetchpriority_high_assigned = false;
 
     public function __construct() {
-        add_action('init', array($this, 'maybe_disable_emojis'));
-        add_action('init', array($this, 'maybe_disable_embeds'));
-        add_action('init', array($this, 'maybe_disable_core_bloat'));
+        $this->maybe_disable_emojis();
+        $this->maybe_disable_embeds();
+        $this->maybe_disable_core_bloat();
         add_action('wp_enqueue_scripts', array($this, 'maybe_disable_extra_scripts'), 101);
         add_action('admin_enqueue_scripts', array($this, 'maybe_disable_extra_scripts'), 101);
         add_filter('xmlrpc_enabled', array($this, 'filter_xmlrpc_enabled'));
@@ -46,11 +48,13 @@ class UCP_Optimizer {
         add_action('wp_enqueue_scripts', array($this, 'maybe_disable_heartbeat_script'), 100);
         add_action('admin_enqueue_scripts', array($this, 'maybe_disable_heartbeat_script'), 100);
         add_action('wp_default_scripts', array($this, 'maybe_disable_jquery_migrate'));
-        add_action('template_redirect', array($this, 'start_front_buffer'), 1);
+        add_action('template_redirect', array($this, 'start_front_buffer'), self::FRONT_BUFFER_PRIORITY);
         add_filter('the_content', array($this, 'lazyload_content'), 20);
         add_filter('wp_get_attachment_image_attributes', array($this, 'optimize_wp_attachment_image_attributes'), 20, 3);
         add_filter('post_thumbnail_html', array($this, 'lazyload_html_fragment'), 20);
         add_filter('widget_text', array($this, 'lazyload_content'), 20);
+        add_action('wp_print_scripts', array($this, 'apply_native_script_strategies'), PHP_INT_MAX);
+        add_action('wp_print_footer_scripts', array($this, 'apply_native_script_strategies'), 9);
         add_filter('script_loader_tag', array($this, 'native_script_strategy'), 9, 3);
         add_filter('script_loader_tag', array($this, 'defer_scripts_fallback'), 10, 3);
         add_filter('heartbeat_settings', array($this, 'heartbeat_settings'));
@@ -64,7 +68,7 @@ class UCP_Optimizer {
         add_filter('wp_speculation_rules_configuration', array($this, 'core_speculation_configuration'));
         add_filter('wp_speculation_rules_href_exclude_paths', array($this, 'core_speculation_exclude_paths'));
         add_action('wp_head', array($this, 'output_speculation_rules'), 99);
-        add_action('wp_head', array($this, 'output_lazy_render_css'), 30);
+        add_action('wp_enqueue_scripts', array($this, 'output_lazy_render_css'), 30);
     }
 
 }

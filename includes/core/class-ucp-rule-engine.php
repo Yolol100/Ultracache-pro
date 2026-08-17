@@ -7,15 +7,15 @@ if (!defined('ABSPATH')) {
 class UCP_Rule_Engine {
     public static function default_rules() {
         return array(
-            array('id' => 'rule_checkout_cache', 'scope' => 'path_contains', 'value' => '/checkout', 'action' => 'disable_cache', 'enabled' => 1),
-            array('id' => 'rule_checkout_delay', 'scope' => 'path_contains', 'value' => '/checkout', 'action' => 'disable_delay_js', 'enabled' => 1),
-            array('id' => 'rule_checkout_css', 'scope' => 'path_contains', 'value' => '/checkout', 'action' => 'disable_css_optimization', 'enabled' => 1),
-            array('id' => 'rule_checkout_js', 'scope' => 'path_contains', 'value' => '/checkout', 'action' => 'disable_js_optimization', 'enabled' => 1),
-            array('id' => 'rule_cart_cache', 'scope' => 'path_contains', 'value' => '/cart', 'action' => 'disable_cache', 'enabled' => 1),
-            array('id' => 'rule_cart_speculation', 'scope' => 'path_contains', 'value' => '/cart', 'action' => 'disable_speculation', 'enabled' => 1),
-            array('id' => 'rule_cart_delay', 'scope' => 'path_contains', 'value' => '/cart', 'action' => 'disable_delay_js', 'enabled' => 1),
-            array('id' => 'rule_cart_css', 'scope' => 'path_contains', 'value' => '/cart', 'action' => 'disable_css_optimization', 'enabled' => 1),
-            array('id' => 'rule_cart_js', 'scope' => 'path_contains', 'value' => '/cart', 'action' => 'disable_js_optimization', 'enabled' => 1),
+            array('id' => 'rule_checkout_cache', 'scope' => 'path_segment', 'value' => 'checkout', 'action' => 'disable_cache', 'enabled' => 1),
+            array('id' => 'rule_checkout_delay', 'scope' => 'path_segment', 'value' => 'checkout', 'action' => 'disable_delay_js', 'enabled' => 1),
+            array('id' => 'rule_checkout_css', 'scope' => 'path_segment', 'value' => 'checkout', 'action' => 'disable_css_optimization', 'enabled' => 1),
+            array('id' => 'rule_checkout_js', 'scope' => 'path_segment', 'value' => 'checkout', 'action' => 'disable_js_optimization', 'enabled' => 1),
+            array('id' => 'rule_cart_cache', 'scope' => 'path_segment', 'value' => 'cart', 'action' => 'disable_cache', 'enabled' => 1),
+            array('id' => 'rule_cart_speculation', 'scope' => 'path_segment', 'value' => 'cart', 'action' => 'disable_speculation', 'enabled' => 1),
+            array('id' => 'rule_cart_delay', 'scope' => 'path_segment', 'value' => 'cart', 'action' => 'disable_delay_js', 'enabled' => 1),
+            array('id' => 'rule_cart_css', 'scope' => 'path_segment', 'value' => 'cart', 'action' => 'disable_css_optimization', 'enabled' => 1),
+            array('id' => 'rule_cart_js', 'scope' => 'path_segment', 'value' => 'cart', 'action' => 'disable_js_optimization', 'enabled' => 1),
             array('id' => 'rule_account_cache', 'scope' => 'request_type', 'value' => 'account', 'action' => 'disable_cache', 'enabled' => 1),
             array('id' => 'rule_account_delay', 'scope' => 'request_type', 'value' => 'account', 'action' => 'disable_delay_js', 'enabled' => 1),
             array('id' => 'rule_account_js', 'scope' => 'request_type', 'value' => 'account', 'action' => 'disable_js_optimization', 'enabled' => 1),
@@ -24,7 +24,21 @@ class UCP_Rule_Engine {
 
     public static function get_rules() {
         $rules = UCP_Options::get('asset_rules', array());
-        return is_array($rules) && !empty($rules) ? $rules : self::default_rules();
+        return is_array($rules) ? $rules : self::default_rules();
+    }
+
+    protected static function sanitize_enabled_value($value) {
+        if (is_bool($value)) {
+            return $value ? 1 : 0;
+        }
+        if (0 === $value || 0.0 === $value || 1 === $value || 1.0 === $value) {
+            return (int) $value;
+        }
+        if (!is_string($value)) {
+            return 0;
+        }
+        $value = strtolower(trim($value));
+        return in_array($value, array('1', 'true', 'yes', 'on'), true) ? 1 : 0;
     }
 
     public static function sanitize_rules($rules) {
@@ -33,18 +47,18 @@ class UCP_Rule_Engine {
             return self::default_rules();
         }
         foreach ($rules as $rule) {
-            if (empty($rule['scope']) || empty($rule['action'])) {
+            if (!is_array($rule) || empty($rule['scope']) || !is_scalar($rule['scope']) || empty($rule['action']) || !is_scalar($rule['action'])) {
                 continue;
             }
             $clean[] = array(
-                'id'      => !empty($rule['id']) ? sanitize_key($rule['id']) : sanitize_key('rule_' . wp_generate_password(8, false)),
-                'scope'   => sanitize_key($rule['scope']),
-                'value'   => sanitize_text_field(isset($rule['value']) ? $rule['value'] : ''),
-                'action'  => sanitize_key($rule['action']),
-                'enabled' => empty($rule['enabled']) ? 0 : 1,
+                'id'      => !empty($rule['id']) && is_scalar($rule['id']) ? sanitize_key((string) $rule['id']) : sanitize_key('rule_' . wp_generate_password(8, false)),
+                'scope'   => sanitize_key((string) $rule['scope']),
+                'value'   => isset($rule['value']) && is_scalar($rule['value']) ? sanitize_text_field((string) $rule['value']) : '',
+                'action'  => sanitize_key((string) $rule['action']),
+                'enabled' => isset($rule['enabled']) ? self::sanitize_enabled_value($rule['enabled']) : 0,
             );
         }
-        return !empty($clean) ? $clean : self::default_rules();
+        return $clean;
     }
 
 
@@ -56,6 +70,9 @@ class UCP_Rule_Engine {
     }
 
     public static function evaluate_request($url = '', $request_type = '') {
+        if (!is_scalar($url) && null !== $url) {
+            $url = '';
+        }
         if (!self::rules_enabled_for_current_user()) {
             return array();
         }
@@ -77,6 +94,13 @@ class UCP_Rule_Engine {
                     break;
                 case 'path_contains':
                     $matched = false !== strpos($path, $rule['value']);
+                    break;
+                case 'path_segment':
+                    $needle = strtolower(trim((string) $rule['value'], '/'));
+                    $segments = array_values(array_filter(explode('/', strtolower(trim((string) $path, '/'))), static function($segment) {
+                        return '' !== $segment;
+                    }));
+                    $matched = '' !== $needle && in_array($needle, $segments, true);
                     break;
                 case 'request_type':
                     $matched = $request_type === $rule['value'];
@@ -118,6 +142,9 @@ class UCP_Rule_Engine {
     }
 
     public static function has_action($action, $url = '', $request_type = '') {
+        if (!is_scalar($url) && null !== $url) {
+            $url = '';
+        }
         if (class_exists('UCP_Page_Overrides') && UCP_Page_Overrides::has_action($action)) {
             return true;
         }

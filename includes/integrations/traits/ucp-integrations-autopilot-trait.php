@@ -6,6 +6,9 @@ if (!defined('ABSPATH')) {
 
 trait UCP_Integrations_Autopilot_Trait {
     public static function autopilot_rules($detected = array()) {
+        if (!is_array($detected)) {
+            $detected = array();
+        }
         if (empty($detected)) {
             $detected = self::detected();
         }
@@ -53,14 +56,16 @@ trait UCP_Integrations_Autopilot_Trait {
             $rules['html_exclude_urls'] = array_merge($rules['html_exclude_urls'], array('/wp-json/', 'preview=true'));
         }
 
-        if (!empty($detected['cloudflare'])) {
-            $rules['dns_prefetch_domains'][] = 'https://cdnjs.cloudflare.com';
-        }
-
         return $rules;
     }
 
     public static function apply_autopilot_v2_settings($settings, $detected = array(), $conflicts = array()) {
+        if (!is_array($settings)) {
+            $settings = array();
+        }
+        if (!is_array($detected)) {
+            $detected = array();
+        }
         if (empty($detected)) {
             $detected = self::detected();
         }
@@ -81,7 +86,7 @@ trait UCP_Integrations_Autopilot_Trait {
             $settings['enable_used_css_delivery'] = 0;
             $settings['enable_lazy_images'] = 1;
             $settings['enable_lazy_iframes'] = 1;
-            $settings['enable_local_google_fonts'] = 1;
+            $settings['enable_local_google_fonts'] = 0;
             $settings['browser_cache_headers'] = 1;
         }
 

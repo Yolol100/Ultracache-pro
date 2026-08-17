@@ -32,6 +32,9 @@ final class UCP_CWV_LCP_Sanitizer {
      * @return bool
      */
     public static function is_local_header_url($url) {
+        if (!is_scalar($url)) {
+            return false;
+        }
         $url = trim((string) $url);
         return '' === $url || self::is_same_origin_url($url);
     }
@@ -41,6 +44,9 @@ final class UCP_CWV_LCP_Sanitizer {
      * @return string
      */
     public static function sanitize_local_url_param($url) {
+        if (!is_scalar($url)) {
+            return '';
+        }
         $url = trim((string) $url);
         if ('' === $url || strlen($url) > 2048) {
             return '';
@@ -59,34 +65,40 @@ final class UCP_CWV_LCP_Sanitizer {
      * @return string JSON encoded safe metadata.
      */
     public static function sanitize_element_json($json) {
-        $raw = is_array($json) ? wp_json_encode($json) : (string) $json;
+        if (is_array($json)) {
+            $raw = UCP_Helpers::safe_json_encode($json);
+        } elseif (is_scalar($json)) {
+            $raw = (string) $json;
+        } else {
+            return '';
+        }
 
         if (!is_string($raw) || '' === $raw || strlen($raw) > 2048) {
             return '';
         }
 
-        $decoded = json_decode($raw, true);
+        $decoded = UCP_Helpers::safe_json_decode($raw, true);
         if (!is_array($decoded)) {
             return '';
         }
 
         $allowed = array();
         foreach (array('tag', 'id', 'class', 'selector', 'sizes', 'type') as $key) {
-            if (isset($decoded[$key])) {
+            if (isset($decoded[$key]) && is_scalar($decoded[$key])) {
                 $allowed[$key] = substr(sanitize_text_field((string) $decoded[$key]), 0, 240);
             }
         }
-        if (isset($decoded['url'])) {
-            $allowed['url'] = self::sanitize_resource_url((string) $decoded['url']);
+        if (isset($decoded['url']) && is_scalar($decoded['url'])) {
+            $allowed['url'] = self::sanitize_resource_url($decoded['url']);
         }
-        if (isset($decoded['srcset'])) {
-            $allowed['srcset'] = self::sanitize_srcset((string) $decoded['srcset']);
+        if (isset($decoded['srcset']) && is_scalar($decoded['srcset'])) {
+            $allowed['srcset'] = self::sanitize_srcset($decoded['srcset']);
         }
-        if (!empty($decoded['background'])) {
+        if (isset($decoded['background']) && is_scalar($decoded['background']) && !empty($decoded['background'])) {
             $allowed['background'] = 1;
         }
 
-        return $allowed ? wp_json_encode($allowed) : '';
+        return $allowed ? UCP_Helpers::safe_json_encode($allowed) : '';
     }
 
     /**
@@ -97,14 +109,17 @@ final class UCP_CWV_LCP_Sanitizer {
         $element = is_array($element) ? $element : array();
         $allowed = array();
         foreach (array('tag', 'id', 'class', 'selector', 'sizes', 'type') as $key) {
-            if (isset($element[$key])) {
+            if (isset($element[$key]) && is_scalar($element[$key])) {
                 $allowed[$key] = substr(sanitize_text_field((string) $element[$key]), 0, 240);
             }
         }
-        if (isset($element['url'])) {
-            $allowed['url'] = self::sanitize_resource_url((string) $element['url']);
+        if (isset($element['url']) && is_scalar($element['url'])) {
+            $allowed['url'] = self::sanitize_resource_url($element['url']);
         }
-        if (!empty($element['background'])) {
+        if (isset($element['srcset']) && is_scalar($element['srcset'])) {
+            $allowed['srcset'] = self::sanitize_srcset($element['srcset']);
+        }
+        if (isset($element['background']) && is_scalar($element['background']) && !empty($element['background'])) {
             $allowed['background'] = 1;
         }
 
@@ -116,13 +131,20 @@ final class UCP_CWV_LCP_Sanitizer {
      * @return string
      */
     public static function sanitize_resource_url($url) {
+        if (!is_scalar($url)) {
+            return '';
+        }
         $url = trim((string) $url);
-        if ('' === $url) {
+        if ('' === $url || strlen($url) > 2048) {
             return '';
         }
 
         if (class_exists('UCP_Helpers') && method_exists('UCP_Helpers', 'normalize_url_syntax')) {
             $url = UCP_Helpers::normalize_url_syntax($url);
+        }
+        if (0 === strpos($url, '//')) {
+            $scheme = wp_parse_url(home_url('/'), PHP_URL_SCHEME);
+            $url = ($scheme ? $scheme : 'https') . ':' . $url;
         }
 
         $absolute = wp_parse_url($url, PHP_URL_HOST) ? $url : home_url('/' . ltrim($url, '/'));
@@ -135,7 +157,63 @@ final class UCP_CWV_LCP_Sanitizer {
             return '';
         }
 
-        return $absolute;
+        $parts = wp_parse_url($absolute);
+        if (!is_array($parts) || empty($parts['scheme']) || empty($parts['host']) || isset($parts['user']) || isset($parts['pass'])) {
+            return '';
+        }
+        $scheme = strtolower((string) $parts['scheme']);
+        if (!in_array($scheme, array('http', 'https'), true)) {
+            return '';
+        }
+
+        $query = '';
+        if (!empty($parts['query'])) {
+            $query = self::sanitize_resource_query((string) $parts['query']);
+            if ('' === $query) {
+                return '';
+            }
+        }
+
+        $host = strtolower((string) $parts['host']);
+        $port = isset($parts['port']) ? ':' . absint($parts['port']) : '';
+        $path = isset($parts['path']) && '' !== (string) $parts['path'] ? (string) $parts['path'] : '/';
+        $path = '/' . ltrim($path, '/');
+
+        return esc_url_raw($scheme . '://' . $host . $port . $path . ('' !== $query ? '?' . $query : ''));
+    }
+
+    /**
+     * Keep only non-sensitive image/CDN transformation parameters.
+     *
+     * Any unknown query key causes the resource hint to be discarded rather than
+     * storing or preloading a potentially signed or visitor-specific URL.
+     *
+     * @param string $query Raw query string.
+     * @return string
+     */
+    private static function sanitize_resource_query($query) {
+        $allowed = (array) apply_filters('ucp_lcp_profile_allowed_resource_query_args', array(
+            'ver', 'v', 'version', 'w', 'width', 'h', 'height', 'q', 'quality',
+            'fit', 'crop', 'format', 'fm', 'auto', 'dpr', 'resize',
+        ));
+        $allowed = array_values(array_unique(array_filter(array_map('sanitize_key', $allowed), 'strlen')));
+
+        $args = array();
+        wp_parse_str((string) $query, $args);
+        if (empty($args)) {
+            return '';
+        }
+
+        $safe = array();
+        foreach ($args as $key => $value) {
+            $key = sanitize_key((string) $key);
+            if ('' === $key || !in_array($key, $allowed, true) || !is_scalar($value)) {
+                return '';
+            }
+            $safe[$key] = substr(sanitize_text_field((string) $value), 0, 160);
+        }
+
+        return http_build_query($safe, '', '&', PHP_QUERY_RFC3986);
     }
 
     /**
@@ -143,15 +221,33 @@ final class UCP_CWV_LCP_Sanitizer {
      * @return string
      */
     public static function sanitize_page_url($url) {
-        $url = trim((string) $url);
-        if ('' === $url) {
+        if (!is_scalar($url)) {
             return '';
         }
+        $url = trim((string) $url);
+        if ('' === $url || strlen($url) > 2048) {
+            return '';
+        }
+
         $absolute = wp_parse_url($url, PHP_URL_HOST) ? esc_url_raw($url) : esc_url_raw(home_url('/' . ltrim($url, '/')));
         if ('' === $absolute || !self::is_same_origin_url($absolute)) {
             return '';
         }
-        return $absolute;
+
+        $parts = wp_parse_url($absolute);
+        if (!is_array($parts) || empty($parts['scheme']) || empty($parts['host'])) {
+            return '';
+        }
+
+        $scheme = strtolower((string) $parts['scheme']);
+        $host = strtolower((string) $parts['host']);
+        $port = isset($parts['port']) ? ':' . absint($parts['port']) : '';
+        $path = isset($parts['path']) && '' !== (string) $parts['path'] ? (string) $parts['path'] : '/';
+        $path = '/' . ltrim($path, '/');
+
+        // Page profiles are keyed by origin + path only. Query strings can contain
+        // personal data, tokens or campaign values and must never reach storage.
+        return esc_url_raw($scheme . '://' . $host . $port . $path);
     }
 
     /**
@@ -159,7 +255,10 @@ final class UCP_CWV_LCP_Sanitizer {
      * @return bool
      */
     public static function is_same_origin_url($url) {
-        $url_parts = wp_parse_url($url);
+        if (!is_scalar($url)) {
+            return false;
+        }
+        $url_parts = wp_parse_url((string) $url);
         $home_parts = wp_parse_url(home_url('/'));
 
         if (!is_array($url_parts) || !is_array($home_parts)) {
@@ -187,6 +286,9 @@ final class UCP_CWV_LCP_Sanitizer {
      * @return bool
      */
     public static function is_resource_origin_allowed($url) {
+        if (!is_scalar($url)) {
+            return false;
+        }
         if (self::is_same_origin_url($url)) {
             return true;
         }
@@ -200,9 +302,12 @@ final class UCP_CWV_LCP_Sanitizer {
         }
         $allowed = apply_filters('ucp_lcp_profile_allowed_resource_hosts', $allowed);
         foreach ((array) $allowed as $allowed_host) {
+            if (!is_scalar($allowed_host)) {
+                continue;
+            }
             $allowed_host = strtolower(trim((string) $allowed_host));
-            $allowed_host = preg_replace('#^https?://#', '', $allowed_host);
-            $allowed_host = preg_replace('#/.*$#', '', $allowed_host);
+            $allowed_host = UCP_Helpers::sanitize_preg_replace('#^https?://#', '', $allowed_host);
+            $allowed_host = UCP_Helpers::sanitize_preg_replace('#/.*$#', '', $allowed_host);
             if ('' !== $allowed_host && $host === $allowed_host) {
                 return true;
             }
@@ -215,12 +320,16 @@ final class UCP_CWV_LCP_Sanitizer {
      * @return string
      */
     public static function sanitize_srcset($srcset) {
-        $srcset = substr(sanitize_textarea_field((string) $srcset), 0, 1200);
-        if ('' === trim($srcset)) {
+        if (!is_scalar($srcset)) {
+            return '';
+        }
+        $srcset = sanitize_textarea_field((string) $srcset);
+        if ('' === trim($srcset) || strlen($srcset) > 16384) {
             return '';
         }
 
         $safe = array();
+        $length = 0;
         foreach (explode(',', $srcset) as $candidate) {
             $candidate = trim($candidate);
             if ('' === $candidate) {
@@ -231,11 +340,34 @@ final class UCP_CWV_LCP_Sanitizer {
             if ('' === $url) {
                 continue;
             }
-            $descriptor = isset($parts[1]) ? preg_replace('/[^0-9\.wx\s-]/i', '', (string) $parts[1]) : '';
-            $safe[] = trim($url . ('' !== trim((string) $descriptor) ? ' ' . trim((string) $descriptor) : ''));
+            $descriptor = isset($parts[1]) ? trim((string) $parts[1]) : '';
+            if (!self::srcset_descriptor_is_valid($descriptor)) {
+                continue;
+            }
+            $item = $url . ('' !== $descriptor ? ' ' . $descriptor : '');
+            $addition = (empty($safe) ? 0 : 2) + strlen($item);
+            if ($length + $addition > 1200) {
+                break;
+            }
+            $safe[] = $item;
+            $length += $addition;
         }
 
-        return substr(implode(', ', $safe), 0, 1200);
+        return implode(', ', $safe);
+    }
+
+    private static function srcset_descriptor_is_valid($descriptor) {
+        if ('' === $descriptor) {
+            return true;
+        }
+        if (1 === preg_match('/^[0-9]+w$/', $descriptor)) {
+            return '' !== trim(substr($descriptor, 0, -1), '0');
+        }
+        if (1 !== preg_match('/^(?:[0-9]+(?:\.[0-9]+)?|\.[0-9]+)(?:[eE][+-]?[0-9]+)?x$/', $descriptor)) {
+            return false;
+        }
+        $density = (float) substr($descriptor, 0, -1);
+        return is_finite($density) && $density > 0;
     }
 
     /**
@@ -243,6 +375,9 @@ final class UCP_CWV_LCP_Sanitizer {
      * @return string
      */
     public static function normalize_type($type) {
+        if (!is_scalar($type)) {
+            return '';
+        }
         $type = sanitize_key((string) $type);
         if ('background' === $type) {
             $type = 'background-image';
@@ -258,8 +393,11 @@ final class UCP_CWV_LCP_Sanitizer {
      * @return string
      */
     public static function sanitize_selector($selector) {
+        if (!is_scalar($selector)) {
+            return '';
+        }
         $selector = substr(sanitize_text_field((string) $selector), 0, 240);
-        $selector = preg_replace('/\s+/', ' ', (string) $selector);
+        $selector = UCP_Helpers::sanitize_preg_replace('/\s+/', ' ', (string) $selector);
         return trim((string) $selector);
     }
 

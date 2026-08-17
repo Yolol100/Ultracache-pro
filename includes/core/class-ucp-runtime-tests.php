@@ -16,25 +16,31 @@ class UCP_Runtime_Tests {
     }
 
     public static function run_all() {
-        $results = array(
-            'generated_at' => current_time('mysql', true),
-            'wordpress' => self::test_wordpress_runtime(),
-            'woocommerce' => self::test_woocommerce_runtime(),
-            'elementor' => self::test_elementor_runtime(),
-            'cloudflare' => self::test_cloudflare_runtime(),
-            'html' => self::test_html_runtime(),
-            'frontend_optimization' => self::test_frontend_optimization_runtime(),
-            'security_verification' => self::test_security_verification_runtime(),
-            'stability_compatibility' => self::test_stability_compatibility_runtime(),
-            'woocommerce_checkout_safety' => self::test_woocommerce_checkout_safety_runtime(),
-            'core_web_vitals' => self::test_core_web_vitals_runtime(),
-            'privacy_i18n' => self::test_privacy_i18n_runtime(),
-            'direct_cache' => self::test_direct_cache_runtime(),
-            'headless_renderer' => self::test_headless_renderer_runtime(),
-            'release' => self::test_release_runtime(),
+        $tests = array(
+            'wordpress'                   => 'test_wordpress_runtime',
+            'woocommerce'                 => 'test_woocommerce_runtime',
+            'elementor'                   => 'test_elementor_runtime',
+            'cloudflare'                  => 'test_cloudflare_runtime',
+            'html'                        => 'test_html_runtime',
+            'frontend_optimization'       => 'test_frontend_optimization_runtime',
+            'security_verification'       => 'test_security_verification_runtime',
+            'stability_compatibility'     => 'test_stability_compatibility_runtime',
+            'woocommerce_checkout_safety' => 'test_woocommerce_checkout_safety_runtime',
+            'core_web_vitals'             => 'test_core_web_vitals_runtime',
+            'privacy_i18n'                => 'test_privacy_i18n_runtime',
+            'direct_cache'                => 'test_direct_cache_runtime',
+            'cache_queue_invariants'      => 'test_cache_queue_invariants_runtime',
+            'headless_renderer'           => 'test_headless_renderer_runtime',
+            'release'                     => 'test_release_runtime',
         );
+
+        $results = array('generated_at' => current_time('mysql', true));
+        foreach ($tests as $key => $method) {
+            $results[$key] = self::run_test($method);
+        }
+
         update_option(self::OPTION_KEY, $results, false);
-        UCP_Logger::log('info', 'runtime', 'runtime_tests_ran', 'Runtime compatibility tests executed.', array(
+        UCP_Logger::log('info', 'runtime', 'runtime_tests_ran', __('Runtimecompatibiliteitstests zijn uitgevoerd.', 'ultracache-pro'), array(
             'woocommerce' => $results['woocommerce']['status'],
             'elementor' => $results['elementor']['status'],
             'cloudflare' => $results['cloudflare']['status'],
@@ -46,17 +52,57 @@ class UCP_Runtime_Tests {
             'core_web_vitals' => $results['core_web_vitals']['status'],
             'privacy_i18n' => $results['privacy_i18n']['status'],
             'direct_cache' => $results['direct_cache']['status'],
+            'cache_queue_invariants' => $results['cache_queue_invariants']['status'],
             'headless_renderer' => $results['headless_renderer']['status'],
             'release' => $results['release']['status'],
         ));
         return $results;
     }
 
-    public static function handle_manual_run() {
-        if (!current_user_can('manage_options')) {
-            wp_die(esc_html__('Geen toegang.', 'ultracache-pro'), '', array('response' => 403));
+    /**
+     * Run one diagnostic without allowing a broken optional check to abort the suite.
+     *
+     * @param string $method Static test method name.
+     * @return array{status:string,issues:array,details:array}
+     */
+    protected static function run_test($method) {
+        if (!is_callable(array(__CLASS__, $method))) {
+            return self::format_result(
+                'warning',
+                array(__('Een runtime-controle ontbreekt in deze pluginbuild.', 'ultracache-pro')),
+                array('test' => sanitize_key((string) $method))
+            );
         }
-        check_admin_referer('ucp_run_runtime_tests');
+
+        try {
+            $result = call_user_func(array(__CLASS__, $method));
+            if (!is_array($result) || empty($result['status'])) {
+                return self::format_result(
+                    'warning',
+                    array(__('Een runtime-controle gaf geen geldig resultaat terug.', 'ultracache-pro')),
+                    array('test' => sanitize_key((string) $method))
+                );
+            }
+            $result['issues'] = isset($result['issues']) && is_array($result['issues']) ? array_values($result['issues']) : array();
+            $result['details'] = isset($result['details']) && is_array($result['details']) ? $result['details'] : array();
+            return $result;
+        } catch (Throwable $exception) {
+            if (class_exists('UCP_Logger')) {
+                UCP_Logger::log('error', 'runtime', 'runtime_test_failed', __('Runtimecontrole kon niet worden afgerond.', 'ultracache-pro'), array(
+                    'test'  => sanitize_key((string) $method),
+                    'error' => sanitize_text_field($exception->getMessage()),
+                ));
+            }
+            return self::format_result(
+                'warning',
+                array(__('Een runtime-controle kon niet worden afgerond; bekijk de UltraCache-log voor details.', 'ultracache-pro')),
+                array('test' => sanitize_key((string) $method))
+            );
+        }
+    }
+
+    public static function handle_manual_run() {
+        UCP_Helpers::require_post_admin_action('ucp_run_runtime_tests');
         self::run_all();
         wp_safe_redirect(UCP_Admin_Router::url('tools', array('runtime' => 1)));
         exit;
@@ -99,9 +145,16 @@ class UCP_Runtime_Tests {
                 $issues[] = sprintf(__('Deze WooCommerce pagina ontbreekt: %s.', 'ultracache-pro'), $key);
             }
         }
-        $page_cache_risk = (bool) UCP_Options::get('enable_cache') || (bool) UCP_Options::get('enable_rest_cache');
-        if ($page_cache_risk && !UCP_Options::get('enable_woocommerce_rules') && false === strpos((string) UCP_Options::get('exclude_urls', ''), 'cart')) {
-            $issues[] = __("Page/REST cache staat aan, maar de winkelwagen staat niet in uitgesloten URL's en WooCommerce-regels staan uit.", 'ultracache-pro');
+        $page_cache_risk = (bool) UCP_Options::get('enable_cache');
+        $cart_is_excluded = false;
+        foreach (UCP_Helpers::normalize_multiline(UCP_Options::get('exclude_urls', '')) as $pattern) {
+            if (class_exists('UCP_Quality_Suite') && UCP_Quality_Suite::matches_configured_url_pattern(home_url('/cart/'), $pattern)) {
+                $cart_is_excluded = true;
+                break;
+            }
+        }
+        if ($page_cache_risk && !UCP_Options::get('enable_woocommerce_rules') && !$cart_is_excluded) {
+            $issues[] = __("Paginacache staat aan, maar de winkelwagen staat niet in uitgesloten URL's en WooCommerce-regels staan uit.", 'ultracache-pro');
         }
         if (UCP_Options::get('enable_delay_js') && false === strpos((string) UCP_Options::get('delay_js_exclusions', ''), 'wc-cart-fragments')) {
             $issues[] = __('Delay JS staat aan, maar wc-cart-fragments staat niet in de uitsluitingen.', 'ultracache-pro');
@@ -217,6 +270,254 @@ class UCP_Runtime_Tests {
         ));
     }
 
+    protected static function test_security_verification_runtime() {
+        $checks = array(
+            'rest_permissions'       => is_callable(array('UCP_REST_Permissions', 'admin_permission_check')),
+            'rest_nonce_guard'       => is_callable(array('UCP_Helpers', 'rest_admin_permission_check')),
+            'local_url_guard'        => is_callable(array('UCP_Helpers', 'strict_local_url')),
+            'public_https_guard'     => is_callable(array('UCP_Helpers', 'validate_public_https_url')),
+            'sensitive_key_registry' => is_callable(array('UCP_Options', 'is_sensitive_key')),
+            'secret_masking'         => is_callable(array('UCP_Options', 'mask_secret_value')),
+            'import_validation'      => is_callable(array('UCP_Options', 'validate_import_payload')),
+        );
+        $issues = array();
+        foreach ($checks as $check => $available) {
+            if (!$available) {
+                /* translators: %s: internal security control key. */
+                $issues[] = sprintf(__('Beveiligingscontrole ontbreekt in deze build: %s.', 'ultracache-pro'), sanitize_key($check));
+            }
+        }
+
+        $debug_until = absint(get_option('ucp_debug_mode_until', 0));
+        if ($debug_until > time()) {
+            $issues[] = __('De tijdelijke debugmodus is nog actief; schakel deze na diagnose weer uit.', 'ultracache-pro');
+        }
+
+        return self::format_result(empty($issues) ? 'pass' : 'warning', $issues, array(
+            'checks'             => $checks,
+            'temporary_debug'    => $debug_until > time(),
+            'debug_expires_gmt'  => $debug_until > time() ? gmdate('c', $debug_until) : '',
+        ));
+    }
+
+    protected static function test_stability_compatibility_runtime() {
+        global $wp_version;
+
+        $issues = array();
+        $conflicts = class_exists('UCP_Compat') ? UCP_Compat::detected_conflicts() : array();
+        $conflicts = is_array($conflicts) ? $conflicts : array();
+        $high_conflicts = array();
+        foreach ($conflicts as $conflict) {
+            if (is_array($conflict) && 'high' === (isset($conflict['severity']) ? $conflict['severity'] : '')) {
+                $high_conflicts[] = isset($conflict['label']) ? sanitize_text_field((string) $conflict['label']) : __('Onbekende cachelaag', 'ultracache-pro');
+            }
+        }
+        if (!empty($high_conflicts)) {
+            /* translators: %s: comma-separated conflicting cache/optimization layers. */
+            $issues[] = sprintf(__('Mogelijke zware cache- of optimalisatie-overlap: %s.', 'ultracache-pro'), implode(', ', array_unique($high_conflicts)));
+        }
+
+        $jobs = class_exists('UCP_Jobs') ? UCP_Jobs::get_summary() : array();
+        $jobs = is_array($jobs) ? $jobs : array();
+        $failed_jobs = isset($jobs['failed']) ? absint($jobs['failed']) : 0;
+        $pending_jobs = isset($jobs['pending']) ? absint($jobs['pending']) : 0;
+        if ($failed_jobs >= 5) {
+            /* translators: %d: number of failed background jobs. */
+            $issues[] = sprintf(__('Er staan %d mislukte achtergrondtaken klaar voor controle.', 'ultracache-pro'), $failed_jobs);
+        }
+        if ($pending_jobs >= 100) {
+            /* translators: %d: number of pending background jobs. */
+            $issues[] = sprintf(__('De achtergrondwachtrij bevat %d open taken.', 'ultracache-pro'), $pending_jobs);
+        }
+
+        $current_wp_version = isset($wp_version) ? (string) $wp_version : '';
+        if ('' !== $current_wp_version && version_compare($current_wp_version, '6.3', '<')) {
+            $issues[] = __('De actieve WordPress-versie is lager dan de minimale plugin-eis 6.3.', 'ultracache-pro');
+        }
+        if (version_compare(PHP_VERSION, '8.0', '<')) {
+            $issues[] = __('De actieve PHP-versie is lager dan de minimale plugin-eis 8.0.', 'ultracache-pro');
+        }
+        if (!is_dir(UCP_CACHE_DIR) || !wp_is_writable(UCP_CACHE_DIR)) {
+            $issues[] = __('De UltraCache-cachemap ontbreekt of is niet schrijfbaar.', 'ultracache-pro');
+        }
+
+        return self::format_result(empty($issues) ? 'pass' : 'warning', $issues, array(
+            'wordpress_version' => $current_wp_version,
+            'php_version'       => PHP_VERSION,
+            'conflict_count'    => count($conflicts),
+            'high_conflicts'    => array_values(array_unique($high_conflicts)),
+            'jobs'              => $jobs,
+            'cache_dir_writable'=> is_dir(UCP_CACHE_DIR) && wp_is_writable(UCP_CACHE_DIR),
+        ));
+    }
+
+    protected static function test_woocommerce_checkout_safety_runtime() {
+        $woo_active = class_exists('WooCommerce') || function_exists('WC');
+        if (!$woo_active) {
+            return self::format_result('info', array(__('WooCommerce staat niet aan op deze site.', 'ultracache-pro')), array('detected' => false));
+        }
+
+        $issues = array();
+        $excluded = strtolower((string) UCP_Options::get('exclude_urls', ''));
+        $required_groups = array(
+            'cart'       => array('cart', 'winkelwagen'),
+            'checkout'   => array('checkout', 'afrekenen'),
+            'account'    => array('my-account', 'mijn-account', 'account'),
+            'order_pay'  => array('order-pay'),
+            'wc_ajax'    => array('wc-ajax'),
+        );
+        $missing_groups = array();
+        foreach ($required_groups as $group => $needles) {
+            $found = false;
+            foreach ($needles as $needle) {
+                if (false !== strpos($excluded, $needle)) {
+                    $found = true;
+                    break;
+                }
+            }
+            if (!$found) {
+                $missing_groups[] = $group;
+            }
+        }
+
+        $page_cache_enabled = (bool) UCP_Options::get('enable_cache');
+        $smart_rules_enabled = (bool) UCP_Options::get('enable_woocommerce_rules');
+        if ($page_cache_enabled && !$smart_rules_enabled) {
+            $issues[] = __('Paginacache staat aan terwijl de WooCommerce-veiligheidsregels uitstaan.', 'ultracache-pro');
+        }
+        if ($page_cache_enabled && !empty($missing_groups)) {
+            /* translators: %s: comma-separated checkout exclusion groups. */
+            $issues[] = sprintf(__('Belangrijke winkelroutes ontbreken in de cache-uitsluitingen: %s.', 'ultracache-pro'), implode(', ', $missing_groups));
+        }
+        if (UCP_Options::get('cache_logged_in')) {
+            $issues[] = __('Cache voor ingelogde bezoekers staat aan; controleer account-, bestel- en abonnementsstromen extra zorgvuldig.', 'ultracache-pro');
+        }
+        if (UCP_Options::get('enable_delay_js') && false === stripos((string) UCP_Options::get('delay_js_exclusions', ''), 'wc-cart-fragments')) {
+            $issues[] = __('Delay JS staat aan zonder wc-cart-fragments in de uitsluitingen.', 'ultracache-pro');
+        }
+
+        return self::format_result(empty($issues) ? 'pass' : 'warning', $issues, array(
+            'detected'            => true,
+            'page_cache'          => $page_cache_enabled,
+            'smart_rules'         => $smart_rules_enabled,
+            'cache_logged_in'     => (bool) UCP_Options::get('cache_logged_in'),
+            'missing_exclusions'  => $missing_groups,
+        ));
+    }
+
+    protected static function test_core_web_vitals_runtime() {
+        $enabled = (bool) UCP_Options::get('enable_cwv_monitoring');
+        $summary = class_exists('UCP_CWV') ? UCP_CWV::get_summary() : array();
+        $summary = is_array($summary) ? $summary : array();
+        $sample_count = 0;
+        foreach ($summary as $devices) {
+            if (!is_array($devices)) {
+                continue;
+            }
+            foreach ($devices as $row) {
+                $sample_count += is_array($row) && isset($row['samples']) ? absint($row['samples']) : 0;
+            }
+        }
+
+        $issues = array();
+        $sample_rate = absint(UCP_Options::get('rum_sample_rate', 10));
+        $retention_days = absint(UCP_Options::get('cwv_timeseries_retention_days', 7));
+        $asset = UCP_Helpers::frontend_asset_with_min_fallback('assets/frontend/js/ucp-cwv-monitor', 'js');
+        $asset_present = !empty($asset['path']) && is_readable($asset['path']);
+        $source_asset_present = is_readable(UCP_PATH . 'assets/frontend/js/ucp-cwv-monitor.js');
+        $production_asset_present = is_readable(UCP_PATH . 'assets/frontend/js/ucp-cwv-monitor.min.js');
+        if ($enabled && !$asset_present) {
+            $issues[] = __('De browsermonitor voor Core Web Vitals ontbreekt in deze pluginbuild.', 'ultracache-pro');
+        }
+        if ($enabled && (!$source_asset_present || !$production_asset_present)) {
+            $issues[] = __('De Core Web Vitals-browsermonitor mist een leesbare bron- of productiebundle.', 'ultracache-pro');
+        }
+        if ($enabled && ($sample_rate < 1 || $sample_rate > 100)) {
+            $issues[] = __('Het Core Web Vitals-samplepercentage moet tussen 1 en 100 liggen.', 'ultracache-pro');
+        }
+        if ($enabled && $retention_days < 1) {
+            $issues[] = __('Core Web Vitals-tijdreeksen hebben geen geldige bewaartermijn.', 'ultracache-pro');
+        }
+        if ($enabled && !is_callable(array('UCP_CWV', 'get_summary'))) {
+            $issues[] = __('De Core Web Vitals-opslaglaag is niet beschikbaar.', 'ultracache-pro');
+        }
+
+        $status = $enabled ? (empty($issues) ? 'pass' : 'warning') : 'info';
+        if (!$enabled) {
+            $issues[] = __('Lokale Core Web Vitals-meting staat uit.', 'ultracache-pro');
+        }
+        return self::format_result($status, $issues, array(
+            'enabled'        => $enabled,
+            'sample_rate'    => $sample_rate,
+            'retention_days' => $retention_days,
+            'samples'        => $sample_count,
+            'asset_present'            => $asset_present,
+            'source_asset_present'     => $source_asset_present,
+            'production_asset_present' => $production_asset_present,
+            'asset_url'                => isset($asset['url']) ? (string) $asset['url'] : '',
+            'summary'                  => $summary,
+        ));
+    }
+
+    protected static function test_privacy_i18n_runtime() {
+        $issues = array();
+        $retention = array(
+            'logs'        => absint(UCP_Options::get('log_retention_days', 30)),
+            'diagnostics' => absint(UCP_Options::get('diagnostics_retention_days', 14)),
+            'jobs'        => absint(UCP_Options::get('job_retention_days', 14)),
+            'cwv'         => absint(UCP_Options::get('cwv_timeseries_retention_days', 7)),
+        );
+        foreach ($retention as $type => $days) {
+            if ($days < 1) {
+                /* translators: %s: internal retention category. */
+                $issues[] = sprintf(__('Geen geldige bewaartermijn ingesteld voor %s.', 'ultracache-pro'), sanitize_key($type));
+            }
+        }
+
+        $privacy_callbacks = array(
+            'exporter' => is_callable(array('UCP_Maintenance', 'privacy_exporter')),
+            'eraser'   => is_callable(array('UCP_Maintenance', 'privacy_eraser')),
+        );
+        if (!$privacy_callbacks['exporter'] || !$privacy_callbacks['eraser']) {
+            $issues[] = __('De WordPress privacy-exporter of -wisser van UltraCache is niet beschikbaar.', 'ultracache-pro');
+        }
+
+        $translation_files = array(
+            'pot'        => UCP_PATH . 'languages/ultracache-pro.pot',
+            'onboarding' => UCP_PATH . 'languages/ultracache-pro-nl_NL-ucp-onboarding-wizard.json',
+            'admin'      => UCP_PATH . 'languages/ultracache-pro-nl_NL-ucp-react-admin-app.json',
+        );
+        $translation_status = array();
+        $translation_presence = array();
+        foreach ($translation_files as $key => $file) {
+            $present = is_file($file);
+            $valid = is_readable($file);
+
+            // Dutch script catalogs are optional because the source strings are already Dutch.
+            if (!$present && 'pot' !== $key) {
+                $valid = true;
+            } elseif ($valid && 'pot' !== $key) {
+                $decoded = UCP_Helpers::safe_json_decode(UCP_Helpers::read_file($file, 2 * MB_IN_BYTES), true);
+                $valid = is_array($decoded) && JSON_ERROR_NONE === json_last_error();
+            }
+
+            $translation_presence[$key] = $present;
+            $translation_status[$key] = $valid;
+            if (!$valid) {
+                /* translators: %s: translation bundle key. */
+                $issues[] = sprintf(__('Vertaalbestand ontbreekt of is ongeldig: %s.', 'ultracache-pro'), sanitize_key($key));
+            }
+        }
+
+        return self::format_result(empty($issues) ? 'pass' : 'warning', $issues, array(
+            'retention_days'            => $retention,
+            'privacy_callbacks'         => $privacy_callbacks,
+            'translation_files'         => $translation_status,
+            'translation_files_present' => $translation_presence,
+            'cwv_monitoring'            => (bool) UCP_Options::get('enable_cwv_monitoring'),
+        ));
+    }
+
     protected static function test_direct_cache_runtime() {
         $enabled = (bool) UCP_Options::get('enable_direct_cache_htaccess');
         if (!$enabled) {
@@ -245,6 +546,78 @@ class UCP_Runtime_Tests {
         if (!is_file($rules_file)) {
             $issues[] = __('Het bestand met serverregels is nog niet gegenereerd. Leeg en warm de cache opnieuw op om het aan te maken.', 'ultracache-pro');
         }
+        return self::format_result(empty($issues) ? 'pass' : 'warning', $issues, $details);
+    }
+
+
+    protected static function test_cache_queue_invariants_runtime() {
+        $issues = array();
+        $details = array(
+            'cache_policy_available' => class_exists('UCP_Cache_Policy'),
+            'queue_repository_available' => class_exists('UCP_Jobs') && is_callable(array('UCP_Jobs', 'active_job_type_exists')),
+            'dropin_config_present' => false,
+            'dropin_policy_present' => false,
+            'last_queue_stop_reason' => '',
+        );
+
+        if (!$details['cache_policy_available']) {
+            $issues[] = __('De gedeelde cacheheaderpolicy kon niet worden geladen.', 'ultracache-pro');
+        } else {
+            $policy = UCP_Cache_Policy::export_header_policy();
+            $browser = UCP_Cache_Policy::public_html_cache_control(HOUR_IN_SECONDS, true, $policy);
+            $shared = UCP_Cache_Policy::shared_html_cache_control(HOUR_IN_SECONDS, true, $policy);
+            $vary = (string) ($policy['vary_headers'] ?? '');
+            $details['cache_policy_version'] = absint($policy['version'] ?? 0);
+            $details['browser_cache_control'] = $browser;
+            $details['shared_cache_control'] = $shared;
+            $details['vary'] = $vary;
+
+            if (
+                false === strpos($browser, 'max-age=0')
+                || false === strpos($browser, 'must-revalidate')
+            ) {
+                $issues[] = __('De browsercachepolicy kan serverfreshness onveilig doorgeven.', 'ultracache-pro');
+            }
+            if (!empty($policy['edge_enabled']) && false === strpos($shared, 'max-age=')) {
+                $issues[] = __('De gedeelde edge-cachepolicy mist een begrensde max-age.', 'ultracache-pro');
+            }
+            foreach (array('Accept', 'Accept-Encoding') as $required_vary) {
+                if (false === strpos($vary, $required_vary)) {
+                    $issues[] = __('De gedeelde cachepolicy mist een verplichte Vary-dimensie.', 'ultracache-pro');
+                    break;
+                }
+            }
+        }
+
+        if (!$details['queue_repository_available']) {
+            $issues[] = __('De hervatbare wachtrijrepository is niet beschikbaar.', 'ultracache-pro');
+        }
+
+        $last_run = get_option('ucp_jobs_last_run_summary', array());
+        if (is_array($last_run)) {
+            $stop_reason = sanitize_key((string) ($last_run['stop_reason'] ?? ''));
+            $details['last_queue_stop_reason'] = $stop_reason;
+            $allowed_stop_reasons = array('', 'empty', 'time_budget', 'memory_budget', 'runner_lease_lost');
+            if (!in_array($stop_reason, $allowed_stop_reasons, true)) {
+                $issues[] = __('De laatste wachtrijrun bevat een onbekende stopreden.', 'ultracache-pro');
+            }
+        }
+
+        if (class_exists('UCP_Helpers') && is_callable(array('UCP_Helpers', 'dropin_config_path'))) {
+            $config_path = UCP_Helpers::dropin_config_path();
+            $details['dropin_config_present'] = is_file($config_path);
+            if (
+                $details['dropin_config_present']
+                && UCP_Helpers::is_safe_managed_cache_file($config_path)
+            ) {
+                $config_source = UCP_Helpers::read_file($config_path, 2 * MB_IN_BYTES);
+                $details['dropin_policy_present'] = false !== strpos((string) $config_source, "'cache_header_policy'");
+                if (!$details['dropin_policy_present']) {
+                    $issues[] = __('De actieve drop-inconfiguratie gebruikt nog niet de gedeelde cacheheaderpolicy.', 'ultracache-pro');
+                }
+            }
+        }
+
         return self::format_result(empty($issues) ? 'pass' : 'warning', $issues, $details);
     }
 
@@ -305,7 +678,7 @@ class UCP_Runtime_Tests {
             }
         }
 
-        $readme = is_readable(UCP_PATH . 'readme.txt') ? (string) file_get_contents(UCP_PATH . 'readme.txt') : '';
+        $readme = is_readable(UCP_PATH . 'readme.txt') ? UCP_Helpers::read_file(UCP_PATH . 'readme.txt', 2 * MB_IN_BYTES) : '';
         if ('' !== $readme && preg_match('/^Stable tag:\s*(.+)$/mi', $readme, $matches)) {
             $details['readme_stable_tag'] = trim((string) $matches[1]);
             if ($details['readme_stable_tag'] !== $details['plugin_version']) {

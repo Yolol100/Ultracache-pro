@@ -22,7 +22,7 @@ final class UCP_CWV_LCP_Profile_Repository {
     public static function store($data) {
         global $wpdb;
 
-        if (!function_exists('ucp_table_name') || !isset($wpdb) || !is_object($wpdb)) {
+        if (!is_array($data) || !function_exists('ucp_table_name') || !isset($wpdb) || !is_object($wpdb)) {
             return false;
         }
 
@@ -32,19 +32,19 @@ final class UCP_CWV_LCP_Profile_Repository {
         }
         $table_sql = UCP_Helpers::quote_table_name($table);
 
-        $url = isset($data['url']) ? UCP_CWV_LCP_Sanitizer::sanitize_page_url((string) $data['url']) : '';
-        $lcp_url = isset($data['lcp_url']) ? UCP_CWV_LCP_Sanitizer::sanitize_resource_url((string) $data['lcp_url']) : '';
+        $url = isset($data['url']) ? UCP_CWV_LCP_Sanitizer::sanitize_page_url($data['url']) : '';
+        $lcp_url = isset($data['lcp_url']) ? UCP_CWV_LCP_Sanitizer::sanitize_resource_url($data['lcp_url']) : '';
         if ('' === $url) {
             return false;
         }
 
-        $device = self::normalize_device(isset($data['device']) ? (string) $data['device'] : 'all');
+        $device = self::normalize_device(isset($data['device']) ? $data['device'] : 'all');
 
-        $element_json = isset($data['lcp_element_json']) ? (string) $data['lcp_element_json'] : '';
-        $element = json_decode($element_json, true);
+        $element_json = isset($data['lcp_element_json']) && is_scalar($data['lcp_element_json']) ? (string) $data['lcp_element_json'] : '';
+        $element = UCP_Helpers::safe_json_decode($element_json, true);
         $safe_element = UCP_CWV_LCP_Sanitizer::sanitize_element_array(is_array($element) ? $element : array());
 
-        $lcp_type = UCP_CWV_LCP_Sanitizer::normalize_type(isset($data['lcp_type']) ? (string) $data['lcp_type'] : (isset($safe_element['type']) ? (string) $safe_element['type'] : ''));
+        $lcp_type = UCP_CWV_LCP_Sanitizer::normalize_type(isset($data['lcp_type']) ? $data['lcp_type'] : (isset($safe_element['type']) ? $safe_element['type'] : ''));
         if ('' === $lcp_type) {
             $lcp_type = !empty($safe_element['background']) ? 'background-image' : ('' !== $lcp_url ? 'image' : 'text');
         }
@@ -52,8 +52,10 @@ final class UCP_CWV_LCP_Profile_Repository {
             return false;
         }
 
-        $srcset = isset($data['lcp_imagesrcset']) ? UCP_CWV_LCP_Sanitizer::sanitize_srcset((string) $data['lcp_imagesrcset']) : '';
-        $value_ms = isset($data['value_ms']) ? max(0, min((float) $data['value_ms'], (float) UCP_CWV::MAX_VALUE)) : 0;
+        $srcset = isset($data['lcp_imagesrcset']) ? UCP_CWV_LCP_Sanitizer::sanitize_srcset($data['lcp_imagesrcset']) : '';
+        $value_ms = isset($data['value_ms']) && is_scalar($data['value_ms']) && is_numeric($data['value_ms'])
+            ? max(0, min((float) $data['value_ms'], (float) UCP_CWV::MAX_VALUE))
+            : 0;
         $url_hash = hash('sha256', $url);
         $now = current_time('mysql');
 
@@ -68,12 +70,13 @@ final class UCP_CWV_LCP_Profile_Repository {
         );
 
         $sample_count = is_array($existing) && isset($existing['sample_count']) ? absint($existing['sample_count']) + 1 : 1;
-        $selector = UCP_CWV_LCP_Sanitizer::sanitize_selector(isset($data['lcp_selector']) ? (string) $data['lcp_selector'] : (isset($safe_element['selector']) ? (string) $safe_element['selector'] : ''));
-        $confidence = self::calculate_confidence($lcp_type, $lcp_url, $safe_element, $value_ms, $sample_count, isset($data['source']) ? sanitize_key((string) $data['source']) : 'rum');
+        $selector = UCP_CWV_LCP_Sanitizer::sanitize_selector(isset($data['lcp_selector']) ? $data['lcp_selector'] : (isset($safe_element['selector']) ? $safe_element['selector'] : ''));
+        $source = isset($data['source']) && is_scalar($data['source']) ? sanitize_key((string) $data['source']) : 'rum';
+        $confidence = self::calculate_confidence($lcp_type, $lcp_url, $safe_element, $value_ms, $sample_count, $source);
 
         $payload = array(
             'url'              => $url,
-            'lcp_element_json' => $safe_element ? wp_json_encode($safe_element) : '',
+            'lcp_element_json' => $safe_element ? UCP_Helpers::safe_json_encode($safe_element) : '',
             'lcp_url'          => $lcp_url,
             'lcp_imagesrcset'  => $srcset,
             'lcp_type'         => $lcp_type,
@@ -160,7 +163,7 @@ final class UCP_CWV_LCP_Profile_Repository {
         if ('' === $table || !class_exists('UCP_Helpers') || !UCP_Helpers::is_safe_table_name($table) || !self::table_exists($table)) {
             return false;
         }
-        $url = UCP_CWV_LCP_Sanitizer::sanitize_resource_url((string) $url);
+        $url = UCP_CWV_LCP_Sanitizer::sanitize_page_url($url);
         if ('' === $url) {
             return false;
         }
@@ -191,15 +194,28 @@ final class UCP_CWV_LCP_Profile_Repository {
         if (!is_array($row)) {
             return true;
         }
-        if (isset($row['profile_status']) && 'active' !== sanitize_key((string) $row['profile_status'])) {
-            return true;
+        if (isset($row['profile_status'])) {
+            if (!is_scalar($row['profile_status']) || 'active' !== sanitize_key((string) $row['profile_status'])) {
+                return true;
+            }
         }
-        $last = isset($row['last_measured']) ? strtotime((string) $row['last_measured']) : 0;
+        $last = isset($row['last_measured']) && is_scalar($row['last_measured']) ? self::local_mysql_timestamp((string) $row['last_measured']) : 0;
         if ($last <= 0) {
             return true;
         }
         $days = class_exists('UCP_Options') ? absint(UCP_Options::get('lcp_profile_max_age_days', UCP_CWV::DEFAULT_PROFILE_MAX_AGE_DAYS)) : UCP_CWV::DEFAULT_PROFILE_MAX_AGE_DAYS;
         return ($last + (max(1, $days) * DAY_IN_SECONDS)) < time();
+    }
+
+
+    /**
+     * Convert a WordPress local-time MySQL value to a Unix timestamp.
+     *
+     * @param string $value Local MySQL datetime.
+     * @return int
+     */
+    private static function local_mysql_timestamp($value) {
+        return UCP_Helpers::local_mysql_timestamp($value);
     }
 
     /**
@@ -282,7 +298,7 @@ final class UCP_CWV_LCP_Profile_Repository {
         }
         $table_sql = UCP_Helpers::quote_table_name($table);
 
-        $url = UCP_CWV_LCP_Sanitizer::sanitize_resource_url((string) $url);
+        $url = UCP_CWV_LCP_Sanitizer::sanitize_page_url($url);
         if ('' === $url) {
             return array();
         }
@@ -322,6 +338,9 @@ final class UCP_CWV_LCP_Profile_Repository {
      * @return array<string,mixed>
      */
     public static function atf_summary($limit = 20) {
+        if (!is_scalar($limit) && null !== $limit) {
+            $limit = 20;
+        }
         global $wpdb;
         $limit = max(1, min(100, absint($limit)));
         $out = array('total' => 0, 'recent' => array());
@@ -350,8 +369,7 @@ final class UCP_CWV_LCP_Profile_Repository {
      */
     public static function table_exists($table) {
         global $wpdb;
-        $table = (string) $table;
-        if ('' === $table || !isset($wpdb) || !is_object($wpdb) || !class_exists('UCP_Helpers') || !UCP_Helpers::is_safe_table_name($table)) {
+        if (!is_string($table) || '' === $table || !isset($wpdb) || !is_object($wpdb) || !class_exists('UCP_Helpers') || !UCP_Helpers::is_safe_table_name($table)) {
             return false;
         }
 
@@ -380,6 +398,11 @@ final class UCP_CWV_LCP_Profile_Repository {
      * @return int
      */
     public static function calculate_confidence($type, $lcp_url, $element, $value_ms, $sample_count, $source = 'rum') {
+        $type = is_scalar($type) ? (string) $type : '';
+        $lcp_url = is_scalar($lcp_url) ? (string) $lcp_url : '';
+        $element = is_array($element) ? $element : array();
+        $value_ms = is_scalar($value_ms) && is_numeric($value_ms) ? (float) $value_ms : 0.0;
+        $source = is_scalar($source) ? sanitize_key((string) $source) : 'rum';
         $score = 35;
         if (in_array($type, array('image', 'background-image', 'video-poster'), true) && '' !== $lcp_url) {
             $score += 25;
@@ -398,8 +421,15 @@ final class UCP_CWV_LCP_Profile_Repository {
         } elseif (absint($sample_count) >= 2) {
             $score += 5;
         }
-        if ('browser_scan' === sanitize_key((string) $source)) {
+        if ('browser_scan' === $source) {
             $score = max($score, 92);
+        } else {
+            // Public RUM is advisory only. Keep it below the configured automatic-use threshold
+            // so visitor samples cannot independently promote preload/fetchpriority candidates.
+            $automatic_threshold = class_exists('UCP_Options')
+                ? absint(UCP_Options::get('lcp_profile_min_confidence', UCP_CWV::MIN_PROFILE_CONFIDENCE))
+                : UCP_CWV::MIN_PROFILE_CONFIDENCE;
+            $score = min($score, max(0, min(99, $automatic_threshold - 1)));
         }
         if ('text' === $type) {
             $score = min($score, 75);
@@ -412,7 +442,7 @@ final class UCP_CWV_LCP_Profile_Repository {
      * @return string
      */
     private static function normalize_device($device) {
-        $device = sanitize_key((string) $device);
+        $device = is_scalar($device) ? sanitize_key((string) $device) : 'all';
         if (!in_array($device, array('mobile', 'desktop', 'tablet', 'all'), true)) {
             $device = 'all';
         }

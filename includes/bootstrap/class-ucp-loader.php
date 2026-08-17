@@ -51,7 +51,7 @@ final class UCP_Loader {
      * @return void
      */
     public static function autoload($symbol) {
-        if (!is_string($symbol) || 0 !== strpos($symbol, 'UCP_')) {
+        if (!is_string($symbol) || 0 !== strncasecmp($symbol, 'UCP_', 4)) {
             return;
         }
 
@@ -70,13 +70,10 @@ final class UCP_Loader {
     /**
      * Map public UltraCache classes and internal traits to their canonical files.
      *
-     * The loader targets canonical implementation files directly. This keeps frontend requests leaner
-     * and prevents loading admin-only files until they are needed.
-     *
-     * Convention: only symbols that live in their own file get an entry. Traits that are
-     * defined inside their composing class file (e.g. UCP_Admin_Render_Trait in
-     * class-ucp-admin.php) are intentionally omitted: that file is already loaded via the
-     * class entry before the trait is ever resolved, so a separate map entry would be dead.
+     * The unfiltered map is cached before the compatibility filter runs. This
+     * prevents recursive autoload calls from rebuilding the map while a filter
+     * callback is executing. Filtered entries are normalized and restricted to
+     * readable PHP files inside the plugin directory.
      *
      * @return array<string,string>
      */
@@ -89,15 +86,60 @@ final class UCP_Loader {
 
         $manifest = UCP_PATH . 'includes/bootstrap/ucp-classmap.php';
         $loaded = is_file($manifest) ? include $manifest : array();
-        $map = is_array($loaded) ? $loaded : array();
+        $map = self::normalize_classmap($loaded);
 
         /**
          * Filter the UltraCache classmap for advanced compatibility loaders.
          *
          * @param array<string,string> $map Symbol-to-file map relative to UCP_PATH.
          */
-        $map = apply_filters('ucp_classmap', $map);
+        $filtered = apply_filters('ucp_classmap', $map);
+        $map = self::normalize_classmap($filtered);
 
-        return is_array($map) ? $map : array();
+        return $map;
+    }
+
+    /**
+     * Normalize classmap keys and reject paths outside the plugin root.
+     *
+     * @param mixed $entries Candidate classmap.
+     * @return array<string,string>
+     */
+    private static function normalize_classmap($entries) {
+        if (!is_array($entries)) {
+            return array();
+        }
+
+        $base_real = realpath(UCP_PATH);
+        if (false === $base_real) {
+            return array();
+        }
+        $base_real = rtrim(str_replace('\\', '/', $base_real), '/') . '/';
+
+        $normalized = array();
+        foreach ($entries as $symbol => $relative) {
+            if (!is_string($symbol) || !is_string($relative)) {
+                continue;
+            }
+
+            $key = strtolower(trim($symbol));
+            $relative = ltrim(str_replace('\\', '/', trim($relative)), '/');
+            if ('' === $key || 0 !== strpos($key, 'ucp_') || '' === $relative || false !== strpos($relative, "\0") || 'php' !== strtolower((string) pathinfo($relative, PATHINFO_EXTENSION))) {
+                continue;
+            }
+
+            $file_real = realpath(UCP_PATH . $relative);
+            if (false === $file_real) {
+                continue;
+            }
+            $file_real = str_replace('\\', '/', $file_real);
+            if (0 !== strpos($file_real, $base_real) || !is_file($file_real) || !is_readable($file_real)) {
+                continue;
+            }
+
+            $normalized[$key] = substr($file_real, strlen($base_real));
+        }
+
+        return $normalized;
     }
 }

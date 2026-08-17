@@ -3,15 +3,16 @@
 /**
  * Plugin Name: UltraCache Pro
  * Description: Premium modular WordPress performance suite with cache, optimization, automation, edge integrations and visual asset control.
- * Version: 11.4.43
+ * Version: 11.7.19
  * Author: UltraCache Pro
  * Text Domain: ultracache-pro
  * Domain Path: /languages
  * Requires at least: 6.3
- * Tested up to: 6.9
+ * Tested up to: 7.0
  * Requires PHP: 8.0
  * GitHub Plugin URI: Yolol100/Ultracache-pro
  * Primary Branch: main
+ * Update URI: https://github.com/Yolol100/Ultracache-pro
  * License: GPLv2 or later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  */
@@ -20,7 +21,12 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('UCP_VERSION', '11.4.43');
+// Avoid fatal redeclarations when an older or duplicate plugin copy is also active.
+if (defined('UCP_VERSION') || class_exists('UCP_Loader', false)) {
+    return;
+}
+
+define('UCP_VERSION', '11.7.19');
 define('UCP_BUILD_PROFILE', 'lightweight');
 define('UCP_FILE', __FILE__);
 define('UCP_PATH', plugin_dir_path(__FILE__));
@@ -28,6 +34,9 @@ define('UCP_URL', plugin_dir_url(__FILE__));
 define('UCP_BASENAME', plugin_basename(__FILE__));
 define('UCP_CACHE_DIR', WP_CONTENT_DIR . '/cache/ultracache-pro/');
 define('UCP_CACHE_URL', content_url('/cache/ultracache-pro/'));
+
+require_once UCP_PATH . 'includes/bootstrap/class-ucp-loader.php';
+UCP_Loader::load();
 
 $ucp_vendor_autoloads = array(
     UCP_PATH . 'vendor-scoped/autoload.php',
@@ -44,35 +53,21 @@ if (!function_exists('ucp_dependency_class')) {
     /**
      * Resolve bundled Composer classes.
      *
-     * Prefer the scoped UltraCache namespace when the release is built with
-     * PHP-Scoper, but keep the unscoped Composer classes as a compatibility
-     * fallback for private/local installs.
+     * @param string $class Class name.
+     * @return string
      */
     function ucp_dependency_class($class) {
-        $class = ltrim((string) $class, '\\');
-        $scoped = 'UCPVendor\\' . $class;
-        if (class_exists($scoped)) {
-            return $scoped;
-        }
-        return class_exists($class) ? $class : '';
+        return UCP_Dependency_Registry::resolve_class($class);
     }
 }
 if (!function_exists('ucp_dependency_status')) {
     /**
-     * Report optional Composer dependency availability without causing frontend fatals.
-     *
-     * The plugin has native fallbacks for CSS/JS minification and used-CSS parsing,
-     * but release builds should still expose whether the stronger Composer libraries
-     * are actually bundled and loadable.
+     * Report optional Composer dependency availability.
      *
      * @return array<string,bool>
      */
     function ucp_dependency_status() {
-        return array(
-            'sabberworm_css_parser' => '' !== ucp_dependency_class('Sabberworm\\CSS\\Parser'),
-            'matthias_css_minify'   => '' !== ucp_dependency_class('MatthiasMullie\\Minify\\CSS'),
-            'matthias_js_minify'    => '' !== ucp_dependency_class('MatthiasMullie\\Minify\\JS'),
-        );
+        return UCP_Dependency_Registry::status();
     }
 }
 if (!function_exists('ucp_dependency_report')) {
@@ -82,42 +77,18 @@ if (!function_exists('ucp_dependency_report')) {
      * @return array<string,mixed>
      */
     function ucp_dependency_report() {
-        $available = function_exists('ucp_dependency_status') ? ucp_dependency_status() : array();
-        $missing = array();
-        foreach ($available as $key => $is_available) {
-            if (!$is_available) {
-                $missing[] = sanitize_key((string) $key);
-            }
-        }
-        $autoloaders = array(
-            'vendor_scoped' => is_readable(UCP_PATH . 'vendor-scoped/autoload.php'),
-            'vendor'        => is_readable(UCP_PATH . 'vendor/autoload.php'),
-        );
-        return array(
-            'available' => $available,
-            'missing' => $missing,
-            'fallback_active' => !empty($missing),
-            'autoloaders' => $autoloaders,
-            'build_profile' => defined('UCP_BUILD_PROFILE') ? UCP_BUILD_PROFILE : 'custom',
-            'fallback_features' => !empty($missing) ? array('css_minify', 'js_minify', 'used_css_parser') : array(),
-        );
+        return UCP_Dependency_Registry::report();
     }
 }
 if (!function_exists('ucp_table_name')) {
     /**
      * Return the plugin-owned table for the current blog prefix.
-     * Note: avoid stale table constants after switch_to_blog() on multisite.
+     *
+     * @param string $name Logical table name.
+     * @return string
      */
     function ucp_table_name($name) {
-        global $wpdb;
-        $map = array(
-            'jobs'        => 'ucp_jobs',
-            'logs'        => 'ucp_logs',
-            'diagnostics' => 'ucp_diagnostics',
-            'lcp'         => 'ucp_lcp',
-        );
-        $key = sanitize_key((string) $name);
-        return isset($map[$key]) ? $wpdb->prefix . $map[$key] : '';
+        return UCP_Table_Names::get($name);
     }
 }
 // Backward-compatible constants for third-party code. Internal code uses ucp_table_name().
@@ -128,17 +99,7 @@ if (!defined('UCP_TABLE_LCP')) {
     define('UCP_TABLE_LCP', ucp_table_name('lcp'));
 }
 
-require_once UCP_PATH . 'includes/bootstrap/class-ucp-loader.php';
-UCP_Loader::load();
-require_once UCP_PATH . 'includes/bootstrap/class-ucp-plugin.php';
-require_once UCP_PATH . 'includes/core/class-ucp-optimization-intelligence.php';
-require_once UCP_PATH . 'includes/core/class-ucp-optimization-status.php';
-require_once UCP_PATH . 'includes/core/class-ucp-optimization-center.php';
-require_once UCP_PATH . 'includes/core/class-ucp-optimization-guards.php';
-require_once UCP_PATH . 'includes/core/class-ucp-testing-mode-runtime.php';
-if (is_admin()) {
-    require_once UCP_PATH . 'includes/admin/notices/class-ucp-optimization-center-notices.php';
-}
+// Runtime classes are loaded lazily through UCP_Loader.
 
 UCP_Optimization_Guards::bootstrap();
 UCP_Optimization_Center::bootstrap();

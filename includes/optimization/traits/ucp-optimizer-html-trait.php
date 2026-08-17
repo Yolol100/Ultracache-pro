@@ -68,12 +68,42 @@ trait UCP_Optimizer_HTML_Trait {
             UCP_Options::get('enable_self_host_third_party_assets') ||
             UCP_Options::get('enable_webp_generation') ||
             UCP_Options::get('enable_avif_generation') ||
+            UCP_Options::get('enable_image_cdn') ||
+            UCP_Options::get('enable_image_cdn_transforms') ||
+            UCP_Options::get('enable_adaptive_image_srcset') ||
+            UCP_Options::get('enable_expand_missing_srcset') ||
+            UCP_Options::get('enable_cls_iframe_reservation') ||
             UCP_Options::get('enable_lazy_render')
         );
     }
 
+    /**
+     * Confirm that the buffered response is HTML before running markup rewrites.
+     *
+     * @param string $html Buffered response.
+     * @return bool
+     */
+    private function buffered_response_is_html($html) {
+        $content_type = '';
+        foreach (headers_list() as $header_line) {
+            if (0 === stripos((string) $header_line, 'content-type:')) {
+                $content_type = strtolower(trim(substr((string) $header_line, strlen('content-type:'))));
+            }
+        }
+        if ('' !== $content_type) {
+            return false !== strpos($content_type, 'text/html') || false !== strpos($content_type, 'application/xhtml+xml');
+        }
+
+        // Some hosts defer the Content-Type header. In that case require a full-document HTML
+        // signature instead of passing JSON, XML, feeds or arbitrary text through regex rewrites.
+        return 1 === preg_match('/^\s*(?:<!doctype\s+html\b|<html\b|<head\b|<body\b)/i', (string) $html);
+    }
+
     public function optimize_html($html) {
         if (!is_string($html) || '' === trim($html)) {
+            return $html;
+        }
+        if (!$this->buffered_response_is_html($html)) {
             return $html;
         }
         $source = $html;
@@ -101,7 +131,10 @@ trait UCP_Optimizer_HTML_Trait {
         if (!$skip_markup_optimizations && UCP_Options::get('enable_move_module_scripts_footer')) {
             $html = $this->move_module_scripts_to_footer($html);
         }
-        if (!$skip_markup_optimizations && (UCP_Options::get('enable_lazy_images') || UCP_Options::get('enable_lazy_iframes') || UCP_Options::get('enable_add_image_dimensions') || UCP_Options::get('preload_critical_images') || UCP_Options::get('enable_lazyload_fade_in') || UCP_Options::get('enable_lazyload_background_images'))) {
+        if (!$skip_markup_optimizations && UCP_Options::get('enable_cls_iframe_reservation')) {
+            $html = $this->inject_cls_reservation_styles($html);
+        }
+        if (!$skip_markup_optimizations && (UCP_Options::get('enable_lazy_images') || UCP_Options::get('enable_lazy_iframes') || UCP_Options::get('enable_add_image_dimensions') || UCP_Options::get('preload_critical_images') || UCP_Options::get('enable_lazyload_fade_in') || UCP_Options::get('enable_lazyload_background_images') || UCP_Options::get('enable_expand_missing_srcset') || UCP_Options::get('enable_webp_generation') || UCP_Options::get('enable_avif_generation') || UCP_Options::get('enable_image_cdn') || UCP_Options::get('enable_image_cdn_transforms') || UCP_Options::get('enable_adaptive_image_srcset'))) {
             $this->reset_media_scan_state();
             $html = $this->lazyload_html_fragment($html);
             $html = $this->collect_background_lcp_preloads($html);
@@ -113,8 +146,8 @@ trait UCP_Optimizer_HTML_Trait {
             }
         }
 
-        $allow_comment_cleanup = UCP_Options::get('remove_html_comments') && !$this->should_bypass_html_comments();
-        $allow_html_minify = UCP_Options::get('enable_html_minify') && !$this->should_bypass_html_minify();
+        $allow_comment_cleanup = !$skip_markup_optimizations && UCP_Options::get('remove_html_comments') && !$this->should_bypass_html_comments();
+        $allow_html_minify = !$skip_markup_optimizations && UCP_Options::get('enable_html_minify') && !$this->should_bypass_html_minify();
 
         if (!$skip_markup_optimizations && UCP_Options::get('enable_worker_lazyload')) {
             $html = $this->inject_worker_lazyload_runtime($html);
@@ -133,7 +166,7 @@ trait UCP_Optimizer_HTML_Trait {
         $optimized = $masked_html;
 
         if ($allow_comment_cleanup) {
-            $candidate = preg_replace('/<!--(?!\s*\[if).*?-->/s', '', $optimized);
+            $candidate = UCP_Helpers::safe_preg_replace('/<!--(?!\s*\[if).*?-->/s', '', $optimized);
             $optimized = is_string($candidate) ? $candidate : $optimized;
         }
         if ($allow_html_minify) {
@@ -154,6 +187,45 @@ trait UCP_Optimizer_HTML_Trait {
     }
 
 
+    private function inject_cls_reservation_styles($html) {
+        if (!is_string($html) || false === stripos($html, '</head>') || false !== strpos($html, 'id="ucp-cls-reservations"')) {
+            return $html;
+        }
+
+        $css = '';
+        $rules = array_slice(UCP_Helpers::normalize_multiline(UCP_Options::get('cls_reserve_selectors', '')), 0, 50);
+        foreach ($rules as $rule) {
+            $parts = array_map('trim', explode('|', (string) $rule, 2));
+            if (2 !== count($parts)) {
+                continue;
+            }
+            $selector = $parts[0];
+            $height = strtolower($parts[1]);
+            if ('' === $selector || strlen($selector) > 200 || !preg_match('/^[a-z0-9_#.,\-\[\]="\x27:() >+~*]+$/i', $selector)) {
+                continue;
+            }
+            if (!preg_match('/^(\d{1,4})(px|rem|em|vh|vw|%)$/', $height, $height_match)) {
+                continue;
+            }
+            $amount = (int) $height_match[1];
+            $unit = $height_match[2];
+            $maximum = 'px' === $unit ? 2000 : 100;
+            if ($amount < 1 || $amount > $maximum) {
+                continue;
+            }
+            $css .= $selector . '{min-height:' . $amount . $unit . ';}';
+        }
+        if ('' === $css) {
+            return $html;
+        }
+
+        $style = '<style id="ucp-cls-reservations">' . $css . '</style>';
+        $candidate = UCP_Helpers::safe_preg_replace_callback('#</head>#i', static function () use ($style) {
+            return $style . '</head>';
+        }, $html, 1);
+        return is_string($candidate) ? $candidate : $html;
+    }
+
     private function should_run_delay_js_markup_rewrite() {
         if (class_exists('UCP_Compat') && UCP_Compat::has_optimization_conflict()) {
             if (class_exists('UCP_Diagnostics')) {
@@ -171,7 +243,7 @@ trait UCP_Optimizer_HTML_Trait {
             return $html;
         }
         $script = "<script id=\"ucp-worker-lazyload\">(function(){if('IntersectionObserver'in window){var io=new IntersectionObserver(function(es){es.forEach(function(e){if(!e.isIntersecting)return;var el=e.target;if(el.dataset&&el.dataset.src){el.src=el.dataset.src;el.removeAttribute('data-src')}if(el.dataset&&el.dataset.srcset){el.srcset=el.dataset.srcset;el.removeAttribute('data-srcset')}io.unobserve(el);});},{rootMargin:'50% 0px'});document.querySelectorAll('img[data-src],iframe[data-src]').forEach(function(el){io.observe(el);});}})();</script>";
-        $candidate = preg_replace_callback('#</body>#i', static function () use ($script) {
+        $candidate = UCP_Helpers::safe_preg_replace_callback('#</body>#i', static function () use ($script) {
             return $script . '</body>';
         }, $html, 1);
         return is_string($candidate) ? $candidate : $html;
@@ -220,10 +292,8 @@ trait UCP_Optimizer_HTML_Trait {
                     return true;
                 }
             }
-            foreach (array('elementor', 'fl_builder', 'bricks=run', 'oxygen_iframe=', 'ct_builder=', 'breakdance=', 'vc_editable=') as $fragment) {
-                if (false !== strpos($request_uri, $fragment)) {
-                    return true;
-                }
+            if (class_exists('UCP_Quality_Suite') && UCP_Quality_Suite::is_builder_preview_url(UCP_Helpers::current_full_url())) {
+                return true;
             }
             if (class_exists('UCP_Optimization_Guards') && UCP_Optimization_Guards::is_woocommerce_critical_request()) {
                 return true;
@@ -253,7 +323,10 @@ trait UCP_Optimizer_HTML_Trait {
         }
         $rules = UCP_Helpers::normalize_multiline(UCP_Options::get('html_exclude_urls', ''));
         foreach ($rules as $rule) {
-            if ('' !== $rule && false !== strpos($request_uri, $rule)) {
+            $matched = class_exists('UCP_Quality_Suite') && method_exists('UCP_Quality_Suite', 'matches_configured_url_pattern')
+                ? UCP_Quality_Suite::matches_configured_url_pattern($request_uri, $rule)
+                : ('' !== $rule && false !== strpos($request_uri, $rule));
+            if ($matched) {
                 return true;
             }
         }
@@ -300,9 +373,13 @@ trait UCP_Optimizer_HTML_Trait {
     }
 
     private function mask_html_sensitive_blocks($html, &$protected) {
-        $pattern = '#<(script|style|pre|textarea|svg|code|template|xmp|math)\b[^>]*>.*?</\1>#is';
-        $masked = preg_replace_callback($pattern, function ($matches) use (&$protected) {
-            $token = '%%UCP_HTML_BLOCK_' . count($protected) . '%%';
+        $pattern = '#<(script|style|pre|textarea|svg|code|template|xmp|math)\b(?:"[^"]*"|\'[^\']*\'|[^\'">])*>.*?</\1>#is';
+        $prefix = '%%UCP_HTML_BLOCK_';
+        while (false !== strpos($html, $prefix)) {
+            $prefix .= '_';
+        }
+        $masked = UCP_Helpers::safe_preg_replace_callback($pattern, function ($matches) use (&$protected, $prefix) {
+            $token = $prefix . count($protected) . '%%';
             $protected[$token] = $matches[0];
             return $token;
         }, $html);
@@ -323,8 +400,8 @@ trait UCP_Optimizer_HTML_Trait {
      * UCP already swaps enqueued external CSS/JS for minified variants, but page builders
      * (Elementor, Divi, Bricks) and many plugins emit the bulk of their CSS — and a lot of JS —
      * inline, which never passes through wp_enqueue_* and so was previously shipped unminified.
-     * Competitors (WP Rocket, Autoptimize, LiteSpeed) minify these inline blocks; this brings UCP
-     * to parity. It reuses the same toggles as external minification: inline CSS follows
+     * Inline blocks use the same controls as external minification and preserve the same bypasses.
+     * Inline CSS follows
      * enable_css_minify (safe, on by default) and inline JS follows enable_js_minify (the
      * staging-first JS toggle), so it inherits the user's tested choices and every sensitive
      * bypass already applied by the caller.
@@ -351,7 +428,7 @@ trait UCP_Optimizer_HTML_Trait {
         }
 
         if ($do_css && false !== stripos($html, '<style')) {
-            $result = preg_replace_callback('#<style\b([^>]*)>(.*?)</style>#is', function ($m) {
+            $result = UCP_Helpers::safe_preg_replace_callback('#<style\b((?:"[^"]*"|\'[^\']*\'|[^\'">])*)>(.*?)</style>#is', function ($m) {
                 $attrs = (string) $m[1];
                 $body  = (string) $m[2];
                 if ('' === trim($body) || false !== stripos($attrs, 'data-ucp-no-minify')) {
@@ -371,7 +448,7 @@ trait UCP_Optimizer_HTML_Trait {
         }
 
         if ($do_js && false !== stripos($html, '<script')) {
-            $result = preg_replace_callback('#<script\b([^>]*)>(.*?)</script>#is', function ($m) {
+            $result = UCP_Helpers::safe_preg_replace_callback('#<script\b((?:"[^"]*"|\'[^\']*\'|[^\'">])*)>(.*?)</script>#is', function ($m) {
                 $attrs = (string) $m[1];
                 $body  = (string) $m[2];
                 // No body means an external (src=) or empty tag; nothing to minify.
@@ -415,17 +492,7 @@ trait UCP_Optimizer_HTML_Trait {
      * @return bool
      */
     private function inline_js_is_risky($contents) {
-        $contents = (string) $contents;
-        if (preg_match('/(^|[=(:,!&|?;{}\[])\s*\/(?![\/*])/', $contents)) {
-            return true;
-        }
-        if (preg_match('/\b(?:import|export)\s+(?:\{|default|from|\*)/m', $contents)) {
-            return true;
-        }
-        if (false !== strpos($contents, 'sourceMappingURL=')) {
-            return true;
-        }
-        return false;
+        return UCP_Minify_Service::javascript_is_risky($contents);
     }
 
     private function minify_html_document($html) {
@@ -433,17 +500,31 @@ trait UCP_Optimizer_HTML_Trait {
         if ('' === trim($html)) {
             return $html;
         }
-        // Collapse runs of whitespace to a single space. We deliberately do NOT remove the
-        // space between adjacent tags, because '</a> <a>' or '</span> <span>' would otherwise
-        // glue inline content together and visibly corrupt the page. Note: sensitive blocks
-        // (script/style/pre/textarea/...) are already masked out by the caller.
-        $candidate = preg_replace('/\s+/u', ' ', $html);
-        $candidate = is_string($candidate) ? $candidate : $html;
-        // Trim leading/trailing whitespace inside tags only (e.g. '<div >' -> '<div>').
-        $candidate = preg_replace('/\s+>/', '>', $candidate);
-        $candidate = is_string($candidate) ? $candidate : $html;
-        $candidate = preg_replace_callback('/<([a-z][a-z0-9:-]*)(\s[^<>]*?)?>/i', array($this, 'minify_html_start_tag'), $candidate);
-        return is_string($candidate) ? trim($candidate) : $html;
+
+        // Preserve complete start tags before collapsing document whitespace. Attribute values may
+        // legally contain spaces, "<" or ">" and must remain byte-for-byte intact.
+        $tags = array();
+        $prefix = '%%UCP_HTML_TAG_';
+        while (false !== strpos($html, $prefix)) {
+            $prefix .= '_';
+        }
+        $masked = UCP_Helpers::safe_preg_replace_callback('/<([a-z][a-z0-9:-]*)((?:"[^"]*"|\'[^\']*\'|[^\'">])*)>/i', function ($matches) use (&$tags, $prefix) {
+            $token = $prefix . count($tags) . '%%';
+            $tags[$token] = $this->minify_html_start_tag($matches);
+            return $token;
+        }, $html);
+        if (!is_string($masked)) {
+            return $html;
+        }
+
+        // Sensitive blocks are already masked by the caller. Collapse only document text and
+        // inter-tag whitespace, then restore the safely minified start tags.
+        $candidate = UCP_Helpers::safe_preg_replace('/\s+/u', ' ', $masked);
+        $candidate = is_string($candidate) ? $candidate : $masked;
+        $candidate = UCP_Helpers::safe_preg_replace('/<\/([a-z][a-z0-9:-]*)\s+>/i', '</$1>', $candidate);
+        $candidate = is_string($candidate) ? $candidate : $masked;
+        $candidate = empty($tags) ? $candidate : strtr($candidate, $tags);
+        return trim($candidate);
     }
 
     private function minify_html_start_tag($matches) {
@@ -452,8 +533,7 @@ trait UCP_Optimizer_HTML_Trait {
         if ('' === trim($attrs)) {
             return '<' . $tag . '>';
         }
-        $attrs = preg_replace('/\s+/u', ' ', trim($attrs));
-        $attrs = preg_replace_callback("#\\s([a-zA-Z_:][-a-zA-Z0-9_:.]*)=(\"([^\"]*)\"|'([^']*)')#", function ($m) {
+        $attrs = UCP_Helpers::safe_preg_replace_callback("#(?:^|\\s)([a-zA-Z_:][-a-zA-Z0-9_:.]*)=(\"([^\"]*)\"|'([^']*)')#", function ($m) {
             $name = strtolower((string) $m[1]);
             $value = isset($m[3]) && '' !== $m[3] ? $m[3] : (isset($m[4]) ? $m[4] : '');
             $boolean = array('allowfullscreen','async','autofocus','autoplay','checked','controls','defer','disabled','hidden','loop','multiple','muted','novalidate','open','readonly','required','selected');
@@ -464,8 +544,49 @@ trait UCP_Optimizer_HTML_Trait {
                 return ' ' . $name . '=' . $value;
             }
             return ' ' . $name . '="' . str_replace('"', '&quot;', $value) . '"';
-        }, $attrs);
-        return '<' . $tag . (is_string($attrs) && '' !== $attrs ? ' ' . trim($attrs) : '') . '>';
+        }, trim($attrs));
+        $attrs = $this->collapse_html_attribute_whitespace(is_string($attrs) ? $attrs : trim((string) $matches[2]));
+        return '<' . $tag . ('' !== $attrs ? ' ' . $attrs : '') . '>';
+    }
+
+    private function collapse_html_attribute_whitespace($attrs) {
+        $attrs = trim((string) $attrs);
+        if ('' === $attrs) {
+            return '';
+        }
+        $output = '';
+        $quote = '';
+        $pending_space = false;
+        $length = strlen($attrs);
+        for ($index = 0; $index < $length; $index++) {
+            $char = $attrs[$index];
+            if ('' !== $quote) {
+                $output .= $char;
+                if ($char === $quote) {
+                    $quote = '';
+                }
+                continue;
+            }
+            if ('"' === $char || "'" === $char) {
+                if ($pending_space && '' !== $output) {
+                    $output .= ' ';
+                }
+                $pending_space = false;
+                $quote = $char;
+                $output .= $char;
+                continue;
+            }
+            if (false !== strpos(" \t\n\r\f", $char)) {
+                $pending_space = true;
+                continue;
+            }
+            if ($pending_space && '' !== $output) {
+                $output .= ' ';
+            }
+            $pending_space = false;
+            $output .= $char;
+        }
+        return trim($output);
     }
 
     private function add_font_display_swap($html) {
@@ -486,7 +607,7 @@ trait UCP_Optimizer_HTML_Trait {
             return $html;
         }
         $modules = array();
-        $html = UCP_Helpers::safe_preg_replace_callback('#<script\\b(?=[^>]*\\btype=("|\\\')module\\1)[^>]*>.*?</script>#is', function ($matches) use (&$modules) {
+        $html = UCP_Helpers::safe_preg_replace_callback('#<script\b(?=(?:"[^"]*"|\'[^\']*\'|[^\'">])*\btype\s*=\s*("|\')module\1)(?:"[^"]*"|\'[^\']*\'|[^\'">])*>.*?</script>#is', function ($matches) use (&$modules) {
             $tag = $matches[0];
             if (false !== stripos($tag, 'data-ucp-no-move')) {
                 return $tag;
@@ -525,7 +646,7 @@ trait UCP_Optimizer_HTML_Trait {
         }
 
         // Google Maps embed iframes.
-        $result = preg_replace_callback('#<iframe\b[^>]*>(?:.*?</iframe>)?#is', static function ($matches) {
+        $result = UCP_Helpers::safe_preg_replace_callback('#<iframe\b(?:"[^"]*"|\'[^\']*\'|[^\'">])*>(?:.*?</iframe>)?#is', static function ($matches) {
             $tag = $matches[0];
             if (false !== stripos($tag, 'data-ucp-keep')) {
                 return $tag;
@@ -539,7 +660,7 @@ trait UCP_Optimizer_HTML_Trait {
         $html = is_string($result) ? $result : $html;
 
         // Google Maps JavaScript API scripts.
-        $result = preg_replace_callback('#<script\b[^>]*\bsrc\s*=\s*("|\')([^"\']*)\1[^>]*>\s*(?:</script>)?#is', static function ($matches) {
+        $result = UCP_Helpers::safe_preg_replace_callback('#<script\b(?=(?:"[^"]*"|\'[^\']*\'|[^\'">])*\bsrc\s*=\s*("|\')([^"\']*)\1)(?:"[^"]*"|\'[^\']*\'|[^\'">])*>\s*(?:</script>)?#is', static function ($matches) {
             if (false !== stripos($matches[0], 'data-ucp-keep')) {
                 return $matches[0];
             }
@@ -573,7 +694,7 @@ trait UCP_Optimizer_HTML_Trait {
         }
 
         // <link> stylesheets and font resource hints pointing at Google Fonts hosts.
-        $result = preg_replace_callback('#<link\b[^>]*>#is', static function ($matches) {
+        $result = UCP_Helpers::safe_preg_replace_callback('#<link\b(?:"[^"]*"|\'[^\']*\'|[^\'">])*>#is', static function ($matches) {
             $tag = $matches[0];
             if (false !== stripos($tag, 'data-ucp-keep')) {
                 return $tag;
@@ -591,7 +712,7 @@ trait UCP_Optimizer_HTML_Trait {
 
         // @import rules pulling Google Fonts inside inline <style> blocks.
         if (false !== stripos($html, '@import')) {
-            $result = preg_replace('#@import\s+(?:url\()?["\']?[^"\')]*fonts\.googleapis\.com[^"\')]*["\']?\)?\s*;?#i', '', $html);
+            $result = UCP_Helpers::safe_preg_replace('#@import\s+(?:url\()?["\']?[^"\')]*fonts\.googleapis\.com[^"\')]*["\']?\)?\s*;?#i', '', $html);
             $html = is_string($result) ? $result : $html;
         }
 

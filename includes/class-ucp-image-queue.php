@@ -35,7 +35,7 @@ class UCP_Image_Queue {
         if (empty(UCP_Options::get('enable_async_image_optimization'))) {
             return false;
         }
-        return (bool) (UCP_Options::get('enable_webp_generation') || UCP_Options::get('enable_avif_generation') || UCP_Options::get('enable_image_optimization'));
+        return class_exists('UCP_Image_Optimizer') && UCP_Image_Optimizer::supported_variant_generation_enabled();
     }
 
     /**
@@ -45,8 +45,11 @@ class UCP_Image_Queue {
      * @return void
      */
     public static function enqueue_attachment($attachment_id) {
+        if (!is_scalar($attachment_id) && null !== $attachment_id) {
+            $attachment_id = 0;
+        }
         $attachment_id = (int) $attachment_id;
-        if ($attachment_id <= 0 || !class_exists('UCP_Jobs')) {
+        if ($attachment_id <= 0 || !class_exists('UCP_Jobs') || !class_exists('UCP_Image_Optimizer') || !UCP_Image_Optimizer::supported_variant_generation_enabled()) {
             return;
         }
         UCP_Jobs::enqueue_unique('image_optimize', array('attachment_id' => $attachment_id), 30, 'media');
@@ -59,57 +62,43 @@ class UCP_Image_Queue {
      * @return bool
      */
     public static function run_job($attachment_id) {
+        if (!is_scalar($attachment_id) && null !== $attachment_id) {
+            $attachment_id = 0;
+        }
         $attachment_id = (int) $attachment_id;
         if ($attachment_id <= 0 || !class_exists('UCP_Image_Optimizer')) {
             return false;
         }
-        $optimizer = new UCP_Image_Optimizer();
+        if (!UCP_Image_Optimizer::supported_variant_generation_enabled()) {
+            return true;
+        }
+        $optimizer = new UCP_Image_Optimizer(false);
         return (bool) $optimizer->optimize_attachment($attachment_id);
     }
 
     /**
-     * Queue every JPEG/PNG attachment that has no variants yet, then run the queue in the
-     * background instead of the synchronous 25-at-a-time admin loop.
+     * Start a cursor-based background scan of the complete JPEG/PNG library.
      *
      * @return void
      */
     public function handle_backfill() {
-        if (!current_user_can('manage_options')) {
-            wp_die(esc_html__('Geen toegang.', 'ultracache-pro'), '', array('response' => 403));
-        }
-        check_admin_referer('ucp_queue_image_backfill');
+        UCP_Helpers::require_post_admin_action('ucp_queue_image_backfill');
 
-        $batch = max(50, absint(apply_filters('ucp_image_backfill_batch', 500)));
-        // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- bounded admin backfill lookup by attachment metadata.
-        $ids = get_posts(array(
-            'post_type'      => 'attachment',
-            'post_mime_type' => array('image/jpeg', 'image/png'),
-            'fields'         => 'ids',
-            'posts_per_page' => $batch,
-            'orderby'        => 'ID',
-            'order'          => 'DESC',
-            'meta_query'     => array(
-                array(
-                    'key'     => UCP_Image_Optimizer::META_KEY,
-                    'compare' => 'NOT EXISTS',
-                ),
-            ),
-        ));
+        $queued = class_exists('UCP_Jobs') && (
+            UCP_Jobs::active_job_type_exists('image_backfill_seed', 'media')
+            || UCP_Jobs::enqueue_unique('image_backfill_seed', array('cursor' => 0), 20, 'media')
+            || UCP_Jobs::unique_job_exists('image_backfill_seed', array('cursor' => 0), 'media')
+        );
 
-        $queued = 0;
-        $with_lqip = class_exists('UCP_LQIP') && UCP_LQIP::enabled();
-        foreach ((array) $ids as $id) {
-            self::enqueue_attachment((int) $id);
-            if ($with_lqip && class_exists('UCP_Jobs')) {
-                UCP_Jobs::enqueue_unique('lqip_generate', array('attachment_id' => (int) $id), 35, 'media');
-            }
-            $queued++;
-        }
         if (class_exists('UCP_Admin_Notices')) {
-            /* translators: %d: number of queued images. */
-            UCP_Admin_Notices::flash(sprintf(__('UltraCache heeft %d afbeelding(en) in de wachtrij gezet voor optimalisatie op de achtergrond.', 'ultracache-pro'), $queued), 'success');
+            UCP_Admin_Notices::flash(
+                $queued
+                    ? __('UltraCache heeft de volledige afbeeldingsbackfill op de achtergrond gestart.', 'ultracache-pro')
+                    : __('De afbeeldingsbackfill kon niet veilig worden gestart.', 'ultracache-pro'),
+                $queued ? 'success' : 'error'
+            );
         }
-        wp_safe_redirect(UCP_Admin_Router::url('media', array('images_queued' => $queued)));
+        wp_safe_redirect(UCP_Admin_Router::url('media', array('image_backfill_started' => $queued ? 1 : 0)));
         exit;
     }
 
@@ -130,10 +119,19 @@ class UCP_Image_Queue {
      * @return string
      */
     public static function cdn_url($url, $width = 0) {
+        if (!is_scalar($url)) {
+            return '';
+        }
         $url = (string) $url;
-        $width = absint($width);
+        $width = is_scalar($width) ? absint($width) : 0;
         if ('' === $url || preg_match('#^data:#i', $url)) {
             return $url;
+        }
+        if (class_exists('UCP_Image_Optimizer')) {
+            $source_path = UCP_Helpers::uploads_url_to_path($url);
+            if ('' !== $source_path && UCP_Image_Optimizer::source_has_hdr_gain_map($source_path)) {
+                return $url;
+            }
         }
         $base = self::cdn_base();
         if ('' === $base) {
@@ -143,8 +141,9 @@ class UCP_Image_Queue {
         if ('' === $origin) {
             return $url;
         }
-        $candidate = preg_replace('#^https?:#i', '', $url);
-        if (0 !== strpos($candidate, $origin)) {
+        $candidate = UCP_Helpers::sanitize_preg_replace('#^https?:#i', '', $url);
+        $origin = rtrim((string) $origin, '/');
+        if ($candidate !== $origin && 0 !== strpos($candidate, $origin . '/')) {
             return $url; // only rewrite our own uploads
         }
         $relative = substr($candidate, strlen($origin));
@@ -152,11 +151,6 @@ class UCP_Image_Queue {
 
         if ($width > 0 && UCP_Options::get('enable_image_cdn_transforms')) {
             $mapped = self::apply_transform_to_cdn_url($mapped, $relative, $width);
-        } else {
-            $query = self::image_cdn_query_template(0);
-            if ('' !== $query) {
-                $mapped .= (false === strpos($mapped, '?') ? '?' : '&') . ltrim($query, '?&');
-            }
         }
         return $mapped;
     }
@@ -168,6 +162,9 @@ class UCP_Image_Queue {
      * @return string
      */
     public static function adaptive_srcset($url, $tag = '') {
+        if (!is_scalar($url) || !is_scalar($tag)) {
+            return '';
+        }
         if (!self::cdn_active() || !UCP_Options::get('enable_adaptive_image_srcset')) {
             return '';
         }
@@ -200,6 +197,9 @@ class UCP_Image_Queue {
      * @return bool
      */
     public static function should_skip_adaptive_image_tag($tag) {
+        if (!is_scalar($tag)) {
+            return true;
+        }
         $tag = (string) $tag;
         if ('' === trim($tag)) {
             return false;
@@ -207,14 +207,14 @@ class UCP_Image_Queue {
         if (preg_match('/\b(data-ucp-no-cdn|data-no-optimize|data-no-lazy|data-zoom-image|data-large_image|data-gallery|data-product|data-variation)\b/i', $tag)) {
             return true;
         }
-        if (preg_match('/\b(fetchpriority=("|\')high\2|loading=("|\')eager\3)\b/i', $tag)) {
+        if (preg_match('/\b(?:fetchpriority\s*=\s*(["\'])high\1|loading\s*=\s*(["\'])eager\2)/i', $tag)) {
             return true;
         }
         $haystack = strtolower(wp_strip_all_tags($tag));
         if (preg_match('/(logo|icon|sprite|avatar|emoji|placeholder|tracking|pixel|hero|lcp|product-gallery|woocommerce-product-gallery|wp-post-image|flex-control-thumbs|photoswipe|zoom)/', $haystack)) {
             return true;
         }
-        if (preg_match('/\bsrc=("|\')(.*?)\1/i', $tag, $src_match)) {
+        if (preg_match('/\bsrc\s*=\s*("|\')(.*?)\1/i', $tag, $src_match)) {
             $path = strtolower((string) wp_parse_url(html_entity_decode($src_match[2], ENT_QUOTES), PHP_URL_PATH));
             if ('' === $path || !preg_match('/\.(jpe?g|png|webp|avif)(?:$|\?)/i', $path)) {
                 return true;
@@ -280,7 +280,7 @@ class UCP_Image_Queue {
             $base = self::cdn_base();
             if ('' !== $base) {
                 $params = 'width=' . $width . ',quality=' . $quality . ',format=auto';
-                return rtrim($base, '/') . '/cdn-cgi/image/' . rawurlencode($params) . '/' . ltrim((string) $relative, '/');
+                return rtrim($base, '/') . '/cdn-cgi/image/' . $params . '/' . ltrim((string) $relative, '/');
             }
         }
 
@@ -307,11 +307,20 @@ class UCP_Image_Queue {
             return $provider;
         }
 
-        $base = strtolower(self::cdn_base());
-        if (false !== strpos($base, 'b-cdn.net') || false !== strpos($base, 'bunnycdn')) {
+        $base = self::cdn_base();
+        $host = strtolower(rtrim((string) wp_parse_url($base, PHP_URL_HOST), '.'));
+        $path = strtolower((string) wp_parse_url($base, PHP_URL_PATH));
+        if (
+            'b-cdn.net' === $host
+            || (strlen($host) > strlen('.b-cdn.net') && substr($host, -strlen('.b-cdn.net')) === '.b-cdn.net')
+            || preg_match('/(?:^|\.)bunnycdn(?:\.|$)/', $host)
+        ) {
             return 'bunny';
         }
-        if (false !== strpos($base, 'cloudflare') || false !== strpos($base, 'cdn-cgi')) {
+        if (
+            preg_match('/(?:^|\.)cloudflare(?:\.|$)/', $host)
+            || preg_match('#(?:^|/)cdn-cgi(?:/|$)#', trim($path, '/'))
+        ) {
             return 'cloudflare';
         }
         $cdn_provider = sanitize_key((string) UCP_Options::get('cdn_provider', 'none'));
@@ -332,8 +341,8 @@ class UCP_Image_Queue {
         if ('' === $query) {
             return '';
         }
-        $quality = max(40, min(100, absint(UCP_Options::get('image_quality', 82))));
-        $width   = absint($width);
+        $quality = (string) max(40, min(100, absint(UCP_Options::get('image_quality', 82))));
+        $width   = (string) absint($width);
         return str_replace(array('{q}', '{quality}', '{w}', '{width}'), array($quality, $quality, $width, $width), $query);
     }
 

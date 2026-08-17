@@ -32,6 +32,12 @@ final class UCP_CWV_Timeseries {
      * @return void
      */
     public static function record($metric, $value, $device = 'all') {
+        if (!is_scalar($metric) && null !== $metric) {
+            $metric = '';
+        }
+        if (!is_scalar($device) && null !== $device) {
+            $device = 'all';
+        }
         $metric = strtolower(sanitize_key((string) $metric));
         $device = sanitize_key((string) $device);
         if (!in_array($metric, self::METRICS, true)) {
@@ -41,24 +47,33 @@ final class UCP_CWV_Timeseries {
             $device = 'all';
         }
 
-        $data = get_option(self::OPTION_KEY, array());
-        if (!is_array($data)) {
-            $data = array();
+        $lock_token = class_exists('UCP_CWV_Option_Lock') ? UCP_CWV_Option_Lock::acquire(self::OPTION_KEY) : '';
+        if ('' === $lock_token) {
+            return;
         }
 
-        $hour_key = (int) (time() - (time() % 3600)); // floor to hour
-        if (empty($data[$metric][$device][$hour_key]) || !is_array($data[$metric][$device][$hour_key])) {
-            $data[$metric][$device][$hour_key] = array('n' => 0, 'sum' => 0.0, 'max' => 0.0);
+        try {
+            $data = get_option(self::OPTION_KEY, array());
+            if (!is_array($data)) {
+                $data = array();
+            }
+
+            $hour_key = (int) (time() - (time() % 3600)); // floor to hour
+            if (empty($data[$metric][$device][$hour_key]) || !is_array($data[$metric][$device][$hour_key])) {
+                $data[$metric][$device][$hour_key] = array('n' => 0, 'sum' => 0.0, 'max' => 0.0);
+            }
+
+            $bucket =& $data[$metric][$device][$hour_key];
+            $bucket['n']   = absint($bucket['n']) + 1;
+            $bucket['sum'] = (float) $bucket['sum'] + (float) $value;
+            $bucket['max'] = max((float) $bucket['max'], (float) $value);
+            unset($bucket);
+
+            $data = self::prune($data, self::current_retention_hours());
+            update_option(self::OPTION_KEY, $data, false);
+        } finally {
+            UCP_CWV_Option_Lock::release(self::OPTION_KEY, $lock_token);
         }
-
-        $bucket =& $data[$metric][$device][$hour_key];
-        $bucket['n']   = absint($bucket['n']) + 1;
-        $bucket['sum'] = (float) $bucket['sum'] + (float) $value;
-        $bucket['max'] = max((float) $bucket['max'], (float) $value);
-        unset($bucket);
-
-        $data = self::prune($data, self::current_retention_hours());
-        update_option(self::OPTION_KEY, $data, false);
     }
 
     /**
@@ -70,6 +85,15 @@ final class UCP_CWV_Timeseries {
      * @return array<string,array<string,array<int,array<string,int|float>>>>
      */
     public static function get_series($metric = null, $device = null, $days = self::DEFAULT_RETENTION_DAYS) {
+        if (!is_scalar($metric) && null !== $metric) {
+            $metric = null;
+        }
+        if (!is_scalar($device) && null !== $device) {
+            $device = null;
+        }
+        if (!is_scalar($days) && null !== $days) {
+            $days = 7;
+        }
         $data = get_option(self::OPTION_KEY, array());
         if (!is_array($data)) {
             return array();
@@ -213,7 +237,7 @@ final class UCP_CWV_Timeseries {
      * @return int
      */
     private static function current_retention_hours() {
-        $days = (int) (function_exists('get_option') ? get_option('cwv_timeseries_retention_days', self::DEFAULT_RETENTION_DAYS) : self::DEFAULT_RETENTION_DAYS);
+        $days = (int) (class_exists('UCP_Options') ? UCP_Options::get('cwv_timeseries_retention_days', self::DEFAULT_RETENTION_DAYS) : self::DEFAULT_RETENTION_DAYS);
         $days = max(self::MIN_RETENTION_DAYS, min(self::MAX_RETENTION_DAYS, $days));
         return $days * 24;
     }

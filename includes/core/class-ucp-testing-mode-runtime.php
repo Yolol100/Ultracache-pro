@@ -18,7 +18,47 @@ class UCP_Testing_Mode_Runtime {
      * @return void
      */
     public static function bootstrap() {
+        add_action('init', array(__CLASS__, 'maybe_manage_expiration'), 0);
         add_action('init', array(__CLASS__, 'maybe_apply_frontend_guard'), PHP_INT_MAX);
+    }
+
+    /**
+     * Create or expire the bounded Testing Mode preview window.
+     *
+     * @return void
+     */
+    public static function maybe_manage_expiration() {
+        if (!class_exists('UCP_Options')) {
+            return;
+        }
+
+        $settings = UCP_Options::get_all();
+        $active = !empty($settings['testing_mode']) || !empty($settings['enable_asset_test_mode']);
+        if (!$active) {
+            delete_option('ucp_testing_mode_started_at');
+            delete_option('ucp_testing_mode_expires_at');
+            return;
+        }
+
+        $expires_at = absint(get_option('ucp_testing_mode_expires_at', 0));
+        if (0 === $expires_at) {
+            $started_at = time();
+            $ttl = class_exists('UCP_Helpers') ? UCP_Helpers::testing_mode_ttl_seconds() : 4 * HOUR_IN_SECONDS;
+            update_option('ucp_testing_mode_started_at', $started_at, false);
+            update_option('ucp_testing_mode_expires_at', $started_at + $ttl, false);
+            return;
+        }
+        if (time() < $expires_at) {
+            return;
+        }
+
+        $settings['testing_mode'] = 0;
+        $settings['enable_asset_test_mode'] = 0;
+        if (!UCP_Options::update($settings)) {
+            return;
+        }
+        update_option('ucp_testing_mode_expired_at', time(), false);
+        set_transient('ucp_testing_mode_expired_notice', 1, HOUR_IN_SECONDS);
     }
 
     /**

@@ -25,6 +25,12 @@ final class UCP_CWV_Metric_Summary {
      * @return void
      */
     public static function record($metric, $value, $device = 'all', $sample_rate = 25) {
+        if (!is_scalar($metric) && null !== $metric) {
+            $metric = '';
+        }
+        if (!is_scalar($device) && null !== $device) {
+            $device = 'all';
+        }
         $metric = strtolower(sanitize_key((string) $metric));
         $device = sanitize_key((string) $device);
         if (!in_array($metric, self::METRICS, true)) {
@@ -34,48 +40,58 @@ final class UCP_CWV_Metric_Summary {
             $device = 'all';
         }
 
-        $data = get_option(UCP_CWV::OPTION_KEY, array());
-        if (!is_array($data)) {
-            $data = array();
+        $lock_token = class_exists('UCP_CWV_Option_Lock') ? UCP_CWV_Option_Lock::acquire(UCP_CWV::OPTION_KEY) : '';
+        if ('' === $lock_token) {
+            return;
         }
 
-        $legacy_key = strtoupper($metric);
-        if (empty($data[$legacy_key]) || !is_array($data[$legacy_key])) {
-            $data[$legacy_key] = array('count' => 0, 'sum' => 0, 'max' => 0, 'last' => 0, 'sample_rate' => 0.25);
+        try {
+            $data = get_option(UCP_CWV::OPTION_KEY, array());
+            if (!is_array($data)) {
+                $data = array();
+            }
+
+            $legacy_key = strtoupper($metric);
+            if (empty($data[$legacy_key]) || !is_array($data[$legacy_key])) {
+                $data[$legacy_key] = array('count' => 0, 'sum' => 0, 'max' => 0, 'last' => 0, 'sample_rate' => 0.25);
+            }
+
+            $previous_count = absint($data[$legacy_key]['count']);
+            $previous_sum = (float) $data[$legacy_key]['sum'];
+            if ($previous_count >= UCP_CWV::MAX_SAMPLES_PER_METRIC) {
+                $previous_average = $previous_count > 0 ? $previous_sum / $previous_count : 0;
+                $data[$legacy_key]['count'] = UCP_CWV::MAX_SAMPLES_PER_METRIC;
+                $data[$legacy_key]['sum'] = ($previous_average * (UCP_CWV::MAX_SAMPLES_PER_METRIC - 1)) + $value;
+            } else {
+                $data[$legacy_key]['count'] = $previous_count + 1;
+                $data[$legacy_key]['sum'] = $previous_sum + $value;
+            }
+            $data[$legacy_key]['max'] = max((float) $data[$legacy_key]['max'], $value);
+            $data[$legacy_key]['last'] = time();
+            $data[$legacy_key]['sample_rate'] = max(1, min(100, absint($sample_rate))) / 100;
+
+            if (empty($data[self::FIELD_KEY]) || !is_array($data[self::FIELD_KEY])) {
+                $data[self::FIELD_KEY] = array();
+            }
+            if (empty($data[self::FIELD_KEY][$metric][$device]) || !is_array($data[self::FIELD_KEY][$metric][$device])) {
+                $data[self::FIELD_KEY][$metric][$device] = array('n' => 0, 'sum' => 0.0, 'hist' => array(), 'last' => 0);
+            }
+
+            $bucket = self::bucket_index($metric, $value);
+            $row =& $data[self::FIELD_KEY][$metric][$device];
+            $row['hist'] = isset($row['hist']) && is_array($row['hist']) ? $row['hist'] : array();
+            $row['hist'][$bucket] = isset($row['hist'][$bucket]) ? absint($row['hist'][$bucket]) + 1 : 1;
+            $row['hist'] = self::bounded_histogram($row['hist'], UCP_CWV::MAX_SAMPLES_PER_METRIC);
+            $row['n'] = self::histogram_total($row['hist']);
+            $row['sum'] = self::estimated_sum_from_hist($metric, $row['hist']);
+            $row['last'] = time();
+            unset($row);
+
+            update_option(UCP_CWV::OPTION_KEY, $data, false);
+        } finally {
+            UCP_CWV_Option_Lock::release(UCP_CWV::OPTION_KEY, $lock_token);
         }
 
-        $previous_count = absint($data[$legacy_key]['count']);
-        $previous_sum = (float) $data[$legacy_key]['sum'];
-        if ($previous_count >= UCP_CWV::MAX_SAMPLES_PER_METRIC) {
-            $previous_average = $previous_count > 0 ? $previous_sum / $previous_count : 0;
-            $data[$legacy_key]['count'] = UCP_CWV::MAX_SAMPLES_PER_METRIC;
-            $data[$legacy_key]['sum'] = ($previous_average * (UCP_CWV::MAX_SAMPLES_PER_METRIC - 1)) + $value;
-        } else {
-            $data[$legacy_key]['count'] = $previous_count + 1;
-            $data[$legacy_key]['sum'] = $previous_sum + $value;
-        }
-        $data[$legacy_key]['max'] = max((float) $data[$legacy_key]['max'], $value);
-        $data[$legacy_key]['last'] = time();
-        $data[$legacy_key]['sample_rate'] = max(1, min(100, absint($sample_rate))) / 100;
-
-        if (empty($data[self::FIELD_KEY]) || !is_array($data[self::FIELD_KEY])) {
-            $data[self::FIELD_KEY] = array();
-        }
-        if (empty($data[self::FIELD_KEY][$metric][$device]) || !is_array($data[self::FIELD_KEY][$metric][$device])) {
-            $data[self::FIELD_KEY][$metric][$device] = array('n' => 0, 'sum' => 0.0, 'hist' => array(), 'last' => 0);
-        }
-
-        $bucket = self::bucket_index($metric, $value);
-        $row =& $data[self::FIELD_KEY][$metric][$device];
-        $row['hist'] = isset($row['hist']) && is_array($row['hist']) ? $row['hist'] : array();
-        $row['hist'][$bucket] = isset($row['hist'][$bucket]) ? absint($row['hist'][$bucket]) + 1 : 1;
-        $row['hist'] = self::bounded_histogram($row['hist'], UCP_CWV::MAX_SAMPLES_PER_METRIC);
-        $row['n'] = self::histogram_total($row['hist']);
-        $row['sum'] = self::estimated_sum_from_hist($metric, $row['hist']);
-        $row['last'] = time();
-        unset($row);
-
-        update_option(UCP_CWV::OPTION_KEY, $data, false);
 
         if (class_exists('UCP_CWV_Timeseries')) {
             UCP_CWV_Timeseries::record($metric, $value, $device);

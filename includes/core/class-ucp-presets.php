@@ -31,6 +31,9 @@ class UCP_Presets {
     }
 
     public static function save_custom_preset($name, $settings = null) {
+        if (!is_scalar($name) && null !== $name) {
+            $name = '';
+        }
         $name = trim(sanitize_text_field((string) $name));
         if ('' === $name) {
             return false;
@@ -44,7 +47,10 @@ class UCP_Presets {
             'overrides' => UCP_Options::settings_for_export(is_array($settings) ? $settings : UCP_Options::get_all()),
             'created_at' => gmdate('c'),
         );
-        update_option(self::custom_option_key(), array_slice($stored, -10, 10, true), false);
+        $stored = array_slice($stored, -10, 10, true);
+        if (!self::persist_custom_presets($stored)) {
+            return false;
+        }
         return $key;
     }
 
@@ -55,8 +61,7 @@ class UCP_Presets {
             return false;
         }
         unset($stored[$key]);
-        update_option(self::custom_option_key(), $stored, false);
-        return true;
+        return self::persist_custom_presets($stored);
     }
 
     public static function pagespeed_auto_overrides() {
@@ -68,15 +73,38 @@ class UCP_Presets {
     }
 
     public static function apply($preset_key) {
+        if (!is_scalar($preset_key) && null !== $preset_key) {
+            $preset_key = '';
+        }
         $presets = self::all();
         if (empty($presets[$preset_key])) {
             return false;
         }
         $settings = UCP_Options::get_all();
-        $settings = array_merge($settings, $presets[$preset_key]['overrides']);
+        $overrides = $presets[$preset_key]['overrides'];
+        $settings = array_merge($settings, $overrides);
+        if (array_key_exists('ui_mode', $overrides) && !array_key_exists('show_advanced_options', $overrides)) {
+            $settings['show_advanced_options'] = 'advanced' === (string) $overrides['ui_mode'] ? 1 : 0;
+        }
         $settings['active_preset'] = $preset_key;
-        UCP_Options::update($settings);
-        UCP_Logger::log('info', 'presets', 'preset_applied',  'Preset toegepast.', array('preset' => $preset_key));
+        if (!UCP_Options::update($settings)) {
+            return false;
+        }
+        UCP_Logger::log('info', 'presets', 'preset_applied',  __('Preset toegepast.', 'ultracache-pro'), array('preset' => $preset_key));
         return true;
+    }
+
+    /**
+     * Persist custom presets and distinguish unchanged data from a failed write.
+     *
+     * @param array<string,array> $stored Preset map.
+     * @return bool
+     */
+    private static function persist_custom_presets($stored) {
+        $key = self::custom_option_key();
+        if (update_option($key, $stored, false)) {
+            return true;
+        }
+        return get_option($key, null) === $stored;
     }
 }

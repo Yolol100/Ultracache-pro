@@ -8,20 +8,20 @@ trait UCP_CSS_Generation_Trait {
     public static function generate_for_url($url, $force = false) {
         $url = UCP_Helpers::strict_local_url($url);
         if (!$url || !UCP_Helpers::is_local_url($url)) {
-            self::mark_artifact_status($url, 'failed', 'Niet-lokale URL overgeslagen.');
-            UCP_Helpers::log('CSS-opbouw overgeslagen voor niet-lokale URL: ' . $url);
+            self::mark_artifact_status($url, 'failed', __('Niet-lokale URL overgeslagen.', 'ultracache-pro'));
+            UCP_Helpers::log(sprintf(__('CSS-opbouw is overgeslagen voor een niet-lokale URL: %s', 'ultracache-pro'), $url));
             return false;
         }
 
         if (!self::is_generation_candidate_url($url)) {
-            self::mark_artifact_status($url, 'skipped', 'URL is geen normale HTML-pagina voor CSS-opbouw.');
-            UCP_Helpers::log('CSS-opbouw overgeslagen omdat de URL geen normale HTML-pagina is: ' . $url);
+            self::mark_artifact_status($url, 'skipped', __('URL is geen normale HTML-pagina voor CSS-opbouw.', 'ultracache-pro'));
+            UCP_Helpers::log(sprintf(__('CSS-opbouw is overgeslagen omdat de URL geen normale HTML-pagina is: %s', 'ultracache-pro'), $url));
             return true;
         }
 
         if (class_exists('UCP_CSS_Profile') && UCP_CSS_Profile::is_sensitive_url($url)) {
-            self::mark_artifact_status($url, 'skipped', 'Gevoelige dynamische URL; agressieve CSS-optimalisatie overgeslagen.');
-            UCP_Helpers::log('CSS-opbouw veilig overgeslagen voor gevoelige URL: ' . $url);
+            self::mark_artifact_status($url, 'skipped', __('Gevoelige dynamische URL; agressieve CSS-optimalisatie overgeslagen.', 'ultracache-pro'));
+            UCP_Helpers::log(sprintf(__('CSS-opbouw is veilig overgeslagen voor een gevoelige URL: %s', 'ultracache-pro'), $url));
             return true;
         }
 
@@ -33,12 +33,17 @@ trait UCP_CSS_Generation_Trait {
         }
 
         if (self::retry_limit_reached($url) && !$force) {
-            UCP_Helpers::log('CSS-opbouw overgeslagen omdat de retry-limiet is bereikt voor ' . $url);
+            UCP_Helpers::log(sprintf(__('CSS-opbouw is overgeslagen omdat de herhaallimiet is bereikt voor %s', 'ultracache-pro'), $url));
             return false;
         }
+        if (!$force && !self::artifact_retry_is_due($url)) {
+            UCP_Helpers::log(sprintf(__('CSS-opbouw wacht op de ingestelde herhaalvertraging voor %s', 'ultracache-pro'), $url));
+            return true;
+        }
 
-        self::mark_artifact_status($url, 'pending', 'CSS-artifacts staan in de wachtrij voor opbouw.');
-        self::mark_artifact_status($url, 'running', 'CSS-artifacts worden opnieuw opgebouwd.');
+        self::mark_artifact_status($url, 'pending', __('CSS-artifacts staan in de wachtrij voor opbouw.', 'ultracache-pro'));
+        self::mark_artifact_status($url, 'running', __('CSS-artifacts worden opnieuw opgebouwd.', 'ultracache-pro'));
+        do_action('ucp_operation_heartbeat');
 
         $response = self::safe_local_get($url, array(
             'timeout' => 20,
@@ -48,46 +53,64 @@ trait UCP_CSS_Generation_Trait {
         ), 3);
         if (is_wp_error($response)) {
             self::mark_artifact_status($url, 'failed', $response->get_error_message());
-            UCP_Helpers::log('CSS-opbouw ophalen mislukt voor ' . $url . ': ' . $response->get_error_message());
+            UCP_Helpers::log(sprintf(__('Ophalen voor CSS-opbouw is mislukt voor %1$s: %2$s', 'ultracache-pro'), $url, $response->get_error_message()));
             return false;
         }
+        do_action('ucp_operation_heartbeat');
         $response_code = (int) wp_remote_retrieve_response_code($response);
-        self::mark_artifact_status($url, 'validating', 'HTML-response wordt gevalideerd voor CSS-opbouw.', array('http_status' => $response_code));
-        $html = wp_remote_retrieve_body($response);
-        if ($response_code >= 400 && (!is_string($html) || '' === trim($html) || false === stripos($html, '<html'))) {
-            self::mark_artifact_status($url, 'failed', 'HTTP ' . $response_code);
+        self::mark_artifact_status($url, 'validating', __('HTML-response wordt gevalideerd voor CSS-opbouw.', 'ultracache-pro'), array('http_status' => $response_code));
+        if (200 !== $response_code) {
+            self::mark_artifact_status($url, 'failed', sprintf(__('HTTP %d.', 'ultracache-pro'), $response_code));
             return false;
-        }
-        if ($response_code >= 400 && class_exists('UCP_Logger')) {
-            // Note: sommige hosts leveren bruikbare HTML met HTTP 500; gebruik de HTML voor CSS-artifacts maar log de serverstatus.
-            UCP_Logger::log('warning', 'css_generator', 'css_artifact_http_status_ignored', 'CSS-opbouw gebruikt HTML ondanks foutstatus.', array('url' => esc_url_raw($url), 'http_status' => $response_code));
         }
 
-        if (!is_string($html) || '' === trim($html)) {
-            self::mark_artifact_status($url, 'failed', 'Lege HTML-response.');
+        $content_type = strtolower(trim((string) wp_remote_retrieve_header($response, 'content-type')));
+        $content_type = trim((string) strtok($content_type, ';'));
+        if (!in_array($content_type, array('text/html', 'application/xhtml+xml'), true)) {
+            self::mark_artifact_status($url, 'failed', __('Ongeldig HTML-contenttype.', 'ultracache-pro'));
+            return false;
+        }
+
+        $html = UCP_Helpers::bounded_remote_response_body($response, 5 * MB_IN_BYTES);
+        if (false === $html) {
+            self::mark_artifact_status($url, 'failed', __('HTML-response is te groot of mogelijk afgekapt.', 'ultracache-pro'));
+            return false;
+        }
+        $looks_like_document = is_string($html)
+            && '' !== trim($html)
+            && (false !== stripos($html, '<!doctype html') || false !== stripos($html, '<html'))
+            && false !== stripos($html, '</html>');
+        if (!$looks_like_document) {
+            self::mark_artifact_status($url, 'failed', __('Onvolledige HTML-response.', 'ultracache-pro'));
             return false;
         }
 
         $stylesheet_links = self::collect_stylesheet_links($html);
         if (empty($stylesheet_links)) {
-            self::mark_artifact_status($url, 'skipped', 'Geen stylesheet-links gevonden om te optimaliseren.');
-            UCP_Helpers::log('CSS-opbouw overgeslagen omdat er geen stylesheet-links zijn gevonden voor ' . $url);
+            self::mark_artifact_status($url, 'skipped', __('Geen stylesheet-links gevonden om te optimaliseren.', 'ultracache-pro'));
+            UCP_Helpers::log(sprintf(__('CSS-opbouw is overgeslagen omdat geen stylesheetlinks zijn gevonden voor %s', 'ultracache-pro'), $url));
             return true;
         }
 
         $css_blob = self::collect_local_stylesheet_css($stylesheet_links);
+        if (false === $css_blob) {
+            self::mark_artifact_status($url, 'failed', __('Lokale CSS-bronnen zijn te groot of veranderden tijdens het lezen.', 'ultracache-pro'));
+            return false;
+        }
         if ('' === trim($css_blob)) {
-            self::mark_artifact_status($url, 'skipped', 'Geen lokale CSS-inhoud gevonden om te optimaliseren.');
-            UCP_Helpers::log('CSS-opbouw overgeslagen omdat er geen lokale CSS-inhoud is gevonden voor ' . $url);
+            self::mark_artifact_status($url, 'skipped', __('Geen lokale CSS-inhoud gevonden om te optimaliseren.', 'ultracache-pro'));
+            UCP_Helpers::log(sprintf(__('CSS-opbouw is overgeslagen omdat geen lokale CSS-inhoud is gevonden voor %s', 'ultracache-pro'), $url));
             return true;
         }
+        do_action('ucp_operation_heartbeat');
 
         $instance = UCP_Helpers::new_without_constructor(__CLASS__);
         $used_css = $instance->extract_used_css($css_blob, $html);
+        do_action('ucp_operation_heartbeat');
         $validation = self::validate_artifact($used_css, false);
         if (!$validation['ok']) {
             self::mark_artifact_status($url, 'failed', $validation['message']);
-            UCP_Helpers::log('CSS-artifact afgekeurd voor ' . $url . ': ' . $validation['message']);
+            UCP_Helpers::log(sprintf(__('CSS-artifact is afgekeurd voor %1$s: %2$s', 'ultracache-pro'), $url, $validation['message']));
             return false;
         }
 
@@ -97,42 +120,16 @@ trait UCP_CSS_Generation_Trait {
             $critical_validation = self::validate_artifact($critical, true);
             if (!$critical_validation['ok']) {
                 self::mark_artifact_status($url, 'failed', $critical_validation['message']);
-                UCP_Helpers::log('Critical CSS-artifact afgekeurd voor ' . $url . ': ' . $critical_validation['message']);
+                UCP_Helpers::log(sprintf(__('Kritieke-CSS-artifact is afgekeurd voor %1$s: %2$s', 'ultracache-pro'), $url, $critical_validation['message']));
                 return false;
             }
         }
 
-        $backups = self::backup_artifacts($used_path, $critical_path);
-        $used_tmp = $used_path . '.tmp';
-        $critical_tmp = $critical_path . '.tmp';
-        $used_written = UCP_Helpers::write_file($used_tmp, $used_css);
-        $critical_written = true;
-        if ('' !== $critical) {
-            $critical_written = UCP_Helpers::write_file($critical_tmp, $critical);
-        }
-
-        if (!$used_written || !$critical_written) {
-            self::cleanup_temp_artifacts($used_tmp, $critical_tmp);
-            self::restore_artifact_backups($backups, $used_path, $critical_path);
-            self::cleanup_artifact_backups($backups);
-            self::mark_artifact_status($url, 'failed', 'Kon tijdelijke CSS-artifacts niet schrijven.');
+        if (!self::persist_artifacts($url, $used_css, $critical)) {
+            self::mark_artifact_status($url, 'failed', __('Kon CSS-artifacts niet transactioneel activeren.', 'ultracache-pro'));
             return false;
         }
-
-        $renamed = UCP_Helpers::move_file($used_tmp, $used_path);
-        if ('' !== $critical) {
-            $renamed = UCP_Helpers::move_file($critical_tmp, $critical_path) && $renamed;
-        }
-
-        if (!$renamed) {
-            self::cleanup_temp_artifacts($used_tmp, $critical_tmp);
-            self::restore_artifact_backups($backups, $used_path, $critical_path);
-            self::cleanup_artifact_backups($backups);
-            self::mark_artifact_status($url, 'failed', 'Kon CSS-artifacts niet activeren.');
-            return false;
-        }
-
-        self::cleanup_artifact_backups($backups);
+        do_action('ucp_operation_heartbeat');
 
         $css_profile_summary = array();
         if (class_exists('UCP_CSS_Profile')) {
@@ -145,11 +142,11 @@ trait UCP_CSS_Generation_Trait {
             );
         }
 
-        self::mark_artifact_status($url, 'success', 'CSS-artifacts succesvol opgebouwd.', array_merge(array(
+        self::mark_artifact_status($url, 'success', __('CSS-artifacts succesvol opgebouwd.', 'ultracache-pro'), array_merge(array(
             'used_bytes' => strlen($used_css),
             'critical_bytes' => strlen($critical),
         ), $css_profile_summary));
-        UCP_Helpers::log('Generated local CSS artifacts for ' . $url);
+        UCP_Helpers::log(sprintf(__('Lokale CSS-artifacts zijn gegenereerd voor %s', 'ultracache-pro'), $url));
         return true;
     }
 
@@ -161,7 +158,7 @@ trait UCP_CSS_Generation_Trait {
      * @return array<int,array<string,string>>
      */
     private static function collect_stylesheet_links($html) {
-        preg_match_all('#<link\b(?=[^>]*\brel=["\']stylesheet["\'])(?=[^>]*\bhref=["\']([^"\']+)["\'])[^>]*>#i', (string) $html, $matches);
+        preg_match_all('#<link\b(?=(?:"[^"]*"|\'[^\']*\'|[^\'">])*\brel=["\']stylesheet["\'])(?=(?:"[^"]*"|\'[^\']*\'|[^\'">])*\bhref=["\']([^"\']+)["\'])(?:"[^"]*"|\'[^\']*\'|[^\'">])*>#i', (string) $html, $matches);
         $links = array();
         foreach ((array) ($matches[1] ?? array()) as $index => $href) {
             $links[] = array(
@@ -176,19 +173,47 @@ trait UCP_CSS_Generation_Trait {
      * Read same-origin CSS files referenced by stylesheet links.
      *
      * @param array $stylesheet_links Stylesheet link data.
-     * @return string
+     * @return string|false
      */
     private static function collect_local_stylesheet_css($stylesheet_links) {
+        $max_bytes = absint(apply_filters('ucp_css_source_max_bytes', 4 * MB_IN_BYTES, $stylesheet_links));
+        $max_bytes = max(256 * KB_IN_BYTES, min(4 * MB_IN_BYTES, $max_bytes));
         $css_blob = '';
+        $seen = array();
+
         foreach ((array) $stylesheet_links as $link) {
+            do_action('ucp_operation_heartbeat');
             $href = isset($link['href']) ? (string) $link['href'] : '';
             if (!UCP_Helpers::is_local_url($href)) {
                 continue;
             }
             $path = UCP_Helpers::local_path_from_url($href);
-            if ($path && is_file($path) && preg_match('~\.css$~i', $path)) {
-                $css_blob .= "\n" . (string) UCP_Helpers::read_file($path);
+            if (!$path || !is_file($path) || !preg_match('~\.css$~i', $path)) {
+                continue;
             }
+
+            $canonical_path = realpath($path);
+            $canonical_path = false !== $canonical_path ? $canonical_path : $path;
+            if (isset($seen[$canonical_path])) {
+                continue;
+            }
+            $seen[$canonical_path] = true;
+
+            clearstatcache(true, $path);
+            $size = filesize($path);
+            $remaining = $max_bytes - strlen($css_blob) - 1;
+            if (false === $size || $size < 1) {
+                continue;
+            }
+            if ($remaining < 1 || $size >= $remaining) {
+                return false;
+            }
+
+            $content = UCP_Helpers::read_file_head($path, $remaining);
+            if (!is_string($content) || strlen($content) !== (int) $size) {
+                return false;
+            }
+            $css_blob .= "\n" . $content;
         }
         return $css_blob;
     }

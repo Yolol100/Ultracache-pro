@@ -13,7 +13,13 @@ trait UCP_Options_Defaults_Trait {
         try {
             return substr(bin2hex(random_bytes((int) ceil($length / 2))), 0, $length);
         } catch (Exception $e) {
-            return substr(md5(uniqid('ucp', true)), 0, $length);
+            $alphabet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            $key = '';
+            $max = strlen($alphabet) - 1;
+            for ($i = 0; $i < $length; $i++) {
+                $key .= $alphabet[wp_rand(0, $max)];
+            }
+            return $key;
         }
     }
 
@@ -42,7 +48,7 @@ trait UCP_Options_Defaults_Trait {
 
 
     /**
-     * Return WP Rocket-style automatic defaults that should stay managed by the plugin.
+     * Return conservative automatic defaults that should stay managed by the plugin.
      *
      * These are intentionally conservative for webshops: safe baseline features are kept on,
      * while high-risk render-changing optimizations remain opt-in.
@@ -56,7 +62,7 @@ trait UCP_Options_Defaults_Trait {
             'woocommerce_safety_mode'         => 1,
             'enable_cache'                    => 1,
             'cache_logged_in'                 => 0,
-            'cache_mobile_separately'         => 1,
+            'cache_mobile_separately'         => 0,
             'cache_query_strings'             => 0,
             'cache_query_string_inclusions'  => "lang\ncurrency\nv\norderby\nmin_price\nmax_price\nrating_filter\nfilter_*\nquery_type_*\n_paged\nproduct-page\nproduct-page-*",
             'enable_woocommerce_rules'        => 1,
@@ -79,13 +85,13 @@ trait UCP_Options_Defaults_Trait {
             'enable_used_css_delivery'        => 0,
             'enable_critical_css'             => 0,
             'enable_css_queue'                => 0,
-            'enable_lazy_images'              => 1,
+            'enable_lazy_images'              => 0,
             'enable_lazy_iframes'             => 0,
             'enable_lazy_youtube_preview'     => 0,
             'enable_add_image_dimensions'     => 1,
             'enable_html_parser'              => 0,
             'enable_font_display_swap'        => 1,
-            'enable_local_google_fonts'       => 1,
+            'enable_local_google_fonts'       => 0,
             'enable_remove_emojis'            => 1,
             'enable_disable_embeds'           => 1,
             'enable_prefetch_links'           => 0,
@@ -111,7 +117,7 @@ trait UCP_Options_Defaults_Trait {
             'allow_dropin_takeover'           => 0,
             'allow_browser_cache_rule_writes' => 0,
             'enable_diagnostics'              => 1,
-            'enable_logs'                     => 1,
+            'enable_logs'                     => 0,
             'enable_health_checks'            => 1,
             'enable_admin_queue_runner'       => 0,
         );
@@ -128,20 +134,83 @@ trait UCP_Options_Defaults_Trait {
     /**
      * Return setting keys that are managed automatically and hidden from the normal UI.
      *
-     * @return array<int,string>
+     * @return array<string,array<int,string>>
      */
+    public static function protected_rule_defaults() {
+        $defaults = self::defaults();
+        $preset = class_exists('UCP_Preset_Registry') && method_exists('UCP_Preset_Registry', 'pagespeed_auto_overrides')
+            ? UCP_Preset_Registry::pagespeed_auto_overrides()
+            : array();
+        $keys = array('exclude_urls', 'preload_exclude_urls', 'speculation_exclusions');
+        $result = array();
+
+        foreach ($keys as $key) {
+            $lines = array();
+            foreach (array($defaults, $preset) as $source) {
+                if (empty($source[$key])) {
+                    continue;
+                }
+                $lines = array_merge($lines, preg_split('/\r?\n/', (string) $source[$key]));
+            }
+            $lines = array_map('trim', $lines);
+            $lines = array_filter($lines, static function($line) {
+                return '' !== $line;
+            });
+            $result[$key] = array_values(array_unique($lines));
+        }
+
+        return $result;
+    }
+
     public static function automatic_managed_keys() {
-        return array_values(array_unique(array_merge(
-            array_keys(self::automatic_managed_settings()),
-            array(
-                'browser_cache_mode',
-                'google_fonts_mode',
-                'media_lazyload_mode',
-                'preload_mode',
-                'query_string_cache_mode',
-                'delay_js_control'
-            )
-        )));
+        $keys = array(
+            'wp_rocket_style_defaults',
+            'compatibility_mode',
+            'woocommerce_safety_mode',
+            'cache_mobile_separately',
+            'enable_targeted_purge',
+            'enable_cache_tags',
+            'purge_on_post_update',
+            'purge_on_extension_change',
+            'purge_on_core_update',
+            'purge_on_global_change',
+            'purge_on_comment',
+            'purge_on_theme_switch',
+            'enable_preload_queue',
+            'preload_homepage',
+            'preload_sitemaps',
+            'preload_pause_on_high_load',
+            'preload_max_server_load',
+            'preload_menu_urls_limit',
+            'preload_recent_purge_limit',
+            'enable_prefetch_links',
+            'enable_speculative_loading',
+            'speculation_mode',
+            'speculation_eagerness',
+            'enable_auto_font_preloads',
+            'enable_gzip_precompression',
+            'enable_brotli_precompression',
+            'enable_object_cache_support',
+            'object_cache_fail_safe',
+            'enable_dynamic_compatibility_rules',
+            'compat_profile_mode',
+            'enable_cache_insights',
+            'cache_insights_sample_rate',
+            'cache_insights_retention_days',
+            'enable_diagnostics',
+            'enable_logs',
+            'enable_health_checks',
+            'log_retention_days',
+            'diagnostics_retention_days',
+            'job_retention_days',
+            'job_batch_size',
+            'job_max_attempts',
+            'job_lock_ttl',
+            'enable_admin_queue_runner',
+            'enable_rum'
+        );
+
+        return array_values(array_unique($keys));
     }
 
     public static function defaults() {

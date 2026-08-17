@@ -5,6 +5,28 @@ if (!defined('ABSPATH')) {
 }
 
 trait UCP_Cache_Purge_Content_Events_Trait {
+    /** @var array<int,string> Published URLs captured before a slug change or deletion. */
+    protected $pre_update_permalinks = array();
+
+    /**
+     * Capture the old public URL while the existing post row is still available.
+     *
+     * @param int   $post_id Post ID.
+     * @param mixed $data    Update data or post object, depending on the hook.
+     * @return void
+     */
+    public function capture_old_permalink($post_id, $data = null) {
+        $post_id = absint($post_id);
+        if (!$post_id || wp_is_post_revision($post_id)) {
+            return;
+        }
+        $url = get_permalink($post_id);
+        $url = $url ? UCP_Helpers::strict_local_url($url) : '';
+        if ($url) {
+            $this->pre_update_permalinks[$post_id] = $url;
+        }
+    }
+
     /**
      * Prevent repeated purges for the same content event in a single request.
      *
@@ -70,8 +92,14 @@ trait UCP_Cache_Purge_Content_Events_Trait {
      */
     protected function purge_and_queue_related_urls($urls) {
         $urls = $this->normalize_local_url_list($urls);
-        if (empty($urls)) {
+        $requires_full_purge = $this->always_purge_requires_full_purge;
+        $this->always_purge_requires_full_purge = false;
+
+        if ($requires_full_purge || empty($urls)) {
             $this->purge_all();
+            foreach ($urls as $url) {
+                $this->queue_preload_url($url);
+            }
             return;
         }
 
@@ -97,6 +125,10 @@ trait UCP_Cache_Purge_Content_Events_Trait {
 
         if (UCP_Options::get('enable_targeted_purge')) {
             $urls = array_merge($this->related_urls_for_post($post_id, $post), $this->configured_always_purge_urls());
+            if (!empty($this->pre_update_permalinks[$post_id])) {
+                $urls[] = $this->pre_update_permalinks[$post_id];
+                unset($this->pre_update_permalinks[$post_id]);
+            }
             if (class_exists('UCP_Cache_Tags') && UCP_Cache_Tags::enabled()) {
                 $urls = array_merge($urls, UCP_Cache_Tags::urls_for_post($post_id, $post));
             }
@@ -146,6 +178,10 @@ trait UCP_Cache_Purge_Content_Events_Trait {
         }
         if (UCP_Options::get('enable_targeted_purge')) {
             $urls = array_merge(array(home_url('/')), $this->configured_always_purge_urls());
+            if (!empty($this->pre_update_permalinks[$post_id])) {
+                $urls[] = $this->pre_update_permalinks[$post_id];
+                unset($this->pre_update_permalinks[$post_id]);
+            }
             $this->purge_urls($urls);
             foreach ($urls as $url) {
                 $this->queue_preload_url($url);
@@ -285,9 +321,11 @@ trait UCP_Cache_Purge_Content_Events_Trait {
      * @param array  $terms     Term IDs or slugs.
      * @param array  $tt_ids    Term taxonomy IDs.
      * @param string $taxonomy  Taxonomy slug.
+     * @param bool   $append    Whether terms were appended.
+     * @param array  $old_tt_ids Previous term taxonomy IDs.
      * @return void
      */
-    public function purge_on_object_terms_change($object_id = 0, $terms = array(), $tt_ids = array(), $taxonomy = '') {
+    public function purge_on_object_terms_change($object_id = 0, $terms = array(), $tt_ids = array(), $taxonomy = '', $append = false, $old_tt_ids = array()) {
         $object_id = absint($object_id);
         $taxonomy = sanitize_key((string) $taxonomy);
         if (!$object_id || !$taxonomy || $this->already_purged_content_event('object_terms_' . $taxonomy . '_' . $object_id)) {

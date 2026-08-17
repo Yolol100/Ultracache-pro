@@ -15,20 +15,25 @@ trait UCP_Cache_Purge_Trait {
 
 
 class UCP_Cache {
+    private const CACHE_HIT_PRIORITY = 0;
+    private const CACHE_BUFFER_PRIORITY = 1;
+
     use UCP_Cache_Request_Policy_Trait;
     use UCP_Cache_Storage_Trait;
     use UCP_Cache_Purge_Trait;
     use UCP_Cache_Admin_Bar_Trait;
 
     protected $bypass_reason = '';
+    protected $cache_policy_decision = null;
+    protected $always_purge_requires_full_purge = false;
 
     public function __construct() {
-        add_action('template_redirect', array($this, 'maybe_serve_cache'), 0);
-        add_action('template_redirect', array($this, 'start_buffering'), 9999);
+        add_action('template_redirect', array($this, 'maybe_serve_cache'), self::CACHE_HIT_PRIORITY);
+        add_action('template_redirect', array($this, 'start_buffering'), self::CACHE_BUFFER_PRIORITY);
         $this->register_purge_events();
         add_action('admin_bar_menu', array($this, 'admin_bar'), 100);
-        add_action('admin_head', array($this, 'admin_bar_styles'));
-        add_action('wp_head', array($this, 'admin_bar_styles'));
+        add_action('admin_enqueue_scripts', array($this, 'admin_bar_styles'));
+        add_action('wp_enqueue_scripts', array($this, 'admin_bar_styles'));
         add_action('admin_post_ucp_purge_all', array($this, 'handle_purge_all'));
         add_action('admin_post_ucp_purge_url', array($this, 'handle_purge_url'));
         add_action('admin_post_ucp_purge_and_preload', array($this, 'handle_purge_and_preload'));
@@ -36,6 +41,10 @@ class UCP_Cache {
     }
 
     protected function register_purge_events() {
+        // Capture the currently published URL before WordPress changes or deletes the slug.
+        add_action('pre_post_update', array($this, 'capture_old_permalink'), 10, 2);
+        add_action('before_delete_post', array($this, 'capture_old_permalink'), 10, 2);
+
         $post_events = apply_filters('ucp_purge_post_events', array(
             'save_post'    => array('callback' => 'purge_on_save', 'priority' => 20, 'args' => 2),
             'deleted_post' => array('callback' => 'purge_on_delete', 'priority' => 20, 'args' => 1),
@@ -53,13 +62,21 @@ class UCP_Cache {
         $all_events = apply_filters('ucp_purge_all_events', array(
             'switch_theme',
             'comment_post',
+            'edit_comment',
             'wp_set_comment_status',
             'delete_term',
             'wp_update_nav_menu',
             'wp_delete_nav_menu',
             'update_option_sidebars_widgets',
             'customize_save_after',
+            'profile_update',
+            'deleted_user',
+            'set_user_role',
             'permalink_structure_changed',
+            'update_option_blog_public',
+            'update_option_show_on_front',
+            'update_option_page_on_front',
+            'update_option_page_for_posts',
             'woocommerce_settings_saved',
             'elementor/core/files/clear_cache',
             'fl_builder_cache_cleared',
@@ -68,6 +85,11 @@ class UCP_Cache {
             if (is_string($hook) && '' !== $hook) {
                 add_action($hook, array($this, 'purge_on_global_change'), 20);
             }
+        }
+
+        $stylesheet = function_exists('get_option') ? sanitize_key((string) get_option('stylesheet')) : '';
+        if ('' !== $stylesheet) {
+            add_action('update_option_theme_mods_' . $stylesheet, array($this, 'purge_on_global_change'), 20);
         }
 
         $extension_events = apply_filters('ucp_purge_extension_events', array(
@@ -83,6 +105,10 @@ class UCP_Cache {
         }
         add_action('upgrader_process_complete', array($this, 'purge_on_upgrader_process_complete'), 20, 2);
         add_action('_core_updated_successfully', array($this, 'purge_on_core_updated'), 20);
+        add_action('profile_update', array($this, 'purge_logged_in_user_cache'), 20, 1);
+        add_action('deleted_user', array($this, 'purge_logged_in_user_cache'), 20, 1);
+        add_action('set_user_role', array($this, 'purge_logged_in_user_cache'), 20, 1);
+        add_action('password_reset', array($this, 'purge_logged_in_user_cache'), 20, 1);
 
         add_action('create_term', array($this, 'purge_on_term_change'), 20, 3);
         add_action('created_term', array($this, 'purge_on_term_change'), 20, 3);

@@ -24,6 +24,12 @@ trait UCP_Diagnostics_Record_Trait {
     }
 
     public static function record($component, $message, $context = array()) {
+        if (!is_scalar($component) && null !== $component) {
+            $component = '';
+        }
+        if (!is_scalar($message) && null !== $message) {
+            $message = '';
+        }
         if (!class_exists('UCP_Options') || !UCP_Options::get('enable_diagnostics')) {
             return;
         }
@@ -55,17 +61,27 @@ trait UCP_Diagnostics_Record_Trait {
         }
         $clean = array();
         foreach ($context as $key => $value) {
+            if (count($clean) >= 32) {
+                break;
+            }
             $key = sanitize_key((string) $key);
+            if ('' === $key) {
+                continue;
+            }
             if (self::is_sensitive_context_key($key)) {
                 $clean[$key] = '[redacted]';
                 continue;
             }
             if (is_scalar($value) || null === $value) {
-                $clean[$key] = is_string($value) ? sanitize_text_field($value) : $value;
+                if (is_string($value) && preg_match('#^https?://#i', $value) && method_exists('UCP_Helpers', 'redact_log_url')) {
+                    $clean[$key] = UCP_Helpers::redact_log_url($value);
+                } else {
+                    $clean[$key] = is_string($value) ? substr(sanitize_text_field($value), 0, 512) : $value;
+                }
             } elseif (is_array($value)) {
                 $clean[$key] = array_map(function($item) {
-                    return is_scalar($item) ? sanitize_text_field((string) $item) : '[complex]';
-                }, $value);
+                    return is_scalar($item) ? substr(sanitize_text_field((string) $item), 0, 256) : '[complex]';
+                }, array_slice($value, 0, 20, true));
             } else {
                 $clean[$key] = '[complex]';
             }
@@ -82,7 +98,9 @@ trait UCP_Diagnostics_Storage_Trait {
         if (empty($entries) || is_admin() || !UCP_Options::get('enable_diagnostics')) {
             return;
         }
-        $url = UCP_Helpers::current_full_url();
+        $raw_url = UCP_Helpers::current_full_url();
+        $url = method_exists('UCP_Helpers', 'redact_log_url') ? UCP_Helpers::redact_log_url($raw_url) : esc_url_raw($raw_url);
+        $url = UCP_Helpers::sanitize_preg_replace('/\?.*$/', '', (string) $url);
         $path = wp_parse_url($url, PHP_URL_PATH);
         $path = $path ? $path : '/';
         $request_type = UCP_Helpers::current_request_category();
@@ -101,6 +119,7 @@ trait UCP_Diagnostics_Storage_Trait {
             'delay_exclusions' => UCP_Helpers::normalize_multiline(UCP_Options::get('delay_js_exclusions', '')),
         );
 
+        $entries = array_slice(array_values(array_filter($entries, 'is_array')), -100);
         $payload = array(
             'generated_at'   => gmdate('c'),
             'url'            => esc_url_raw($url),
@@ -113,7 +132,7 @@ trait UCP_Diagnostics_Storage_Trait {
             'asset_summary'  => $asset_summary,
         );
 
-        UCP_Helpers::write_file(self::get_file($url), wp_json_encode($payload, JSON_PRETTY_PRINT));
+        UCP_Helpers::write_json_file_atomic(self::get_file($url), $payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
         // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- plugin-owned custom table query with controlled SQL fragments.
         $wpdb->insert(
             ucp_table_name('diagnostics'),
@@ -123,10 +142,10 @@ trait UCP_Diagnostics_Storage_Trait {
                 'path'           => sanitize_text_field($path),
                 'request_type'   => sanitize_key($request_type),
                 'cache_decision' => sanitize_key($cache_decision),
-                'rule_matches'   => wp_json_encode($rules),
-                'module_flags'   => wp_json_encode($module_flags),
-                'asset_summary'  => wp_json_encode($asset_summary),
-                'notes'          => wp_json_encode($entries),
+                'rule_matches'   => UCP_Helpers::safe_json_encode_or($rules, '[]'),
+                'module_flags'   => UCP_Helpers::safe_json_encode_or($module_flags, '{}'),
+                'asset_summary'  => UCP_Helpers::safe_json_encode_or($asset_summary, '{}'),
+                'notes'          => UCP_Helpers::safe_json_encode_or($entries, '[]'),
                 'generated_at'   => current_time('mysql', true),
             ),
             array('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')
@@ -142,8 +161,7 @@ trait UCP_Diagnostics_Storage_Trait {
         if (!is_readable($file)) {
             return array();
         }
-        $decoded = json_decode(UCP_Helpers::read_file($file), true);
-        return is_array($decoded) ? $decoded : array();
+        return UCP_Helpers::safe_json_decode_array(UCP_Helpers::read_file($file, 2 * MB_IN_BYTES));
     }
 }
 
@@ -152,7 +170,7 @@ trait UCP_Diagnostics_Storage_Trait {
 
 trait UCP_Diagnostics_Query_Trait {
     public static function latest_files() {
-        $files = glob(UCP_CACHE_DIR . 'diagnostics/*.json');
+        $files = UCP_Helpers::safe_glob_files(UCP_CACHE_DIR . 'diagnostics/*.json', 500);
         if (empty($files)) {
             return array();
         }
@@ -163,6 +181,9 @@ trait UCP_Diagnostics_Query_Trait {
     }
 
     public static function recent_rows($limit = 20) {
+        if (!is_scalar($limit) && null !== $limit) {
+            $limit = 20;
+        }
         $result = self::query(
             array(
                 'per_page' => max(1, absint($limit)),
@@ -194,12 +215,15 @@ trait UCP_Diagnostics_Query_Trait {
             $where[] = 'cache_decision = %s';
             $params[] = sanitize_key($args['cache_decision']);
         }
-        if (!empty($args['search'])) {
-            $like = '%' . $wpdb->esc_like(wp_unslash($args['search'])) . '%';
-            $where[] = '(url LIKE %s OR path LIKE %s OR notes LIKE %s)';
-            $params[] = $like;
-            $params[] = $like;
-            $params[] = $like;
+        if (!empty($args['search']) && (is_scalar($args['search']) || null === $args['search'])) {
+            $search = substr(sanitize_text_field(wp_unslash((string) $args['search'])), 0, 200);
+            if ('' !== $search) {
+                $like = '%' . $wpdb->esc_like($search) . '%';
+                $where[] = '(url LIKE %s OR path LIKE %s OR notes LIKE %s)';
+                $params[] = $like;
+                $params[] = $like;
+                $params[] = $like;
+            }
         }
 
         $where_sql = implode(' AND ', $where);
@@ -209,7 +233,7 @@ trait UCP_Diagnostics_Query_Trait {
         // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter -- SQL is assembled from fixed fragments and prepared values above.
         $total = (int) $wpdb->get_var($prepared_count);
 
-        $per_page = max(1, absint($args['per_page']));
+        $per_page = min(100, max(1, absint($args['per_page'])));
         $paged = max(1, absint($args['paged']));
         $offset = ($paged - 1) * $per_page;
 

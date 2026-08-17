@@ -6,7 +6,7 @@ if (!defined('ABSPATH')) {
 
 trait UCP_Admin_Notices_Render_Trait {
     public function hide_third_party_notices() {
-        $page = /* phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only admin routing/filter parameter. */ isset($_GET['page']) ? sanitize_key(wp_unslash($_GET['page'])) : '';
+        $page = /* phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only admin routing/filter parameter. */ isset($_GET['page']) && is_scalar($_GET['page']) ? sanitize_key(wp_unslash($_GET['page'])) : '';
         if ('ultracache-pro' !== $page) {
             return;
         }

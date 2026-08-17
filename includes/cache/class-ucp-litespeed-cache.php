@@ -15,6 +15,7 @@ class UCP_LiteSpeed_Cache {
     const BACKEND_AUTO = 'auto';
     const BACKEND_DISK = 'disk';
     const BACKEND_LITESPEED = 'litespeed';
+    private const CACHE_BUFFER_PRIORITY = 1;
 
     /**
      * Whether the current response buffer is already owned by this bridge.
@@ -39,7 +40,7 @@ class UCP_LiteSpeed_Cache {
 
     public function __construct() {
         add_action('send_headers', array($this, 'send_default_bypass'), 8);
-        add_action('template_redirect', array($this, 'start_buffering'), 9998);
+        add_action('template_redirect', array($this, 'start_buffering'), self::CACHE_BUFFER_PRIORITY);
         add_action('ucp_cache_purged_all', array(__CLASS__, 'purge_all'));
         add_action('ucp_cache_purged_url', array(__CLASS__, 'purge_url'));
         add_action('ucp_cache_purged_urls', array(__CLASS__, 'purge_urls'));
@@ -88,6 +89,12 @@ class UCP_LiteSpeed_Cache {
                 return self::BACKEND_DISK;
             }
 
+            // LiteSpeed varies on exact cookie names, while this plugin intentionally supports
+            // configured cookie-name prefixes. Keep that contract safe by using the disk backend.
+            if (self::has_fragment_cookie_variation()) {
+                return self::BACKEND_DISK;
+            }
+
             $backend = self::configured_backend();
             if (self::BACKEND_DISK === $backend) {
                 return self::BACKEND_DISK;
@@ -101,6 +108,24 @@ class UCP_LiteSpeed_Cache {
         } finally {
             self::$resolving_backend = false;
         }
+    }
+
+    /**
+     * Whether prefix-based cookie variation requires the disk cache backend.
+     *
+     * @return bool
+     */
+    protected static function has_fragment_cookie_variation() {
+        if (!class_exists('UCP_Options')) {
+            return false;
+        }
+
+        $configured = (string) UCP_Options::get('cache_vary_cookies', '');
+        if (class_exists('UCP_Helpers')) {
+            return !empty(UCP_Helpers::normalize_multiline($configured));
+        }
+
+        return '' !== trim($configured);
     }
 
     /**
@@ -223,7 +248,7 @@ class UCP_LiteSpeed_Cache {
         }
 
         $status_code = function_exists('http_response_code') ? (int) http_response_code() : 200;
-        if ($status_code >= 300) {
+        if (200 !== $status_code) {
             $this->send_bypass_headers('status_' . $status_code);
             UCP_Diagnostics::record('cache', 'LiteSpeed backend bypassed non-cacheable response status', array('status' => $status_code));
             return $html;
@@ -240,6 +265,30 @@ class UCP_LiteSpeed_Cache {
             UCP_Diagnostics::record('cache', 'LiteSpeed backend bypassed response after header/cookie inspection', $uncacheable);
             return $html;
         }
+        if (!empty($uncacheable['safe_cookies']) || !empty($uncacheable['unknown_cookies'])) {
+            $this->send_bypass_headers('response_set_cookie');
+            UCP_Diagnostics::record('cache', 'LiteSpeed backend bypassed a cookie-producing response so cached headers cannot replay Set-Cookie', $uncacheable);
+            return $html;
+        }
+
+        $content_type = 'text/html; charset=' . get_bloginfo('charset');
+        foreach (headers_list() as $response_header) {
+            if (0 === stripos((string) $response_header, 'Content-Type:')) {
+                $candidate_type = trim(substr((string) $response_header, strlen('Content-Type:')));
+                if (preg_match('/^[a-z0-9.+-]+\/[a-z0-9.+-]+(?:;\s*charset=[a-z0-9_-]+)?$/i', $candidate_type)) {
+                    $content_type = $candidate_type;
+                }
+                break;
+            }
+        }
+        $policy = UCP_Cache_Policy::decision_for_current_request(UCP_Options::get_all());
+        $is_feed_policy = !empty($policy['matched']) && 'cache' === $policy['action'] && 'feed' === $policy['scope'];
+        if (!UCP_Cache_Policy::response_content_type_is_page_cacheable($content_type, $is_feed_policy)
+            || !UCP_Cache_Policy::response_body_is_complete($html, $content_type)) {
+            $this->send_bypass_headers('response_representation');
+            UCP_Diagnostics::record('cache', 'LiteSpeed backend bypassed a non-page or incomplete response', array('content_type' => $content_type));
+            return $html;
+        }
 
         if (!$this->can_manage_response_headers()) {
             return $html;
@@ -251,8 +300,8 @@ class UCP_LiteSpeed_Cache {
         header('X-UltraCache: LITESPEED-MISS', true);
         header('X-UltraCache-LiteSpeed: cache', true);
         header('X-UltraCache-LiteSpeed-Bridge: auto-detected', true);
-        header('Cache-Control: public, max-age=0, s-maxage=' . (int) $this->ttl(), true);
-        header('Vary: Accept-Encoding', false);
+        header('Cache-Control: public, max-age=0, must-revalidate, s-maxage=' . (int) $this->ttl(), true);
+        header('Vary: ' . (UCP_Options::get('cache_mobile_separately') ? 'Accept, Accept-Encoding, User-Agent' : 'Accept, Accept-Encoding'), false);
 
         $tags = $this->current_tags();
         if (!empty($tags)) {
@@ -392,8 +441,12 @@ class UCP_LiteSpeed_Cache {
     /**
      * Response-level vetoes: status/cache headers and Set-Cookie safety.
      *
-     * @return array<string,mixed>
+     * @return bool
      */
+    protected function response_vary_is_unsupported($raw_header) {
+        return UCP_Cache_Policy::response_vary_is_unsupported($raw_header);
+    }
+
     protected function response_uncacheable_details() {
         $safe_set_cookies = array();
         $unknown_set_cookies = array();
@@ -402,7 +455,8 @@ class UCP_LiteSpeed_Cache {
             $raw_header = (string) $header_line;
             $header_line = strtolower($raw_header);
 
-            if (0 === strpos($header_line, 'cache-control:') && (false !== strpos($header_line, 'no-cache') || false !== strpos($header_line, 'no-store') || false !== strpos($header_line, 'private'))) {
+            if (0 === strpos($header_line, 'cache-control:')
+                && UCP_Cache_Policy::cache_control_disallows_shared_storage(trim(substr($raw_header, strlen('cache-control:'))))) {
                 return array(
                     'blocked' => true,
                     'reason'  => 'response_cache_control',
@@ -410,10 +464,10 @@ class UCP_LiteSpeed_Cache {
                 );
             }
 
-            if (0 === strpos($header_line, 'vary:') && preg_match('/(^|[,\s])(cookie|authorization|x-wp-nonce)([,\s]|$)/i', $raw_header)) {
+            if (0 === strpos($header_line, 'vary:') && $this->response_vary_is_unsupported($raw_header)) {
                 return array(
                     'blocked' => true,
-                    'reason'  => 'response_vary_sensitive',
+                    'reason'  => 'response_vary_unsupported',
                     'header'  => $raw_header,
                 );
             }
@@ -422,6 +476,22 @@ class UCP_LiteSpeed_Cache {
                 return array(
                     'blocked' => true,
                     'reason'  => 'response_pragma',
+                    'header'  => $raw_header,
+                );
+            }
+
+            if (0 === strpos($header_line, 'content-encoding:')
+                && UCP_Cache_Policy::response_content_encoding_disallows_storage(trim(substr($raw_header, strlen('content-encoding:'))))) {
+                return array(
+                    'blocked' => true,
+                    'reason'  => 'response_content_encoding',
+                    'header'  => $raw_header,
+                );
+            }
+            if (0 === strpos($header_line, 'content-range:')) {
+                return array(
+                    'blocked' => true,
+                    'reason'  => 'response_partial_content',
                     'header'  => $raw_header,
                 );
             }
@@ -436,7 +506,7 @@ class UCP_LiteSpeed_Cache {
                     );
                 }
 
-                if ($this->cookie_matches_fragments($cookie_name, $this->cache_safe_response_cookie_fragments())) {
+                if ($this->cookie_matches_prefixes($cookie_name, $this->cache_safe_response_cookie_fragments())) {
                     $safe_set_cookies[] = $cookie_name;
                     continue;
                 }
@@ -466,9 +536,12 @@ class UCP_LiteSpeed_Cache {
      * @return string
      */
     protected function response_cookie_name_from_header($raw_header) {
-        $cookie = trim((string) preg_replace('/^set-cookie\s*:/i', '', (string) $raw_header));
+        $cookie = trim((string) UCP_Helpers::sanitize_preg_replace('/^set-cookie\s*:/i', '', (string) $raw_header));
         $name = trim((string) strtok($cookie, '='));
-        return sanitize_key($name);
+        if (1 !== preg_match('/^[!#$%&\'()*+\-.^_`|~0-9A-Za-z]+$/', $name)) {
+            return '';
+        }
+        return $name;
     }
 
     /**
@@ -477,24 +550,29 @@ class UCP_LiteSpeed_Cache {
      * @return bool
      */
     protected function cookie_matches_fragments($cookie_name, $fragments) {
-        $cookie_name = strtolower(sanitize_key((string) $cookie_name));
-        if ('' === $cookie_name) {
-            return false;
-        }
-
-        foreach ((array) $fragments as $fragment) {
-            $fragment = strtolower(sanitize_key((string) $fragment));
-            if ('' !== $fragment && false !== strpos($cookie_name, $fragment)) {
-                return true;
-            }
-        }
-
-        return false;
+        return UCP_Cache_Policy::cookie_name_matches_fragments($cookie_name, $fragments);
     }
 
     /**
-     * @return array<int,string>
+     * @return bool
      */
+    protected function cookie_matches_prefixes($cookie_name, $prefixes) {
+        $cookie_name = (string) $cookie_name;
+        if (1 !== preg_match('/^[!#$%&\'()*+\-.^_`|~0-9A-Za-z]+$/', $cookie_name)) {
+            return false;
+        }
+        foreach ((array) $prefixes as $prefix) {
+            $prefix = trim((string) $prefix);
+            if (1 !== preg_match('/^[!#$%&\'()*+\-.^_`|~0-9A-Za-z]+$/', $prefix)) {
+                continue;
+            }
+            if (0 === strpos($cookie_name, $prefix)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     protected function cache_safe_response_cookie_fragments() {
         return apply_filters('ucp_cache_safe_set_cookie_fragments', array(
             'ct_', 'apbct_', 'ct_sfw', 'cleantalk', 'cookiebot', 'cookie_notice_', 'cmplz_', 'complianz_', 'cookieyes', 'cky-', 'borlabs', 'joinchat_', 'wp-settings-', 'wp-settings-time-', '_ga', '_gid', '_gat', '_gcl_', '_fbp', '_fbc', '_hj', '_clck', '_clsk', '_pk_id', '_pk_ses', '_uetsid', '_uetvid', '_pin_unauth', '_scid', 'li_gc', 'lidc', 'bcookie', 'bscookie', 'tk_ai', '__stripe_mid', '__stripe_sid', '__cf_bm', 'cf_clearance'
@@ -576,7 +654,7 @@ class UCP_LiteSpeed_Cache {
      * @return string
      */
     protected static function sanitize_tag($tag) {
-        $tag = preg_replace('/[^A-Za-z0-9_-]+/', '-', (string) $tag);
+        $tag = UCP_Helpers::sanitize_preg_replace('/[^A-Za-z0-9_-]+/', '-', (string) $tag);
         $tag = trim((string) $tag, '-_');
         if ('' === $tag) {
             return '';
@@ -646,10 +724,11 @@ class UCP_LiteSpeed_Cache {
             return;
         }
 
-        $value = str_replace(array("\r", "\n"), '', (string) $value);
-        if ('' !== $value) {
-            header('X-LiteSpeed-Purge: ' . $value, false);
+        $value = trim(str_replace(array("\r", "\n"), '', (string) $value));
+        if ('' === $value || strlen($value) > 1024 || 1 !== preg_match('/^[A-Za-z0-9_:\/,.?=&%+*~@! -]+$/D', $value)) {
+            return;
         }
+        header('X-LiteSpeed-Purge: ' . $value, false);
     }
 
     /**

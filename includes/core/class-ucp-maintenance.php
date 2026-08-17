@@ -19,6 +19,7 @@ class UCP_Maintenance {
     public static function bootstrap() {
         add_filter('cron_schedules', array(__CLASS__, 'register_schedule'));
         add_action(self::CRON_HOOK, array(__CLASS__, 'run'));
+        self::schedule();
         add_action('admin_post_ucp_run_maintenance', array(__CLASS__, 'handle_manual_run'));
         add_action('admin_init', array(__CLASS__, 'maybe_register_privacy_content'));
         add_filter('wp_privacy_personal_data_exporters', array(__CLASS__, 'register_privacy_exporter'));

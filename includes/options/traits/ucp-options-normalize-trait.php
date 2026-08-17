@@ -5,21 +5,50 @@ if (!defined('ABSPATH')) {
 }
 
 trait UCP_Options_Normalize_Trait {
+    /** @var array<string,array<string,mixed>> */
+    protected static $runtime_settings_cache = array();
+
+    protected static function runtime_cache_context_key() {
+        $blog_id = function_exists('get_current_blog_id') ? (int) get_current_blog_id() : 0;
+        return (string) $blog_id;
+    }
+
+    protected static function store_runtime_cache($settings) {
+        self::$runtime_settings_cache[self::runtime_cache_context_key()] = is_array($settings) ? $settings : array();
+    }
+
+    public static function invalidate_runtime_cache() {
+        self::$runtime_settings_cache = array();
+    }
+
     public static function get_all() {
+        $context = self::runtime_cache_context_key();
+        if (isset(self::$runtime_settings_cache[$context])) {
+            return self::$runtime_settings_cache[$context];
+        }
+
         $raw = wp_parse_args(get_option(self::OPTION_KEY, array()), self::defaults());
-        return self::normalize($raw, $raw);
+        $normalized = self::normalize($raw, $raw);
+        self::$runtime_settings_cache[$context] = $normalized;
+        return $normalized;
     }
 
     public static function get($key, $default = null) {
+        if (!is_scalar($key) && null !== $key) {
+            $key = '';
+        }
         $options = self::get_all();
         return isset($options[$key]) ? $options[$key] : $default;
     }
 
     public static function sensitive_keys() {
-        return array('cloud_api_key', 'cloudflare_api_token', 'secret_cache_key', 'css_cache_key', 'js_cache_key', 'headless_renderer_token', 'bunny_api_key', 'cdn_purge_webhook_token');
+        return class_exists('UCP_Settings_Schema') ? UCP_Settings_Schema::secret_keys() : array('cloud_api_key', 'cloudflare_api_token', 'secret_cache_key', 'css_cache_key', 'js_cache_key', 'headless_renderer_token', 'bunny_api_key', 'cdn_purge_webhook_token');
     }
 
     public static function is_sensitive_key($key) {
+        if (!is_scalar($key) && null !== $key) {
+            $key = '';
+        }
         return in_array((string) $key, self::sensitive_keys(), true);
     }
 
@@ -34,20 +63,39 @@ trait UCP_Options_Normalize_Trait {
 
     public static function is_masked_secret_value($value) {
         $value = is_scalar($value) ? (string) $value : '';
-        return (bool) preg_match('/^(?:•{4,}|\*{4,}|x{4,})/i', $value);
+        return (bool) preg_match('/^(?:•{4,}|\*{4,}|x{4,})/iu', $value);
     }
 
 
     protected static function normalize_self_host_asset_domains_value($value) {
         $domains = array();
         foreach (UCP_Helpers::normalize_multiline($value) as $domain) {
-            $domain = strtolower(trim((string) preg_replace('/^https?:\/\//i', '', $domain)));
-            $domain = preg_replace('/\/.*$/', '', $domain);
+            $domain = strtolower(trim((string) UCP_Helpers::sanitize_preg_replace('/^https?:\/\//i', '', $domain)));
+            $domain = UCP_Helpers::sanitize_preg_replace('/\/.*$/', '', $domain);
             if (preg_match('/^[a-z0-9.-]+$/', $domain) && false !== strpos($domain, '.')) {
                 $domains[] = $domain;
             }
         }
         return implode("\n", array_values(array_unique($domains)));
+    }
+
+    protected static function normalize_image_cdn_widths_value($value) {
+        $widths = array();
+        foreach (UCP_Helpers::normalize_multiline($value) as $width) {
+            $width = absint($width);
+            if ($width >= 160 && $width <= 2560) {
+                $widths[$width] = $width;
+            }
+        }
+        ksort($widths);
+        return implode("\n", array_values($widths));
+    }
+
+    protected static function normalize_cache_policy_rules_value($value) {
+        if (!class_exists('UCP_Cache_Policy') || !method_exists('UCP_Cache_Policy', 'normalize_rules_text')) {
+            return is_scalar($value) ? sanitize_textarea_field((string) $value) : '';
+        }
+        return UCP_Cache_Policy::normalize_rules_text($value);
     }
 
     protected static function normalize_fetchpriority_rules_value($value) {
@@ -69,11 +117,17 @@ trait UCP_Options_Normalize_Trait {
     }
 
     protected static function normalize_structured_settings($settings) {
+        if (isset($settings['cache_policy_rules'])) {
+            $settings['cache_policy_rules'] = self::normalize_cache_policy_rules_value($settings['cache_policy_rules']);
+        }
         if (isset($settings['self_host_asset_domains'])) {
             $settings['self_host_asset_domains'] = self::normalize_self_host_asset_domains_value($settings['self_host_asset_domains']);
         }
         if (isset($settings['fetchpriority_rules'])) {
             $settings['fetchpriority_rules'] = self::normalize_fetchpriority_rules_value($settings['fetchpriority_rules']);
+        }
+        if (isset($settings['image_cdn_widths'])) {
+            $settings['image_cdn_widths'] = self::normalize_image_cdn_widths_value($settings['image_cdn_widths']);
         }
         return $settings;
     }
@@ -83,7 +137,7 @@ trait UCP_Options_Normalize_Trait {
             if (empty($settings[$internal_key])) {
                 $settings[$internal_key] = self::random_key(20);
             } else {
-                $settings[$internal_key] = sanitize_key((string) $settings[$internal_key]);
+                $settings[$internal_key] = is_scalar($settings[$internal_key]) ? sanitize_key((string) $settings[$internal_key]) : '';
                 if ('' === $settings[$internal_key]) {
                     $settings[$internal_key] = self::random_key(20);
                 }
@@ -126,19 +180,69 @@ trait UCP_Options_Normalize_Trait {
         $current = self::get_all();
         $merged = wp_parse_args((array) $values, $current);
         $merged = self::normalize($merged, $current);
-        update_option(self::OPTION_KEY, $merged, false);
+
+        if ($merged === $current) {
+            return true;
+        }
+
+        self::invalidate_runtime_cache();
+        if (update_option(self::OPTION_KEY, $merged, false)) {
+            return true;
+        }
+
+        $stored = get_option(self::OPTION_KEY, null);
+        if (!is_array($stored)) {
+            return false;
+        }
+
+        $stored = self::normalize(wp_parse_args($stored, self::defaults()), $stored);
+        if ($stored === $merged) {
+            self::store_runtime_cache($stored);
+            return true;
+        }
+        return false;
     }
 
 
     protected static function normalize_core_cache_backend($settings) {
-        $settings['cache_backend'] = isset($settings['cache_backend']) ? sanitize_key((string) $settings['cache_backend']) : 'auto';
+        $settings['cache_backend'] = isset($settings['cache_backend']) && is_scalar($settings['cache_backend']) ? sanitize_key((string) $settings['cache_backend']) : 'auto';
         if (!in_array($settings['cache_backend'], array('auto', 'disk', 'litespeed'), true)) {
             $settings['cache_backend'] = 'auto';
         }
         return $settings;
     }
 
+    public static function apply_accessibility_safety($settings) {
+        $settings = is_array($settings) ? $settings : array();
+        if (empty($settings['accessibility_mode'])) {
+            return $settings;
+        }
+
+        foreach (array(
+            'enable_js_minify',
+            'allow_experimental_js_minify',
+            'enable_js_combine',
+            'enable_delay_js',
+            'defer_all_js',
+            'enable_defer_js_fallback',
+            'enable_native_script_strategy',
+            'enable_move_module_scripts_footer',
+            'enable_lazy_render'
+        ) as $setting_key) {
+            $settings[$setting_key] = 0;
+        }
+        $settings['delay_js_safe_mode'] = 1;
+        $settings['delay_js_disable_click_delay'] = 1;
+
+        return $settings;
+    }
+
     protected static function normalize_js_html_settings($settings) {
+        if (!empty($settings['delay_js_temporary_safe_mode'])) {
+            $settings['delay_js_safe_mode'] = 1;
+            $settings['delay_js_temporary_safe_mode'] = 0;
+        }
+
         $settings['defer_all_js'] = !empty($settings['defer_all_js']) ? 1 : 0;
         $settings['enable_defer_js_fallback'] = !empty($settings['enable_defer_js_fallback']) ? 1 : 0;
         if (!empty($settings['defer_all_js'])) {
@@ -163,7 +267,7 @@ trait UCP_Options_Normalize_Trait {
             $settings['enable_js_combine'] = 0;
             $settings['enable_native_script_strategy'] = 0;
         }
-        if (!empty($settings['enable_native_script_strategy'])) {
+        if (!empty($settings['enable_native_script_strategy']) && !empty($settings['defer_all_js'])) {
             $settings['enable_js_combine'] = 0;
         }
         if (class_exists('UCP_Compat') && UCP_Compat::should_lock_combine('js', $settings)) {
@@ -176,16 +280,16 @@ trait UCP_Options_Normalize_Trait {
         }
 
         if (isset($settings['delay_js_exclusions'])) {
-            $settings['delay_js_exclusions'] = (string) $settings['delay_js_exclusions'];
+            $settings['delay_js_exclusions'] = implode("\n", UCP_Helpers::normalize_multiline($settings['delay_js_exclusions']));
         }
         if (isset($settings['delay_js_specified_scripts'])) {
-            $settings['delay_js_specified_scripts'] = (string) $settings['delay_js_specified_scripts'];
+            $settings['delay_js_specified_scripts'] = implode("\n", UCP_Helpers::normalize_multiline($settings['delay_js_specified_scripts']));
         }
         if (!in_array(isset($settings['delay_js_mode']) ? $settings['delay_js_mode'] : 'specified', array('specified', 'all'), true)) {
             $settings['delay_js_mode'] = 'specified';
         }
 
-        return $settings;
+        return self::apply_accessibility_safety($settings);
     }
 
     protected static function normalize_shopper_cache_settings($settings) {
@@ -194,14 +298,19 @@ trait UCP_Options_Normalize_Trait {
         $settings['block_unknown_request_cookies'] = !empty($settings['block_unknown_request_cookies']) ? 1 : 0;
         $settings['optimize_cart_fragments'] = !empty($settings['optimize_cart_fragments']) ? 1 : 0;
         $settings['limit_cart_fragments_to_woo'] = !empty($settings['limit_cart_fragments_to_woo']) ? 1 : 0;
-        $settings['safe_cart_fragments_mode'] = !empty($settings['safe_cart_fragments_mode']) ? 1 : 0;
+        $settings['safe_cart_fragments_mode'] = (!empty($settings['safe_cart_fragments_mode']) || !empty($settings['optimize_cart_fragments']) || !empty($settings['limit_cart_fragments_to_woo'])) ? 1 : 0;
+        if (!empty($settings['enable_woocommerce_rules']) || !empty($settings['serve_cache_to_shoppers'])) {
+            $settings['enable_woocommerce_rules'] = 1;
+            $settings['woocommerce_safety_mode'] = 1;
+        }
         if (isset($settings['cache_vary_cookies'])) {
-            $settings['cache_vary_cookies'] = (string) $settings['cache_vary_cookies'];
+            $settings['cache_vary_cookies'] = implode("\n", UCP_Helpers::normalize_multiline($settings['cache_vary_cookies']));
         }
         return $settings;
     }
 
     protected static function normalize_speculative_loading_settings($settings) {
+        $settings['enable_prefetch_links'] = !empty($settings['enable_prefetch_links']) ? 1 : 0;
         if (empty($settings['speculative_loading_mode']) || !in_array($settings['speculative_loading_mode'], array('core', 'enhanced', 'prerender', 'off'), true)) {
             if (!empty($settings['enable_speculative_loading'])) {
                 $settings['speculative_loading_mode'] = ('prerender' === (isset($settings['speculation_mode']) ? $settings['speculation_mode'] : 'prefetch')) ? 'prerender' : 'enhanced';
@@ -236,24 +345,9 @@ trait UCP_Options_Normalize_Trait {
     }
 
     protected static function normalize_css_delivery_settings($settings) {
-        $css_delivery_mode = isset($settings['css_delivery_mode']) ? (string) $settings['css_delivery_mode'] : 'none';
+        $css_delivery_mode = isset($settings['css_delivery_mode']) && is_scalar($settings['css_delivery_mode']) ? (string) $settings['css_delivery_mode'] : 'none';
         if (!in_array($css_delivery_mode, array('none', 'remove_unused', 'async'), true)) {
             $css_delivery_mode = 'none';
-        }
-        if ('none' === $css_delivery_mode) {
-            if (!empty($settings['enable_used_css'])) {
-                $css_delivery_mode = 'remove_unused';
-            } elseif (!empty($settings['enable_critical_css'])) {
-                $css_delivery_mode = 'async';
-            }
-        }
-
-        if (empty($settings['show_advanced_options'])) {
-            $settings['enable_css_combine'] = 0;
-            $settings['enable_js_combine'] = 0;
-            $settings['enable_cdn'] = 0;
-            $settings['enable_cloudflare_apo_mode'] = 0;
-            $settings['enable_rest_cache'] = 0;
         }
         if (class_exists('UCP_Compat') && UCP_Compat::should_lock_combine('css', $settings)) {
             $settings['enable_css_combine'] = 0;
@@ -263,7 +357,7 @@ trait UCP_Options_Normalize_Trait {
         // Only CSS combining is disabled for delivery modes, because combined files make per-page Used/Critical CSS artifacts unreliable.
         $settings['enable_used_css'] = 'remove_unused' === $css_delivery_mode ? 1 : 0;
         $settings['enable_used_css_delivery'] = 'remove_unused' === $css_delivery_mode ? 1 : 0;
-        $settings['enable_critical_css'] = ('async' === $css_delivery_mode || ('remove_unused' === $css_delivery_mode && !empty($settings['enable_critical_css']))) ? 1 : 0;
+        $settings['enable_critical_css'] = 'async' === $css_delivery_mode ? 1 : 0;
 
         if ('none' === $css_delivery_mode) {
             $settings['enable_css_queue'] = 0;
@@ -303,19 +397,32 @@ trait UCP_Options_Normalize_Trait {
         $settings['css_artifact_min_bytes'] = min(5000, max(50, absint($settings['css_artifact_min_bytes'])));
         $settings['css_artifact_retry_limit'] = min(10, max(1, absint($settings['css_artifact_retry_limit'])));
 
-        // Asset Manager UI and runtime are removed in this simplified admin build.
-        $settings['enable_asset_test_mode'] = 0;
-        $settings['enable_asset_manager_snapshot'] = 0;
-        $settings['advanced_asset_rules'] = '';
-        $settings['disabled_style_handles'] = '';
-        $settings['disabled_script_handles'] = '';
-        $settings['conditional_style_unloads'] = '';
-        $settings['conditional_script_unloads'] = '';
+        // Keep existing Asset Manager values intact. The simplified admin may hide
+        // these controls, but imports, older installs and support workflows must
+        // not lose their saved rules when another setting is saved.
+        $settings['enable_asset_test_mode'] = !empty($settings['enable_asset_test_mode']) ? 1 : 0;
+        $settings['enable_asset_manager_snapshot'] = !empty($settings['enable_asset_manager_snapshot']) ? 1 : 0;
+        foreach (array('advanced_asset_rules', 'disabled_style_handles', 'disabled_script_handles', 'conditional_style_unloads', 'conditional_script_unloads') as $asset_rule_key) {
+            $settings[$asset_rule_key] = isset($settings[$asset_rule_key]) ? implode("\n", UCP_Helpers::normalize_multiline($settings[$asset_rule_key])) : '';
+        }
         $settings['ui_mode'] = isset($settings['ui_mode']) && 'advanced' === $settings['ui_mode'] ? 'advanced' : 'simple';
+        if ('advanced' === $settings['ui_mode'] || !empty($settings['show_advanced_options'])) {
+            $settings['ui_mode'] = 'advanced';
+            $settings['show_advanced_options'] = 1;
+        } else {
+            $settings['ui_mode'] = 'simple';
+            $settings['show_advanced_options'] = 0;
+        }
         $settings['heartbeat_frequency'] = isset($settings['heartbeat_backend_frequency']) ? absint($settings['heartbeat_backend_frequency']) : (isset($defaults['heartbeat_frequency']) ? (int) $defaults['heartbeat_frequency'] : 60);
         $settings['image_quality'] = min(95, max(50, absint($settings['image_quality'])));
         $settings['fragment_cache_ttl'] = min(DAY_IN_SECONDS, max(MINUTE_IN_SECONDS, absint($settings['fragment_cache_ttl'])));
+        $settings['cache_insights_sample_rate'] = min(100, max(1, absint(isset($settings['cache_insights_sample_rate']) ? $settings['cache_insights_sample_rate'] : 1)));
+        $settings['cache_insights_retention_days'] = min(30, max(1, absint(isset($settings['cache_insights_retention_days']) ? $settings['cache_insights_retention_days'] : 7)));
+        $settings['compat_profile_mode'] = isset($settings['compat_profile_mode']) && in_array($settings['compat_profile_mode'], array('auto', 'off'), true) ? $settings['compat_profile_mode'] : 'auto';
         $settings['rest_cache_ttl'] = min(HOUR_IN_SECONDS, max(30, absint($settings['rest_cache_ttl'])));
+        foreach (array('log_retention_days', 'diagnostics_retention_days', 'job_retention_days') as $retention_key) {
+            $settings[$retention_key] = max(7, absint(isset($settings[$retention_key]) ? $settings[$retention_key] : 7));
+        }
 
         return $settings;
     }
@@ -337,11 +444,24 @@ trait UCP_Options_Normalize_Trait {
         if (!empty($settings['enable_avif_generation'])) {
             $settings['enable_webp_generation'] = 1;
         }
+
+        // These legacy settings describe mandatory safety behavior rather than optional features.
+        // Preserve the public keys for imports/extensions, but reject unsafe or misleading off states.
+        $settings['enable_css_profiles'] = 1;
+        $settings['safe_settings_export'] = 1;
+        $settings['object_cache_fail_safe'] = 1;
+
+        $settings['enable_image_optimization'] = !empty($settings['enable_webp_generation']) || !empty($settings['enable_avif_generation']) ? 1 : 0;
+
+        if (empty($settings['enable_image_cdn'])) {
+            $settings['enable_image_cdn_transforms'] = 0;
+            $settings['enable_adaptive_image_srcset'] = 0;
+        } elseif (!empty($settings['enable_adaptive_image_srcset'])) {
+            $settings['enable_image_cdn_transforms'] = 1;
+        }
+
         $settings['lazyload_exclude_leading_images'] = min(5, max(0, absint(isset($settings['lazyload_exclude_leading_images']) ? $settings['lazyload_exclude_leading_images'] : 1)));
         $settings['preload_critical_images'] = min(3, max(0, absint(isset($settings['preload_critical_images']) ? $settings['preload_critical_images'] : 1)));
-        if (!empty($settings['active_preset']) && 'pagespeed_auto' === $settings['active_preset']) {
-            $settings['preload_critical_images'] = min(3, max(1, absint($settings['preload_critical_images'])));
-        }
         $settings['preload_max_server_load'] = min(32, max(1, absint(isset($settings['preload_max_server_load']) ? $settings['preload_max_server_load'] : 4)));
         $settings['preload_menu_urls_limit'] = min(100, max(1, absint(isset($settings['preload_menu_urls_limit']) ? $settings['preload_menu_urls_limit'] : 40)));
         $settings['preload_recent_purge_limit'] = min(100, max(1, absint(isset($settings['preload_recent_purge_limit']) ? $settings['preload_recent_purge_limit'] : 30)));
@@ -360,6 +480,13 @@ trait UCP_Options_Normalize_Trait {
             class_exists('UCP_Settings_Schema') ? UCP_Settings_Schema::boolean_keys('hardening_and_ui') : array('enable_disable_xmlrpc','enable_hide_wp_version','enable_remove_rsd_link','enable_remove_shortlink','enable_disable_rss_feeds','enable_remove_rss_feed_links','enable_disable_self_pingbacks','enable_disable_rest_api','enable_remove_rest_api_links','enable_disable_google_maps','enable_disable_password_strength_meter','enable_disable_comments','enable_remove_comment_links','enable_blank_favicon','enable_remove_global_styles','enable_separate_block_styles','enable_disable_google_fonts','enable_hide_toolbar_menu','enable_lazyload_fade_in','enable_lazyload_background_images')
         );
 
+        if (!empty($settings['enable_disable_google_fonts'])) {
+            $settings['enable_local_google_fonts'] = 0;
+            $settings['enable_font_display_swap'] = 0;
+        } elseif (!empty($settings['enable_local_google_fonts'])) {
+            $settings['enable_font_display_swap'] = 1;
+        }
+
         return $settings;
     }
 
@@ -376,7 +503,7 @@ trait UCP_Options_Normalize_Trait {
             }
         }
         $settings['enable_heartbeat_control'] = ('keep' === $settings['heartbeat_frontend_behavior'] && 'keep' === $settings['heartbeat_editor_behavior'] && 'keep' === $settings['heartbeat_backend_behavior']) ? 0 : 1;
-        $db_cleanup_frequency = isset($settings['db_cleanup_frequency']) ? (string) $settings['db_cleanup_frequency'] : 'off';
+        $db_cleanup_frequency = isset($settings['db_cleanup_frequency']) && is_scalar($settings['db_cleanup_frequency']) ? (string) $settings['db_cleanup_frequency'] : 'off';
         if (!in_array($db_cleanup_frequency, array('off','daily','weekly','monthly'), true)) {
             $db_cleanup_frequency = 'off';
         }
@@ -404,8 +531,12 @@ trait UCP_Options_Normalize_Trait {
         $settings = self::normalize_js_html_settings($settings);
         $settings = self::normalize_shopper_cache_settings($settings);
 
-        if (empty($settings['enable_preload']) || empty($settings['enable_cache'])) {
+        if (empty($settings['enable_preload'])) {
             $settings['enable_preload_queue'] = 0;
+        } elseif (empty($settings['enable_cache'])) {
+            $settings['enable_preload_queue'] = 0;
+        } elseif (empty($current['enable_cache']) && (!empty($settings['preload_homepage']) || !empty($settings['preload_sitemaps']))) {
+            $settings['enable_preload_queue'] = 1;
         }
 
         $settings = self::normalize_speculative_loading_settings($settings);
@@ -416,7 +547,6 @@ trait UCP_Options_Normalize_Trait {
         $settings = self::normalize_internal_secret_keys($settings);
 
 
-        // UCP: normalize structured self-host and fetchpriority settings before storing.
         $settings = self::normalize_structured_settings($settings);
 
         // Use the safe baseline as fallback only. Explicit admin/REST values must not be

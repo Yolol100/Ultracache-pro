@@ -70,7 +70,9 @@ final class UCP_PageSpeed_Browser_Scan_Optimizer {
             return array();
         }
 
-        UCP_Options::update($updates);
+        if (!UCP_Options::update($updates)) {
+            return array();
+        }
         return array_values(array_unique($applied));
     }
 
@@ -82,6 +84,10 @@ final class UCP_PageSpeed_Browser_Scan_Optimizer {
      * @return string[]
      */
     public static function remove_generated_lcp_fetchpriority_rules($rules) {
+        if (!is_array($rules)) {
+            $rules = is_scalar($rules) ? array($rules) : array();
+        }
+        $rules = array_values(array_filter($rules, 'is_scalar'));
         $out = array();
         foreach ((array) $rules as $rule) {
             $rule = trim((string) $rule);
@@ -103,6 +109,10 @@ final class UCP_PageSpeed_Browser_Scan_Optimizer {
      * @return string[]
      */
     public static function lazy_render_selectors_from_scan($selectors) {
+        if (!is_array($selectors)) {
+            $selectors = is_scalar($selectors) ? array($selectors) : array();
+        }
+        $selectors = array_values(array_filter($selectors, 'is_scalar'));
         $out = array();
         foreach ((array) $selectors as $selector) {
             $selector = trim((string) $selector);

@@ -50,8 +50,8 @@ trait UCP_CSS_Delivery_Trait {
         }
         $used_path = UCP_Helpers::get_used_css_path($url);
         $critical_path = UCP_Helpers::get_critical_css_path($url);
-        $used_css = is_readable($used_path) ? UCP_Helpers::read_file($used_path) : '';
-        $critical_css = is_readable($critical_path) ? UCP_Helpers::read_file($critical_path) : '';
+        $used_css = is_readable($used_path) ? UCP_Helpers::read_file($used_path, 5 * MB_IN_BYTES) : '';
+        $critical_css = is_readable($critical_path) ? UCP_Helpers::read_file($critical_path, MB_IN_BYTES) : '';
         if ('' === trim($critical_css)) {
             $critical_css = self::default_critical_css_for_html($html);
         }
@@ -68,13 +68,28 @@ trait UCP_CSS_Delivery_Trait {
             } else {
                 $job_type = UCP_Options::get('enable_remote_css_render') && UCP_Options::get('enable_cloud') ? 'remote_css' : 'generate_css';
             }
-            if (empty($artifact_status['attempts']) || (int) $artifact_status['attempts'] < absint(UCP_Options::get('css_artifact_retry_limit', 3))) {
-                UCP_Jobs::enqueue_unique($job_type, array('url' => $url), 5, 'css');
-                UCP_Diagnostics::record('css', 'Queued optimized CSS generation', array('type' => $job_type, 'mode' => $mode));
+            $generation_queued = false;
+            if ((empty($artifact_status['attempts']) || (int) $artifact_status['attempts'] < absint(UCP_Options::get('css_artifact_retry_limit', 3))) && self::artifact_retry_is_due($url)) {
+                $payload = array('url' => $url);
+                $generation_queued = (bool) UCP_Jobs::enqueue_unique($job_type, $payload, 5, 'css');
+                if (!$generation_queued && method_exists('UCP_Jobs', 'unique_job_exists')) {
+                    $generation_queued = (bool) UCP_Jobs::unique_job_exists($job_type, $payload, 'css');
+                }
+                UCP_Diagnostics::record(
+                    'css',
+                    $generation_queued ? 'Queued optimized CSS generation' : 'Failed to queue optimized CSS generation',
+                    array('type' => $job_type, 'mode' => $mode)
+                );
             }
 
             if ('remove_unused' === $mode && '' === trim($used_css)) {
-                UCP_Diagnostics::record('css', 'Used CSS missing; applying async CSS fallback while generation is queued.', array('url' => $url, 'critical' => '' !== trim($critical_css) ? 1 : 0));
+                UCP_Diagnostics::record(
+                    'css',
+                    $generation_queued
+                        ? 'Used CSS missing; applying async CSS fallback while generation is queued.'
+                        : 'Used CSS missing; applying async CSS fallback without a queued generation job.',
+                    array('url' => $url, 'critical' => '' !== trim($critical_css) ? 1 : 0)
+                );
                 return self::apply_async_css($html, $critical_css);
             }
 
@@ -106,8 +121,8 @@ trait UCP_CSS_Delivery_Trait {
         if ('' === $file || !is_readable($file)) {
             return '';
         }
-        $raw = UCP_Helpers::read_file($file);
-        $items = json_decode($raw, true);
+        $raw = UCP_Helpers::read_file($file, 256 * KB_IN_BYTES);
+        $items = UCP_Helpers::safe_json_decode($raw, true);
         if (!is_array($items)) {
             return '';
         }
@@ -145,9 +160,9 @@ trait UCP_CSS_Delivery_Trait {
             $delivery = 'file' === UCP_Options::get('used_css_delivery_method', 'inline') ? 'file' : 'inline';
             $tag = '';
             if ('file' === $delivery) {
-                // External-file delivery: tiny, browser-cacheable Used CSS file instead of an inline
-                // <style>. Better for repeat visits / perceived speed (the FlyingPress/Perfmatters/
-                // LiteSpeed school). Falls back to inline when the file cannot be written.
+                // External-file delivery uses a small, browser-cacheable Used CSS file instead of
+                // an inline <style> block, improving repeat delivery without duplicate markup.
+                // It falls back to inline output when the file cannot be written.
                 $served = self::used_css_served_url($used_css);
                 if ('' !== $served) {
                     // phpcs:ignore WordPress.WP.EnqueuedResources.NonEnqueuedStylesheet -- this tag is injected into optimized HTML output, not enqueued as an admin/theme asset.
@@ -163,14 +178,13 @@ trait UCP_CSS_Delivery_Trait {
         }
 
         $changed = false;
-        $candidate = preg_replace_callback('#<link\b(?=[^>]*\brel=["\']stylesheet["\'])(?=[^>]*\bhref=["\']([^"\']+)["\'])[^>]*>#i', function ($m) use (&$changed) {
-            if (!self::can_optimize_stylesheet_link($m[0], $m[1])) {
-                return $m[0];
+        $html = self::rewrite_stylesheet_link_tags($html, static function ($tag, $href) use (&$changed) {
+            if (!self::can_optimize_stylesheet_link($tag, $href)) {
+                return $tag;
             }
             $changed = true;
-            return '<noscript data-ucp-original-css="1">' . $m[0] . '</noscript>';
-        }, $html);
-        $html = is_string($candidate) ? $candidate : $html;
+            return '<noscript data-ucp-original-css="1">' . $tag . '</noscript>';
+        });
 
         if ($changed) {
             UCP_Diagnostics::record('css', 'Applied Remove Unused CSS', array('bytes' => strlen($used_css)));
@@ -231,31 +245,64 @@ trait UCP_CSS_Delivery_Trait {
         }
 
         $changed = false;
-        $candidate = preg_replace_callback('#<link\b(?=[^>]*\brel=["\']stylesheet["\'])(?=[^>]*\bhref=["\']([^"\']+)["\'])[^>]*>#i', function ($m) use (&$changed) {
-            if (!self::can_optimize_stylesheet_link($m[0], $m[1])) {
-                return $m[0];
+        $html = self::rewrite_stylesheet_link_tags($html, static function ($tag, $href) use (&$changed) {
+            if (!self::can_optimize_stylesheet_link($tag, $href)) {
+                return $tag;
             }
             $changed = true;
-            $tag = $m[0];
-            $tag = preg_replace('/\srel=["\']stylesheet["\']/i', ' rel="preload"', $tag, 1);
-            if (!preg_match('/\sas=["\']style["\']/i', $tag)) {
-                $tag = preg_replace('/>$/', ' as="style">', $tag, 1);
+            $original = $tag;
+            $tag = UCP_Helpers::safe_preg_replace('/\srel\s*=\s*["\']stylesheet["\']/i', ' rel="preload"', $tag, 1);
+            if (!preg_match('/\sas\s*=\s*["\']style["\']/i', $tag)) {
+                $tag = UCP_Helpers::safe_preg_replace('/>$/', ' as="style">', $tag, 1);
             }
-            if (!preg_match('/\sonload=/i', $tag)) {
-                $tag = preg_replace('/>$/', ' onload="this.onload=null;this.rel=\'stylesheet\'">', $tag, 1);
+            if (!preg_match('/\sonload\s*=/i', $tag)) {
+                $tag = UCP_Helpers::safe_preg_replace('/>$/', ' onload="this.onload=null;this.rel=\'stylesheet\'">', $tag, 1);
             }
-            if (!preg_match('/\sdata-ucp-async=/i', $tag)) {
-                $tag = preg_replace('/>$/', ' data-ucp-async="style">', $tag, 1);
+            if (!preg_match('/\sdata-ucp-async\s*=/i', $tag)) {
+                $tag = UCP_Helpers::safe_preg_replace('/>$/', ' data-ucp-async="style">', $tag, 1);
             }
-            return $tag . '<noscript>' . $m[0] . '</noscript>';
-        }, $html);
-        $html = is_string($candidate) ? $candidate : $html;
+            return $tag . '<noscript>' . $original . '</noscript>';
+        });
 
         if ($changed) {
             UCP_Diagnostics::record('css', 'Applied async CSS delivery');
         }
 
         return $html;
+    }
+
+
+    /**
+     * Rewrite genuine stylesheet link tags without touching comments or raw-text content.
+     *
+     * @param string   $html
+     * @param callable $callback Receives the full link tag and decoded href.
+     * @return string
+     */
+    private static function rewrite_stylesheet_link_tags($html, $callback) {
+        if (!is_string($html) || '' === $html || !is_callable($callback)) {
+            return $html;
+        }
+        $handler = static function ($matches) use ($callback) {
+            $tag = isset($matches[0]) ? (string) $matches[0] : '';
+            if ('' === $tag || !preg_match('/\brel\s*=\s*(["\'])stylesheet\1/i', $tag)) {
+                return $tag;
+            }
+            if (!preg_match('/\bhref\s*=\s*(["\'])(.*?)\1/i', $tag, $href_match)) {
+                return $tag;
+            }
+            $href = html_entity_decode((string) $href_match[2], ENT_QUOTES);
+            $result = call_user_func($callback, $tag, $href);
+            return is_string($result) ? $result : $tag;
+        };
+        if (class_exists('UCP_HTML_Parser')) {
+            $candidate = UCP_HTML_Parser::replace_tag($html, 'link', $handler);
+            if (is_string($candidate)) {
+                return $candidate;
+            }
+        }
+        $candidate = UCP_Helpers::safe_preg_replace_callback('#<link\b(?:"[^"]*"|\'[^\']*\'|[^\'">])*>#i', $handler, $html);
+        return is_string($candidate) ? $candidate : $html;
     }
 
     protected static function can_optimize_stylesheet_link($tag, $href) {
@@ -397,7 +444,7 @@ trait UCP_CSS_Delivery_Trait {
      * Fallback local used CSS parser. This is intentionally conservative.
      */
     private function extract_used_css_rules_fallback($css, $html, $safelist, $max, $context = '') {
-        $css = preg_replace('!/\*[^*]*\*+(?:[^/*][^*]*\*+)*/!s', '', (string) $css);
+        $css = UCP_Helpers::safe_preg_replace('!/\*[^*]*\*+(?:[^/*][^*]*\*+)*/!s', '', (string) $css);
         $rules = array();
         $len = strlen($css);
         $i = 0;
@@ -530,21 +577,19 @@ trait UCP_CSS_Delivery_Trait {
             return false;
         }
         if (false !== strpos($selector, ':')) {
-            $selector = preg_replace('/:{1,2}[a-zA-Z0-9\-()]+/', '', $selector);
+            $selector = UCP_Helpers::safe_preg_replace('/:{1,2}[a-zA-Z0-9\-()]+/', '', $selector);
         }
         if (preg_match('/\.([a-zA-Z0-9_-]+)/', $selector, $m)) {
-            // Guard on `class=` (not `class="`) so single-quoted attributes are still
-            // considered; missing a match here drops the rule and can break the page.
-            return false !== strpos($html, 'class=') && (bool) preg_match('/class=["\'][^"\']*\b' . preg_quote($m[1], '/') . '\b/i', $html);
+            return (bool) preg_match('/\bclass\s*=\s*["\'][^"\']*\b' . preg_quote($m[1], '/') . '\b/i', $html);
         }
         if (preg_match('/#([a-zA-Z0-9_-]+)/', $selector, $m)) {
-            return false !== strpos($html, 'id="' . $m[1] . '"') || false !== strpos($html, "id='" . $m[1] . "'");
+            return (bool) preg_match('/\bid\s*=\s*(["\'])' . preg_quote($m[1], '/') . '\1/i', $html);
         }
         if (preg_match('/^([a-zA-Z][a-zA-Z0-9_-]*)$/', $selector, $m)) {
             return false !== stripos($html, '<' . $m[1]);
         }
         if (preg_match('/\[([a-zA-Z0-9_-]+)/', $selector, $m)) {
-            return false !== stripos($html, $m[1] . '=');
+            return (bool) preg_match('/\b' . preg_quote($m[1], '/') . '\s*=/i', $html);
         }
         return false;
     }

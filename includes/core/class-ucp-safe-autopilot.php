@@ -7,12 +7,11 @@ if (!defined('ABSPATH')) {
 /**
  * Safe out-of-the-box autopilot.
  *
- * The plugin ships everything default-OFF (staging-first), so a fresh install delivers little until
- * the operator manually enables features. NitroPack and FlyingPress win first impressions because
- * sensible, low-risk optimisation is on by default. This applies a CONSERVATIVE safe preset exactly
- * once on first run — only render-safe options (cache, lazyload, image dimensions, browser-cache
- * headers, heartbeat control, prefetch, font-display swap). Render-CHANGING options (Used CSS
- * removal, Critical CSS, Delay JS, JS combine/minify, image conversion) stay OFF and opt-in.
+ * The plugin keeps render-changing optimization features disabled by default. On first run, this
+ * applies a conservative preset containing only low-risk options such as page cache, lazy loading,
+ * image dimensions, browser-cache headers, heartbeat control, resource hints and font-display
+ * swap. Features that can alter rendering, generated CSS, script order or media formats remain
+ * disabled until the operator explicitly enables them and completes staging validation.
  *
  * Opt out with the `UCP_DISABLE_AUTOPILOT` constant or the `ucp_enable_safe_autopilot` filter.
  * Never re-applies and never overrides a value the operator has already chosen.
@@ -62,7 +61,9 @@ class UCP_Safe_Autopilot {
         }
 
         if (!empty($apply)) {
-            UCP_Options::update($apply);
+            if (!UCP_Options::update($apply)) {
+                return;
+            }
             if (class_exists('UCP_Diagnostics')) {
                 UCP_Diagnostics::record('autopilot', 'Veilige standaard-optimalisaties toegepast bij eerste run.', array('applied' => count($apply)));
             }
@@ -93,7 +94,7 @@ class UCP_Safe_Autopilot {
             // Core caching — the single biggest safe win.
             'enable_cache'                 => 1,
             'cache_logged_in'              => 0,
-            'cache_mobile_separately'      => 1,
+            'cache_mobile_separately'      => 0,
             'browser_cache_headers'        => 1,
             'enable_preload'               => 1,
             'enable_preload_queue'         => 1,
@@ -122,9 +123,9 @@ class UCP_Safe_Autopilot {
             'preload_critical_images'         => 2,
 
             // Low-risk delivery hints + render-SAFE asset wins.
-            'enable_prefetch_links'        => 1,
+            'enable_prefetch_links'        => 0,
             'enable_font_display_swap'     => 1,
-            'enable_auto_font_preloads'    => 1,
+            'enable_auto_font_preloads'    => 0,
             'enable_auto_resource_hints'   => 1,
             'enable_heartbeat_control'     => 1,
             'enable_remove_emojis'         => 1,

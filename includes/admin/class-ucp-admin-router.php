@@ -19,7 +19,7 @@ final class UCP_Admin_Router {
     }
 
     public static function is_plugin_hook_suffix($hook) {
-        return in_array((string) $hook, self::hook_suffixes(), true);
+        return is_scalar($hook) && in_array((string) $hook, self::hook_suffixes(), true);
     }
 
     public static function tab_asset_map() {
@@ -29,7 +29,6 @@ final class UCP_Admin_Router {
             'optimization'   => 'optimization',
             'media'          => 'media',
             'woocommerce'    => 'woocommerce',
-            'preload'        => 'preload',
             'server'         => 'server',
             'advanced'       => 'advanced-rules',
             'tools'          => 'tools',
@@ -54,7 +53,7 @@ final class UCP_Admin_Router {
             'ultracache-pro-cache'               => 'cache',
             'ultracache-pro-file-optimization'   => 'optimization',
             'ultracache-pro-media'               => 'media',
-            'ultracache-pro-preload'             => 'preload',
+            'ultracache-pro-preload'             => 'cache',
             'ultracache-pro-assets'              => 'optimization',
             'ultracache-pro-advanced-rules'      => 'advanced',
             'ultracache-pro-assets-manager'      => 'optimization',
@@ -73,9 +72,10 @@ final class UCP_Admin_Router {
     }
 
     public static function normalize_tab($tab) {
-        $tab = sanitize_key((string) $tab);
+        $tab = is_scalar($tab) ? sanitize_key((string) $tab) : '';
         $map = array(
             'dashboard'      => 'overview',
+            'preload'        => 'cache',
             'expert'         => 'advanced',
             'advanced'       => 'advanced',
             'advanced-rules' => 'advanced',
@@ -104,12 +104,12 @@ final class UCP_Admin_Router {
     }
 
     public static function current_tab() {
-        $requested_tab = /* phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only admin routing/filter parameter. */ isset($_GET['tab']) ? sanitize_key(wp_unslash($_GET['tab'])) : '';
+        $requested_tab = /* phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only admin routing/filter parameter. */ isset($_GET['tab']) && is_scalar($_GET['tab']) ? sanitize_key(wp_unslash($_GET['tab'])) : '';
         if ($requested_tab) {
             return self::normalize_tab($requested_tab);
         }
 
-        $page = /* phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only admin routing/filter parameter. */ isset($_GET['page']) ? sanitize_key(wp_unslash($_GET['page'])) : self::PAGE_SLUG;
+        $page = /* phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only admin routing/filter parameter. */ isset($_GET['page']) && is_scalar($_GET['page']) ? sanitize_key(wp_unslash($_GET['page'])) : self::PAGE_SLUG;
         $map = self::compatibility_page_map();
         return isset($map[$page]) ? self::normalize_tab($map[$page]) : 'overview';
     }

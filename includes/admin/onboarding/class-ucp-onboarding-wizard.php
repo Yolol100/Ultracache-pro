@@ -50,7 +50,7 @@ class UCP_Onboarding_Wizard {
             return false;
         }
         // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only UI toggle, no state change here.
-        if (isset($_GET['ucp-wizard']) && '1' === sanitize_text_field(wp_unslash($_GET['ucp-wizard']))) {
+        if (isset($_GET['ucp-wizard']) && is_scalar($_GET['ucp-wizard']) && '1' === sanitize_text_field(wp_unslash($_GET['ucp-wizard']))) {
             return true;
         }
 
@@ -133,7 +133,7 @@ class UCP_Onboarding_Wizard {
 
         wp_add_inline_script(
             self::SCRIPT_HANDLE,
-            'window.UCP_WIZARD_CONFIG = ' . wp_json_encode(self::client_config()) . ';',
+            'window.UCP_WIZARD_CONFIG = ' . UCP_Helpers::safe_inline_json(self::client_config(), '{}') . ';',
             'before'
         );
     }
@@ -166,6 +166,8 @@ class UCP_Onboarding_Wizard {
      * @return array<string,array<string,mixed>>
      */
     public static function goal_definitions() {
+        $capabilities = class_exists('UCP_Quality_Suite') ? UCP_Quality_Suite::server_capabilities() : array();
+        $browser_cache_rule_writes = !empty($capabilities['browserCacheRuleWrites']);
         $base = array(
             'ui_mode'                     => 'simple',
             'enable_cache'                => 1,
@@ -173,21 +175,24 @@ class UCP_Onboarding_Wizard {
             'enable_preload_queue'        => 1,
             'enable_targeted_purge'       => 1,
             'enable_cache_tags'           => 1,
-            'enable_lazy_images'          => 1,
-            'enable_lazy_iframes'         => 1,
+            'enable_lazy_images'          => 0,
+            'enable_lazy_iframes'         => 0,
             'enable_add_image_dimensions' => 1,
             'enable_font_display_swap'    => 1,
-            'enable_auto_font_preloads'   => 1,
+            'enable_auto_font_preloads'   => 0,
             'enable_heartbeat_control'    => 1,
             'enable_remove_emojis'        => 1,
             'enable_css_minify'           => 1,
             'enable_gzip_precompression'  => 1,
             'enable_brotli_precompression' => 1,
-            'browser_cache_headers'       => 1,
+            'browser_cache_headers'          => $browser_cache_rule_writes ? 1 : 0,
+            'allow_browser_cache_rule_writes' => $browser_cache_rule_writes ? 1 : 0,
         );
 
         $speed = array_merge($base, array(
-            'enable_prefetch_links'     => 1,
+            'speculative_loading_mode' => 'core',
+            'enable_lazy_images'        => 1,
+            'enable_lazy_iframes'       => 1,
             'enable_auto_resource_hints' => 1,
             'enable_lazy_youtube_preview' => 1,
         ));
@@ -196,7 +201,7 @@ class UCP_Onboarding_Wizard {
             'enable_woocommerce_rules' => 1,
             'woocommerce_safety_mode'  => 1,
             'optimize_cart_fragments'  => 1,
-            'cache_mobile_separately'  => 1,
+            'cache_mobile_separately'  => 0,
             'cache_logged_in'          => 0,
         ));
 
@@ -213,7 +218,7 @@ class UCP_Onboarding_Wizard {
             ),
             'safe' => array(
                 'label'       => __('Veilig optimaliseren', 'ultracache-pro'),
-                'description' => __('Alleen rustige basisoptimalisaties zoals cache, lazy-load en browser-cache.', 'ultracache-pro'),
+                'description' => __('Alleen rustige basisoptimalisaties zoals cache, afbeeldingsdimensies en browser-cache.', 'ultracache-pro'),
                 'settings'    => $base,
             ),
         );

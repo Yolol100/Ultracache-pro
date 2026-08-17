@@ -26,13 +26,15 @@ class UCP_Support_Report {
                 'version' => defined('UCP_VERSION') ? UCP_VERSION : '',
                 'active_preset' => isset($settings['active_preset']) ? $settings['active_preset'] : '',
                 'wp_cache_constant' => defined('WP_CACHE') && WP_CACHE,
-                'advanced_cache_owned' => class_exists('UCP_Helpers') && file_exists(WP_CONTENT_DIR . '/advanced-cache.php') ? UCP_Helpers::is_own_advanced_cache(UCP_Helpers::read_file(WP_CONTENT_DIR . '/advanced-cache.php')) : false,
+                'advanced_cache_owned' => class_exists('UCP_Helpers') && file_exists(WP_CONTENT_DIR . '/advanced-cache.php') ? UCP_Helpers::is_own_advanced_cache(UCP_Helpers::read_file_head(WP_CONTENT_DIR . '/advanced-cache.php', 64 * KB_IN_BYTES)) : false,
                 'object_cache_dropin' => file_exists(WP_CONTENT_DIR . '/object-cache.php'),
                 'dependency_status'  => function_exists('ucp_dependency_status') ? ucp_dependency_status() : array(),
+                'update_channel'     => class_exists('UCP_Update_Client') ? UCP_Update_Client::status(false) : array(),
             ),
             'active_plugins' => function_exists('get_option') ? (array) get_option('active_plugins', array()) : array(),
             'conflicts' => UCP_Compat::conflict_report(),
             'settings_summary' => self::settings_summary($settings),
+            'readiness_summary' => self::readiness_summary($settings),
             'quality_summary' => self::quality_summary($settings),
             'runtime_tests' => class_exists('UCP_Runtime_Tests') ? UCP_Runtime_Tests::latest() : array(),
         );
@@ -45,6 +47,7 @@ class UCP_Support_Report {
         $settings = is_array($settings) ? $settings : (class_exists('UCP_Options') ? UCP_Options::get_all() : array());
         $runtime = class_exists('UCP_Runtime_Tests') ? UCP_Runtime_Tests::latest() : array();
         $conflicts = class_exists('UCP_Compat') ? UCP_Compat::detected_conflicts() : array();
+        $readiness = self::readiness_summary($settings);
         $features = array(
             'page_cache' => !empty($settings['enable_cache']),
             'preload_queue' => !empty($settings['enable_preload']) && !empty($settings['enable_preload_queue']),
@@ -83,7 +86,7 @@ class UCP_Support_Report {
             $recommendations[] = array(
                 'type' => 'quick_win',
                 'title' => __('Zet Asset Manager snapshot aan op staging.', 'ultracache-pro'),
-                'impact' => __('Geeft een Perfmatters-achtige inventaris van styles/scripts per URL zonder direct bezoekers te raken.', 'ultracache-pro'),
+                'impact' => __('Geeft een inventaris van styles/scripts per URL zonder direct bezoekers te raken.', 'ultracache-pro'),
             );
         }
         if (empty($features['cwv_monitoring'])) {
@@ -113,6 +116,7 @@ class UCP_Support_Report {
         return array(
             'generated_at' => gmdate('c'),
             'score_estimate' => max(0, min(100, $score)),
+            'performance_readiness' => $readiness,
             'features' => $features,
             'runtime_tests_generated_at' => isset($runtime['generated_at']) ? (string) $runtime['generated_at'] : '',
             'conflict_count' => count((array) $conflicts),
@@ -120,6 +124,57 @@ class UCP_Support_Report {
             'recommendations' => array_slice($recommendations, 0, 6),
             'positioning' => __('Veilige Core Web Vitals autopilot voor agencies, builders en WooCommerce-sites.', 'ultracache-pro'),
         );
+    }
+
+    public static function readiness_summary($settings = null) {
+        $settings = is_array($settings) ? $settings : (class_exists('UCP_Options') ? UCP_Options::get_all() : array());
+        $conflicts = class_exists('UCP_Compat') ? UCP_Compat::detected_conflicts() : array();
+        $failed_jobs = class_exists('UCP_Jobs') ? UCP_Jobs::count_by_status('failed') : 0;
+
+        $checks = array(
+            self::readiness_check('cache', __('Page cache', 'ultracache-pro'), !empty($settings['enable_cache']), 18, __('Page cache staat aan.', 'ultracache-pro'), __('Zet page cache aan voordat je kleinere optimalisaties beoordeelt.', 'ultracache-pro')),
+            self::readiness_check('preload', __('Preload queue', 'ultracache-pro'), !empty($settings['enable_preload']) && !empty($settings['enable_preload_queue']), 10, __('Preload draait via de wachtrij.', 'ultracache-pro'), __('Gebruik preload met queue zodat cache warm wordt zonder bezoekersrequests te vertragen.', 'ultracache-pro')),
+            self::readiness_check('browser_cache', __('Browser caching', 'ultracache-pro'), !empty($settings['browser_cache_headers']) && !empty($settings['allow_browser_cache_rule_writes']), 8, __('Browsercache-regels zijn ingeschakeld.', 'ultracache-pro'), __('Schakel browsercache en toestemming voor serverregels in.', 'ultracache-pro')),
+            self::readiness_check('compression', __('GZIP/Brotli', 'ultracache-pro'), !empty($settings['enable_gzip_precompression']) || !empty($settings['enable_brotli_precompression']), 8, __('Compressievarianten zijn ingeschakeld.', 'ultracache-pro'), __('Laat UltraCache gecomprimeerde cachevarianten voorbereiden.', 'ultracache-pro')),
+            self::readiness_check('css_minify', __('CSS minify', 'ultracache-pro'), !empty($settings['enable_css_minify']), 7, __('CSS minify staat aan.', 'ultracache-pro'), __('CSS minify is een veilige basisoptimalisatie.', 'ultracache-pro')),
+            self::readiness_check('media_lcp', __('Media en LCP', 'ultracache-pro'), !empty($settings['enable_lazy_images']) && !empty($settings['enable_add_image_dimensions']) && absint(isset($settings['preload_critical_images']) ? $settings['preload_critical_images'] : 0) > 0, 12, __('Lazyload, afbeeldingsdimensies en kritieke image preload werken samen.', 'ultracache-pro'), __('Combineer lazyload met image dimensions en preload van kritieke afbeeldingen.', 'ultracache-pro')),
+            self::readiness_check('fonts', __('Fonts', 'ultracache-pro'), !empty($settings['enable_local_google_fonts']) || !empty($settings['enable_font_display_swap']), 8, __('Font optimalisatie staat aan.', 'ultracache-pro'), __('Gebruik local Google Fonts of font-display swap.', 'ultracache-pro')),
+            self::readiness_check('woocommerce', __('WooCommerce safety', 'ultracache-pro'), !empty($settings['woocommerce_safety_mode']) && !empty($settings['enable_woocommerce_rules']), 10, __('WooCommerce safety is actief.', 'ultracache-pro'), __('Houd cart, checkout, account en betalingsflows uitgesloten van agressieve optimalisatie.', 'ultracache-pro')),
+            self::readiness_check('conflicts', __('Plugin overlap', 'ultracache-pro'), empty($conflicts), 10, __('Geen bekende cache/performance overlap gevonden.', 'ultracache-pro'), __('Kies per feature één eigenaar voordat Delay JS, Used CSS, Critical CSS of combine wordt gebruikt.', 'ultracache-pro')),
+        );
+
+        $risky_enabled = !empty($settings['enable_delay_js']) || !empty($settings['enable_used_css']) || !empty($settings['enable_critical_css']) || !empty($settings['enable_css_combine']) || !empty($settings['enable_js_combine']);
+        $safe_guard = !empty($settings['compatibility_mode']) || !empty($settings['enable_asset_test_mode']) || !empty($settings['testing_mode']);
+        $checks[] = self::readiness_check('staging_first', __('Staging-first opties', 'ultracache-pro'), !$risky_enabled || $safe_guard, 9, __('Risicovolle optimalisaties zijn uit of beschermd.', 'ultracache-pro'), __('Zet de compatibiliteits-/testmodus aan voordat risicovolle CSS/JS-opties live worden getest.', 'ultracache-pro'));
+        $checks[] = self::readiness_check('queue', __('Wachtrij', 'ultracache-pro'), absint($failed_jobs) < 3, 0, __('Geen opvallende wachtrijfouten.', 'ultracache-pro'), __('Los mislukte UltraCache jobs op voordat je nieuwe optimalisaties aanzet.', 'ultracache-pro'));
+
+        $score = 0;
+        $max = 0;
+        $failed = array();
+        foreach ($checks as $check) {
+            $weight = isset($check['weight']) ? absint($check['weight']) : 0;
+            $max += $weight;
+            if (!empty($check['ok'])) {
+                $score += $weight;
+            } else {
+                $failed[] = $check;
+            }
+        }
+
+        $percent = $max > 0 ? (int) round(($score / $max) * 100) : 0;
+        return array(
+            'score' => $percent,
+            'state' => $percent >= 85 ? 'good' : ($percent >= 70 ? 'recommended' : 'attention'),
+            'primary_action' => !empty($failed[0]) ? $failed[0]['fix'] : __('Basis is klaar. Test agressieve optimalisaties alleen gericht en bij voorkeur op staging.', 'ultracache-pro'),
+            'checks' => $checks,
+            'conflict_count' => count((array) $conflicts),
+            'failed_jobs' => absint($failed_jobs),
+            'risky_features_enabled' => (bool) $risky_enabled,
+        );
+    }
+
+    protected static function readiness_check($key, $label, $ok, $weight, $pass, $fix) {
+        return UCP_Helpers::readiness_check($key, $label, $ok, $weight, $pass, $fix);
     }
 
     protected static function settings_summary($settings) {
@@ -134,19 +189,12 @@ class UCP_Support_Report {
             ? UCP_Options::sensitive_keys()
             : array('cloud_api_key','cloudflare_api_token','secret_cache_key','css_cache_key','js_cache_key','headless_renderer_token','bunny_api_key','cdn_purge_webhook_token');
         foreach ($secret_keys as $secret) {
-            if (!empty($settings[$secret])) {
-                $summary[$secret] = self::mask_secret($settings[$secret]);
+            if (isset($settings[$secret]) && '' !== (string) $settings[$secret]) {
+                // Support reports are commonly shared outside wp-admin. Preserve only
+                // configuration state; never expose a token prefix or suffix.
+                $summary[$secret] = '[configured]';
             }
         }
         return $summary;
-    }
-
-    protected static function mask_secret($value) {
-        $value = (string) $value;
-        $len = strlen($value);
-        if ($len <= 8) {
-            return str_repeat('*', max(4, $len));
-        }
-        return substr($value, 0, 4) . str_repeat('*', max(4, $len - 8)) . substr($value, -4);
     }
 }

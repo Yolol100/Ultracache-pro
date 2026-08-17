@@ -1,0 +1,132 @@
+.ucp-object-cache-page {
+    max-width: none;
+}
+.ucp-object-cache-page .ucp-object-cache-back-link {
+    margin: 0 0 10px;
+    font-size: 13px;
+    line-height: 1.4;
+}
+.ucp-object-cache-page .ucp-object-cache-back-link a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 24px;
+    color: var(--wp-admin-theme-color, #2271b1);
+    font-weight: 600;
+    text-decoration: none;
+}
+.ucp-object-cache-page .ucp-object-cache-back-link a:hover { text-decoration: underline; }
+.ucp-object-cache-page .ucp-object-cache-back-link a:focus-visible {
+    outline: 2px solid var(--wp-admin-theme-color, #2271b1);
+    outline-offset: 2px;
+}
+.ucp-object-cache-page h1 {
+    margin-bottom: 10px;
+    color: #1d2327;
+    font-size: 24px;
+    line-height: 1.25;
+    font-weight: 500;
+}
+.ucp-object-cache-page .ucp-object-cache-intro {
+    max-width: none;
+    margin: 0 0 18px;
+    color: #50575e;
+    font-size: 14px;
+    line-height: 1.5;
+}
+.ucp-object-cache-page .ucp-object-cache-card {
+    width: 100%;
+    max-width: none;
+    box-sizing: border-box;
+    padding: 18px 22px 20px;
+    border: 1px solid #e3e5e8;
+    border-radius: 4px;
+    background: #fff;
+    box-shadow: none;
+}
+.ucp-object-cache-page .ucp-object-cache-card-spaced { margin-top: 18px; }
+.ucp-object-cache-page .ucp-object-cache-card-padded { padding-bottom: 20px; }
+.ucp-object-cache-page .ucp-object-cache-card h2 {
+    margin: 0 0 8px;
+    color: #1d2327;
+    font-size: 16px;
+    line-height: 1.3;
+    font-weight: 600;
+}
+.ucp-object-cache-page .ucp-object-cache-section-title { margin-top: 16px; }
+.ucp-object-cache-page .ucp-object-cache-card p,
+.ucp-object-cache-page .ucp-object-cache-muted {
+    max-width: 88ch;
+    color: #50575e;
+    font-size: 13px;
+    line-height: 1.5;
+}
+.ucp-object-cache-page .widefat { border-color: #e3e5e8; box-shadow: none; }
+.ucp-object-cache-page .widefat td,
+.ucp-object-cache-page .widefat th { padding: 11px 12px; vertical-align: middle; }
+.ucp-object-cache-page .ucp-object-cache-status-table { margin-bottom: 8px; }
+.ucp-object-cache-page .ucp-object-cache-status-label { width: 55%; }
+.ucp-object-cache-badge {
+    display: inline-flex;
+    align-items: center;
+    min-height: 24px;
+    padding: 3px 9px;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.25;
+    white-space: nowrap;
+}
+.ucp-object-cache-badge--good { background: #edfaef; color: #0a4b23; border-color: #b8e6c1; }
+.ucp-object-cache-badge--bad { background: #fcf0f1; color: #8a2424; border-color: #f3b4b8; }
+.ucp-object-cache-page details {
+    margin: 12px 0;
+    overflow: hidden;
+    border: 1px solid #eef0f2;
+    border-radius: 4px;
+    background: #fff;
+}
+.ucp-object-cache-page summary {
+    min-height: 44px;
+    padding: 12px 14px;
+    color: #1d2327;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.35;
+}
+.ucp-object-cache-page summary:focus-visible,
+.ucp-object-cache-page .button:focus-visible,
+.ucp-object-cache-page input:focus-visible {
+    outline: 2px solid var(--wp-admin-theme-color, #2271b1);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 3px rgba(34, 113, 177, .16);
+}
+.ucp-object-cache-page .ucp-object-cache-card pre {
+    max-width: 100%;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 12px 14px;
+    overflow: auto;
+    border: 1px solid #eef0f2;
+    border-radius: 4px;
+    background: #f6f7f7;
+    color: #1d2327;
+    white-space: pre-wrap;
+    word-break: break-word;
+    font-size: 12px;
+    line-height: 1.5;
+}
+.ucp-object-cache-page .button { min-height: 32px; border-radius: 4px; }
+.ucp-object-cache-page .notice.inline { margin: 12px 0; border-radius: 4px; box-shadow: none; }
+.ucp-object-cache-page .ucp-object-cache-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 8px;
+}
+@media (max-width: 782px) {
+    .ucp-object-cache-page .ucp-object-cache-card { padding: 16px; }
+    .ucp-object-cache-page .widefat td,
+    .ucp-object-cache-page .widefat th { display: block; width: 100% !important; }
+}

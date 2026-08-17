@@ -13,7 +13,7 @@ if (!defined('ABSPATH')) {
  * (precise, per URL/viewport) when active, or via the `ucp_viewport_images` filter for manual
  * lists. Falls back gracefully to the existing leading-image heuristic when no data exists.
  *
- * Default OFF. Hooks the `ucp_image_is_viewport_image` seam in the media optimiser.
+ * Enabled by default. Hooks the `ucp_image_is_viewport_image` seam in the media optimiser.
  */
 class UCP_Viewport_Images {
 
@@ -72,10 +72,13 @@ class UCP_Viewport_Images {
             return;
         }
         $images = array();
-        foreach ($data['viewport_images'] as $img) {
-            $clean = esc_url_raw((string) $img);
+        foreach (array_slice($data['viewport_images'], 0, 500) as $img) {
+            if (!is_scalar($img) || strlen((string) $img) > 2048) {
+                continue;
+            }
+            $clean = self::normalize((string) $img);
             if ('' !== $clean) {
-                $images[] = self::normalize($clean);
+                $images[] = $clean;
             }
         }
         if (empty($images)) {
@@ -161,26 +164,37 @@ class UCP_Viewport_Images {
          * @param string $url
          */
         $set = apply_filters('ucp_viewport_images', $set, $url);
-        $cache = array_values(array_unique(array_map(array(__CLASS__, 'normalize'), (array) $set)));
+        $normalized = array_map(array(__CLASS__, 'normalize'), (array) $set);
+        $cache = array_values(array_unique(array_filter($normalized, 'strlen')));
         return $cache;
     }
 
     protected static function key($url) {
-        return md5(strtolower((string) $url) . '|' . (wp_is_mobile() ? 'm' : 'd'));
+        $canonical = class_exists('UCP_Helpers') ? UCP_Helpers::strict_local_url((string) $url) : '';
+        if ('' === $canonical) {
+            $canonical = (string) $url;
+        }
+        return md5($canonical . '|' . (wp_is_mobile() ? 'm' : 'd'));
     }
 
     /**
-     * Normalise an image URL for comparison: scheme-relative, query stripped.
+     * Normalise an image URL for comparison while preserving resource-defining query values.
      *
      * @param string $url
      * @return string
      */
     protected static function normalize($url) {
-        $url = preg_replace('#^https?:#i', '', (string) $url);
-        $q = strpos($url, '?');
-        if (false !== $q) {
-            $url = substr($url, 0, $q);
+        if (!is_scalar($url)) {
+            return '';
         }
-        return $url;
+        $url = trim((string) $url);
+        if ('' === $url || strlen($url) > 2048 || preg_match('/[\x00-\x1F\x7F]/', $url)) {
+            return '';
+        }
+        $url = esc_url_raw($url, array('http', 'https'));
+        if ('' === $url) {
+            return '';
+        }
+        return UCP_Helpers::sanitize_preg_replace('#^https?:#i', '', $url);
     }
 }

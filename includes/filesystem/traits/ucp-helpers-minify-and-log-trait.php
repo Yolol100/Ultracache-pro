@@ -6,6 +6,9 @@ if (!defined('ABSPATH')) {
 
 trait UCP_Helpers_Minify_And_Log_Trait {
     public static function minify_css($content) {
+        if (!is_scalar($content)) {
+            return '';
+        }
         $content = (string) $content;
         if ('' === trim($content)) {
             return '';
@@ -19,7 +22,7 @@ trait UCP_Helpers_Minify_And_Log_Trait {
             } catch (Throwable $e) {
                 $can_use_vendor_css_minifier = false;
                 if (class_exists('UCP_Diagnostics')) {
-                    UCP_Diagnostics::record('assets', 'CSS parser library failed; using built-in fallback.', array('error' => $e->getMessage()));
+                    UCP_Diagnostics::record('assets', 'CSS parser library failed; original CSS preserved.', array('exception' => get_class($e)));
                 }
             }
         }
@@ -29,7 +32,6 @@ trait UCP_Helpers_Minify_And_Log_Trait {
             try {
                 $minifier = new $minifier_class($content);
                 if (method_exists($minifier, 'setMaxImportSize')) {
-                    // Avoid inlining external or local assets into CSS during normal WordPress asset optimization.
                     $minifier->setMaxImportSize(0);
                 }
                 $minified = $minifier->minify();
@@ -38,19 +40,19 @@ trait UCP_Helpers_Minify_And_Log_Trait {
                 }
             } catch (Throwable $e) {
                 if (class_exists('UCP_Diagnostics')) {
-                    UCP_Diagnostics::record('assets', 'CSS minifier library failed; using built-in fallback.', array('error' => $e->getMessage()));
+                    UCP_Diagnostics::record('assets', 'CSS minifier library failed; original CSS preserved.', array('exception' => get_class($e)));
                 }
             }
         }
 
-        $content = preg_replace('!/\*[^*]*\*+(?:[^/*][^*]*\*+)*/!s', '', $content);
-        $content = preg_replace('/\s+/', ' ', $content);
-        $content = preg_replace('/\s*([{}:;,>+~])\s*/', '$1', $content);
-        $content = str_replace(';}', '}', $content);
-        return trim((string) $content);
+        // CSS strings, data URLs and calc() operators are grammar-sensitive.
+        return trim($content);
     }
 
     public static function minify_js($content) {
+        if (!is_scalar($content)) {
+            return '';
+        }
         $content = (string) $content;
         if ('' === trim($content)) {
             return '';
@@ -65,92 +67,14 @@ trait UCP_Helpers_Minify_And_Log_Trait {
                 }
             } catch (Throwable $e) {
                 if (class_exists('UCP_Diagnostics')) {
-                    UCP_Diagnostics::record('assets', 'JS minifier library failed; using built-in fallback.', array('error' => $e->getMessage()));
+                    UCP_Diagnostics::record('assets', 'JS minifier library failed; original JavaScript preserved.', array('exception' => get_class($e)));
                 }
             }
         }
 
-        $out = '';
-        $len = strlen($content);
-        $state = 'code';
-        $quote = '';
-        $escape = false;
-        $last_sig = '';
-
-        for ($i = 0; $i < $len; $i++) {
-            $ch = $content[$i];
-            $next = ($i + 1 < $len) ? $content[$i + 1] : '';
-
-            if ('string' === $state || 'template' === $state) {
-                $out .= $ch;
-                if ($escape) {
-                    $escape = false;
-                    continue;
-                }
-                if ('\\' === $ch) {
-                    $escape = true;
-                    continue;
-                }
-                if ($ch === $quote) {
-                    $state = 'code';
-                    $quote = '';
-                    $last_sig = $ch;
-                }
-                continue;
-            }
-
-            if ('/' === $ch && '/' === $next) {
-                while ($i < $len && !in_array($content[$i], array("\n", "\r"), true)) {
-                    $i++;
-                }
-                $out .= ' ';
-                continue;
-            }
-            if ('/' === $ch && '*' === $next) {
-                $i += 2;
-                while ($i + 1 < $len && !('*' === $content[$i] && '/' === $content[$i + 1])) {
-                    $i++;
-                }
-                $i++;
-                $out .= ' ';
-                continue;
-            }
-
-            if ('"' === $ch || "'" === $ch || '`' === $ch) {
-                $state = ('`' === $ch) ? 'template' : 'string';
-                $quote = $ch;
-                $out .= $ch;
-                continue;
-            }
-
-            if (ctype_space($ch)) {
-                $prev = '' !== $out ? substr($out, -1) : '';
-                $j = $i + 1;
-                while ($j < $len && ctype_space($content[$j])) {
-                    $j++;
-                }
-                $n = $j < $len ? $content[$j] : '';
-                if (preg_match('/[A-Za-z0-9_$]/', $prev) && preg_match('/[A-Za-z0-9_$]/', $n)) {
-                    $out .= ' ';
-                }
-                continue;
-            }
-
-            if (preg_match('/[{}()\[\];,:?+*%=&|!<>~^-]/', $ch)) {
-                $out = rtrim($out);
-                $out .= $ch;
-                $last_sig = $ch;
-                continue;
-            }
-
-            $out .= $ch;
-            if (!ctype_space($ch)) {
-                $last_sig = $ch;
-            }
-        }
-
-        $out = preg_replace('/\s+/', ' ', trim($out));
-        return (string) $out;
+        // JavaScript cannot be safely minified with whitespace heuristics because
+        // regex literals, ASI and adjacent unary operators are grammar-sensitive.
+        return trim($content);
     }
 
     public static function get_used_css_path($url = '') {
@@ -223,12 +147,23 @@ trait UCP_Helpers_Minify_And_Log_Trait {
      * the plain-text file.
      */
     public static function redact_log_text($message) {
+        if (!is_scalar($message)) {
+            return '';
+        }
         $message = wp_strip_all_tags((string) $message);
-        $message = preg_replace('/[A-Z0-9._%+\-]+@[A-Z0-9.\-]+\.[A-Z]{2,}/i', '[redacted-email]', $message);
-        $message = preg_replace('/\b(?:\d{1,3}\.){3}\d{1,3}\b/', '[redacted-ip]', $message);
-        $message = preg_replace('/\b(?:bearer\s+[a-z0-9._\-]+|sk_live_[a-z0-9_]+|sk_test_[a-z0-9_]+)\b/i', '[redacted-secret]', $message);
-        $message = preg_replace('/\b(token|api[_-]?key|secret|password|passwd|pwd|nonce|user[_-]?id|session(?:[_-]?[a-z0-9_]+)?|payment(?:[_-]?[a-z0-9_]+)?|order(?:[_-]?[a-z0-9_]+)?|customer(?:[_-]?[a-z0-9_]+)?|cart(?:[_-]?[a-z0-9_]+)?|checkout(?:[_-]?[a-z0-9_]+)?)=([^\s&]+)/i', '$1=[redacted]', $message);
-        $message = preg_replace_callback('#https?://[^\s"\'<>]+#i', array(__CLASS__, 'redact_log_url_callback'), $message);
+        $message = UCP_Helpers::redact_preg_replace('/[A-Z0-9._%+\-]+@[A-Z0-9.\-]+\.[A-Z]{2,}/i', '[redacted-email]', $message);
+        $message = UCP_Helpers::redact_preg_replace('/\b(?:\d{1,3}\.){3}\d{1,3}\b/', '[redacted-ip]', $message);
+        $message = UCP_Helpers::safe_preg_replace_callback(
+            '/(?<![a-f0-9:])\[?(?=[a-f0-9:]*:)[a-f0-9:]{2,45}\]?(?![a-f0-9:])/i',
+            static function($matches) {
+                $candidate = trim((string) ($matches[0] ?? ''), '[]');
+                return filter_var($candidate, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6) ? '[redacted-ip]' : (string) ($matches[0] ?? '');
+            },
+            $message
+        );
+        $message = UCP_Helpers::redact_preg_replace('/\b(?:bearer\s+[a-z0-9._\-]+|sk_live_[a-z0-9_]+|sk_test_[a-z0-9_]+)\b/i', '[redacted-secret]', $message);
+        $message = UCP_Helpers::redact_preg_replace('/\b(token|api[_-]?key|secret|password|passwd|pwd|nonce|user[_-]?id|session(?:[_-]?[a-z0-9_]+)?|payment(?:[_-]?[a-z0-9_]+)?|order(?:[_-]?[a-z0-9_]+)?|customer(?:[_-]?[a-z0-9_]+)?|cart(?:[_-]?[a-z0-9_]+)?|checkout(?:[_-]?[a-z0-9_]+)?)(\s*(?:=|:)\s*|\s+)([^\s&]+)/i', '$1$2[redacted]', $message);
+        $message = UCP_Helpers::safe_preg_replace_callback('#https?://[^\s"\'<>]+#i', array(__CLASS__, 'redact_log_url_callback'), $message);
         $message = sanitize_textarea_field((string) $message);
         if (strlen($message) > 5000) {
             $message = substr($message, 0, 5000) . '...[truncated]';
@@ -237,6 +172,9 @@ trait UCP_Helpers_Minify_And_Log_Trait {
     }
 
     public static function redact_log_url($url) {
+        if (!is_scalar($url)) {
+            return '';
+        }
         $url = esc_url_raw((string) $url);
         if ('' === $url) {
             return '';
@@ -257,34 +195,150 @@ trait UCP_Helpers_Minify_And_Log_Trait {
     }
 
     protected static function redact_log_url_callback($matches) {
+        if (!is_array($matches)) {
+            $matches = is_scalar($matches) ? array($matches) : array();
+        }
+        $matches = array_filter($matches, 'is_scalar');
         $url = isset($matches[0]) ? (string) $matches[0] : '';
         return self::redact_log_url($url);
     }
 
     public static function log($message) {
+        if (!class_exists('UCP_Options') || !UCP_Options::get('enable_logs')) {
+            return false;
+        }
+
+        $file = UCP_CACHE_DIR . 'logs/events.log';
         $line = '[' . gmdate('Y-m-d H:i:s') . '] ' . self::redact_log_text($message) . "\n";
-        self::append_file(UCP_CACHE_DIR . 'logs/events.log', $line);
+        if (!self::append_file($file, $line)) {
+            return false;
+        }
+
+        self::rotate_legacy_log_if_needed($file);
+        return true;
+    }
+
+    protected static function rotate_legacy_log_if_needed($file) {
+        if (!is_scalar($file) && null !== $file) {
+            $file = '';
+        }
+        $max_bytes = max(64 * KB_IN_BYTES, min(100 * MB_IN_BYTES, absint(apply_filters('ucp_log_file_max_bytes', 5 * MB_IN_BYTES))));
+        if (!is_file($file) || (int) filesize($file) <= $max_bytes) {
+            return;
+        }
+
+        $suffix = wp_generate_password(8, false, false);
+        $rotated = dirname($file) . '/events-' . gmdate('Ymd-His') . '-' . $suffix . '.log';
+        self::move_file($file, $rotated);
     }
 
     public static function log_throttled($key, $message, $ttl = HOUR_IN_SECONDS) {
+        if (!class_exists('UCP_Options') || !UCP_Options::get('enable_logs')) {
+            return false;
+        }
+
         $key = 'ucp_log_throttle_' . md5((string) $key);
         if (get_transient($key)) {
-            return;
+            return false;
         }
         set_transient($key, 1, max(60, absint($ttl)));
-        self::log($message);
+        return self::log($message);
     }
 
-    public static function get_log_tail($lines = 50) {
-        $file = UCP_CACHE_DIR . 'logs/events.log';
-        if (!file_exists($file)) {
+    /**
+     * Read a bounded prefix from a local file without loading the complete file.
+     *
+     * @param string $file      File path.
+     * @param int    $max_bytes Maximum bytes to read.
+     * @return string
+     */
+    public static function read_file_head($file, $max_bytes = 65536) {
+        $file = is_scalar($file) ? (string) $file : '';
+        if ('' === $file || !is_file($file) || !is_readable($file)) {
+            return '';
+        }
+        $max_bytes = max(1024, min(4 * MB_IN_BYTES, absint($max_bytes)));
+        // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen -- bounded local read avoids loading an arbitrary drop-in fully.
+        $handle = fopen($file, 'rb');
+        if (false === $handle) {
+            return '';
+        }
+        $content = fread($handle, $max_bytes);
+        fclose($handle);
+        return is_string($content) ? $content : '';
+    }
+
+    /**
+     * Read a bounded number of lines from the end of a local plugin-owned file.
+     *
+     * @param string $file     File path.
+     * @param int    $lines    Maximum number of lines.
+     * @param int    $max_read Maximum bytes to read from the end of the file.
+     * @return string[]
+     */
+    public static function read_file_tail_lines($file, $lines = 50, $max_read = 0) {
+        $file = is_scalar($file) ? (string) $file : '';
+        if (
+            '' === $file
+            || !is_file($file)
+            || !is_readable($file)
+            || !self::is_safe_managed_write_target($file)
+        ) {
             return array();
         }
-        $content = file($file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+
+        $lines = max(1, min(20000, absint($lines)));
+        $size = (int) filesize($file);
+        if ($size <= 0) {
+            return array();
+        }
+
+        $max_read = absint($max_read);
+        if ($max_read <= 0) {
+            $max_read = max(64 * KB_IN_BYTES, min(4 * MB_IN_BYTES, $lines * 8 * KB_IN_BYTES));
+        }
+        $max_read = max(64 * KB_IN_BYTES, min(8 * MB_IN_BYTES, $max_read));
+        $position = $size;
+        $read = 0;
+        $buffer = '';
+        // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen -- bounded reverse-read of a validated plugin-owned file avoids loading it fully.
+        $handle = fopen($file, 'rb');
+        if (false === $handle) {
+            return array();
+        }
+
+        while ($position > 0 && $read < $max_read && substr_count($buffer, "\n") <= $lines) {
+            $chunk_size = min(8 * KB_IN_BYTES, $position, $max_read - $read);
+            $position -= $chunk_size;
+            if (0 !== fseek($handle, $position)) {
+                break;
+            }
+            $chunk = fread($handle, $chunk_size);
+            if (!is_string($chunk) || '' === $chunk) {
+                break;
+            }
+            $buffer = $chunk . $buffer;
+            $read += strlen($chunk);
+        }
+        fclose($handle);
+
+        if ($position > 0) {
+            $first_newline = strpos($buffer, "\n");
+            $buffer = false === $first_newline ? '' : substr($buffer, $first_newline + 1);
+        }
+        $content = preg_split('/\r\n|\r|\n/', $buffer, -1, PREG_SPLIT_NO_EMPTY);
         if (!is_array($content)) {
             return array();
         }
-        $tail = array_slice($content, -1 * absint($lines));
-        return array_map(array(__CLASS__, 'redact_log_text'), $tail);
+        return array_slice($content, -1 * $lines);
+    }
+
+    public static function get_log_tail($lines = 50) {
+        if (!is_scalar($lines) && null !== $lines) {
+            $lines = 50;
+        }
+        $file = UCP_CACHE_DIR . 'logs/events.log';
+        $content = self::read_file_tail_lines($file, max(1, min(500, absint($lines))));
+        return array_map(array(__CLASS__, 'redact_log_text'), $content);
     }
 }

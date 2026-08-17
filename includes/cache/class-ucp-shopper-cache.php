@@ -5,12 +5,10 @@ if (!defined('ABSPATH')) {
 }
 
 /**
- * UCP_Shopper_Cache
- *
- * Lifts the WooCommerce full-page cache hit-rate for active shoppers without
- * leaking personalised carts, mirroring the model used by WP Rocket (public
- * page cache + client-side cart-fragment hydration) instead of LiteSpeed ESI,
- * which would require a LiteSpeed Enterprise / QUIC.cloud server.
+ * Improves the WooCommerce full-page cache hit rate for active shoppers without
+ * leaking personalized carts. Public page cache is combined with client-side
+ * cart-fragment hydration, while personalized cart state remains outside the
+ * shared cache instead of depending on server-specific ESI behavior.
  *
  * Responsibilities:
  *  - "Serve cache to shoppers": keep public pages cached for visitors who own a
@@ -21,15 +19,12 @@ if (!defined('ABSPATH')) {
  *    and (optionally) the cart/session cookies from the cache bypass lists used
  *    by both the PHP request policy and the advanced-cache.php drop-in.
  *  - Client-side mini-cart hydration nudge.
- *  - Cart-fragments AJAX optimisation (cache the empty-cart response, optionally
- *    dequeue wc-cart-fragments where no mini-cart is present).
+ *  - Cart-fragments script scoping without caching or replaying session-bearing payloads.
  *  - Webshop readiness recommendations (e.g. nudge a persistent object cache).
  *
  * Staging-first: everything here is gated behind options that default to OFF.
  */
 class UCP_Shopper_Cache {
-
-    const EMPTY_FRAGMENTS_TRANSIENT = 'ucp_empty_cart_fragments';
 
     public function __construct() {
         // Cookie policy: vary cookies should *vary* the cache, not bypass it; cart
@@ -37,7 +32,7 @@ class UCP_Shopper_Cache {
         add_filter('ucp_excluded_cookie_fragments', array($this, 'filter_runtime_excluded_cookies'), 20);
         add_filter('ucp_dropin_exclude_cookies', array($this, 'filter_dropin_excluded_cookies'), 20);
 
-        // Make sure promoted cookies are treated as cache-safe (never "unknown") under strict modes.
+        // Promoted vary cookies remain cache-safe under strict unknown-cookie handling.
         add_filter('ucp_cache_safe_request_cookie_fragments', array($this, 'filter_safe_request_cookies'), 20);
         add_filter('ucp_dropin_safe_cookies', array($this, 'filter_dropin_safe_cookies'), 20);
 
@@ -51,11 +46,8 @@ class UCP_Shopper_Cache {
             }
 
             if (UCP_Options::get('optimize_cart_fragments') && UCP_Options::get('safe_cart_fragments_mode')) {
-                // Capture the empty-cart fragment payload so we can replay it cheaply,
-                // and short-circuit the refresh request when the cart is empty.
-                add_filter('woocommerce_add_to_cart_fragments', array($this, 'capture_empty_cart_fragments'), 999);
-                add_action('wc_ajax_get_refreshed_fragments', array($this, 'maybe_serve_cached_empty_fragments'), 0);
-                add_action('woocommerce_ajax_get_refreshed_fragments', array($this, 'maybe_serve_cached_empty_fragments'), 0);
+                // Scope the script only. Fragment JSON can contain session, currency,
+                // tax, language or nonce-bearing markup and is never replayed globally.
                 add_filter('woocommerce_get_script_data', array($this, 'filter_cart_fragments_script_data'), 10, 2);
             }
 
@@ -64,10 +56,6 @@ class UCP_Shopper_Cache {
             }
         }
 
-        // Invalidate the cached empty-cart fragment payload whenever the cart changes shape.
-        add_action('woocommerce_add_to_cart', array($this, 'flush_empty_cart_fragments'));
-        add_action('woocommerce_cart_item_removed', array($this, 'flush_empty_cart_fragments'));
-        add_action('woocommerce_cart_emptied', array($this, 'flush_empty_cart_fragments'));
 
         // Webshop readiness nudge (admin only).
         if (is_admin()) {
@@ -147,7 +135,7 @@ class UCP_Shopper_Cache {
      * @return string[]
      */
     public function filter_safe_request_cookies($fragments) {
-        return array_values(array_unique(array_merge((array) $fragments, self::fragments_promoted_from_bypass())));
+        return $this->merge_safe_cookie_fragments($fragments);
     }
 
     /**
@@ -157,6 +145,10 @@ class UCP_Shopper_Cache {
      * @return string[]
      */
     public function filter_dropin_safe_cookies($fragments) {
+        return $this->merge_safe_cookie_fragments($fragments);
+    }
+
+    private function merge_safe_cookie_fragments($fragments) {
         return array_values(array_unique(array_merge((array) $fragments, self::fragments_promoted_from_bypass())));
     }
 
@@ -196,16 +188,59 @@ class UCP_Shopper_Cache {
         if (!UCP_Options::get('serve_cache_to_shoppers')) {
             return;
         }
-        if ($this->cart_is_empty()) {
+        if (!$this->request_has_cart_session_cookie() && $this->cart_is_empty()) {
             return;
         }
         if (!defined('DONOTCACHEPAGE')) {
-            // store_buffer() already honours DONOTCACHEPAGE; serving is unaffected.
+            // Shoppers may consume an existing public cache entry, but a request carrying
+            // WooCommerce/EDD session state must never seed that shared cache on a miss.
             define('DONOTCACHEPAGE', true);
         }
         if (class_exists('UCP_Diagnostics')) {
-            UCP_Diagnostics::record('cache', 'Shopper cache: skipped storing a render with a non-empty cart', array());
+            UCP_Diagnostics::record('cache', 'Shopper cache: skipped storing a render carrying cart or session state', array());
         }
+    }
+
+    private function request_has_cart_session_cookie() {
+        $fragments = array_values(array_filter(array_map(static function($fragment) {
+            return strtolower(trim((string) $fragment));
+        }, self::cart_session_cookie_fragments()), 'strlen'));
+        if (empty($fragments)) {
+            return false;
+        }
+
+        $cookie_names = array();
+        $raw_cookie_header = UCP_Helpers::server_value('HTTP_COOKIE', '', 16384);
+        if ('' !== trim($raw_cookie_header)) {
+            $pairs = explode(';', $raw_cookie_header);
+            if (count($pairs) > 128) {
+                return true;
+            }
+            foreach ($pairs as $pair) {
+                $name = trim((string) explode('=', trim($pair), 2)[0]);
+                if ('' === $name || strlen($name) > 256 || 1 !== preg_match('/^[!#$%&\'()*+\-.^_`|~0-9A-Za-z]+$/D', $name)) {
+                    return true;
+                }
+                $cookie_names[] = $name;
+            }
+        }
+        if (empty($cookie_names)) {
+            $cookies = UCP_Helpers::cookie_map(128, 4096);
+            if (false === $cookies) {
+                return true;
+            }
+            $cookie_names = array_map('strval', array_keys($cookies));
+        }
+
+        foreach ($cookie_names as $cookie_name) {
+            $cookie_name = strtolower((string) $cookie_name);
+            foreach ($fragments as $fragment) {
+                if (false !== strpos($cookie_name, $fragment)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     /**
@@ -247,11 +282,7 @@ class UCP_Shopper_Cache {
             return;
         }
         $js = "(function(){function go(){try{if(window.jQuery&&jQuery.fn){jQuery(document.body).trigger('wc_fragment_refresh');}}catch(e){}}if(document.readyState==='complete'){go();}else{window.addEventListener('load',go,{once:true});}})();";
-        if (function_exists('wp_get_inline_script_tag')) {
-            echo wp_get_inline_script_tag($js, array('id' => 'ucp-cart-hydrate')); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- generated via wp_get_inline_script_tag.
-            return;
-        }
-        echo '<script id="ucp-cart-hydrate">' . $js . '</script>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static inline script literal.
+        echo wp_get_inline_script_tag($js, array('id' => 'ucp-cart-hydrate')); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- generated via wp_get_inline_script_tag.
     }
 
     private function should_skip_hydration() {
@@ -271,57 +302,6 @@ class UCP_Shopper_Cache {
     /* ---------------------------------------------------------------------
      * Cart-fragments AJAX optimisation
      * ------------------------------------------------------------------- */
-
-    /**
-     * Memoise the fragment payload while the cart is empty. WooCommerce passes the
-     * fragments array through this filter; we only snapshot the empty-cart variant.
-     *
-     * @param array $fragments
-     * @return array
-     */
-    public function capture_empty_cart_fragments($fragments) {
-        if (!is_array($fragments) || !$this->cart_is_empty()) {
-            return $fragments;
-        }
-        $payload = array(
-            'fragments' => $fragments,
-            'cart_hash' => '',
-        );
-        if (function_exists('WC') && is_object(WC()->cart) && method_exists(WC()->cart, 'get_cart_hash')) {
-            $payload['cart_hash'] = (string) WC()->cart->get_cart_hash();
-        }
-        // Short TTL: fragments embed nonces and prices that should not go stale for long.
-        set_transient(self::EMPTY_FRAGMENTS_TRANSIENT, $payload, (int) apply_filters('ucp_empty_cart_fragments_ttl', 5 * MINUTE_IN_SECONDS));
-        return $fragments;
-    }
-
-    /**
-     * Serve the cached empty-cart fragment payload directly, skipping WooCommerce's
-     * own (relatively expensive) fragment rebuild, but only while the cart is empty.
-     */
-    public function maybe_serve_cached_empty_fragments() {
-        if (!$this->cart_is_empty()) {
-            return; // let WooCommerce render the real, non-empty fragments.
-        }
-        $payload = get_transient(self::EMPTY_FRAGMENTS_TRANSIENT);
-        if (!is_array($payload) || empty($payload['fragments']) || !is_array($payload['fragments'])) {
-            return; // nothing cached yet; let WooCommerce build it (and we snapshot it).
-        }
-        if (!headers_sent()) {
-            // Private, short-lived: the response is per-visitor-safe (empty cart) but still nonce-bearing.
-            header('Cache-Control: private, max-age=0, must-revalidate');
-            header('Content-Type: application/json; charset=' . get_option('blog_charset'));
-            header('X-UltraCache-Fragments: empty-cart-hit');
-        }
-        if (class_exists('UCP_Diagnostics')) {
-            UCP_Diagnostics::record('cache', 'Shopper cache: served cached empty-cart fragments', array());
-        }
-        wp_send_json($payload);
-    }
-
-    public function flush_empty_cart_fragments() {
-        delete_transient(self::EMPTY_FRAGMENTS_TRANSIENT);
-    }
 
     /**
      * Disable wc-cart-fragments script data only in explicit safe mode and only
@@ -417,9 +397,9 @@ class UCP_Shopper_Cache {
      */
     public static function webshop_recommendations() {
         $recommendations = array();
-        $woo_active = class_exists('WooCommerce') || (function_exists('UCP_Integrations') && false);
+        $woo_active = class_exists('WooCommerce') || function_exists('WC');
 
-        if (!$woo_active && !function_exists('WC')) {
+        if (!$woo_active) {
             return $recommendations;
         }
 
@@ -447,7 +427,7 @@ class UCP_Shopper_Cache {
             $recommendations[] = array(
                 'id'       => 'cart_fragments',
                 'severity' => 'tip',
-                'message'  => __('Cart-fragments optimalisatie is standaard uit. Schakel dit alleen in met veilige modus en test mini-cart, cart en checkout op staging.', 'ultracache-pro'),
+                'message'  => __('Cart-fragments beperking is standaard uit. Schakel dit alleen in met veilige modus en test mini-cart, cart en checkout op staging.', 'ultracache-pro'),
             );
         }
 

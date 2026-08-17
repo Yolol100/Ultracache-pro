@@ -62,7 +62,7 @@ trait UCP_Admin_Render_Trait {
         <div class="wrap ucp-admin-fallback">
             <h1><?php echo esc_html__('UltraCache Pro', 'ultracache-pro'); ?></h1>
             <div class="notice notice-warning inline">
-                <p><strong><?php echo esc_html__('Admin assets ontbreken.', 'ultracache-pro'); ?></strong></p>
+                <p><strong><?php echo esc_html__('Beheerbestanden ontbreken.', 'ultracache-pro'); ?></strong></p>
                 <p><?php echo esc_html__('De volledige React-admin kon niet worden geladen. Deze veilige fallback voorkomt een lege beheerpagina en houdt de belangrijkste onderhoudsacties bereikbaar.', 'ultracache-pro'); ?></p>
                 <p>
                     <?php echo esc_html__('Ontbrekende verwachte bestanden:', 'ultracache-pro'); ?>
@@ -73,14 +73,14 @@ trait UCP_Admin_Render_Trait {
 
             <div class="card">
                 <h2><?php echo esc_html__('Status', 'ultracache-pro'); ?></h2>
-                <table class="widefat striped" role="presentation">
+                <table class="widefat striped">
                     <tbody>
                         <tr>
                             <th scope="row"><?php echo esc_html__('Versie', 'ultracache-pro'); ?></th>
                             <td><?php echo esc_html(defined('UCP_VERSION') ? UCP_VERSION : ''); ?></td>
                         </tr>
                         <tr>
-                            <th scope="row"><?php echo esc_html__('Page cache', 'ultracache-pro'); ?></th>
+                            <th scope="row"><?php echo esc_html__('Paginacache', 'ultracache-pro'); ?></th>
                             <td><?php echo esc_html($cache_enabled ? __('Ingeschakeld', 'ultracache-pro') : __('Uitgeschakeld', 'ultracache-pro')); ?></td>
                         </tr>
                         <tr>
@@ -162,6 +162,9 @@ trait UCP_Admin_Lifecycle_Trait {
         add_action('admin_init', array($this, 'register_settings'));
         add_action('admin_init', array($this, 'normalize_admin_routes'));
         add_action('admin_enqueue_scripts', array($this, 'enqueue'));
+        add_filter('admin_body_class', array($this, 'admin_body_class'));
+        add_filter('admin_footer_text', array($this, 'filter_admin_footer_text'), 99);
+        add_filter('update_footer', array($this, 'filter_update_footer'), 99);
         add_action('admin_enqueue_scripts', array('UCP_Page_Overrides', 'enqueue_admin_assets'));
         add_action('admin_enqueue_scripts', array($this->notices, 'enqueue_cache_toast_assets'));
         add_action('admin_notices', array($this->notices, 'hide_third_party_notices'), 1);
@@ -274,11 +277,37 @@ trait UCP_Admin_Routing_Trait {
         register_setting('ucp_settings_group', UCP_Options::OPTION_KEY, array('UCP_Admin_Sanitizer', 'sanitize'));
     }
 
+
+    protected function is_ucp_admin_screen() {
+        if (!is_admin()) {
+            return false;
+        }
+
+        $page = /* phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only admin page detection. */ isset($_GET['page']) && is_scalar($_GET['page']) ? sanitize_key(wp_unslash($_GET['page'])) : '';
+
+        return $page && ($this->get_current_page_slug() === $page || array_key_exists($page, $this->compatibility_page_map()));
+    }
+
+    public function admin_body_class($classes) {
+        if ($this->is_ucp_admin_screen()) {
+            $classes .= ' ucp-admin-screen';
+        }
+        return $classes;
+    }
+
+    public function filter_admin_footer_text($text) {
+        return $this->is_ucp_admin_screen() ? '' : $text;
+    }
+
+    public function filter_update_footer($text) {
+        return $this->is_ucp_admin_screen() ? '' : $text;
+    }
+
     public function normalize_admin_routes() {
         if (!is_admin() || !current_user_can('manage_options')) {
             return;
         }
-        $page = /* phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only admin routing/filter parameter. */ isset($_GET['page']) ? sanitize_key(wp_unslash($_GET['page'])) : '';
+        $page = /* phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only admin routing/filter parameter. */ isset($_GET['page']) && is_scalar($_GET['page']) ? sanitize_key(wp_unslash($_GET['page'])) : '';
         if (!$page || $this->get_current_page_slug() === $page) {
             return;
         }

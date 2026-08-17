@@ -7,7 +7,7 @@ if (!defined('ABSPATH')) {
 /**
  * Pragmatic, dependency-free HTML tokenizer for safe tag rewriting.
  *
- * UltraCache's markup passes historically used `preg_replace_callback('/<img\b([^>]*)>/i', ...)`
+ * UltraCache's markup passes historically used `UCP_Helpers::safe_preg_replace_callback('/<img\b([^>]*)>/i', ...)`
  * style regexes. That approach has two well-known failure modes:
  *
  *   1. It rewrites tags that only *look* like markup but live inside raw-text/RCDATA elements
@@ -61,6 +61,9 @@ class UCP_HTML_Parser {
      * @return string
      */
     public static function replace_tag($html, $tag, $callback) {
+        if (!is_scalar($tag) && null !== $tag) {
+            $tag = '';
+        }
         if (!is_string($html) || '' === $html || !is_callable($callback)) {
             return $html;
         }
@@ -132,6 +135,22 @@ class UCP_HTML_Parser {
 
             if ($name_lc === $tag) {
                 $out .= self::apply_start_tag_callback($full, $callback);
+                if (isset(self::$raw_text_elements[$name_lc])) {
+                    // The opening tag may be the rewrite target, but its raw-text body is never
+                    // markup and must remain byte-for-byte untouched.
+                    $i = $tag_end + 1;
+                    $close = '</' . $name_lc;
+                    $close_pos = stripos($html, $close, $i);
+                    if (false === $close_pos) {
+                        $out .= substr($html, $i);
+                        break;
+                    }
+                    $close_end = strpos($html, '>', $close_pos);
+                    $close_end = (false === $close_end) ? $len : $close_end + 1;
+                    $out .= substr($html, $i, $close_end - $i);
+                    $i = $close_end;
+                    continue;
+                }
             } elseif (isset(self::$raw_text_elements[$name_lc])) {
                 // Emit the start tag, then skip to the matching close tag verbatim so nothing inside
                 // the raw-text element is ever treated as markup.
@@ -173,6 +192,9 @@ class UCP_HTML_Parser {
      * @return string
      */
     public static function replace_element($html, $tag, $callback) {
+        if (!is_scalar($tag) && null !== $tag) {
+            $tag = '';
+        }
         if (!is_string($html) || '' === $html || !is_callable($callback)) {
             return $html;
         }

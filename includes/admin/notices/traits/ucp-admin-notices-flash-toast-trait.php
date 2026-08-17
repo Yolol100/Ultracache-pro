@@ -6,6 +6,12 @@ if (!defined('ABSPATH')) {
 
 trait UCP_Admin_Notices_Flash_Toast_Trait {
     public static function flash($message, $type = 'info') {
+        if (!is_scalar($message) && null !== $message) {
+            $message = '';
+        }
+        if (!is_scalar($type) && null !== $type) {
+            $type = 'info';
+        }
         $type = sanitize_key((string) $type);
         if (!in_array($type, array('success', 'info', 'warning', 'error'), true)) {
             $type = 'info';
@@ -17,38 +23,69 @@ trait UCP_Admin_Notices_Flash_Toast_Trait {
         ), MINUTE_IN_SECONDS * 5);
     }
 
-    protected function render_flash_notice() {
+    /**
+     * Consume the current user's queued flash message once.
+     *
+     * @return array{message:string,type:string}|array{}
+     */
+    public static function consume_flash() {
         $user_id = function_exists('get_current_user_id') ? (int) get_current_user_id() : 0;
         $flash = get_transient('ucp_admin_flash_' . $user_id);
-        if (empty($flash) || !is_array($flash) || empty($flash['message'])) {
-            return;
+        if (!is_array($flash) || empty($flash['message'])) {
+            return array();
         }
+
         delete_transient('ucp_admin_flash_' . $user_id);
         $type = isset($flash['type']) ? sanitize_key((string) $flash['type']) : 'info';
-        $notice_class = 'notice-info';
-        if ('success' === $type) {
-            $notice_class = 'notice-success';
-        } elseif ('warning' === $type) {
-            $notice_class = 'notice-warning';
-        } elseif ('error' === $type) {
-            $notice_class = 'notice-error';
+        if (!in_array($type, array('success', 'info', 'warning', 'error'), true)) {
+            $type = 'info';
         }
-        echo '<div class="notice ' . esc_attr($notice_class) . ' is-dismissible ucp-notice"><p>' . esc_html($flash['message']) . '</p></div>';
+
+        return array(
+            'message' => wp_strip_all_tags((string) $flash['message']),
+            'type'    => $type,
+        );
     }
 
+    /**
+     * Return the current administrator's pending cache toast.
+     *
+     * The legacy option is consumed as a one-time fallback after upgrades.
+     *
+     * @param bool $consume Whether to remove the stored toast.
+     * @return array<string,mixed>
+     */
+    protected function pending_cache_toast($consume = false) {
+        $user_id = function_exists('get_current_user_id') ? (int) get_current_user_id() : 0;
+        $key = $user_id > 0 ? 'ucp_pending_cache_toast_' . $user_id : '';
+        $toast = '' !== $key && function_exists('get_transient') ? get_transient($key) : array();
+
+        if (!is_array($toast) || empty($toast['message'])) {
+            $toast = get_option('ucp_pending_cache_toast', array());
+        }
+
+        if ($consume) {
+            if ('' !== $key && function_exists('delete_transient')) {
+                delete_transient($key);
+            }
+            delete_option('ucp_pending_cache_toast');
+        }
+
+        return is_array($toast) ? $toast : array();
+    }
 
     public function enqueue_cache_toast_assets($hook = '') {
         if (!current_user_can('manage_options')) {
             return;
         }
         if (class_exists('UCP_Admin_Router') && !UCP_Admin_Router::is_plugin_hook_suffix($hook)) {
-            $page = /* phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only admin routing parameter. */ isset($_GET['page']) ? sanitize_key(wp_unslash($_GET['page'])) : '';
+            $page = /* phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only admin routing parameter. */ isset($_GET['page']) && is_scalar($_GET['page']) ? sanitize_key(wp_unslash($_GET['page'])) : '';
             if (UCP_Admin_Router::page_slug() !== $page) {
                 return;
             }
         }
 
-        $toast = get_option('ucp_pending_cache_toast', array());
+        $toast = $this->pending_cache_toast(false);
         if (empty($toast) || !is_array($toast) || empty($toast['message'])) {
             return;
         }
@@ -97,16 +134,14 @@ trait UCP_Admin_Notices_Flash_Toast_Trait {
             return;
         }
 
-        $toast = get_option('ucp_pending_cache_toast', array());
+        $toast = $this->pending_cache_toast(true);
         if (empty($toast) || !is_array($toast) || empty($toast['message'])) {
             return;
         }
 
-        delete_option('ucp_pending_cache_toast');
-
         $message = wp_strip_all_tags((string) $toast['message']);
         ?>
-        <div class="ucp-cache-toast" role="status" aria-live="polite" data-ucp-cache-toast>
+        <div class="ucp-cache-toast" role="status" aria-live="polite" aria-atomic="true" data-ucp-cache-toast>
             <span class="ucp-cache-toast__icon" aria-hidden="true">✓</span>
             <span class="ucp-cache-toast__message"><?php echo esc_html($message); ?></span>
             <button type="button" class="ucp-cache-toast__close" aria-label="<?php esc_attr_e('Melding sluiten', 'ultracache-pro'); ?>" data-ucp-cache-toast-close>×</button>

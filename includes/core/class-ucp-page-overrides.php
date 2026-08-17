@@ -19,12 +19,15 @@ class UCP_Page_Overrides {
     }
 
     public static function actions_for_post($post_id) {
+        if (!is_scalar($post_id) && null !== $post_id) {
+            $post_id = 0;
+        }
         $actions = get_post_meta((int) $post_id, self::META_KEY, true);
         if (!is_array($actions)) {
             return array();
         }
         $allowed = array_keys(self::allowed_actions());
-        return array_values(array_intersect(array_map('sanitize_key', $actions), $allowed));
+        return array_values(array_intersect(array_map('sanitize_key', array_filter($actions, 'is_scalar')), $allowed));
     }
 
     public static function actions_for_current_request() {
@@ -39,7 +42,7 @@ class UCP_Page_Overrides {
     }
 
     public static function has_action($action) {
-        $action = sanitize_key((string) $action);
+        $action = is_scalar($action) ? sanitize_key((string) $action) : '';
         $actions = self::actions_for_current_request();
         if (in_array('disable_all_optimizations', $actions, true)) {
             return true;
@@ -102,15 +105,17 @@ class UCP_Page_Overrides {
         if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
             return;
         }
-        if (!isset($_POST['ucp_page_overrides_nonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['ucp_page_overrides_nonce'])), 'ucp_page_overrides_' . $post_id)) {
+        $nonce = UCP_Helpers::request_scalar('ucp_page_overrides_nonce', '', 128);
+        if ('' === $nonce || !wp_verify_nonce(sanitize_text_field($nonce), 'ucp_page_overrides_' . $post_id)) {
             return;
         }
         if (!current_user_can('edit_post', $post_id)) {
             return;
         }
         $allowed = array_keys(self::allowed_actions());
-        $actions = isset($_POST['ucp_override_actions']) ? array_map('sanitize_key', (array) wp_unslash($_POST['ucp_override_actions'])) : array();
-        $actions = array_values(array_intersect($actions, $allowed));
+        $raw_actions = UCP_Helpers::request_array('ucp_override_actions', array(), 25, 2, 64);
+        $actions = array_map('sanitize_key', array_filter($raw_actions, 'is_scalar'));
+        $actions = array_slice(array_values(array_unique(array_intersect($actions, $allowed))), 0, count($allowed));
         if (empty($actions)) {
             delete_post_meta($post_id, self::META_KEY);
             return;

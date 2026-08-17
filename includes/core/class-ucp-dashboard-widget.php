@@ -19,7 +19,7 @@ class UCP_Dashboard_Widget {
         $preset_label = isset($presets[$preset]['label']) ? $presets[$preset]['label'] : __('Handmatig', 'ultracache-pro');
         $items = array(
             array('label' => __('Cache', 'ultracache-pro'), 'active' => !empty($settings['enable_cache']), 'type' => __('Render-veilig', 'ultracache-pro'), 'why' => __('Maakt pagina’s sneller.', 'ultracache-pro')),
-            array('label' => __('Lazy load', 'ultracache-pro'), 'active' => !empty($settings['enable_lazy_images']) || !empty($settings['enable_lazy_iframes']), 'type' => __('Render-veilig', 'ultracache-pro'), 'why' => __('Snellere eerste laadtijd.', 'ultracache-pro')),
+            array('label' => __('Lazyload', 'ultracache-pro'), 'active' => !empty($settings['enable_lazy_images']) || !empty($settings['enable_lazy_iframes']), 'type' => __('Render-veilig', 'ultracache-pro'), 'why' => __('Snellere eerste laadtijd.', 'ultracache-pro')),
             array('label' => __('Used CSS', 'ultracache-pro'), 'active' => !empty($settings['enable_used_css']) || !empty($settings['enable_used_css_delivery']), 'type' => __('Geavanceerd', 'ultracache-pro'), 'why' => __('Minder overbodige CSS.', 'ultracache-pro')),
             array('label' => __('Object cache', 'ultracache-pro'), 'active' => !empty($settings['enable_redis_object_cache']) || !empty($settings['enable_apcu_object_cache']), 'type' => __('Geavanceerd', 'ultracache-pro'), 'why' => __('Vooral nuttig voor grotere sites.', 'ultracache-pro')),
         );

@@ -69,8 +69,8 @@ trait UCP_Integrations_Detection_Trait {
         return false;
     }
 
-    public static function autodetect() {
-        $detected = array(
+    protected static function detect_commerce_builder_and_theme_integrations() {
+        return array(
             'woocommerce'      => class_exists('WooCommerce') || self::has_active_plugin_slug(array('woocommerce/woocommerce.php')),
             'easy_digital_downloads' => defined('EDD_VERSION') || self::has_active_plugin_slug(array('easy-digital-downloads/easy-digital-downloads.php')),
             'surecart'         => class_exists('SureCart\Plugin') || self::has_active_plugin_slug(array('surecart/surecart.php')),
@@ -94,6 +94,11 @@ trait UCP_Integrations_Detection_Trait {
             'kadence_theme'    => self::has_theme_signature(array('kadence')),
             'sahifa_theme'     => self::has_theme_signature(array('sahifa')),
             'flatsome_theme'   => self::has_theme_signature(array('flatsome')),
+        );
+    }
+
+    protected static function detect_content_and_interaction_integrations() {
+        return array(
             'wpml'             => defined('ICL_SITEPRESS_VERSION') || self::has_active_plugin_slug(array('sitepress-multilingual-cms/sitepress.php')),
             'polylang'         => defined('POLYLANG_VERSION') || self::has_active_plugin_slug(array('polylang/polylang.php')),
             'translatepress'   => defined('TRP_PLUGIN_VERSION') || self::has_active_plugin_slug(array('translatepress-multilingual/index.php')),
@@ -117,6 +122,11 @@ trait UCP_Integrations_Detection_Trait {
             'motion_page'      => self::has_active_plugin_slug(array('motionpage/motionpage.php')),
             'lightweight_cookie_notice' => self::has_active_plugin_slug(array('lightweight-cookie-notice-free/lightweight-cookie-notice-free.php')),
             'mediavine'        => self::has_active_plugin_slug(array('mediavine-create/mediavine-create.php')),
+        );
+    }
+
+    protected static function detect_seo_and_consent_integrations() {
+        return array(
             'yoast'            => defined('WPSEO_VERSION') || defined('YOAST_SEO_VERSION') || self::has_active_plugin_slug(array('wordpress-seo/wp-seo.php')),
             'rank_math'        => defined('RANK_MATH_VERSION') || class_exists('RankMath') || self::has_active_plugin_slug(array('seo-by-rank-math/rank-math.php')),
             'aioseo'           => defined('AIOSEO_VERSION') || class_exists('AIOSEO\Plugin\AIOSEO') || self::has_active_plugin_slug(array('all-in-one-seo-pack/all_in_one_seo_pack.php')),
@@ -132,11 +142,16 @@ trait UCP_Integrations_Detection_Trait {
             'moove_gdpr'       => defined('MOOVE_GDPR_VERSION') || self::has_active_plugin_slug(array('gdpr-cookie-compliance/moove-gdpr.php')),
             'cookie_notice'    => self::has_active_plugin_slug(array('cookie-notice/cookie-notice.php')),
             'iubenda'          => defined('IUBENDA_PLUGIN_VERSION') || self::has_active_plugin_slug(array('iubenda-cookie-law-solution/iubenda_cookie_solution.php')),
+        );
+    }
+
+    protected static function detect_forms_ads_and_analytics_integrations() {
+        return array(
             'wpforms'          => defined('WPFORMS_VERSION') || self::has_active_plugin_slug(array('wpforms-lite/wpforms.php','wpforms/wpforms.php')),
             'woo_paypal_payments' => self::has_active_plugin_slug(array('woocommerce-paypal-payments/woocommerce-paypal-payments.php')),
-            'advanced_ads'    => self::has_active_plugin_slug(array('advanced-ads/advanced-ads.php')),
+            'advanced_ads'     => self::has_active_plugin_slug(array('advanced-ads/advanced-ads.php')),
             'mailchimp_for_wp' => self::has_active_plugin_slug(array('mailchimp-for-wp/mailchimp-for-wp.php')),
-            'forminator'      => defined('FORMINATOR_VERSION') || self::has_active_plugin_slug(array('forminator/forminator.php')),
+            'forminator'       => defined('FORMINATOR_VERSION') || self::has_active_plugin_slug(array('forminator/forminator.php')),
             'contact_form_7'   => defined('WPCF7_VERSION') || self::has_active_plugin_slug(array('contact-form-7/wp-contact-form-7.php')),
             'gravity_forms'    => class_exists('GFForms') || self::has_active_plugin_slug(array('gravityforms/gravityforms.php')),
             'fluent_forms'     => defined('FLUENTFORM') || self::has_active_plugin_slug(array('fluentform/fluentform.php')),
@@ -145,6 +160,11 @@ trait UCP_Integrations_Detection_Trait {
             'monsterinsights'  => defined('MONSTERINSIGHTS_VERSION') || self::has_active_plugin_slug(array('google-analytics-for-wordpress/googleanalytics.php')),
             'site_kit'         => defined('GOOGLESITEKIT_VERSION') || self::has_active_plugin_slug(array('google-site-kit/google-site-kit.php')),
             'gtm4wp'           => defined('GTM4WP_VERSION') || self::has_active_plugin_slug(array('duracelltomi-google-tag-manager/duracelltomi-google-tag-manager-for-wordpress.php')),
+        );
+    }
+
+    protected static function detect_optimization_integrations() {
+        return array(
             'cloudflare'       => defined('CLOUDFLARE_VERSION') || class_exists('CF\WordPress\Hooks') || self::has_active_plugin_slug(array('cloudflare/cloudflare.php')) || UCP_Edge::cloudflare_headers_present() || UCP_Edge::cloudflare_api_configured(),
             'wp_rocket'        => self::has_active_plugin_slug(array('wp-rocket/wp-rocket.php')),
             'w3_total_cache'   => self::has_active_plugin_slug(array('w3-total-cache/w3-total-cache.php')),
@@ -166,18 +186,46 @@ trait UCP_Integrations_Detection_Trait {
             'async_javascript' => self::has_active_plugin_slug(array('async-javascript/async-javascript.php')),
             'cache_conflicts'  => UCP_Compat::detected_conflicts(),
         );
+    }
 
-        $detected['consent'] = !empty($detected['complianz']) || !empty($detected['cookieyes']) || !empty($detected['borlabs_cookie']) || !empty($detected['cookiebot']) || !empty($detected['real_cookie_banner']) || !empty($detected['moove_gdpr']) || !empty($detected['cookie_notice']) || !empty($detected['iubenda']);
-        $detected['builder'] = !empty($detected['elementor']) || !empty($detected['bricks']) || !empty($detected['beaver_builder']) || !empty($detected['oxygen']) || !empty($detected['breakdance']) || !empty($detected['divi_builder']) || !empty($detected['wpbakery']) || !empty($detected['siteorigin_builder']);
-        $detected['multilingual'] = !empty($detected['wpml']) || !empty($detected['polylang']) || !empty($detected['translatepress']) || !empty($detected['weglot']);
-        $detected['seo'] = !empty($detected['yoast']) || !empty($detected['rank_math']) || !empty($detected['aioseo']) || !empty($detected['seopress']) || !empty($detected['seo_framework']) || !empty($detected['slim_seo']) || !empty($detected['squirrly_seo']);
-        $detected['forms'] = !empty($detected['wpforms']) || !empty($detected['contact_form_7']) || !empty($detected['gravity_forms']) || !empty($detected['fluent_forms']) || !empty($detected['ninja_forms']) || !empty($detected['formidable_forms']);
-        $detected['commerce'] = !empty($detected['woocommerce']) || !empty($detected['easy_digital_downloads']) || !empty($detected['surecart']);
-        $detected['analytics'] = !empty($detected['monsterinsights']) || !empty($detected['site_kit']) || !empty($detected['gtm4wp']);
-        $detected['optimization'] = !empty($detected['wp_rocket']) || !empty($detected['w3_total_cache']) || !empty($detected['litespeed_cache']) || !empty($detected['wp_super_cache']) || !empty($detected['autoptimize']) || !empty($detected['perfmatters']) || !empty($detected['hummingbird']) || !empty($detected['flyingpress']) || !empty($detected['breeze']) || !empty($detected['asset_cleanup']) || !empty($detected['sg_optimizer']) || !empty($detected['wp_fastest_cache']) || !empty($detected['nitropack']) || !empty($detected['wp_optimize']) || !empty($detected['cache_enabler']) || !empty($detected['fast_velocity_minify']) || !empty($detected['jetpack_boost']) || !empty($detected['async_javascript']);
+    protected static function integration_group_members() {
+        return array(
+            'consent' => array('complianz', 'cookieyes', 'borlabs_cookie', 'cookiebot', 'real_cookie_banner', 'moove_gdpr', 'cookie_notice', 'iubenda'),
+            'builder' => array('elementor', 'bricks', 'beaver_builder', 'oxygen', 'breakdance', 'divi_builder', 'wpbakery', 'siteorigin_builder'),
+            'multilingual' => array('wpml', 'polylang', 'translatepress', 'weglot'),
+            'seo' => array('yoast', 'rank_math', 'aioseo', 'seopress', 'seo_framework', 'slim_seo', 'squirrly_seo'),
+            'forms' => array('wpforms', 'contact_form_7', 'gravity_forms', 'fluent_forms', 'ninja_forms', 'formidable_forms'),
+            'commerce' => array('woocommerce', 'easy_digital_downloads', 'surecart'),
+            'analytics' => array('monsterinsights', 'site_kit', 'gtm4wp'),
+            'optimization' => array('wp_rocket', 'w3_total_cache', 'litespeed_cache', 'wp_super_cache', 'autoptimize', 'perfmatters', 'hummingbird', 'flyingpress', 'breeze', 'asset_cleanup', 'sg_optimizer', 'wp_fastest_cache', 'nitropack', 'wp_optimize', 'cache_enabler', 'fast_velocity_minify', 'jetpack_boost', 'async_javascript'),
+        );
+    }
+
+    protected static function add_integration_group_flags($detected) {
+        foreach (self::integration_group_members() as $group => $members) {
+            $detected[$group] = false;
+            foreach ($members as $member) {
+                if (!empty($detected[$member])) {
+                    $detected[$group] = true;
+                    break;
+                }
+            }
+        }
+        return $detected;
+    }
+
+    public static function autodetect() {
+        $detected = array_merge(
+            self::detect_commerce_builder_and_theme_integrations(),
+            self::detect_content_and_interaction_integrations(),
+            self::detect_seo_and_consent_integrations(),
+            self::detect_forms_ads_and_analytics_integrations(),
+            self::detect_optimization_integrations()
+        );
+        $detected = self::add_integration_group_flags($detected);
 
         update_option('ucp_detected_integrations', $detected, false);
-        UCP_Logger::log('info', 'integrations', 'integrations_detected', 'Integrations detected.', $detected);
+        UCP_Logger::log('info', 'integrations', 'integrations_detected', __('Integraties zijn gedetecteerd.', 'ultracache-pro'), $detected);
     }
 
     public static function detected() {
@@ -185,16 +233,23 @@ trait UCP_Integrations_Detection_Trait {
     }
 
     protected static function merge_line_settings($existing, $items) {
-        $lines = preg_split('/\r\n|\r|\n/', (string) $existing);
-        $lines = array_filter(array_map('trim', $lines), 'strlen');
-        foreach ((array) $items as $item) {
-            $item = trim((string) $item);
-            if ('' !== $item) {
-                $lines[] = $item;
+        $lines = class_exists('UCP_Helpers') ? UCP_Helpers::normalize_multiline($existing) : array();
+        $extra = class_exists('UCP_Helpers') ? UCP_Helpers::normalize_multiline($items) : array();
+        $merged = array();
+        foreach (array_merge($lines, $extra) as $line) {
+            if (!is_scalar($line)) {
+                continue;
+            }
+            $line = trim((string) $line);
+            if ('' === $line) {
+                continue;
+            }
+            $merged[$line] = true;
+            if (count($merged) >= 2000) {
+                break;
             }
         }
-        $lines = array_values(array_unique($lines));
-        return implode("\n", $lines);
+        return implode("\n", array_keys($merged));
     }
 
 }

@@ -120,7 +120,7 @@ trait UCP_Optimizer_Media_Preload_Trait {
         // identical to the previous two-pass scan, but the document is scanned only once.
         $img_entries = array();
         $bg_entries = array();
-        if (preg_match_all('/<([a-z0-9]+)\b([^>]*)>/i', $scan, $tag_matches, PREG_OFFSET_CAPTURE)) {
+        if (preg_match_all('/<([a-z0-9]+)\b((?:"[^"]*"|\'[^\']*\'|[^\'">])*)>/i', $scan, $tag_matches, PREG_OFFSET_CAPTURE)) {
             foreach ($tag_matches[1] as $ucp_i => $ucp_name) {
                 $ucp_tag = strtolower((string) $ucp_name[0]);
                 $ucp_attrs = isset($tag_matches[2][$ucp_i][0]) ? (string) $tag_matches[2][$ucp_i][0] : '';
@@ -252,7 +252,7 @@ trait UCP_Optimizer_Media_Preload_Trait {
                 if ($url) {
                     $this->ucp_lcp_candidate_src = esc_url_raw($url);
                     $this->ucp_lcp_candidate_srcset = !empty($row['lcp_imagesrcset']) ? sanitize_textarea_field((string) $row['lcp_imagesrcset']) : '';
-                    $element = !empty($row['lcp_element_json']) ? json_decode((string) $row['lcp_element_json'], true) : array();
+                    $element = !empty($row['lcp_element_json']) ? UCP_Helpers::safe_json_decode((string) $row['lcp_element_json'], true) : array();
                     $this->ucp_lcp_candidate_sizes = is_array($element) && !empty($element['sizes']) ? substr(sanitize_text_field((string) $element['sizes']), 0, 240) : '';
                     $this->ucp_lcp_candidate_is_background = is_array($element) && !empty($element['background']);
                     if (class_exists('UCP_Diagnostics')) {
@@ -286,21 +286,14 @@ trait UCP_Optimizer_Media_Preload_Trait {
     }
 
     private function current_lcp_lookup_url() {
-        $host = isset($_SERVER['HTTP_HOST']) ? sanitize_text_field(wp_unslash($_SERVER['HTTP_HOST'])) : wp_parse_url(home_url('/'), PHP_URL_HOST);
-        $request_uri = isset($_SERVER['REQUEST_URI']) ? sanitize_text_field(wp_unslash($_SERVER['REQUEST_URI'])) : '/';
-        $scheme = is_ssl() ? 'https' : 'http';
-        if (!empty($_SERVER['HTTP_X_FORWARDED_PROTO'])) {
-            $forwarded_proto = strtolower(sanitize_key(wp_unslash($_SERVER['HTTP_X_FORWARDED_PROTO'])));
-            if (in_array($forwarded_proto, array('http', 'https'), true)) {
-                $scheme = $forwarded_proto;
-            }
-        }
-        $parts = wp_parse_url($scheme . '://' . $host . $request_uri);
-        if (empty($parts['host'])) {
-            return home_url('/');
-        }
-        $path = isset($parts['path']) && '' !== $parts['path'] ? (string) $parts['path'] : '/';
-        return esc_url_raw($scheme . '://' . $parts['host'] . $path);
+        // Build the lookup key from WordPress' configured origin. Host and forwarded
+        // protocol headers are request-controlled unless the web server explicitly
+        // normalizes them, so they must not select the stored LCP profile origin.
+        $request_uri = isset($_SERVER['REQUEST_URI']) ? (string) wp_unslash($_SERVER['REQUEST_URI']) : '/';
+        $parts = wp_parse_url($request_uri);
+        $path = is_array($parts) && !empty($parts['path']) ? (string) $parts['path'] : '/';
+        $local = UCP_Helpers::strict_local_url($path, home_url('/'));
+        return '' !== $local ? esc_url_raw($local) : home_url('/');
     }
 
     private function current_lcp_lookup_device() {
@@ -320,7 +313,8 @@ trait UCP_Optimizer_Media_Preload_Trait {
             return '';
         }
         if (0 === strpos($url, '//')) {
-            $url = (is_ssl() ? 'https:' : 'http:') . $url;
+            $home_scheme = strtolower((string) wp_parse_url(home_url('/'), PHP_URL_SCHEME));
+            $url = (in_array($home_scheme, array('http', 'https'), true) ? $home_scheme : (is_ssl() ? 'https' : 'http')) . ':' . $url;
         }
         if (0 === strpos($url, '/')) {
             $url = home_url($url);
@@ -412,7 +406,7 @@ trait UCP_Optimizer_Media_Preload_Trait {
     }
 
     private function maybe_rewrite_image_attrs_to_modern_variant($attrs) {
-        if (empty(UCP_Options::get('enable_image_optimization')) && empty(UCP_Options::get('enable_webp_generation')) && empty(UCP_Options::get('enable_avif_generation'))) {
+        if (empty(UCP_Options::get('enable_webp_generation')) && empty(UCP_Options::get('enable_avif_generation'))) {
             return $attrs;
         }
         if (!preg_match('/\bsrc=["\']([^"\']+)["\']/i', $attrs, $src_match)) {
@@ -423,9 +417,9 @@ trait UCP_Optimizer_Media_Preload_Trait {
         if (!$modern || $modern === $src) {
             return $attrs;
         }
-        $attrs = preg_replace('/\ssrc=["\'][^"\']+["\']/i', ' src="' . esc_url($modern) . '"', $attrs, 1);
+        $attrs = UCP_Helpers::safe_preg_replace('/\ssrc=["\'][^"\']+["\']/i', ' src="' . esc_url($modern) . '"', $attrs, 1);
         if (preg_match('/\bsrcset\s*=/i', $attrs)) {
-            $attrs = preg_replace('/\ssrcset=["\'][^"\']+["\']/i', '', $attrs, 1);
+            $attrs = UCP_Helpers::safe_preg_replace('/\ssrcset=["\'][^"\']+["\']/i', '', $attrs, 1);
         }
         return $attrs;
     }
@@ -435,14 +429,12 @@ trait UCP_Optimizer_Media_Preload_Trait {
         if ('' === $url || !UCP_Helpers::is_local_url($url)) {
             return '';
         }
-        $uploads = wp_get_upload_dir();
-        if (empty($uploads['baseurl']) || empty($uploads['basedir']) || 0 !== strpos($url, $uploads['baseurl'])) {
+
+        $path = UCP_Helpers::uploads_url_to_path($url);
+        if ('' === $path || !preg_match('/\.(jpe?g|png)$/i', $path) || !is_file($path)) {
             return '';
         }
-        $path = $uploads['basedir'] . substr($url, strlen($uploads['baseurl']));
-        if (!preg_match('/\.(jpe?g|png)$/i', $path) || !is_file($path)) {
-            return '';
-        }
+
         $accept = isset($_SERVER['HTTP_ACCEPT']) ? strtolower(sanitize_text_field(wp_unslash($_SERVER['HTTP_ACCEPT']))) : '';
         $prefer_avif = !empty(UCP_Options::get('enable_avif_generation')) && false !== strpos($accept, 'image/avif');
         $candidates = $prefer_avif ? array('avif', 'webp') : array('webp', 'avif');
@@ -453,9 +445,13 @@ trait UCP_Optimizer_Media_Preload_Trait {
             if ('webp' === $ext && empty(UCP_Options::get('enable_webp_generation'))) {
                 continue;
             }
-            $variant_path = preg_replace('/\.(jpe?g|png)$/i', '.' . $ext, $path);
-            if ($variant_path && is_file($variant_path)) {
-                return str_replace($uploads['basedir'], $uploads['baseurl'], $variant_path);
+            $variant_path = UCP_Helpers::safe_preg_replace('/\.(jpe?g|png)$/i', '.' . $ext, $path);
+            if (!$variant_path || !is_file($variant_path)) {
+                continue;
+            }
+            $variant_url = UCP_Helpers::uploads_path_to_url($variant_path);
+            if ('' !== $variant_url) {
+                return $variant_url;
             }
         }
         return '';

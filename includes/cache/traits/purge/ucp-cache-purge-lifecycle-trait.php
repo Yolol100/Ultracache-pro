@@ -6,10 +6,18 @@ if (!defined('ABSPATH')) {
 
 trait UCP_Cache_Purge_Lifecycle_Trait {
     public function purge_on_global_change() {
-        if (!UCP_Options::get('purge_on_global_change')) {
+        $hook = function_exists('current_filter') ? sanitize_key((string) current_filter()) : 'global_change';
+        $comment_hooks = array('comment_post', 'edit_comment', 'wp_set_comment_status');
+        if (in_array($hook, $comment_hooks, true)) {
+            $enabled = UCP_Options::get('purge_on_comment');
+        } elseif ('switch_theme' === $hook) {
+            $enabled = UCP_Options::get('purge_on_theme_switch');
+        } else {
+            $enabled = UCP_Options::get('purge_on_global_change');
+        }
+        if (!$enabled) {
             return;
         }
-        $hook = function_exists('current_filter') ? sanitize_key((string) current_filter()) : 'global_change';
         if ($this->already_purged_full_event('global_' . $hook)) {
             return;
         }
@@ -35,7 +43,8 @@ trait UCP_Cache_Purge_Lifecycle_Trait {
     }
 
     protected function should_purge_on_lifecycle_change() {
-        return (bool) apply_filters('ucp_always_purge_on_lifecycle_change', true);
+        $enabled = (bool) UCP_Options::get('purge_on_extension_change');
+        return (bool) apply_filters('ucp_always_purge_on_lifecycle_change', $enabled);
     }
 
     public function purge_and_preload_after_lifecycle_change($context = 'lifecycle_change', $extra = array()) {
@@ -63,10 +72,14 @@ trait UCP_Cache_Purge_Lifecycle_Trait {
         if (UCP_Options::get('enable_preload_queue') && class_exists('UCP_Jobs')) {
             $delay = absint(apply_filters('ucp_lifecycle_preload_seed_delay', 10, $context, $extra));
             $delay = max(5, $delay);
-            if (!wp_next_scheduled('ucp_lifecycle_preload_seed_event')) {
-                wp_schedule_single_event(time() + $delay, 'ucp_lifecycle_preload_seed_event', array($context, $extra));
+            $event_args = array($context, $extra);
+            $scheduled = (bool) wp_next_scheduled('ucp_lifecycle_preload_seed_event', $event_args);
+            if (!$scheduled) {
+                $scheduled = false !== wp_schedule_single_event(time() + $delay, 'ucp_lifecycle_preload_seed_event', $event_args);
             }
-            UCP_Diagnostics::record('cache', 'Scheduled cache warmup queue after WordPress lifecycle change', array_merge($extra, array(
+            UCP_Diagnostics::record('cache', $scheduled
+                ? 'Scheduled cache warmup queue after WordPress lifecycle change'
+                : 'Failed to schedule cache warmup queue after WordPress lifecycle change', array_merge($extra, array(
                 'context' => $context,
                 'delay'   => $delay,
             )));
@@ -75,10 +88,13 @@ trait UCP_Cache_Purge_Lifecycle_Trait {
 
         $delay = absint(apply_filters('ucp_lifecycle_preload_delay', 30, $context, $extra));
         $delay = max(5, $delay);
-        if (!wp_next_scheduled('ucp_preload_event')) {
-            wp_schedule_single_event(time() + $delay, 'ucp_preload_event');
+        $scheduled = (bool) wp_next_scheduled('ucp_preload_event');
+        if (!$scheduled) {
+            $scheduled = false !== wp_schedule_single_event(time() + $delay, 'ucp_preload_event');
         }
-        UCP_Diagnostics::record('cache', 'Scheduled cache warmup after WordPress lifecycle change', array_merge($extra, array(
+        UCP_Diagnostics::record('cache', $scheduled
+            ? 'Scheduled cache warmup after WordPress lifecycle change'
+            : 'Failed to schedule cache warmup after WordPress lifecycle change', array_merge($extra, array(
             'context' => $context,
             'delay'   => $delay,
         )));

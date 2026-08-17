@@ -16,6 +16,7 @@ class UCP_CSS_Profile {
     const OPTION_KEY = 'ucp_css_profiles';
     const MAX_PROFILES = 200;
     const MAX_PROFILE_ITEMS = 500;
+    const PAGE_IDENTITY_VERSION = 1;
 
     /**
      * Return a bounded safelist of selectors, handles and URL fragments that must stay protected.
@@ -57,6 +58,9 @@ class UCP_CSS_Profile {
      * @return bool
      */
     public static function is_sensitive_url($url = '') {
+        if (!is_scalar($url) && null !== $url) {
+            $url = '';
+        }
         $url = '' !== $url ? (string) $url : (class_exists('UCP_Helpers') ? UCP_Helpers::current_full_url() : '');
         $parts = wp_parse_url($url);
         $path = isset($parts['path']) ? strtolower((string) $parts['path']) : '';
@@ -99,7 +103,7 @@ class UCP_CSS_Profile {
      * @return bool
      */
     public static function store_profile($url, $profile) {
-        $url = esc_url_raw((string) $url);
+        $url = self::page_identity_url($url);
         if ('' === $url || !is_array($profile)) {
             return false;
         }
@@ -122,8 +126,7 @@ class UCP_CSS_Profile {
             $profiles = array_slice($profiles, 0, self::MAX_PROFILES, true);
         }
 
-        update_option(self::OPTION_KEY, $profiles, false);
-        return true;
+        return self::persist_profiles($profiles);
     }
 
     /**
@@ -265,8 +268,7 @@ class UCP_CSS_Profile {
             $profiles[$key]['stale_at'] = current_time('mysql');
             $count++;
         }
-        update_option(self::OPTION_KEY, $profiles, false);
-        return $count;
+        return self::persist_profiles($profiles) ? $count : 0;
     }
 
     /**
@@ -285,8 +287,7 @@ class UCP_CSS_Profile {
         $profiles[$key]['stale'] = 1;
         $profiles[$key]['stale_reason'] = sanitize_key((string) $reason);
         $profiles[$key]['stale_at'] = current_time('mysql');
-        update_option(self::OPTION_KEY, $profiles, false);
-        return true;
+        return self::persist_profiles($profiles);
     }
 
     /**
@@ -299,16 +300,43 @@ class UCP_CSS_Profile {
         if (!is_array($profile) || !empty($profile['stale'])) {
             return true;
         }
-        $expires_at = isset($profile['expires_at']) ? strtotime((string) $profile['expires_at']) : 0;
+        $expires_at = isset($profile['expires_at']) ? self::utc_mysql_timestamp((string) $profile['expires_at']) : 0;
         if ($expires_at > 0) {
             return $expires_at < time();
         }
-        $generated_at = isset($profile['generated_at']) ? strtotime((string) $profile['generated_at']) : 0;
+        $generated_at = isset($profile['generated_at']) ? self::local_mysql_timestamp((string) $profile['generated_at']) : 0;
         if ($generated_at <= 0) {
             return true;
         }
         $days = class_exists('UCP_Options') ? max(1, absint(UCP_Options::get('css_profile_max_age_days', 14))) : 14;
         return ($generated_at + ($days * DAY_IN_SECONDS)) < time();
+    }
+
+
+    /**
+     * Convert a WordPress local-time MySQL value to a Unix timestamp.
+     *
+     * @param string $value Local MySQL datetime.
+     * @return int
+     */
+    private static function local_mysql_timestamp($value) {
+        return UCP_Helpers::local_mysql_timestamp($value);
+    }
+
+
+    /**
+     * Convert a UTC MySQL datetime value to a Unix timestamp.
+     *
+     * @param string $value UTC MySQL datetime.
+     * @return int
+     */
+    private static function utc_mysql_timestamp($value) {
+        $value = trim((string) $value);
+        if ('' === $value) {
+            return 0;
+        }
+        $timestamp = strtotime($value . ' UTC');
+        return false === $timestamp ? 0 : (int) $timestamp;
     }
 
     /**
@@ -319,6 +347,12 @@ class UCP_CSS_Profile {
      * @return bool
      */
     public static function stylesheet_matches_protected($tag, $href) {
+        if (!is_scalar($tag) && null !== $tag) {
+            $tag = '';
+        }
+        if (!is_scalar($href) && null !== $href) {
+            $href = '';
+        }
         $haystack = strtolower((string) $tag . ' ' . (string) $href);
         foreach (self::protected_fragments() as $fragment) {
             $fragment = strtolower(trim((string) $fragment));
@@ -376,11 +410,126 @@ class UCP_CSS_Profile {
     }
 
     /**
+     * Persist the profile map and verify unchanged-value writes.
+     *
+     * @param array<string,array> $profiles Profile map.
+     * @return bool
+     */
+    private static function persist_profiles($profiles) {
+        if (update_option(self::OPTION_KEY, $profiles, false)) {
+            return true;
+        }
+        return get_option(self::OPTION_KEY, null) === $profiles;
+    }
+
+    /**
+     * Reduce a local page URL to its non-sensitive page identity.
+     *
+     * Query strings and fragments can contain personal data, nonces or campaign
+     * values and must not be persisted in profile or artifact-status records.
+     *
+     * @param string $url URL.
+     * @return string
+     */
+    public static function page_identity_url($url) {
+        if (class_exists('UCP_CWV_LCP_Sanitizer')) {
+            return UCP_CWV_LCP_Sanitizer::sanitize_page_url($url);
+        }
+
+        if (class_exists('UCP_Helpers') && method_exists('UCP_Helpers', 'strict_local_url')) {
+            $url = UCP_Helpers::strict_local_url($url);
+        } else {
+            $url = esc_url_raw((string) $url);
+        }
+        if ('' === $url) {
+            return '';
+        }
+
+        return self::url_identity($url);
+    }
+
+    /**
+     * Build a query-free URL identity from a sanitized URL.
+     *
+     * @param string $url Sanitized URL.
+     * @return string
+     */
+    private static function url_identity($url) {
+        $parts = wp_parse_url($url);
+        if (!is_array($parts) || empty($parts['scheme']) || empty($parts['host'])) {
+            return '';
+        }
+
+        $scheme = strtolower((string) $parts['scheme']);
+        $host = strtolower((string) $parts['host']);
+        $port = isset($parts['port']) ? ':' . absint($parts['port']) : '';
+        $path = isset($parts['path']) && '' !== (string) $parts['path'] ? (string) $parts['path'] : '/';
+
+        return esc_url_raw($scheme . '://' . $host . $port . '/' . ltrim($path, '/'));
+    }
+
+    /**
+     * Remove query-bearing legacy CSS records once per installation.
+     *
+     * @return void
+     */
+    public static function maybe_migrate_page_identities() {
+        if ((int) get_option('ucp_css_page_identity_version', 0) >= self::PAGE_IDENTITY_VERSION) {
+            return;
+        }
+
+        if (!self::migrate_identity_option(self::OPTION_KEY, 'generated_at')) {
+            return;
+        }
+        if (!self::migrate_identity_option('ucp_css_artifact_status', 'updated_at')) {
+            return;
+        }
+        if (update_option('ucp_css_page_identity_version', self::PAGE_IDENTITY_VERSION, false)) {
+            return;
+        }
+        // An unchanged marker is also a successful persisted state.
+        get_option('ucp_css_page_identity_version', null) === self::PAGE_IDENTITY_VERSION;
+    }
+
+    /**
+     * @param string $option_name Option name.
+     * @param string $date_key    Record date key used for collision resolution.
+     * @return bool
+     */
+    private static function migrate_identity_option($option_name, $date_key) {
+        $records = get_option($option_name, array());
+        if (!is_array($records) || empty($records)) {
+            return true;
+        }
+
+        $normalized = array();
+        foreach ($records as $record) {
+            if (!is_array($record)) {
+                continue;
+            }
+            $identity = self::page_identity_url(isset($record['url']) ? $record['url'] : '');
+            if ('' === $identity) {
+                continue;
+            }
+            $record['url'] = $identity;
+            $key = self::key_for_url($identity);
+            if (!isset($normalized[$key]) || strcmp((string) ($record[$date_key] ?? ''), (string) ($normalized[$key][$date_key] ?? '')) >= 0) {
+                $normalized[$key] = $record;
+            }
+        }
+
+        if (update_option($option_name, $normalized, false)) {
+            return true;
+        }
+        return get_option($option_name, null) === $normalized;
+    }
+
+    /**
      * @param string $url URL.
      * @return string
      */
     private static function key_for_url($url) {
-        $url = esc_url_raw((string) $url);
+        $url = self::page_identity_url($url);
         if (class_exists('UCP_Helpers') && method_exists('UCP_Helpers', 'cache_key_for_url')) {
             return UCP_Helpers::cache_key_for_url($url);
         }
@@ -393,7 +542,7 @@ class UCP_CSS_Profile {
      */
     private static function sanitize_profile($profile) {
         $profile = is_array($profile) ? $profile : array();
-        $profile['url'] = isset($profile['url']) ? esc_url_raw((string) $profile['url']) : '';
+        $profile['url'] = isset($profile['url']) ? self::page_identity_url($profile['url']) : '';
         $profile['url_hash'] = isset($profile['url_hash']) ? sanitize_text_field((string) $profile['url_hash']) : '';
         $profile['renderer'] = isset($profile['renderer']) ? sanitize_key((string) $profile['renderer']) : 'local_static_parser';
         $profile['renderer_ready'] = !empty($profile['renderer_ready']) ? 1 : 0;
@@ -521,11 +670,18 @@ class UCP_CSS_Profile {
     }
 
     /**
-     * Sanitize stylesheet classification rows from local or external CSS renderers.
+     * Reduce a stylesheet resource URL to a non-sensitive identity.
      *
-     * @param array $items CSS profile rows.
-     * @return array<int,array<string,mixed>>
+     * @param mixed $url Resource URL.
+     * @return string
      */
+    private static function resource_identity_url($url) {
+        if (class_exists('UCP_PageSpeed_Browser_Scan_Sanitizer')) {
+            return UCP_PageSpeed_Browser_Scan_Sanitizer::resource_url($url);
+        }
+        return self::url_identity(esc_url_raw((string) $url));
+    }
+
     private static function sanitize_profile_items($items) {
         $clean = array();
         foreach ((array) $items as $item) {
@@ -534,7 +690,7 @@ class UCP_CSS_Profile {
             }
             $row = array();
             if (!empty($item['href'])) {
-                $row['href'] = esc_url_raw((string) $item['href']);
+                $row['href'] = self::resource_identity_url($item['href']);
             }
             foreach (array('media', 'handle_hint', 'selector', 'source') as $key) {
                 if (isset($item[$key]) && (is_scalar($item[$key]) || null === $item[$key])) {
@@ -581,7 +737,7 @@ class UCP_CSS_Profile {
     private static function guess_handle_hint($href, $tag) {
         $id = self::extract_attribute($tag, 'id');
         if ('' !== $id) {
-            $id = preg_replace('/-css$/', '', $id);
+            $id = UCP_Helpers::safe_preg_replace('/-css$/', '', $id);
             return sanitize_key($id);
         }
         $path = wp_parse_url((string) $href, PHP_URL_PATH);

@@ -5,6 +5,7 @@ if (!defined('ABSPATH')) {
 }
 
 require_once __DIR__ . '/quality/ucp-quality-suite-runtime-trait.php';
+require_once __DIR__ . '/quality/ucp-quality-suite-dashboard-trait.php';
 
 /**
  * Quality suite additions for runtime verification, safer presets,
@@ -17,6 +18,8 @@ trait UCP_Quality_Suite_Routing_Trait {
         add_filter('site_status_tests', array(__CLASS__, 'register_site_health_tests'));
         add_filter('ucp_preload_urls', array(__CLASS__, 'filter_safe_preload_urls'), 20);
         add_action('init', array(__CLASS__, 'expire_debug_mode'), 20);
+        add_action('upgrader_process_complete', array(__CLASS__, 'schedule_post_update_check'), 40, 2);
+        add_action(self::POST_UPDATE_CHECK_HOOK, array(__CLASS__, 'run_scheduled_website_check'));
     }
 
     public static function register_routes() {
@@ -49,7 +52,7 @@ trait UCP_Quality_Suite_Routing_Trait {
 trait UCP_Quality_Suite_Conflicts_Trait {
     public static function rest_detect_conflicts() {
         $conflicts = self::detect_conflicts();
-        UCP_Logger::log('notice', 'compat', 'conflict_scan_completed', 'Conflict scan completed.', array('count' => count($conflicts)));
+        UCP_Logger::log('notice', 'compat', 'conflict_scan_completed', __('Conflictscan is voltooid.', 'ultracache-pro'), array('count' => count($conflicts)));
         $message = sprintf(
             /* translators: %d: number of detected cache or optimization overlaps. */
             _n('%d mogelijke overlap gevonden.', '%d mogelijke overlaps gevonden.', count($conflicts), 'ultracache-pro'),
@@ -60,46 +63,73 @@ trait UCP_Quality_Suite_Conflicts_Trait {
 
     public static function detect_conflicts() {
         $items = UCP_Compat::detected_conflicts();
-        if (!function_exists('get_plugins')) {
-            require_once ABSPATH . 'wp-admin/includes/plugin.php';
-        }
-        $active = array_merge((array) get_option('active_plugins', array()), is_multisite() ? array_keys((array) get_site_option('active_sitewide_plugins', array())) : array());
-        $known = array(
-            'wp-rocket/wp-rocket.php' => 'WP Rocket', 'litespeed-cache/litespeed-cache.php' => 'LiteSpeed Cache', 'w3-total-cache/w3-total-cache.php' => 'W3 Total Cache',
-            'wp-super-cache/wp-cache.php' => 'WP Super Cache', 'autoptimize/autoptimize.php' => 'Autoptimize', 'wp-asset-clean-up/wpacu.php' => 'Asset CleanUp',
-            'perfmatters/perfmatters.php' => 'Perfmatters', 'redis-cache-pro/redis-cache-pro.php' => 'Redis/Object Cache Pro', 'cloudflare/cloudflare.php' => 'Cloudflare',
-            'elementor/elementor.php' => 'Elementor', 'woocommerce/woocommerce.php' => 'WooCommerce',
-        );
-        foreach ($known as $plugin => $label) {
-            if (in_array($plugin, $active, true)) {
-                $items[] = array('type' => 'plugin', 'label' => $label, 'severity' => in_array($label, array('WooCommerce','Elementor'), true) ? 'info' : 'warning', 'message' => sprintf(
-                        /* translators: %s: active plugin name. */
-                        __('Actieve plugin gevonden: %s. Controleer overlappende cache/optimalisatie-instellingen.', 'ultracache-pro'),
-                        $label
-                    ));
+        foreach ($items as &$item) {
+            if (!is_array($item)) {
+                $item = array();
+                continue;
+            }
+            if (empty($item['owner'])) {
+                $item['owner'] = isset($item['label']) ? sanitize_text_field((string) $item['label']) : '';
+            }
+            if (empty($item['message']) && !empty($item['label'])) {
+                $item['message'] = sprintf(
+                    /* translators: %s: active cache or optimization layer. */
+                    __('Actieve optimalisatielaag gevonden: %s.', 'ultracache-pro'),
+                    sanitize_text_field((string) $item['label'])
+                );
             }
         }
-        return array_values($items);
+        unset($item);
+        return array_values(array_filter($items));
     }
 }
 
 trait UCP_Quality_Suite_Actions_Trait {
     public static function rest_enable_debug_mode() {
-        $settings = UCP_Options::get_all();
+        $previous_settings = UCP_Options::get_all();
+        $was_active = (int) get_option(self::DEBUG_UNTIL_OPTION, 0) > time();
+        if (!$was_active) {
+            $previous_support = array();
+            foreach (self::support_setting_keys() as $key) {
+                if (array_key_exists($key, $previous_settings)) {
+                    $previous_support[$key] = $previous_settings[$key];
+                }
+            }
+            update_option(self::SUPPORT_PREVIOUS_OPTION, array(
+                'created_at' => gmdate('c'),
+                'settings' => $previous_support,
+            ), false);
+        }
+
+        $settings = $previous_settings;
         $settings['enable_logs'] = 1;
         $settings['enable_diagnostics'] = 1;
         $settings['enable_admin_queue_runner'] = 1;
         $settings['enable_health_checks'] = 1;
         $settings['enable_runtime_debug_headers'] = 1;
-        UCP_Options::update($settings);
-        update_option(self::DEBUG_UNTIL_OPTION, time() + (30 * MINUTE_IN_SECONDS), false);
-        UCP_Logger::log('notice', 'diagnostics', 'debug_mode_enabled', 'Debug/testmodus 30 minuten ingeschakeld.', array('until' => gmdate('c', time() + (30 * MINUTE_IN_SECONDS))));
-        return self::action_success(__('Debug/testmodus is 30 minuten ingeschakeld.', 'ultracache-pro'));
+        if (!UCP_Options::update($settings)) {
+            return new WP_Error('ucp_debug_mode_settings_failed', __('Supportmodus kon niet worden opgeslagen.', 'ultracache-pro'), array('status' => 500));
+        }
+        $until = time() + (30 * MINUTE_IN_SECONDS);
+        $marker_saved = update_option(self::DEBUG_UNTIL_OPTION, $until, false)
+            || (int) get_option(self::DEBUG_UNTIL_OPTION, 0) === $until;
+        if (!$marker_saved) {
+            UCP_Options::update($previous_settings);
+            return new WP_Error('ucp_debug_mode_marker_failed', __('Supportmodus kon niet betrouwbaar worden geactiveerd.', 'ultracache-pro'), array('status' => 500));
+        }
+        UCP_Logger::log('notice', 'diagnostics', 'debug_mode_enabled', __('Supportmodus is 30 minuten ingeschakeld.', 'ultracache-pro'), array('until' => gmdate('c', $until)));
+        return self::action_success(__('Supportmodus is 30 minuten ingeschakeld.', 'ultracache-pro'), array('supportMode' => self::support_mode_status()));
     }
 
     public static function rest_repair_cache_files() {
+        do_action('ucp_operation_heartbeat');
         $result = UCP_Helpers::maybe_install_own_advanced_cache_automatically();
-        return self::action_success(__('WP_CACHE en drop-in herstelactie uitgevoerd.', 'ultracache-pro'), array('result' => $result));
+        do_action('ucp_operation_heartbeat');
+        $report = self::run_website_check('repair');
+        return self::action_success(
+            __('De koppeling met WordPress is hersteld en opnieuw gecontroleerd.', 'ultracache-pro'),
+            array('result' => $result, 'websiteCheck' => $report)
+        );
     }
 
     protected static function apply_preset_and_reply($preset) {
@@ -129,6 +159,9 @@ trait UCP_Quality_Suite_Actions_Trait {
 
 trait UCP_Quality_Suite_Site_Health_Trait {
     public static function register_site_health_tests($tests) {
+        if (!is_array($tests)) {
+            $tests = array();
+        }
         $tests['direct']['ucp_runtime_cache_test'] = array('label' => __('UltraCache runtime cache test', 'ultracache-pro'), 'test' => array(__CLASS__, 'site_health_runtime_cache_test'));
         return $tests;
     }
@@ -156,26 +189,195 @@ trait UCP_Quality_Suite_Url_Safety_Trait {
         return array('elementor-preview','elementor_library','elementor_ajax','elementor_iframe','bricks=','bricks-run','bricks_preview','ct_builder','oxygen_iframe','oxygen_preview','breakdance=','breakdance_iframe','et_fb=','et_bfb','fl_builder','fl_builder_ui','vc_editable','vcv-action','wpb_vc_js_status','customize_changeset_uuid','preview_id','preview_nonce','preview=true','preview_nonce','uxb_iframe','siteorigin_panels_live_editor');
     }
 
-    public static function is_transactional_url($url) {
+    /**
+     * Normalize decoded query keys and scalar values without changing delimiters.
+     *
+     * @param mixed $value Parsed query value.
+     * @return mixed
+     */
+    protected static function lowercase_query_tree($value) {
+        if (!is_array($value)) {
+            return is_scalar($value) ? strtolower((string) $value) : '';
+        }
+
+        $normalized = array();
+        foreach ($value as $key => $item) {
+            $normalized_key = is_string($key) ? strtolower($key) : $key;
+            $normalized[$normalized_key] = self::lowercase_query_tree($item);
+        }
+        return $normalized;
+    }
+
+    protected static function url_safety_parts($url) {
+        if (!is_scalar($url)) {
+            return array('valid' => false, 'path' => '', 'segments' => array(), 'query' => array());
+        }
         $url = esc_url_raw((string) $url);
         if (!$url) {
-            return true;
+            return array('valid' => false, 'path' => '', 'segments' => array(), 'query' => array());
         }
+
         $path = strtolower(rawurldecode((string) wp_parse_url($url, PHP_URL_PATH)));
-        $query = strtolower(rawurldecode((string) wp_parse_url($url, PHP_URL_QUERY)));
-        $haystack = trim($path . '?' . $query, '?');
-        foreach (self::transactional_patterns() as $pattern) {
-            if (false !== strpos($haystack, strtolower($pattern))) {
+        $path = '/' . trim($path, '/');
+        if ('/' !== $path) {
+            $path = untrailingslashit($path);
+        }
+        $segments = array_values(array_filter(explode('/', trim($path, '/')), static function($segment) {
+            return '' !== $segment;
+        }));
+
+        $query = (string) wp_parse_url($url, PHP_URL_QUERY);
+        $query_args = array();
+        if ('' !== $query) {
+            // Keep encoded delimiters inside their original value. Decoding the full
+            // query first would manufacture new parameters and diverge from the early drop-in.
+            wp_parse_str($query, $query_args);
+            $query_args = is_array($query_args) ? self::lowercase_query_tree($query_args) : array();
+        }
+
+        return array(
+            'valid' => true,
+            'path' => $path,
+            'segments' => $segments,
+            'query' => $query_args,
+        );
+    }
+
+    protected static function url_has_exact_token($parts, $tokens, $check_query_values = false) {
+        $tokens = array_values(array_unique(array_map('strtolower', (array) $tokens)));
+        foreach ((array) $parts['segments'] as $segment) {
+            if (in_array(strtolower((string) $segment), $tokens, true)) {
                 return true;
             }
         }
+        foreach ((array) $parts['query'] as $key => $value) {
+            if (in_array(strtolower((string) $key), $tokens, true)) {
+                return true;
+            }
+            if (!$check_query_values || is_array($value)) {
+                continue;
+            }
+            $value = strtolower(trim((string) $value));
+            if (in_array($value, $tokens, true)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+
+    /**
+     * Match a configured URL exclusion without treating built-in route names as substrings.
+     *
+     * Existing custom fragments keep their historical substring semantics. Known WordPress,
+     * WooCommerce and builder tokens are matched as path segments or exact query keys/values,
+     * so routes such as /cartography/ and /accounting/ are not excluded accidentally.
+     *
+     * @param string $url     Absolute or relative request URL.
+     * @param string $pattern Configured exclusion pattern.
+     * @return bool
+     */
+    public static function matches_configured_url_pattern($url, $pattern) {
+        if (!is_scalar($url) || !is_scalar($pattern)) {
+            return false;
+        }
+        $url = (string) $url;
+        $pattern = strtolower(rawurldecode(trim((string) $pattern)));
+        if ('' === $url || '' === $pattern) {
+            return false;
+        }
+
+        if (false !== strpos($pattern, '(.*)') || false !== strpos($pattern, '*')) {
+            return UCP_Helpers::wildcard_match($url, $pattern);
+        }
+
+        $parts = self::url_safety_parts($url);
+        if (empty($parts['valid'])) {
+            return false;
+        }
+
+        $query_pattern = $pattern;
+        if (false !== strpos($query_pattern, '?')) {
+            $query_pattern = substr($query_pattern, strpos($query_pattern, '?') + 1);
+        }
+        $query_pattern = ltrim($query_pattern, '&?/');
+        if (false !== strpos($query_pattern, '=') && false === strpos($query_pattern, '/')) {
+            list($query_key, $expected_value) = array_pad(explode('=', $query_pattern, 2), 2, '');
+            $query_key = strtolower(trim((string) $query_key));
+            if ('' === $query_key || !array_key_exists($query_key, (array) $parts['query'])) {
+                return false;
+            }
+            if ('' === $expected_value) {
+                return true;
+            }
+            $actual_value = $parts['query'][$query_key];
+            if (is_array($actual_value)) {
+                $actual_values = array_map(static function($value) {
+                    return strtolower(trim((string) $value));
+                }, $actual_value);
+                return in_array(strtolower(trim((string) $expected_value)), $actual_values, true);
+            }
+            return strtolower(trim((string) $actual_value)) === strtolower(trim((string) $expected_value));
+        }
+
+        if ('/' === substr($pattern, 0, 1)) {
+            $pattern_path = '/' . trim((string) wp_parse_url($pattern, PHP_URL_PATH), '/');
+            if ('/' === $pattern_path) {
+                return '/' === $parts['path'];
+            }
+            return $parts['path'] === $pattern_path || 0 === strpos($parts['path'], $pattern_path . '/');
+        }
+
+        $exact_tokens = array_merge(
+            self::transactional_patterns(),
+            self::builder_patterns(),
+            array('wp-admin', 'wp-login.php', 'wp-json', 'xmlrpc.php', 'wp-content', 'uploads', 'author', 'feed', 'search', 'wc')
+        );
+        $exact_tokens = array_map(static function($token) {
+            return trim(strtolower((string) $token), " /?=&\t\n\r\0\x0B");
+        }, $exact_tokens);
+        $exact_token = trim($pattern, " /?=&\t\n\r\0\x0B");
+        if ('' !== $exact_token && in_array($exact_token, $exact_tokens, true)) {
+            // Transactional terms such as wc-ajax are meaningful query keys,
+            // not arbitrary values. A small builder allow-list may also appear
+            // as an action value (for example action=elementor_ajax).
+            $query_value_tokens = array(
+                'elementor_ajax', 'elementor_library', 'elementor_iframe', 'bricks-run',
+                'bricks_preview', 'ct_builder', 'oxygen_iframe', 'oxygen_preview',
+                'breakdance_iframe', 'et_fb', 'et_bfb', 'fl_builder', 'fl_builder_ui',
+                'vc_editable', 'vcv-action', 'wpb_vc_js_status', 'uxb_iframe',
+                'siteorigin_panels_live_editor',
+            );
+            return self::url_has_exact_token($parts, array($exact_token), in_array($exact_token, $query_value_tokens, true));
+        }
+
+        return false !== stripos(rawurldecode($url), $pattern);
+    }
+
+    public static function is_transactional_url($url) {
+        $parts = self::url_safety_parts($url);
+        if (empty($parts['valid'])) {
+            return true;
+        }
+
+        $transactional_tokens = array(
+            'cart', 'checkout', 'winkelwagen', 'afrekenen', 'my-account', 'mijn-account',
+            'account', 'order-pay', 'order-received', 'add-payment-method', 'customer-logout',
+            'wc-ajax', 'wc-api', 'add-to-cart', 'apply_coupon', 'remove_item', 'update_cart',
+            '_wpnonce', 'preview',
+        );
+        if (self::url_has_exact_token($parts, $transactional_tokens)) {
+            return true;
+        }
+
         if (function_exists('wc_get_page_id')) {
             foreach (array('cart', 'checkout', 'myaccount') as $page) {
                 $page_id = wc_get_page_id($page);
                 if ($page_id && $page_id > 0) {
                     $page_url = get_permalink($page_id);
                     $page_path = strtolower(rawurldecode((string) wp_parse_url($page_url, PHP_URL_PATH)));
-                    if ($page_path && 0 === strpos($path, untrailingslashit($page_path))) {
+                    $page_path = '/' . trim($page_path, '/');
+                    if ('/' !== $page_path && ($parts['path'] === $page_path || 0 === strpos($parts['path'], $page_path . '/'))) {
                         return true;
                     }
                 }
@@ -185,13 +387,19 @@ trait UCP_Quality_Suite_Url_Safety_Trait {
     }
 
     public static function is_builder_preview_url($url) {
-        $url = strtolower(rawurldecode((string) $url));
-        foreach (self::builder_patterns() as $pattern) {
-            if (false !== strpos($url, strtolower($pattern))) {
-                return true;
-            }
+        $parts = self::url_safety_parts($url);
+        if (empty($parts['valid'])) {
+            return false;
         }
-        return false;
+
+        return self::url_has_exact_token($parts, array(
+            'elementor-preview', 'elementor_library', 'elementor_ajax', 'elementor_iframe',
+            'bricks', 'bricks-run', 'bricks_preview', 'ct_builder', 'oxygen_iframe',
+            'oxygen_preview', 'breakdance', 'breakdance_iframe', 'et_fb', 'et_bfb',
+            'fl_builder', 'fl_builder_ui', 'vc_editable', 'vcv-action', 'wpb_vc_js_status',
+            'customize_changeset_uuid', 'preview_id', 'preview_nonce', 'uxb_iframe',
+            'siteorigin_panels_live_editor',
+        ), true);
     }
 
     public static function bypass_reason($url) {
@@ -211,9 +419,13 @@ trait UCP_Quality_Suite_Url_Safety_Trait {
     public static function filter_safe_preload_urls($urls) {
         $safe = array();
         foreach ((array) $urls as $url) {
+            if (!is_scalar($url)) {
+                continue;
+            }
+            $url = (string) $url;
             $reason = self::bypass_reason($url);
             if ('' !== $reason) {
-                UCP_Logger::log('info', 'preload', 'preload_url_filtered_safety', 'Preload URL filtered by central safety layer.', array('url' => $url, 'reason' => $reason));
+                UCP_Logger::log('info', 'preload', 'preload_url_filtered_safety', __('Preload-URL is gefilterd door de centrale veiligheidslaag.', 'ultracache-pro'), array('url' => $url, 'reason' => $reason));
                 continue;
             }
             $safe[] = $url;
@@ -229,37 +441,43 @@ trait UCP_Quality_Suite_Release_Logs_Trait {
 
     public static function release_checklist() {
         return array(
-            array('label' => 'PHP lint', 'command' => 'find wp-content/plugins/ultracache-pro -name "*.php" -print0 | xargs -0 -n1 php -l'),
-            array('label' => 'Plugin Check', 'command' => 'wp plugin check ultracache-pro --checks=all'),
-            array('label' => 'Runtime cache test', 'action' => 'UltraCache > Diagnostiek > Cache runtime test uitvoeren'),
-            array('label' => 'WooCommerce transaction test', 'manual' => 'cart, checkout, order-pay, account, coupon, payment method, order confirmation'),
-            array('label' => 'Role/capability test', 'manual' => 'admin works; editor/subscriber/logged-out cannot run privileged REST actions'),
-            array('label' => 'Log package', 'action' => 'Download logpakket after QA and verify errors.jsonl is clean'),
+            array('label' => __('PHP lint', 'ultracache-pro'), 'command' => 'find wp-content/plugins/ultracache-pro -name "*.php" -print0 | xargs -0 -n1 php -l'),
+            array('label' => __('Plugin Check', 'ultracache-pro'), 'command' => 'wp plugin check ultracache-pro --checks=all'),
+            array('label' => __('Runtime cache test', 'ultracache-pro'), 'action' => __('UltraCache > Diagnostiek > Cache runtime test uitvoeren', 'ultracache-pro')),
+            array('label' => __('WooCommerce transaction test', 'ultracache-pro'), 'manual' => __('Controleer winkelwagen, checkout, order-pay, account, kortingsbon, betaalmethode en orderbevestiging.', 'ultracache-pro')),
+            array('label' => __('Role/capability test', 'ultracache-pro'), 'manual' => __('Controleer dat beheerders toegang hebben en editors, abonnees en uitgelogde bezoekers geen bevoorrechte REST-acties kunnen uitvoeren.', 'ultracache-pro')),
+            array('label' => __('Log package', 'ultracache-pro'), 'action' => __('Download na QA het logpakket en controleer of errors.jsonl schoon is.', 'ultracache-pro')),
         );
     }
 
     public static function rest_log_viewer(WP_REST_Request $request) {
-        $level = sanitize_key((string) $request->get_param('level'));
-        $component = sanitize_key((string) $request->get_param('component'));
+        $level_value = $request->get_param('level');
+        $level = is_scalar($level_value) ? sanitize_key((string) $level_value) : '';
+        $component_value = $request->get_param('component');
+        $component = is_scalar($component_value) ? sanitize_key((string) $component_value) : '';
         $limit = min(300, max(10, absint($request->get_param('limit') ?: 120)));
         return self::action_success(__('Logs opgehaald.', 'ultracache-pro'), array('logs' => self::recent_file_logs($level, $component, $limit)));
     }
 
     public static function recent_file_logs($level = '', $component = '', $limit = 120) {
-        $files = glob(UCP_CACHE_DIR . 'logs/ucp-*.jsonl');
+        if (!is_scalar($limit) && null !== $limit) {
+            $limit = 120;
+        }
+        $files = UCP_Helpers::safe_glob_files(UCP_CACHE_DIR . 'logs/ucp-*.jsonl', 500);
         rsort($files);
         $rows = array();
+        $scan_lines = max(1000, min(20000, absint($limit) * 50));
         foreach ($files as $file) {
             if (!is_readable($file)) {
                 continue;
             }
-            $lines = file($file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-            if (!$lines) {
+            $lines = UCP_Helpers::read_file_tail_lines($file, $scan_lines, 2 * MB_IN_BYTES);
+            if (empty($lines)) {
                 continue;
             }
             $lines = array_reverse($lines);
             foreach ($lines as $line) {
-                $row = json_decode($line, true);
+                $row = UCP_Helpers::safe_json_decode($line, true);
                 if (!is_array($row)) {
                     continue;
                 }
@@ -283,6 +501,7 @@ class UCP_Quality_Suite {
     use UCP_Quality_Suite_Routing_Trait;
     use UCP_Quality_Suite_Url_Safety_Trait;
     use UCP_Quality_Suite_Runtime_Trait;
+    use UCP_Quality_Suite_Dashboard_Trait;
     use UCP_Quality_Suite_Conflicts_Trait;
     use UCP_Quality_Suite_Release_Logs_Trait;
     use UCP_Quality_Suite_Actions_Trait;
@@ -290,4 +509,8 @@ class UCP_Quality_Suite {
 
     const DEBUG_UNTIL_OPTION = 'ucp_debug_mode_until';
     const RUNTIME_OPTION = 'ucp_runtime_cache_test_report';
+    const WEBSITE_CHECK_OPTION = 'ucp_website_check_report';
+    const POST_UPDATE_CHECK_HOOK = 'ucp_post_update_website_check';
+    const POST_UPDATE_CONTEXT_OPTION = 'ucp_post_update_website_check_context';
+    const SUPPORT_PREVIOUS_OPTION = 'ucp_support_mode_previous_settings';
 }

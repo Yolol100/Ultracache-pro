@@ -15,7 +15,7 @@ trait UCP_Jobs_Schedule_Trait {
 
         if ($should_run) {
             if ($event && 'ucp_one_minute' !== $event->schedule) {
-                wp_unschedule_event($event->timestamp, self::CRON_HOOK, (array) $event->args);
+                wp_clear_scheduled_hook(self::CRON_HOOK);
                 $event = false;
             }
             if (!$event && !wp_next_scheduled(self::CRON_HOOK)) {
@@ -50,6 +50,9 @@ trait UCP_Jobs_Schedule_Trait {
     }
 
     public static function register_schedule($schedules) {
+        if (!is_array($schedules)) {
+            $schedules = array();
+        }
         if (!isset($schedules['ucp_one_minute'])) {
             $schedules['ucp_one_minute'] = array(
                 'interval' => 60,
@@ -89,12 +92,13 @@ trait UCP_Jobs_Schedule_Trait {
         }
 
         $current = get_option($option_name, array());
-        $expires_at = isset($current['expires_at']) ? (int) $current['expires_at'] : 0;
-        if ($expires_at >= time()) {
+        $expires_at = is_array($current) && isset($current['expires_at']) && is_numeric($current['expires_at']) ? (int) $current['expires_at'] : 0;
+        $has_token = is_array($current) && !empty($current['token']) && is_scalar($current['token']);
+        if ($has_token && $expires_at >= time()) {
             return false;
         }
 
-        // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- plugin-owned custom table query with controlled SQL fragments.
+        // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- atomic stale or malformed lock takeover for a plugin-owned option.
         $updated = $wpdb->update(
             $wpdb->options,
             array('option_value' => maybe_serialize($lock)),
@@ -106,15 +110,72 @@ trait UCP_Jobs_Schedule_Trait {
             array('%s', '%s')
         );
 
-        return $updated ? $token : false;
+        if (!$updated) {
+            return false;
+        }
+
+        wp_cache_delete($option_name, 'options');
+        wp_cache_delete('alloptions', 'options');
+
+        return $token;
+    }
+
+    protected static function refresh_runner_lock($token, $ttl) {
+        global $wpdb;
+
+        if (!is_scalar($token) || '' === (string) $token) {
+            return false;
+        }
+
+        $ttl = max(60, absint($ttl));
+        $option_name = self::runner_lock_option_name();
+        $current = get_option($option_name, array());
+        if (!is_array($current) || empty($current['token']) || !is_scalar($current['token']) || !hash_equals((string) $current['token'], (string) $token)) {
+            return false;
+        }
+
+        $next = $current;
+        $next['expires_at'] = time() + $ttl;
+
+        // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- compare-and-swap renewal of the exact plugin-owned runner lease.
+        $updated = $wpdb->update(
+            $wpdb->options,
+            array('option_value' => maybe_serialize($next)),
+            array(
+                'option_name'  => $option_name,
+                'option_value' => maybe_serialize($current),
+            ),
+            array('%s'),
+            array('%s', '%s')
+        );
+
+        if (1 === (int) $updated) {
+            wp_cache_delete($option_name, 'options');
+            wp_cache_delete('alloptions', 'options');
+            return true;
+        }
+
+        wp_cache_delete($option_name, 'options');
+        wp_cache_delete('alloptions', 'options');
+        $stored = get_option($option_name, array());
+        return is_array($stored)
+            && !empty($stored['token'])
+            && is_scalar($stored['token'])
+            && hash_equals((string) $stored['token'], (string) $token)
+            && isset($stored['expires_at'])
+            && is_numeric($stored['expires_at'])
+            && (int) $stored['expires_at'] >= (int) $next['expires_at'];
     }
 
     protected static function release_runner_lock($token = '') {
         global $wpdb;
 
+        if (!is_scalar($token)) {
+            return;
+        }
         $option_name = self::runner_lock_option_name();
         $current = get_option($option_name, array());
-        if (empty($current['token']) || !hash_equals((string) $current['token'], (string) $token)) {
+        if (!is_array($current) || empty($current['token']) || !is_scalar($current['token']) || !hash_equals((string) $current['token'], (string) $token)) {
             return;
         }
 

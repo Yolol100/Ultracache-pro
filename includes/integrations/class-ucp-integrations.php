@@ -7,6 +7,15 @@ if (!defined('ABSPATH')) {
 // Consolidated from includes/integrations/traits/ucp-integrations-status-trait.php to reduce one-purpose micro-files while preserving the public UCP_* symbol.
 trait UCP_Integrations_Status_Trait {
     public static function status_snapshot($settings, $detected = array(), $conflicts = array()) {
+        if (!is_array($settings)) {
+            $settings = array();
+        }
+        if (!is_array($detected)) {
+            $detected = array();
+        }
+        if (!is_array($conflicts)) {
+            $conflicts = array();
+        }
         if (empty($detected)) {
             $detected = self::detected();
         }

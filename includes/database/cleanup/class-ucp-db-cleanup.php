@@ -10,10 +10,13 @@ if (!defined('ABSPATH')) {
 // Lightweight internal traits consolidated here to avoid one-purpose micro-files while preserving the public UCP_* symbols.
 trait UCP_DB_Cleanup_Schedule_Trait {
     public static function cron_schedules($schedules) {
+        if (!is_array($schedules)) {
+            $schedules = array();
+        }
         if (!isset($schedules['ucp_monthly'])) {
             $schedules['ucp_monthly'] = array(
                 'interval' => 30 * DAY_IN_SECONDS,
-                'display'  => __('Monthly', 'ultracache-pro'),
+                'display'  => __('Maandelijks', 'ultracache-pro'),
             );
         }
         return $schedules;
@@ -24,7 +27,8 @@ trait UCP_DB_Cleanup_Schedule_Trait {
         if (!UCP_Helpers::is_safe_table_name($table)) {
             return false;
         }
-        return $wpdb->get_var($wpdb->prepare('SHOW TABLES LIKE %s', $table)) === $table;
+        $like = $wpdb->esc_like($table);
+        return $wpdb->get_var($wpdb->prepare('SHOW TABLES LIKE %s', $like)) === $table;
     }
 
     public static function sync_schedule($settings = null) {
@@ -40,7 +44,7 @@ trait UCP_DB_Cleanup_Schedule_Trait {
         if ($enabled) {
             // Reschedule when the cleanup frequency changes; wp_next_scheduled() alone keeps the old interval.
             if ($event && isset($event->schedule) && $schedule !== $event->schedule) {
-                wp_unschedule_event($event->timestamp, self::CRON_HOOK, (array) $event->args);
+                wp_clear_scheduled_hook(self::CRON_HOOK);
                 $event = false;
             }
             if (!$event && !wp_next_scheduled(self::CRON_HOOK)) {
@@ -60,6 +64,7 @@ trait UCP_DB_Cleanup_Counts_Trait {
             function_exists('ucp_table_name') ? ucp_table_name('jobs') : '',
             function_exists('ucp_table_name') ? ucp_table_name('logs') : '',
             function_exists('ucp_table_name') ? ucp_table_name('diagnostics') : '',
+            function_exists('ucp_table_name') ? ucp_table_name('cache_events') : '',
         ));
         $safe_tables = array();
         foreach ($tables as $table) {
@@ -105,6 +110,57 @@ trait UCP_DB_Cleanup_Counts_Trait {
         return $count;
     }
 
+    /**
+     * Return revision IDs that the cleanup runner would actually delete.
+     *
+     * @param int|null $keep Revisions to keep per parent.
+     * @return int[]
+     */
+    protected static function revision_ids_for_cleanup($keep = null) {
+        global $wpdb;
+        $keep = null === $keep ? absint(UCP_Options::get('db_keep_post_revisions', 5)) : absint($keep);
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.PreparedSQL.NotPrepared -- read-only candidate selection from the core posts table; no user input.
+        $revision_rows = $wpdb->get_results("SELECT ID, post_parent FROM {$wpdb->posts} WHERE post_type = 'revision' ORDER BY post_parent ASC, post_modified_gmt DESC", ARRAY_A);
+        $grouped = array();
+        foreach ((array) $revision_rows as $revision) {
+            $parent = isset($revision['post_parent']) ? (int) $revision['post_parent'] : 0;
+            $id = isset($revision['ID']) ? (int) $revision['ID'] : 0;
+            if ($id > 0) {
+                $grouped[$parent][] = $id;
+            }
+        }
+
+        $ids = array();
+        foreach ($grouped as $parent_ids) {
+            $ids = array_merge($ids, array_slice($parent_ids, $keep));
+        }
+        return array_values(array_filter(array_map('absint', $ids)));
+    }
+
+    /**
+     * Return the exact post IDs selected by status cleanup.
+     *
+     * @param string $status Post status.
+     * @return int[]
+     */
+    protected static function post_ids_for_status_cleanup($status) {
+        if (!is_scalar($status)) {
+            return array();
+        }
+        $status = sanitize_key((string) $status);
+        if ('' === $status) {
+            return array();
+        }
+        $ids = get_posts(array(
+            'post_status'    => $status,
+            'post_type'      => 'any',
+            'fields'         => 'ids',
+            'posts_per_page' => 500,
+            'no_found_rows'  => true,
+        ));
+        return array_values(array_filter(array_map('absint', (array) $ids)));
+    }
+
     public static function get_counts() {
         global $wpdb;
         $counts = array(
@@ -116,27 +172,39 @@ trait UCP_DB_Cleanup_Counts_Trait {
             'trash_comments' => 0,
             'transients' => 0,
             'expired_transients' => 0,
+            'wc_sessions' => 0,
             'plugin_tables' => 0,
             'wordpress_tables' => 0,
             'optimizable_tables' => 0,
         );
-        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.PreparedSQL.NotPrepared -- read-only dashboard counts.
-        $counts['revisions'] = (int) $wpdb->get_var("SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_type = 'revision'");
-        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.PreparedSQL.NotPrepared -- read-only dashboard counts.
-        $counts['auto_drafts'] = (int) $wpdb->get_var("SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_status = 'auto-draft'");
-        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.PreparedSQL.NotPrepared -- read-only dashboard counts.
-        $counts['drafts'] = (int) $wpdb->get_var("SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_status = 'draft' AND post_type <> 'revision'");
-        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.PreparedSQL.NotPrepared -- read-only dashboard counts.
-        $counts['trash_posts'] = (int) $wpdb->get_var("SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_status = 'trash'");
+        $counts['revisions'] = count(self::revision_ids_for_cleanup());
+        $counts['auto_drafts'] = count(self::post_ids_for_status_cleanup('auto-draft'));
+        $counts['drafts'] = count(self::post_ids_for_status_cleanup('draft'));
+        $counts['trash_posts'] = count(self::post_ids_for_status_cleanup('trash'));
         $counts['spam_comments'] = (int) get_comments(array('status' => 'spam', 'count' => true));
         $counts['trash_comments'] = (int) get_comments(array('status' => 'trash', 'count' => true));
         $transient_like      = $wpdb->esc_like('_transient_') . '%';
         $site_transient_like = $wpdb->esc_like('_site_transient_') . '%';
         $timeout_like        = $wpdb->esc_like('_transient_timeout_') . '%';
+        $site_timeout_like   = $wpdb->esc_like('_site_transient_timeout_') . '%';
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- read-only dashboard counts.
         $counts['transients'] = (int) $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$wpdb->options} WHERE option_name LIKE %s OR option_name LIKE %s", $transient_like, $site_transient_like));
-        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- read-only dashboard counts.
-        $counts['expired_transients'] = (int) $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$wpdb->options} WHERE option_name LIKE %s AND option_value < UNIX_TIMESTAMP()", $timeout_like));
+        // Site transients are stored in this options table only on single-site. Multisite network transients remain untouched.
+        if (function_exists('is_multisite') && is_multisite()) {
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- read-only dashboard counts.
+            $counts['expired_transients'] = (int) $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$wpdb->options} WHERE option_name LIKE %s AND option_value < UNIX_TIMESTAMP()", $timeout_like));
+        } else {
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- read-only dashboard counts.
+            $counts['expired_transients'] = (int) $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$wpdb->options} WHERE (option_name LIKE %s OR option_name LIKE %s) AND option_value < UNIX_TIMESTAMP()", $timeout_like, $site_timeout_like));
+        }
+        if (class_exists('WooCommerce')) {
+            $wc_sessions_table = $wpdb->prefix . 'woocommerce_sessions';
+            if (self::table_exists($wc_sessions_table)) {
+                $quoted_wc_sessions_table = UCP_Helpers::quote_table_name($wc_sessions_table);
+                // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- table identifier is validated and quoted before use; query is read-only.
+                $counts['wc_sessions'] = (int) $wpdb->get_var("SELECT COUNT(*) FROM {$quoted_wc_sessions_table} WHERE session_expiry < UNIX_TIMESTAMP()");
+            }
+        }
         $counts['plugin_tables'] = count(self::plugin_table_names());
         $counts['wordpress_tables'] = count(self::wordpress_table_names());
         $counts['optimizable_tables'] = self::get_optimizable_table_count();
@@ -167,7 +235,7 @@ class UCP_DB_Cleanup {
         // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- plugin diagnostics query against validated WordPress options table identifier.
         $audit['autoload_top'] = $wpdb->get_results("SELECT option_name, LENGTH(option_value) AS bytes FROM {$options_sql} WHERE autoload IN ('yes','on','auto-on','auto') ORDER BY bytes DESC LIMIT 20", ARRAY_A);
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- diagnostics query for the WordPress options table engine.
-        $table = $wpdb->get_row($wpdb->prepare('SHOW TABLE STATUS LIKE %s', $options), ARRAY_A);
+        $table = $wpdb->get_row($wpdb->prepare('SHOW TABLE STATUS LIKE %s', $wpdb->esc_like($options)), ARRAY_A);
         if (is_array($table) && !empty($table['Engine'])) {
             $audit['options_engine'] = (string) $table['Engine'];
         }
@@ -195,10 +263,7 @@ class UCP_DB_Cleanup {
     }
 
     public function handle_convert_options_innodb() {
-        if (!current_user_can('manage_options')) {
-            wp_die(esc_html__('Geen rechten.', 'ultracache-pro'));
-        }
-        check_admin_referer('ucp_convert_options_innodb');
+        UCP_Helpers::require_post_admin_action('ucp_convert_options_innodb');
         if (!UCP_Options::get('db_allow_myisam_innodb_convert')) {
             wp_die(esc_html__('InnoDB-conversie vereist expliciete bevestiging in de instellingen.', 'ultracache-pro'));
         }

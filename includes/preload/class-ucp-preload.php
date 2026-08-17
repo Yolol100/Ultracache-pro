@@ -7,10 +7,13 @@ if (!defined('ABSPATH')) {
 // Consolidated from includes/preload/traits/ucp-preload-schedule-trait.php to reduce one-purpose micro-files while preserving the public UCP_* symbol.
 trait UCP_Preload_Schedule_Trait {
     public static function cron_schedules($schedules) {
+        if (!is_array($schedules)) {
+            $schedules = array();
+        }
         if (!isset($schedules['ucp_twohours'])) {
             $schedules['ucp_twohours'] = array(
                 'interval' => 2 * HOUR_IN_SECONDS,
-                'display'  => __('Every 2 hours', 'ultracache-pro'),
+                'display'  => __('Elke 2 uur', 'ultracache-pro'),
             );
         }
         if (!isset($schedules['ucp_weekly'])) {
@@ -45,7 +48,7 @@ trait UCP_Preload_Schedule_Trait {
         if ($enabled) {
             // Reschedule when the preload interval changes; otherwise WordPress keeps the old cron interval.
             if ($event && isset($event->schedule) && $schedule !== $event->schedule) {
-                wp_unschedule_event($event->timestamp, 'ucp_preload_event', (array) $event->args);
+                wp_clear_scheduled_hook('ucp_preload_event');
                 $event = false;
             }
             if (!$event && !wp_next_scheduled('ucp_preload_event')) {
@@ -62,10 +65,7 @@ trait UCP_Preload_Schedule_Trait {
 // Consolidated from includes/preload/traits/ucp-preload-admin-trait.php to reduce one-purpose micro-files while preserving the public UCP_* symbol.
 trait UCP_Preload_Admin_Trait {
     public function handle_manual_preload() {
-        if (!current_user_can('manage_options')) {
-            wp_die(esc_html__('Geen toegang.', 'ultracache-pro'), '', array('response' => 403));
-        }
-        check_admin_referer('ucp_run_preload');
+        UCP_Helpers::require_post_admin_action('ucp_run_preload');
 
         if (UCP_Options::get('enable_preload_queue') && class_exists('UCP_Jobs')) {
             $queued = $this->seed_preload_queue();

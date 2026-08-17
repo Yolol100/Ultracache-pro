@@ -73,11 +73,11 @@ trait UCP_Optimizer_Core_Bloat_Trait {
             }
         }
         if (UCP_Options::get('enable_disable_comments')) {
-            add_filter('comments_open', '__return_false', 20, 2);
-            add_filter('pings_open', '__return_false', 20, 2);
+            add_filter('comments_open', '__return_false', 20, 0);
+            add_filter('pings_open', '__return_false', 20, 0);
         }
         if (UCP_Options::get('enable_remove_comment_links')) {
-            add_filter('comments_array', '__return_empty_array', 20, 2);
+            add_filter('comments_array', '__return_empty_array', 20, 0);
             remove_action('wp_head', 'feed_links_extra', 3);
         }
         if (UCP_Options::get('enable_blank_favicon') && !has_site_icon()) {
