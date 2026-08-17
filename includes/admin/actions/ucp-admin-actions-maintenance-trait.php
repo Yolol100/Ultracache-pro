@@ -147,8 +147,8 @@ trait UCP_Admin_Actions_Maintenance_Trait {
         $count = 0;
         foreach ((array) $files as $file) {
             $raw = is_readable($file) ? UCP_Helpers::read_file($file) : '';
-            UCP_Helpers::safe_json_decode((string) $raw, true);
-            if (JSON_ERROR_NONE !== json_last_error()) {
+            $decoded = UCP_Helpers::safe_json_decode((string) $raw, true);
+            if (!is_array($decoded)) {
                 $ok = 0;
                 break;
             }
