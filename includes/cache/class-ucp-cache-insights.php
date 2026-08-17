@@ -77,7 +77,7 @@ final class UCP_Cache_Insights {
     private static function insert($event) {
         global $wpdb;
         $table = self::table_name();
-        if ('' === $table) {
+        if ('' === $table || (defined('UCP_VERSION') && UCP_VERSION !== (string) get_option('ucp_db_version', ''))) {
             return false;
         }
         $context = isset($event['context']) && is_array($event['context']) ? $event['context'] : array();
