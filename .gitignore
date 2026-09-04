@@ -1,0 +1,12 @@
+# Generated release artifacts
+/*.zip
+/*.sha256
+/SHA256SUMS.txt
+/dist/
+/build-artifacts/
+
+# Local/runtime artifacts
+*.log
+.cache/
+node_modules/
+vendor/
