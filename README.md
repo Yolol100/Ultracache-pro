@@ -4,7 +4,7 @@
 
 UltraCache Pro is a modular WordPress performance plugin focused on safe caching and front-end optimization. It combines full-page caching, preload, CSS/JavaScript optimization, media optimization, diagnostics and WooCommerce-aware safeguards.
 
-**Built by:** [Andrew Baeten](https://github.com/Yolol100) · [Portfolio](https://andrewbaeten.nl)
+**Built by:** [Andrew Baeten](https://github.com/Yolol100) · [Portfolio cases](https://andrewbaeten.nl/category/cases)
 
 ## What problem it solves
 
@@ -53,7 +53,7 @@ The full WordPress.org-style feature, installation, privacy and changelog docume
 
 I am **Andrew Baeten**, a WordPress Developer & Web Designer with 10+ years of experience across **70+ WordPress projects**. My work combines WordPress, WooCommerce, Elementor, UX, performance, technical SEO and quality-focused delivery.
 
-[Portfolio](https://andrewbaeten.nl) · [LinkedIn](https://www.linkedin.com/in/andrew-baeten-305a1478/) · [Email](mailto:info@andrewbaeten.nl)
+[Portfolio cases](https://andrewbaeten.nl/category/cases) · [LinkedIn](https://www.linkedin.com/in/andrew-baeten-305a1478/) · [Email](mailto:info@andrewbaeten.nl)
 
 ## License
 
