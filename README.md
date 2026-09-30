@@ -21,6 +21,17 @@ Performance work often involves multiple interacting systems: page cache, browse
 | Diagnostics | Cache insights, purge history, support reports and Core Web Vitals sampling |
 | Security | Input validation, signed compatibility overlays, secret redaction and safe filesystem boundaries |
 
+## Workflow at a glance
+
+```mermaid
+flowchart LR
+    A[Incoming request] --> B[Eligibility and WooCommerce safeguards]
+    B --> C[Cache and preload layer]
+    C --> D[Frontend optimization]
+    D --> E[Response]
+    F[Diagnostics and purge controls] --> C
+```
+
 ## Safe operating model
 
 - Start with conservative caching and media settings.
