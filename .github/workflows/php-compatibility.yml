@@ -110,7 +110,18 @@ jobs:
           mkdir -p "$plugin_dir"
           rsync -a --exclude='.git/' "$GITHUB_WORKSPACE/" "$plugin_dir/"
           rm -f "$runtime/wp-content/debug.log"
-          php /tmp/wp-cli.phar plugin activate ultracache-pro --path="$runtime"
+          php /tmp/wp-cli.phar eval '
+          require_once ABSPATH . "wp-admin/includes/plugin.php";
+          $result = activate_plugin("ultracache-pro/ultracache-pro.php");
+          if (is_wp_error($result)) {
+              fwrite(STDERR, "ACTIVATION_ERROR=" . $result->get_error_message() . PHP_EOL);
+              $data = $result->get_error_data();
+              if (is_string($data) && "" !== $data) {
+                  fwrite(STDERR, "ACTIVATION_OUTPUT_BASE64=" . base64_encode($data) . PHP_EOL);
+              }
+              exit(1);
+          }
+          ' --path="$runtime"
           php /tmp/wp-cli.phar plugin status ultracache-pro --path="$runtime"
           php /tmp/wp-cli.phar plugin deactivate ultracache-pro --path="$runtime"
           php /tmp/wp-cli.phar plugin activate ultracache-pro --path="$runtime"
