@@ -60,6 +60,12 @@ Key areas to inspect:
 
 The full WordPress.org-style feature, installation, privacy and changelog documentation remains in [`readme.txt`](readme.txt).
 
+## Verification
+
+GitHub Actions now combines the PHP syntax matrix with clean WordPress activation/deactivation checks on the minimum supported WordPress release and WordPress 7.1. The runtime gate is intentionally narrow: it proves bootstrap compatibility without claiming that every caching, WooCommerce or front-end optimization path has been exercised.
+
+See [PHP compatibility](.github/workflows/php-compatibility.yml) for the executable contract.
+
 ## About the developer
 
 I am **Andrew Baeten**, a WordPress Developer with 10+ years of experience across **90+ WordPress projects** and ongoing responsibility for **120+ websites and webshops**. My work combines WordPress, WooCommerce, Elementor, UX, performance, technical SEO and quality-focused delivery.
