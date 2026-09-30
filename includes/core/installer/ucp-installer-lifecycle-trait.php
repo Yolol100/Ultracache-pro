@@ -693,6 +693,19 @@ trait UCP_Installer_Lifecycle_Trait {
      */
     protected static function activate_single_site_unlocked($token) {
         $created_defaults = UCP_Options::maybe_init_defaults();
+
+        // Fresh-install option migrations can invalidate cache state and record cache
+        // insights. Create plugin-owned tables before those hooks can write to them.
+        if (!self::create_tables()) {
+            if (class_exists('UCP_Diagnostics')) {
+                UCP_Diagnostics::record('upgrade', 'UltraCache activation stopped because the database schema could not be verified.', array(
+                    'to' => UCP_VERSION,
+                ));
+            }
+            return false;
+        }
+
+        self::assert_upgrade_lock($token, 'activation_schema');
         UCP_Options::maybe_apply_performance_migration();
         UCP_Options::maybe_upgrade_exact_transaction_rules_v1();
         self::assert_upgrade_lock($token, 'activation_options');
@@ -735,16 +748,6 @@ trait UCP_Installer_Lifecycle_Trait {
         }
         self::assert_upgrade_lock($token, 'activation_runtime_files');
 
-        if (!self::create_tables()) {
-            if (class_exists('UCP_Diagnostics')) {
-                UCP_Diagnostics::record('upgrade', 'UltraCache activation stopped because the database schema could not be verified.', array(
-                    'to' => UCP_VERSION,
-                ));
-            }
-            return false;
-        }
-
-        self::assert_upgrade_lock($token, 'activation_schema');
         self::schedule_events();
         self::assert_upgrade_lock($token, 'activation_scheduling');
 
