@@ -692,6 +692,16 @@ trait UCP_Installer_Lifecycle_Trait {
      * @return bool
      */
     protected static function activate_single_site_unlocked($token) {
+        if (!self::create_tables()) {
+            if (class_exists('UCP_Diagnostics')) {
+                UCP_Diagnostics::record('upgrade', 'UltraCache activation stopped because the database schema could not be verified.', array(
+                    'to' => UCP_VERSION,
+                ));
+            }
+            return false;
+        }
+        self::assert_upgrade_lock($token, 'activation_schema');
+
         $created_defaults = UCP_Options::maybe_init_defaults();
 
         // Fresh-install option migrations can invalidate cache state and record cache
