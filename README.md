@@ -46,6 +46,18 @@ flowchart LR
 - PHP 8.0+
 - Current stable version: see [`readme.txt`](readme.txt)
 
+## What a store owner needs to know
+
+A faster-looking site is not a success if a customer's cart, account or checkout behaves incorrectly. This plugin combines caching and frontend optimization with explicit rules for dynamic WooCommerce routes.
+
+**Suggested staging walkthrough:** Enable conservative settings, test product → cart → checkout → account paths, then introduce CSS/JavaScript optimization one feature at a time. Recheck forms, consent, login and checkout after each change. Keep a rollback plan.
+
+### How to prove a performance improvement
+
+Compare **before and after** on the **same staging site**, with matching URLs, device/network settings, data and cache-warmup state. Record multiple Lighthouse lab runs, browser checks, the plugin configuration, and any regressions to cart or checkout. Where possible, also compare real-user Core Web Vitals data. Publish an actual reproducible report *before* claiming a speed increase.
+
+**Current evidence boundary:** [PHP and WordPress boot checks](#verification) establish syntax and clean activation/deactivation on specified versions—not a measured PageSpeed uplift or end-to-end WooCommerce compatibility.
+
 ## Technical review
 
 Key areas to inspect:
