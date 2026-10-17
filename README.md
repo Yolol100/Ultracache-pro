@@ -32,6 +32,18 @@ flowchart LR
     F[Diagnostics and purge controls] --> C
 ```
 
+## How to verify a performance improvement
+
+This project includes caching and frontend optimization capabilities; **no published benchmark here proves a speed increase on every website**. For a fair evaluation on an authorized staging site:
+
+1. Keep the same content, hosting, WordPress/PHP versions, theme, plugin set and traffic conditions for both runs.
+2. Record a baseline **before enabling optimizations**. Test representative home, content and product pages on mobile and desktop with repeatable Lighthouse settings, plus server response times.
+3. Enable one cache or asset optimization at a time. Repeat runs with equivalent cold/warm cache conditions; compare distributions, not just one favourable score.
+4. Verify logged-out pages and **logged-in, cart, checkout and account flows** independently; confirm personalized pages are never served from an unrelated visitor's cache.
+5. Review visual differences, forms, analytics/consent scripts, request errors and rollback. Publish dated before/after measurements with environment details only when actually collected.
+
+**Evidence boundary:** the [current compatibility workflow](.github/workflows/php-compatibility.yml) tests PHP syntax and clean WordPress bootstrap. It does **not** establish real-world Core Web Vitals, checkout correctness under load or a production improvement percentage.
+
 ## Safe operating model
 
 - Start with conservative caching and media settings.
