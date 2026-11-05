@@ -262,27 +262,47 @@ if (!function_exists('ucp_dropin_cookie_header_is_safe')) {
         if (!is_scalar($cookie_header)) {
             return false;
         }
-        $cookie_header = trim((string) $cookie_header);
+        $cookie_header = (string) $cookie_header;
+        if (strlen($cookie_header) > 16384 || preg_match('/[\x00-\x1F\x7F]/', $cookie_header)) {
+            return false;
+        }
+        $cookie_header = trim($cookie_header);
         if ('' === $cookie_header) {
             return true;
         }
-        foreach (explode(';', $cookie_header) as $pair) {
+        $pairs = explode(';', $cookie_header);
+        if (count($pairs) > 128) {
+            return false;
+        }
+        foreach ($pairs as $pair) {
+            if (strlen($pair) > 4352) {
+                return false;
+            }
             $parts = explode('=', trim($pair), 2);
             $name = isset($parts[0]) ? trim((string) $parts[0]) : '';
-            if (!ucp_dropin_cookie_name_is_valid($name)) {
+            $value = isset($parts[1]) ? (string) $parts[1] : '';
+            if (!ucp_dropin_cookie_name_is_valid($name) || strlen($name) > 256 || strlen($value) > 4096) {
                 return false;
             }
             $normalized_name = strtolower($name);
+            $checked = 0;
             foreach ((array) $exclude_cookies as $fragment) {
+                if (++$checked > 128) {
+                    return false;
+                }
                 $fragment = ucp_dropin_sanitize_key((string) $fragment);
                 if ('' !== $fragment && false !== strpos($normalized_name, $fragment)) {
                     return false;
                 }
             }
             $safe = false;
+            $checked = 0;
             foreach ((array) $safe_cookies as $prefix) {
+                if (++$checked > 128) {
+                    return false;
+                }
                 $prefix = trim((string) $prefix);
-                if (!ucp_dropin_cookie_name_is_valid($prefix)) {
+                if (!ucp_dropin_cookie_name_is_valid($prefix) || strlen($prefix) > 256) {
                     continue;
                 }
                 if (0 === strpos($name, $prefix)) {

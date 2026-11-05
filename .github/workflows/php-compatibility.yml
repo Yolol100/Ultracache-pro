@@ -38,6 +38,9 @@ jobs:
             | sort -z \
             | xargs -0 -n1 php -l
 
+      - name: Early drop-in versus runtime Cookie-header contract
+        run: php tests/cache-cookie-header-parity.php
+
 
   wordpress-runtime:
     name: WordPress ${{ matrix.wordpress }} / PHP ${{ matrix.php }}

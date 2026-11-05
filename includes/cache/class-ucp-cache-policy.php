@@ -343,12 +343,13 @@ final class UCP_Cache_Policy {
         if (!is_scalar($cookie_header)) {
             return false;
         }
-        $cookie_header = trim((string) $cookie_header);
-        if ('' === $cookie_header) {
-            return true;
-        }
+        $cookie_header = (string) $cookie_header;
         if (strlen($cookie_header) > 16384 || preg_match('/[\x00-\x1F\x7F]/', $cookie_header)) {
             return false;
+        }
+        $cookie_header = trim($cookie_header);
+        if ('' === $cookie_header) {
+            return true;
         }
         $pairs = explode(';', $cookie_header);
         if (count($pairs) > 128) {
