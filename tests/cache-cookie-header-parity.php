@@ -29,8 +29,8 @@ $cases = [
     'two safe cookies' => ['ct_safe=ok; _ga=analytics', true],
     'WordPress login cookie' => ['wordpress_logged_in_123=secret', false],
     'unknown private cookie' => ['custom_private=secret', false],
-    'CRLF inside known cookie' => ["ct_safe=ok\\r\\nInjected: yes", false],
-    'NUL inside known cookie' => ["ct_safe=ok\\0", false],
+    'CRLF inside known cookie' => ["ct_safe=ok\r\nInjected: yes", false],
+    'NUL inside known cookie' => ["ct_safe=ok\0", false],
     'cookie value above byte limit' => ['ct_safe=' . str_repeat('x', 4097), false],
     'more than 128 cookie pairs' => [implode('; ', array_fill(0, 129, 'ct_safe=1')), false],
     'cookie header above 16 KiB' => ['ct_safe=' . str_repeat('a', 16400), false],
@@ -46,7 +46,7 @@ foreach ($cases as $label => $row) {
     );
     if ($runtime !== $expected || $dropin !== $expected) {
         fwrite(STDERR, sprintf(
-            "Cookie policy drift (%s): expected %s, runtime %s, drop-in %s\\n",
+            "Cookie policy drift (%s): expected %s, runtime %s, drop-in %s\n",
             $label,
             $expected ? 'allow' : 'deny',
             $runtime ? 'allow' : 'deny',
@@ -56,4 +56,4 @@ foreach ($cases as $label => $row) {
     }
 }
 
-echo "UltraCache early and runtime Cookie-header policies agree: OK\\n";
+echo "UltraCache early and runtime Cookie-header policies agree: OK\n";
